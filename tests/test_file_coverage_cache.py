@@ -1,0 +1,1449 @@
+#!/usr/bin/env python3
+"""
+Test-File-Based Coverage Cache
+
+Provides test-file-based caching for test coverage data, enabling granular cache invalidation.
+Each test file is associated with one or more domains. When source files in a domain change,
+only test files that cover that domain need to be re-run.
+
+This approach is more granular than domain-based caching and provides real time savings:
+- When a domain changes, only test files covering that domain are invalidated
+- Only those test files need to be re-run
+- Cached coverage from unchanged test files is merged with fresh coverage from re-run test files
+
+Usage:
+    from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache
+
+    cache = TestFileCoverageCache(project_root)
+    changed_domains = cache.get_changed_domains()
+    test_files_to_run = cache.get_test_files_to_run(changed_domains)
+    # Run only test_files_to_run
+    # Merge cached coverage from other test files with fresh coverage
+"""
+
+import json
+import os
+import time
+import hashlib
+from copy import deepcopy
+from pathlib import Path
+from typing import Any
+from collections.abc import Iterable
+from datetime import datetime
+
+# Try to import file locking (Unix/Linux); use getattr so Pyright is happy on Windows stubs
+try:
+    import fcntl
+
+    HAS_FCNTL = True
+    FCNTL_FLOCK = getattr(fcntl, "flock", None)
+    FCNTL_LOCK_SH = getattr(fcntl, "LOCK_SH", 0)
+    FCNTL_LOCK_EX = getattr(fcntl, "LOCK_EX", 0)
+    FCNTL_LOCK_UN = getattr(fcntl, "LOCK_UN", 0)
+except ImportError:
+    HAS_FCNTL = False
+    FCNTL_FLOCK = None
+    FCNTL_LOCK_SH = 0
+    FCNTL_LOCK_EX = 0
+    FCNTL_LOCK_UN = 0
+
+# Try to import Windows file locking
+try:
+    import msvcrt
+
+    HAS_MSVCRT = True
+except ImportError:
+    HAS_MSVCRT = False
+
+try:
+    from development_tools.shared.logging import get_dev_tools_logger
+
+    logger = get_dev_tools_logger("development_tools")
+except ImportError:
+    logger = None
+
+from .domain_mapper import DomainMapper
+from .pytest_isolation import DEFAULT_TOOLS_TEST_PATHS
+from development_tools.shared.mtime_cache import hash_file_sha256, resolve_config_identity
+from development_tools.shared.time_helpers import (
+    now_timestamp_full,
+    now_timestamp_filename,
+)
+from development_tools.shared.cache_dependency_paths import (
+    coverage_config_paths,
+    static_check_config_paths,
+)
+from development_tools.shared.standard_exclusions import should_exclude_file
+import contextlib
+
+
+class TestFileCoverageCache:
+    """
+    Test-file-based cache for test coverage data.
+
+    Tracks:
+    - Source file modification times per domain (to detect changes)
+    - Test file -> domains mapping (which domains each test file covers)
+    - Test file -> coverage data (coverage data from each test file)
+
+    When a domain changes, invalidates cache for all test files that cover that domain.
+
+    **Invalidation matrix** (``get_changed_domains``), highest priority first:
+
+    1. **tool_change** - Coverage script/tool hash changed -> **all** domains (safety).
+    2. **previous_run_failed** - Uses ``last_failed_domains`` if set, else ``last_run_domains``,
+       else **all** domains if no domain list was recorded.
+    3. **previous_run_missing_no_parallel_coverage** - **all** domains.
+    4. **config_changed** - ``development_tools_config.json`` *content* changed -> **all** domains.
+       mtime-only rewrites (same bytes) do not invalidate.
+    5. **test_file_set_changed** - Test path set differs from cache:
+
+       - If cache had no prior ``test_files`` entries -> **all** domains (cold/first mapping).
+       - Else -> **selective**: domains implied only by **added** / **removed** paths (from
+         on-disk mapping + cached ``domains`` entries). Falls back to **all** domains when
+         narrowing is ambiguous (e.g. removed file had no cached domains).
+    6. **test_file_content_or_mapping_changed** - Same paths, mtime/content drift -> affected
+       domains + dependency expansion.
+    7. **source_domain_changed** - Source ``*.py`` mtimes vs snapshot; new domains in mapper
+       with no snapshot yet.
+
+    Use ``last_invalidation_reason``, ``last_invalidation_detail``, and
+    ``invalidation_counters`` for operator/debug visibility.
+    """
+
+    DEFAULT_EXCLUDED_TEST_DIRS = [
+        "tests/data",  # Test data directory - contains temporary test data files
+    ]
+
+    def __init__(
+        self,
+        project_root: Path,
+        cache_dir: Path | None = None,
+        mapper_config: dict[str, Any] | None = None,
+    ):
+        """
+        Initialize test-file-based coverage cache.
+
+        Args:
+            project_root: Root directory of the project
+            cache_dir: Optional cache directory (default: development_tools/tests/jsons/)
+            mapper_config: Optional domain-mapper dict forwarded to ``DomainMapper``.
+                Scratch-project tests should pass the built-in defaults so xdist
+                workers are not affected by other tests reloading config.
+        """
+        self.project_root = Path(project_root).resolve()
+        self.domain_mapper = DomainMapper(
+            self.project_root, mapper_config=mapper_config
+        )
+        self.test_root = self.project_root / "tests"
+
+        if cache_dir is None:
+            # Store cache file in jsons/ directory like other JSON files
+            cache_dir = self.project_root / "development_tools" / "tests" / "jsons"
+        self.cache_dir = Path(cache_dir)
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+
+        self.cache_file = self.cache_dir / "test_file_coverage_cache.json"
+        self.cache_data: dict[str, Any] = {}
+        self.tool_paths = self._get_default_tool_paths()
+        # Full coverage JSON cache (for when no domains change)
+        self.full_coverage_cache_key = "_full_coverage_json"
+
+        # Directories to exclude when discovering test files (test data, temp files, etc.)
+        self.excluded_test_dirs = list(self.DEFAULT_EXCLUDED_TEST_DIRS)
+        self._load_cache()
+        self._cached_changed_domains: set[str] | None = None
+        self.last_invalidation_reason: str | None = None
+        self.last_invalidation_detail: dict[str, Any] | None = None
+        self.invalidation_counters: dict[str, Any] = {}
+
+    def _get_default_tool_paths(self) -> tuple[Path, ...]:
+        """Return tool paths used to compute cache invalidation hash.
+
+        Coverage scripts are listed here; shared config paths match
+        ``STATIC_CHECK_CONFIG_RELATIVE_PATHS`` (see ``cache_dependency_paths``)
+        so invalidation stays aligned with static-check caching.
+        """
+        coverage_tool_scripts = (
+            self.project_root / "development_tools" / "tests" / "run_test_coverage.py",
+            self.project_root / "development_tools" / "tests" / "test_file_coverage_cache.py",
+            self.project_root / "development_tools" / "tests" / "dev_tools_coverage_cache.py",
+            self.project_root / "development_tools" / "tests" / "domain_mapper.py",
+        )
+        combined = (
+            *coverage_tool_scripts,
+            *static_check_config_paths(self.project_root),
+            *coverage_config_paths(self.project_root),
+        )
+        return tuple(path for path in combined if path.exists())
+
+    def _default_cache_data(self) -> dict[str, Any]:
+        """Return default cache payload for new/legacy cache files."""
+        return {
+            "cache_version": "2.1",
+            "source_files_mtime": {},  # domain -> {file_path: mtime}
+            "test_files": {},  # test_file_path -> {domains: [], coverage_data: {}, last_run: timestamp}
+            "test_files_mtime": {},  # test_file_path -> mtime
+            "config_mtime": None,
+            "config_hash": None,
+            "tool_hash": None,
+            "tool_mtimes": {},
+            "last_run_ok": None,
+            "last_parallel_ok": None,
+            "last_no_parallel_ok": None,
+            "last_no_parallel_coverage_present": None,
+            "last_failed_domains": [],
+            "last_run_domains": [],
+            "last_run_at": None,
+            "last_updated": None,
+        }
+
+    def _ensure_cache_schema(self) -> bool:
+        """Normalize loaded cache payload and backfill missing metadata."""
+        changed = False
+        defaults = self._default_cache_data()
+
+        if not isinstance(self.cache_data, dict):
+            self.cache_data = {}
+            changed = True
+
+        for key, default_value in defaults.items():
+            if key not in self.cache_data:
+                self.cache_data[key] = deepcopy(default_value)
+                changed = True
+
+        dict_keys = ["source_files_mtime", "test_files", "test_files_mtime", "tool_mtimes"]
+        for key in dict_keys:
+            if not isinstance(self.cache_data.get(key), dict):
+                self.cache_data[key] = {}
+                changed = True
+
+        list_keys = ["last_failed_domains", "last_run_domains"]
+        for key in list_keys:
+            if not isinstance(self.cache_data.get(key), list):
+                self.cache_data[key] = []
+                changed = True
+
+        config_mtime = self.cache_data.get("config_mtime")
+        if config_mtime is not None and not isinstance(config_mtime, (int, float)):
+            self.cache_data["config_mtime"] = None
+            changed = True
+
+        config_hash = self.cache_data.get("config_hash")
+        if config_hash is not None and not isinstance(config_hash, str):
+            self.cache_data["config_hash"] = None
+            changed = True
+
+        tool_hash = self.cache_data.get("tool_hash")
+        if tool_hash is not None and not isinstance(tool_hash, str):
+            self.cache_data["tool_hash"] = None
+            changed = True
+
+        if not isinstance(self.cache_data.get("cache_version"), str):
+            self.cache_data["cache_version"] = defaults["cache_version"]
+            changed = True
+
+        if self.cache_data.get("tool_hash") is None:
+            backfilled_tool_hash = self._compute_tool_hash()
+            if backfilled_tool_hash:
+                self.cache_data["tool_hash"] = backfilled_tool_hash
+                changed = True
+
+        if not self.cache_data.get("tool_mtimes"):
+            self.cache_data["tool_mtimes"] = self._get_tool_mtimes()
+            changed = True
+
+        if self.cache_data.get("config_mtime") is None:
+            before_mtime = self.cache_data.get("config_mtime")
+            self._update_config_mtime()
+            if self.cache_data.get("config_mtime") != before_mtime:
+                changed = True
+        elif not self.cache_data.get("config_hash"):
+            identity = resolve_config_identity(
+                self._get_config_file_path(),
+                cached_mtime=self.cache_data.get("config_mtime"),
+                cached_hash=None,
+            )
+            if identity.verdict == "unchanged" and identity.content_hash:
+                self.cache_data["config_hash"] = identity.content_hash
+                changed = True
+
+        return changed
+
+    def _compute_tool_hash(self) -> str | None:
+        """Compute a hash for coverage tool source files."""
+        if not self.tool_paths:
+            return None
+        hasher = hashlib.sha256()
+        has_data = False
+        for path in self.tool_paths:
+            try:
+                if not path.exists() or not path.is_file():
+                    continue
+                hasher.update(path.read_bytes())
+                has_data = True
+            except Exception:
+                return None
+        return hasher.hexdigest() if has_data else None
+
+    def _get_tool_mtimes(self) -> dict[str, float]:
+        """Return mtimes for tool source files."""
+        mtimes: dict[str, float] = {}
+        for path in self.tool_paths:
+            try:
+                if not path.exists():
+                    continue
+                mtimes[str(path.relative_to(self.project_root))] = path.stat().st_mtime
+            except Exception:
+                continue
+        return mtimes
+
+    def is_valid_test_file(self, test_file: Path) -> bool:
+        """
+        Check if a file is a valid test file (not test data or temporary file).
+
+        Args:
+            test_file: Path to potential test file
+
+        Returns:
+            True if file should be included, False if it should be excluded
+        """
+        return not self._is_excluded_test_path(test_file)
+
+    def _is_excluded_test_path(self, path: Path) -> bool:
+        """Return True when path is under an excluded test directory."""
+        try:
+            rel_path = str(path.relative_to(self.project_root)).replace("\\", "/")
+            if should_exclude_file(
+                rel_path, tool_type="analysis", context="development"
+            ):
+                return True
+        except ValueError:
+            # Path may be outside project_root in some edge cases.
+            pass
+
+        excluded_dirs = getattr(self, "excluded_test_dirs", None)
+        if not isinstance(excluded_dirs, list) or not excluded_dirs:
+            excluded_dirs = self.DEFAULT_EXCLUDED_TEST_DIRS
+            # Backfill instance state for legacy/partial instances.
+            self.excluded_test_dirs = list(excluded_dirs)
+        for excluded_dir in excluded_dirs:
+            excluded_path = self.project_root / Path(excluded_dir)
+            if path.is_relative_to(excluded_path):
+                return True
+        return False
+
+    def _iter_test_files(self) -> Iterable[Path]:
+        """Iterate test files while tolerating transient ACL/path errors."""
+        def _on_walk_error(_error):
+            # Ignore inaccessible folders so cache bookkeeping remains best-effort.
+            return
+
+        roots = [self.test_root]
+        roots.extend(self.project_root / path for path in DEFAULT_TOOLS_TEST_PATHS)
+        for test_root in roots:
+            for root, dirs, files in os.walk(test_root, onerror=_on_walk_error):
+                root_path = Path(root)
+                dirs[:] = [
+                    dirname
+                    for dirname in dirs
+                    if not self._is_excluded_test_path(root_path / dirname)
+                ]
+
+                for filename in files:
+                    if not filename.startswith("test_") or not filename.endswith(".py"):
+                        continue
+                    test_file = root_path / filename
+                    if self.is_valid_test_file(test_file):
+                        yield test_file
+
+    def _load_cache(self) -> None:
+        """Load cache from disk with file locking for thread safety."""
+        schema_changed = False
+        if self.cache_file.exists():
+            try:
+                max_retries = 5
+                retry_delay = 0.1
+                for attempt in range(max_retries):
+                    try:
+                        with open(self.cache_file, encoding="utf-8") as f:
+                            if HAS_FCNTL:
+                                try:
+                                    if FCNTL_FLOCK is not None:
+                                        FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_SH)
+                                except (OSError, AttributeError):
+                                    pass
+                            elif HAS_MSVCRT:
+                                with contextlib.suppress(OSError, AttributeError):
+                                    msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
+
+                            self.cache_data = json.load(f)
+
+                            if HAS_FCNTL:
+                                try:
+                                    if FCNTL_FLOCK is not None:
+                                        FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
+                                except (OSError, AttributeError):
+                                    pass
+                            elif HAS_MSVCRT:
+                                with contextlib.suppress(OSError, AttributeError):
+                                    msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+
+                            if logger:
+                                test_files_count = len(
+                                    self.cache_data.get("test_files", {})
+                                )
+                                logger.debug(
+                                    f"Loaded test-file coverage cache with {test_files_count} test files"
+                                )
+                            break
+                    except OSError:
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            retry_delay *= 2
+                        else:
+                            raise
+            except Exception as e:
+                if logger:
+                    logger.warning(f"Failed to load test-file coverage cache: {e}")
+                self.cache_data = self._default_cache_data()
+        else:
+            self.cache_data = self._default_cache_data()
+
+        schema_changed = self._ensure_cache_schema()
+        if self._normalize_test_files_cache_keys():
+            schema_changed = True
+        if schema_changed:
+            try:
+                self._save_cache()
+                # Windows file locking can briefly delay atomic replace visibility.
+                # Retry once if persisted metadata still looks stale.
+                persisted_tool_hash = None
+                if self.cache_file.exists():
+                    try:
+                        persisted_payload = json.loads(
+                            self.cache_file.read_text(encoding="utf-8")
+                        )
+                        persisted_tool_hash = persisted_payload.get("tool_hash")
+                    except Exception:
+                        persisted_tool_hash = None
+                if not isinstance(persisted_tool_hash, str):
+                    time.sleep(0.05)
+                    self._save_cache()
+                if logger:
+                    logger.debug(
+                        "Backfilled test-file coverage cache metadata for legacy/missing schema fields"
+                    )
+            except Exception as e:
+                if logger:
+                    logger.debug(f"Failed to persist cache schema backfill: {e}")
+
+    def _save_cache(self) -> None:
+        """Save cache to disk with file locking and atomic write for thread safety."""
+        try:
+            self._update_config_mtime()
+            self.cache_data["tool_hash"] = self._compute_tool_hash()
+            self.cache_data["tool_mtimes"] = self._get_tool_mtimes()
+            self.cache_data["test_files_mtime"] = self._get_current_test_file_mtimes()
+            timestamp_str = now_timestamp_full()
+            timestamp_iso = now_timestamp_filename()
+            self.cache_data["last_updated"] = timestamp_iso
+            self.cache_data["last_updated_readable"] = timestamp_str
+            self.cache_data["generated_by"] = (
+                "TestFileCoverageCache - Development Tools"
+            )
+            self.cache_data["note"] = (
+                "This file is auto-generated. Do not edit manually."
+            )
+
+            temp_file = self.cache_file.with_suffix(".tmp")
+            max_retries = 5
+            retry_delay = 0.1
+
+            for attempt in range(max_retries):
+                try:
+                    with open(temp_file, "w", encoding="utf-8") as f:
+                        if HAS_FCNTL:
+                            try:
+                                if FCNTL_FLOCK is not None:
+                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_EX)
+                            except (OSError, AttributeError):
+                                pass
+                        elif HAS_MSVCRT:
+                            with contextlib.suppress(OSError, AttributeError):
+                                msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, 1)
+
+                        json.dump(self.cache_data, f, indent=2)
+                        f.flush()
+                        os.fsync(f.fileno())
+
+                        if HAS_FCNTL:
+                            try:
+                                if FCNTL_FLOCK is not None:
+                                    FCNTL_FLOCK(f.fileno(), FCNTL_LOCK_UN)
+                            except (OSError, AttributeError):
+                                pass
+                        elif HAS_MSVCRT:
+                            with contextlib.suppress(OSError, AttributeError):
+                                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+
+                    temp_file.replace(self.cache_file)
+
+                    if logger:
+                        logger.debug("Saved test-file coverage cache")
+                    break
+                except OSError:
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay)
+                        retry_delay *= 2
+                    else:
+                        raise
+        except Exception as e:
+            if logger:
+                logger.warning(f"Failed to save test-file coverage cache: {e}")
+
+    def _get_config_file_path(self) -> Path | None:
+        """Get the path to the development_tools_config.json file."""
+        try:
+            import development_tools.config.config as config_module
+
+            if (
+                hasattr(config_module, "_config_file_path")
+                and config_module._config_file_path
+            ):
+                return Path(config_module._config_file_path)
+        except Exception:
+            pass
+
+        try:
+            config_file = (
+                self.project_root
+                / "development_tools"
+                / "config"
+                / "development_tools_config.json"
+            )
+            if config_file.exists():
+                return config_file
+        except Exception:
+            pass
+        return None
+
+    def _update_config_mtime(self) -> None:
+        """Store current config file mtime and content hash in cache metadata."""
+        config_path = self._get_config_file_path()
+        if not config_path or not config_path.exists():
+            return
+        with contextlib.suppress(Exception):
+            self.cache_data["config_mtime"] = config_path.stat().st_mtime
+        content_hash = hash_file_sha256(config_path)
+        if content_hash is not None:
+            self.cache_data["config_hash"] = content_hash
+
+    def _config_changed(self) -> bool:
+        """Return True if config file *content* differs from the cached identity."""
+        identity = resolve_config_identity(
+            self._get_config_file_path(),
+            cached_mtime=self.cache_data.get("config_mtime"),
+            cached_hash=self.cache_data.get("config_hash"),
+        )
+        if identity.mtime is not None:
+            self.cache_data["config_mtime"] = identity.mtime
+        if identity.content_hash is not None:
+            self.cache_data["config_hash"] = identity.content_hash
+        return identity.verdict in {"first_seen", "content_changed"}
+
+    def _tool_changed(self) -> bool:
+        """Return True if tool hash differs from cached value."""
+        return self._get_tool_change_reason() is not None
+
+    def _get_tool_change_reason(self) -> str | None:
+        """
+        Return explicit tool-change invalidation reason, if any.
+
+        Returns:
+            A reason string if tools changed, otherwise None.
+        """
+        current_hash = self._compute_tool_hash()
+        if not current_hash:
+            return None
+        cached_hash = self.cache_data.get("tool_hash")
+        if cached_hash is None:
+            return "tool hash missing from cache metadata"
+        if not isinstance(cached_hash, str):
+            return "tool hash in cache metadata has invalid type"
+        if current_hash != cached_hash:
+            return f"tool hash mismatch (cached={cached_hash[:12]}, current={current_hash[:12]})"
+        return None
+
+    def _get_current_test_file_mtimes(self) -> dict[str, float]:
+        """Return current mtimes for all valid test files."""
+        mtimes: dict[str, float] = {}
+        for test_file in self._iter_test_files():
+            try:
+                mtimes[self._test_file_rel(test_file)] = test_file.stat().st_mtime
+            except OSError:
+                continue
+        return mtimes
+
+    def _get_domains_affected_by_changed_test_files(self) -> set[str]:
+        """
+        Get domains affected by changed test files (new/modified/deleted).
+
+        Returns:
+            Set of domains that should be invalidated.
+        """
+        affected_domains: set[str] = set()
+        current_mtimes = self._get_current_test_file_mtimes()
+        raw_cached_mtimes = self.cache_data.get("test_files_mtime", {}) or {}
+        cached_mtimes = {
+            self._normalize_test_file_rel(str(path)): mtime
+            for path, mtime in raw_cached_mtimes.items()
+        }
+        changed_test_files = {
+            path
+            for path in set(current_mtimes.keys()).union(set(cached_mtimes.keys()))
+            if current_mtimes.get(path) != cached_mtimes.get(path)
+        }
+        if not changed_test_files:
+            return affected_domains
+
+        for test_file_rel in changed_test_files:
+            test_file_path = self.project_root / test_file_rel
+
+            # Current domains from current file content/location (when file exists).
+            if test_file_path.exists():
+                with contextlib.suppress(Exception):
+                    affected_domains.update(
+                        self.get_test_files_domains(test_file_path, force_refresh=True)
+                    )
+
+            # Also include cached domains (for deleted files or mapping drift).
+            cached_entry = self._cache_entry_for_rel(test_file_rel) or {}
+            cached_domains = cached_entry.get("domains", [])
+            if isinstance(cached_domains, list):
+                affected_domains.update(
+                    domain for domain in cached_domains if isinstance(domain, str)
+                )
+
+        return affected_domains
+
+    def update_run_status(
+        self,
+        *,
+        parallel_ok: bool | None = None,
+        no_parallel_ok: bool | None = None,
+        no_parallel_coverage_present: bool | None = None,
+        failed_domains: Iterable[str] | None = None,
+        run_domains: Iterable[str] | None = None,
+    ) -> None:
+        """Record the last test coverage run status."""
+        if parallel_ok is not None:
+            self.cache_data["last_parallel_ok"] = bool(parallel_ok)
+        if no_parallel_ok is not None:
+            self.cache_data["last_no_parallel_ok"] = bool(no_parallel_ok)
+        if no_parallel_coverage_present is not None:
+            self.cache_data["last_no_parallel_coverage_present"] = bool(
+                no_parallel_coverage_present
+            )
+        if failed_domains is not None:
+            self.cache_data["last_failed_domains"] = sorted(
+                {d for d in failed_domains if isinstance(d, str) and d}
+            )
+        if run_domains is not None:
+            self.cache_data["last_run_domains"] = sorted(
+                {d for d in run_domains if isinstance(d, str) and d}
+            )
+        if parallel_ok is not None or no_parallel_ok is not None:
+            self.cache_data["last_run_ok"] = bool(
+                (parallel_ok is True)
+                and (no_parallel_ok is None or no_parallel_ok is True)
+            )
+            self.cache_data["last_run_at"] = datetime.now().isoformat()
+        self._save_cache()
+
+    @staticmethod
+    def _normalize_test_file_rel(path: str) -> str:
+        """Normalize cached test file paths to forward slashes for stable comparisons."""
+        return path.replace("\\", "/").strip()
+
+    def _test_file_rel(self, test_file: Path) -> str:
+        return self._normalize_test_file_rel(
+            str(test_file.relative_to(self.project_root))
+        )
+
+    def _cache_entry_for_rel(self, rel: str) -> dict[str, Any] | None:
+        entries = self.cache_data.get("test_files", {}) or {}
+        norm = self._normalize_test_file_rel(rel)
+        entry = entries.get(norm)
+        if isinstance(entry, dict):
+            return entry
+        legacy = entries.get(rel)
+        return legacy if isinstance(legacy, dict) else None
+
+    @classmethod
+    def _migrate_rel_keyed_dict(cls, mapping: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+        """Return a forward-slash-keyed copy of *mapping* and whether any key changed."""
+        migrated: dict[str, Any] = {}
+        changed = False
+        for rel, data in mapping.items():
+            norm = cls._normalize_test_file_rel(str(rel))
+            if norm != rel:
+                changed = True
+            if norm not in migrated:
+                migrated[norm] = data
+        return migrated, changed
+
+    def _normalize_test_files_cache_keys(self) -> bool:
+        """Migrate legacy backslash keys to forward-slash form (Windows)."""
+        changed = False
+        test_files = self.cache_data.get("test_files", {})
+        if isinstance(test_files, dict):
+            migrated, files_changed = self._migrate_rel_keyed_dict(test_files)
+            if files_changed:
+                self.cache_data["test_files"] = migrated
+                changed = True
+        test_files_mtime = self.cache_data.get("test_files_mtime", {})
+        if isinstance(test_files_mtime, dict):
+            migrated_mtime, mtime_changed = self._migrate_rel_keyed_dict(test_files_mtime)
+            if mtime_changed:
+                self.cache_data["test_files_mtime"] = migrated_mtime
+                changed = True
+        return changed
+
+    def _get_current_test_files(self) -> set[str]:
+        """Return relative paths for all valid test files on disk."""
+        current_files = set()
+        for test_file in self._iter_test_files():
+            rel = self._normalize_test_file_rel(
+                str(test_file.relative_to(self.project_root))
+            )
+            current_files.add(rel)
+        return current_files
+
+    def _prune_removed_test_file_entries(self, removed_paths: set[str]) -> None:
+        """Drop cache rows for test files that no longer exist on disk."""
+        if not removed_paths:
+            return
+        test_files = self.cache_data.get("test_files", {})
+        test_files_mtime = self.cache_data.get("test_files_mtime", {})
+        for rel in removed_paths:
+            norm = self._normalize_test_file_rel(rel)
+            test_files.pop(norm, None)
+            test_files.pop(rel, None)
+            test_files_mtime.pop(norm, None)
+            test_files_mtime.pop(rel, None)
+        # Persist so later update_test_file_mapping(reload_cache=True) cannot
+        # resurrect deleted paths from a stale on-disk cache (repeat-audit drift).
+        self._save_cache()
+
+    def get_source_file_mtimes(self, domain: str) -> dict[str, float]:
+        """
+        Get current modification times for all source files in a domain.
+
+        Python domains track ``.py`` files. The standalone website domain tracks
+        browser source and test assets so its Node suite cannot be hidden by a
+        stale selective-test cache entry.
+
+        Args:
+            domain: Domain name (e.g., 'core')
+
+        Returns:
+            Dictionary mapping file paths to modification times
+        """
+        mtimes = {}
+        source_dir = self.project_root / domain
+        if not source_dir.exists():
+            return mtimes
+
+        source_patterns = ("*.py",)
+        if domain == "website":
+            source_patterns = ("*.js", "*.mjs", "*.html", "*.css", "*.jsonc")
+
+        source_files = (
+            source_file
+            for pattern in source_patterns
+            for source_file in source_dir.rglob(pattern)
+        )
+        for source_file in source_files:
+            # Skip actual test files (files with test_ prefix) and cache directories
+            if (
+                source_file.name.startswith("test_")
+                or ".coverage_cache" in source_file.parts
+            ):
+                continue
+            try:
+                rel_path = str(source_file.relative_to(self.project_root))
+                if should_exclude_file(
+                    rel_path.replace("\\", "/"),
+                    tool_type="analysis",
+                    context="development",
+                ):
+                    continue
+                mtime = source_file.stat().st_mtime
+                mtimes[rel_path] = mtime
+            except OSError:
+                continue
+
+        return mtimes
+
+    def _narrow_domains_for_test_file_set_delta(
+        self, added: set[str], removed: set[str]
+    ) -> set[str] | None:
+        """Infer domains for added/removed test paths only. None = caller must use full bust."""
+        narrowed: set[str] = set()
+        for rel in removed:
+            entry = self._cache_entry_for_rel(rel)
+            if not isinstance(entry, dict):
+                return None
+            doms = entry.get("domains", [])
+            if not isinstance(doms, list) or not doms:
+                return None
+            narrowed.update(d for d in doms if isinstance(d, str))
+        for rel in added:
+            test_file_path = self.project_root / rel
+            if not test_file_path.is_file():
+                continue
+            got: set[str] = set()
+            with contextlib.suppress(Exception):
+                got = set(self.get_test_files_domains(test_file_path, force_refresh=True))
+            if not got:
+                return None
+            narrowed.update(got)
+        if (added or removed) and not narrowed:
+            return None
+        return narrowed
+
+    def get_changed_domains(self) -> set[str]:
+        """
+        Get set of domains that have changed source files.
+
+        Returns:
+            Set of domain names with changes
+        """
+        if self._cached_changed_domains is not None:
+            return set(self._cached_changed_domains)
+
+        changed_domains = set()
+        self.last_invalidation_reason = None
+        self.last_invalidation_detail = None
+        self.invalidation_counters = {}
+        tool_change_reason = self._get_tool_change_reason()
+        if tool_change_reason:
+            # Keep `_full_coverage_json` so a later incomplete selective run can
+            # still merge unchanged-domain coverage instead of publishing 0%.
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            self.last_invalidation_reason = f"tool_change: {tool_change_reason}"
+            self.last_invalidation_detail = {
+                "branch": "tool_change",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
+            if logger:
+                logger.info(
+                    f"Test coverage tool code changed - invalidating test-file coverage cache ({tool_change_reason})"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+        last_run_ok = self.cache_data.get("last_run_ok")
+        last_no_parallel_ok = self.cache_data.get("last_no_parallel_ok")
+        last_no_parallel_coverage_present = self.cache_data.get(
+            "last_no_parallel_coverage_present"
+        )
+        last_failed_domains = set(self.cache_data.get("last_failed_domains", []) or [])
+        last_run_domains = set(self.cache_data.get("last_run_domains", []) or [])
+        if last_run_ok is False or last_no_parallel_ok is False:
+            if last_failed_domains:
+                self.last_invalidation_reason = (
+                    "previous_run_failed: failed domains from previous run"
+                )
+                self.last_invalidation_detail = {
+                    "branch": "previous_run_failed_failed_domains",
+                    "all_domains": False,
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(last_failed_domains),
+                    "full_bust": False,
+                }
+                if logger:
+                    logger.info(
+                        f"Previous test coverage run failed - invalidating failed domains only: {sorted(last_failed_domains)}"
+                    )
+                self._cached_changed_domains = set(last_failed_domains)
+                return set(last_failed_domains)
+            if last_run_domains:
+                self.last_invalidation_reason = (
+                    "previous_run_failed: run domains from previous run"
+                )
+                self.last_invalidation_detail = {
+                    "branch": "previous_run_failed_run_domains",
+                    "all_domains": False,
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(last_run_domains),
+                    "full_bust": False,
+                }
+                if logger:
+                    logger.info(
+                        f"Previous test coverage run failed - invalidating previously-run domains: {sorted(last_run_domains)}"
+                    )
+                self._cached_changed_domains = set(last_run_domains)
+                return set(last_run_domains)
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            self.last_invalidation_reason = (
+                "previous_run_failed: no failed-domain mapping available"
+            )
+            self.last_invalidation_detail = {
+                "branch": "previous_run_failed_global",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
+            if logger:
+                logger.info(
+                    "Previous test coverage run failed - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+        if last_no_parallel_coverage_present is False:
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            self.last_invalidation_reason = (
+                "previous_run_missing_no_parallel_coverage"
+            )
+            self.last_invalidation_detail = {
+                "branch": "previous_run_missing_no_parallel_coverage",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
+            if logger:
+                logger.info(
+                    "No_parallel coverage missing from previous run - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+
+        if self._config_changed():
+            # Keep `_full_coverage_json` for merge; invalidation still reruns tests.
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            self.last_invalidation_reason = "config_changed"
+            self.last_invalidation_detail = {
+                "branch": "config_changed",
+                "all_domains": True,
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(all_domains),
+                "full_bust": True,
+            }
+            if logger:
+                logger.info(
+                    "Config file content changed - invalidating test-file coverage cache"
+                )
+            self._cached_changed_domains = set(all_domains)
+            return set(all_domains)
+
+        current_test_files = self._get_current_test_files()
+        cached_test_files = {
+            self._normalize_test_file_rel(rel)
+            for rel in (self.cache_data.get("test_files", {}) or {})
+        }
+        if current_test_files != cached_test_files:
+            all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+            added_paths = current_test_files - cached_test_files
+            removed_paths = cached_test_files - current_test_files
+            if not cached_test_files:
+                self.last_invalidation_reason = "test_file_set_changed_cold_mapping"
+                self.last_invalidation_detail = {
+                    "branch": "test_file_set_changed_cold_mapping",
+                    "all_domains": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(all_domains),
+                    "full_bust": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                if logger:
+                    logger.info(
+                        "Test file set changed (no prior per-file mapping) - invalidating all domains"
+                    )
+                self._cached_changed_domains = set(all_domains)
+                return set(all_domains)
+            narrow_base = self._narrow_domains_for_test_file_set_delta(
+                added_paths, removed_paths
+            )
+            self._prune_removed_test_file_entries(removed_paths)
+            if narrow_base is None:
+                self.last_invalidation_reason = "test_file_set_changed_full_bust"
+                self.last_invalidation_detail = {
+                    "branch": "test_file_set_changed_full_bust",
+                    "all_domains": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                self.invalidation_counters = {
+                    "changed_domain_count": len(all_domains),
+                    "full_bust": True,
+                    "added_test_files": len(added_paths),
+                    "removed_test_files": len(removed_paths),
+                }
+                if logger:
+                    logger.info(
+                        "Test file set changed - invalidating test-file coverage cache (full bust)"
+                    )
+                self._cached_changed_domains = set(all_domains)
+                return set(all_domains)
+            expanded_narrow = self.domain_mapper.expand_domains_with_dependencies(
+                narrow_base
+            )
+            self.last_invalidation_reason = "test_file_set_changed_selective"
+            self.last_invalidation_detail = {
+                "branch": "test_file_set_changed_selective",
+                "all_domains": False,
+                "added_test_files": len(added_paths),
+                "removed_test_files": len(removed_paths),
+                "base_domains": sorted(narrow_base),
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(expanded_narrow),
+                "full_bust": False,
+                "added_test_files": len(added_paths),
+                "removed_test_files": len(removed_paths),
+            }
+            if logger:
+                logger.info(
+                    "Test file set changed - selective invalidation: "
+                    f"expanded={sorted(expanded_narrow)} (base={sorted(narrow_base)})"
+                )
+            self._cached_changed_domains = set(expanded_narrow)
+            return set(expanded_narrow)
+
+        # Invalidate affected domains when test files change (mtime/content or mapping).
+        changed_test_domains = self._get_domains_affected_by_changed_test_files()
+        if changed_test_domains:
+            expanded_changed_test_domains = (
+                self.domain_mapper.expand_domains_with_dependencies(
+                    changed_test_domains
+                )
+            )
+            self.last_invalidation_reason = (
+                "test_file_content_or_mapping_changed"
+            )
+            self.last_invalidation_detail = {
+                "branch": "test_file_content_or_mapping_changed",
+                "all_domains": False,
+                "base_domains": sorted(changed_test_domains),
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(expanded_changed_test_domains),
+                "full_bust": False,
+            }
+            if logger:
+                logger.info(
+                    "Test file changes detected - invalidating affected domains: "
+                    f"{sorted(expanded_changed_test_domains)} (base={sorted(changed_test_domains)})"
+                )
+            self._cached_changed_domains = set(expanded_changed_test_domains)
+            return set(expanded_changed_test_domains)
+        source_files_mtime = self.cache_data.get("source_files_mtime", {})
+
+        # Check all known domains in cache
+        for domain_name, domain_mtimes in source_files_mtime.items():
+            current_mtimes = self.get_source_file_mtimes(domain_name)
+
+            # Check if any files changed
+            for file_path, current_mtime in current_mtimes.items():
+                cached_mtime = domain_mtimes.get(file_path)
+                if cached_mtime is None or current_mtime != cached_mtime:
+                    changed_domains.add(domain_name)
+                    break
+
+        # Also check domains that might not be in cache yet (new domains or after cache clear)
+        # Get all domains from domain mapper and check if they're in cache
+        all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+        for domain_name in all_domains:
+            if domain_name not in source_files_mtime:
+                # Domain not in cache - treat as changed (needs initial caching)
+                changed_domains.add(domain_name)
+            else:
+                # Domain is in cache - already checked above
+                pass
+
+        expanded_changed_domains = self.domain_mapper.expand_domains_with_dependencies(
+            changed_domains
+        )
+        if changed_domains:
+            self.last_invalidation_reason = "source_domain_changed"
+            self.last_invalidation_detail = {
+                "branch": "source_domain_changed",
+                "all_domains": False,
+                "base_domains": sorted(changed_domains),
+            }
+            self.invalidation_counters = {
+                "changed_domain_count": len(expanded_changed_domains),
+                "full_bust": False,
+            }
+        self._cached_changed_domains = set(expanded_changed_domains)
+        return set(expanded_changed_domains)
+
+    def get_test_files_to_run(self, changed_domains: set[str]) -> list[Path]:
+        """
+        Get list of test files that need to be re-run based on changed domains.
+
+        If all domains have changed (or cache is empty), includes ALL test files,
+        even those not mapped to any domain, to ensure complete coverage.
+
+        Args:
+            changed_domains: Set of domain names that have changed
+
+        Returns:
+            List of test file paths that need to be re-run
+        """
+        if not changed_domains:
+            return []  # No changes, no tests to run
+
+        test_files_to_run = set()
+        test_files = self.cache_data.get("test_files", {})
+
+        # Full run only when every domain changed (not when per-file mapping is still cold).
+        all_domains = set(self.domain_mapper.SOURCE_TO_TEST_MAPPING.keys())
+        if changed_domains == all_domains:
+            return sorted(self._iter_test_files())
+
+        # Selective run: only include test files that cover changed domains
+        # Find all test files that cover any of the changed domains
+        for test_file_path, test_file_data in test_files.items():
+            test_file_domains = set(test_file_data.get("domains", []))
+            if test_file_domains & changed_domains:
+                # This test file covers at least one changed domain
+                test_file_path_obj = self.project_root / test_file_path
+                if test_file_path_obj.exists():
+                    test_files_to_run.add(test_file_path_obj)
+
+        # Also discover test files that aren't in cache yet (new test files).
+        # Compare normalized paths so Windows backslashes cannot look "new".
+        for test_file in self._iter_test_files():
+            if self._cache_entry_for_rel(self._test_file_rel(test_file)) is None:
+                file_domains = self.get_test_files_domains(
+                    test_file, force_refresh=True
+                )
+                if file_domains & changed_domains:
+                    test_files_to_run.add(test_file)
+
+        return sorted(test_files_to_run)
+
+    def get_test_files_domains(
+        self, test_file: Path, force_refresh: bool = False
+    ) -> set[str]:
+        """
+        Get set of domains that a test file covers.
+
+        If the file uses any **domain attribution** pytest markers (those listed in
+        ``domain_mapper.source_to_test_mapping`` for a domain), returns **only** the domain(s)
+        implied by those markers - no merging with directory rules or path keywords. Otherwise
+        falls back to test directory layout, then ``infer_domains_from_test_path`` when
+        no directory matches.
+
+        Args:
+            test_file: Path to test file
+
+        Returns:
+            Set of domain names that this test file covers
+        """
+        domains = set()
+
+        # Check cache first unless caller explicitly requests a refresh from file content.
+        if not force_refresh:
+            cached_entry = self._cache_entry_for_rel(self._test_file_rel(test_file))
+            if cached_entry:
+                cached_domains = cached_entry.get("domains", [])
+                if cached_domains:
+                    domains.update(cached_domains)
+                    return domains
+
+        test_file_markers = self.domain_mapper.parse_markers_from_test_file(test_file)
+        explicit = self.domain_mapper.domains_from_attribution_markers(test_file_markers)
+        if explicit is not None:
+            return explicit
+
+        # Legacy fallback: directory layout, then path keyword inference (no domain markers matched)
+        for domain, (test_dirs, _) in self.domain_mapper.SOURCE_TO_TEST_MAPPING.items():
+            for test_dir in test_dirs:
+                test_dir_path = self.project_root / test_dir
+                if test_file.is_relative_to(test_dir_path):
+                    domains.add(domain)
+
+        if not domains:
+            domains.update(self.domain_mapper.infer_domains_from_test_path(test_file))
+
+        return domains
+
+    def update_test_file_mapping(
+        self, test_file: Path, *, reload_cache: bool = True, save_cache: bool = True
+    ) -> None:
+        """
+        Update domain mapping for a test file without caching coverage data.
+        Used on first runs to build the mapping without the expensive coverage caching.
+
+        Args:
+            test_file: Path to test file
+            reload_cache: Whether to reload cache before updating (default: True)
+            save_cache: Whether to persist cache after updating (default: True)
+        """
+        # Reload cache first to merge with any concurrent updates
+        if reload_cache:
+            self._load_cache()
+
+        test_file_rel = self._test_file_rel(test_file)
+        test_file_domains = self.get_test_files_domains(test_file)
+
+        if "test_files" not in self.cache_data:
+            self.cache_data["test_files"] = {}
+
+        # Update or create entry with just domain mapping (no coverage data)
+        if test_file_rel not in self.cache_data["test_files"]:
+            self.cache_data["test_files"][test_file_rel] = {
+                "domains": sorted(test_file_domains),
+                "last_run": None,  # No coverage data cached yet
+            }
+        else:
+            # Update domains if they changed
+            self.cache_data["test_files"][test_file_rel]["domains"] = sorted(
+                test_file_domains
+            )
+
+        # Update source file mtimes for all domains this test file covers
+        if "source_files_mtime" not in self.cache_data:
+            self.cache_data["source_files_mtime"] = {}
+
+        for domain in test_file_domains:
+            if domain not in self.cache_data["source_files_mtime"]:
+                self.cache_data["source_files_mtime"][domain] = {}
+            # Update mtimes for this domain
+            current_mtimes = self.get_source_file_mtimes(domain)
+            self.cache_data["source_files_mtime"][domain].update(current_mtimes)
+
+        if save_cache:
+            self._save_cache()
+
+    def cache_test_file_coverage(
+        self, test_file: Path, coverage_data: dict[str, Any]
+    ) -> None:
+        """
+        Cache coverage data for a test file.
+
+        Args:
+            test_file: Path to test file
+            coverage_data: Coverage data from this test file (subset of full coverage JSON)
+        """
+        # Reload cache first to merge with any concurrent updates
+        self._load_cache()
+
+        test_file_rel = self._test_file_rel(test_file)
+        test_file_domains = self.get_test_files_domains(test_file)
+
+        if "test_files" not in self.cache_data:
+            self.cache_data["test_files"] = {}
+
+        self.cache_data["test_files"][test_file_rel] = {
+            "domains": sorted(test_file_domains),
+            "coverage_data": coverage_data,
+            "last_run": datetime.now().isoformat(),
+        }
+
+        # Update source file mtimes for all domains this test file covers
+        if "source_files_mtime" not in self.cache_data:
+            self.cache_data["source_files_mtime"] = {}
+
+        for domain in test_file_domains:
+            if domain not in self.cache_data["source_files_mtime"]:
+                self.cache_data["source_files_mtime"][domain] = {}
+            # Update mtimes for this domain
+            current_mtimes = self.get_source_file_mtimes(domain)
+            self.cache_data["source_files_mtime"][domain].update(current_mtimes)
+
+        self._save_cache()
+
+    def get_cached_test_file_coverage(
+        self, test_file: Path
+    ) -> dict[str, Any] | None:
+        """
+        Get cached coverage data for a test file.
+
+        Args:
+            test_file: Path to test file
+
+        Returns:
+            Cached coverage data or None if not cached or invalid
+        """
+        test_file_rel = self._test_file_rel(test_file)
+        test_files = self.cache_data.get("test_files", {})
+
+        if test_file_rel not in test_files:
+            return None
+
+        # Check if any domains this test file covers have changed
+        test_file_data = test_files[test_file_rel]
+        test_file_domains = set(test_file_data.get("domains", []))
+        changed_domains = self.get_changed_domains()
+
+        if test_file_domains & changed_domains:
+            # At least one domain this test file covers has changed
+            return None
+
+        return test_file_data.get("coverage_data")
+
+    def get_full_coverage_cache(self) -> dict[str, Any] | None:
+        """
+        Get the cached full coverage JSON (from a previous full test run).
+
+        Returns:
+            Full coverage JSON or None if not cached
+        """
+        return self.cache_data.get(self.full_coverage_cache_key)
+
+    def cache_full_coverage(self, coverage_json: dict[str, Any]) -> None:
+        """
+        Cache the full coverage JSON from a complete test run.
+
+        Args:
+            coverage_json: Full coverage JSON from pytest-cov
+        """
+        self._load_cache()
+        self.cache_data[self.full_coverage_cache_key] = coverage_json
+        self._save_cache()
+        if logger:
+            logger.debug("Cached full coverage JSON")
+
+    def get_all_cached_coverage(
+        self, exclude_domains: set[str] | None = None
+    ) -> dict[str, dict[str, Any]]:
+        """
+        Get all cached coverage data, excluding test files that cover specified domains.
+
+        Args:
+            exclude_domains: Set of domains to exclude (test files covering these domains won't be included)
+
+        Returns:
+            Dictionary mapping test file paths to their coverage data
+        """
+        if exclude_domains is None:
+            exclude_domains = set()
+
+        cached_coverage = {}
+        test_files = self.cache_data.get("test_files", {})
+        changed_domains = self.get_changed_domains()
+
+        for test_file_path, test_file_data in test_files.items():
+            test_file_domains = set(test_file_data.get("domains", []))
+
+            # Skip if test file covers any excluded or changed domains
+            if (
+                test_file_domains & exclude_domains
+                or test_file_domains & changed_domains
+            ):
+                continue
+
+            coverage_data = test_file_data.get("coverage_data")
+            if coverage_data:
+                cached_coverage[test_file_path] = coverage_data
+
+        return cached_coverage
+
+    def clear_cache(self) -> None:
+        """Clear all cached data."""
+        self.cache_data = {
+            "cache_version": "2.1",
+            "generated_by": "TestFileCoverageCache - Development Tools",
+            "note": "This file is auto-generated. Do not edit manually.",
+            "source_files_mtime": {},
+            "test_files": {},
+            "test_files_mtime": {},
+            "tool_hash": None,
+            "tool_mtimes": {},
+            "last_run_ok": None,
+            "last_parallel_ok": None,
+            "last_no_parallel_ok": None,
+            "last_no_parallel_coverage_present": None,
+            "last_failed_domains": [],
+            "last_run_domains": [],
+            "last_run_at": None,
+            "last_updated": None,
+            "last_updated_readable": None,
+        }
+        self._save_cache()
+        if logger:
+            logger.info("Cleared all test-file coverage cache")
+
+    def get_unmapped_test_files(self) -> list[Path]:
+        """
+        Get list of test files that are not mapped to any domain.
+
+        Returns:
+            List of test file paths that don't have domain mappings
+        """
+        unmapped = []
+        all_test_files = list(self._iter_test_files())
+
+        for test_file in all_test_files:
+            test_file_domains = self.get_test_files_domains(test_file)
+            if not test_file_domains:
+                unmapped.append(test_file)
+
+        return sorted(unmapped)
+
+    def get_cache_stats(self) -> dict[str, Any]:
+        """
+        Get statistics about the cache.
+
+        Returns:
+            Dictionary with cache statistics
+        """
+        test_files = self.cache_data.get("test_files", {})
+        changed_domains = self.get_changed_domains()
+        has_full_coverage = self.get_full_coverage_cache() is not None
+
+        # Always discover actual test files from filesystem to get accurate count
+        # Don't rely on cached count which may be incomplete
+        actual_test_files = []
+        unmapped_test_files = []
+        for test_file in self._iter_test_files():
+            # Check if this test file is associated with any domain
+            test_file_domains = self.get_test_files_domains(test_file)
+            if test_file_domains:  # Only count if it has at least one domain
+                actual_test_files.append(test_file)
+            else:
+                unmapped_test_files.append(test_file)
+        total_test_files = len(actual_test_files)
+        unmapped_count = len(unmapped_test_files)
+
+        test_files_to_run = len(self.get_test_files_to_run(changed_domains))
+        # Count test files that have coverage_data cached (for selective runs)
+        test_files_with_coverage = sum(
+            1 for tf_data in test_files.values() if tf_data.get("coverage_data")
+        )
+        # If we have full coverage cache and no domains changed, all test files can use cache
+        if has_full_coverage and not changed_domains:
+            test_files_cached = total_test_files
+        else:
+            test_files_cached = test_files_with_coverage
+
+        return {
+            "total_test_files": total_test_files,
+            "test_files_to_run": test_files_to_run,
+            "test_files_cached": test_files_cached,
+            "test_files_with_coverage": test_files_with_coverage,
+            "unmapped_test_files": unmapped_count,
+            "has_full_coverage_cache": has_full_coverage,
+            "changed_domains": len(changed_domains),
+            "cache_version": self.cache_data.get("cache_version", "unknown"),
+            "last_updated": self.cache_data.get("last_updated"),
+        }

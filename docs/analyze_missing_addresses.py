@@ -1,0 +1,275 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+# TOOL_PORTABILITY: portable
+
+"""
+Missing Address Analyzer
+
+This script checks for documentation files missing file addresses in their headers.
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
+
+Usage:
+    python docs/analyze_missing_addresses.py
+"""
+
+import re
+import argparse
+import sys
+from pathlib import Path
+from typing import Any
+from collections import defaultdict
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from development_tools.shared.logging import get_dev_tools_logger
+
+# Handle both relative and absolute imports
+if __name__ != "__main__" and __package__ and "." in __package__:
+    from .. import config
+else:
+    from development_tools import config
+
+# Load external config on module import (if not already loaded)
+try:
+    if hasattr(config, "load_external_config"):
+        config.load_external_config()
+except (AttributeError, ImportError):
+    pass
+
+logger = get_dev_tools_logger("development_tools")
+
+
+class MissingAddressAnalyzer:
+    """Analyzes documentation files for missing file addresses."""
+
+    def __init__(
+        self,
+        project_root: str | None = None,
+        config_path: str | None = None,
+        use_cache: bool = True,
+    ):
+        """
+        Initialize missing address analyzer.
+
+        Args:
+            project_root: Root directory of the project
+            config_path: Optional path to external config file
+            use_cache: Whether to use mtime-based caching for file results
+        """
+        # Load external config if provided
+        if config_path:
+            config.load_external_config(config_path)
+        else:
+            config.load_external_config()
+
+        # Use provided project_root or get from config
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(config.get_project_root()).resolve()
+
+        # Caching - use standardized storage
+        from development_tools.shared.mtime_cache import MtimeFileCache
+
+        self.cache = MtimeFileCache(
+            project_root=self.project_root,
+            use_cache=use_cache,
+            tool_name="analyze_missing_addresses",
+            domain="docs",
+            tool_paths=[Path(__file__)],
+        )
+
+    def check_missing_addresses(self) -> dict[str, list[str]]:
+        """
+        Check for documentation files missing file addresses.
+
+        Excludes:
+        - Generated files
+        - Historical preserve files
+        - .cursor/ directory files (plans, rules, etc. - they have their own metadata format)
+
+        Returns:
+            Dictionary mapping file paths to lists of issues
+        """
+        from development_tools.shared.exclusion_utilities import is_generated_file
+        from development_tools.shared.standard_exclusions import (
+            ALL_GENERATED_FILES,
+            HISTORICAL_PRESERVE_FILES,
+            should_exclude_file,
+        )
+
+        missing_addresses = defaultdict(list)
+
+        # Find all documentation files (same logic as fix_add_addresses)
+        files_to_check = []
+        for ext in ["*.md", "*.mdc"]:
+            files_to_check.extend(self.project_root.rglob(ext))
+
+        generated_files = set(ALL_GENERATED_FILES)
+        historical_preserve_files = set(HISTORICAL_PRESERVE_FILES)
+
+        for file_path in files_to_check:
+            try:
+                rel_path = file_path.relative_to(self.project_root)
+                rel_path_str = str(rel_path).replace("\\", "/")
+
+                # Skip anything matching standardized exclusion rules (BASE_EXCLUSIONS etc.).
+                if should_exclude_file(rel_path_str, "documentation", "development"):
+                    continue
+
+                # Skip generated files (authoritative list fast-path)
+                if rel_path_str in generated_files:
+                    continue
+
+                # Skip generated files (semantic + heuristic detection: header marker / patterns / directories)
+                if is_generated_file(str(file_path)):
+                    continue
+
+                # Skip historical preserve files
+                if rel_path_str in historical_preserve_files:
+                    continue
+
+                # Skip .cursor/ directory files (plans, rules, etc.) - they have their own metadata format
+                if ".cursor" in rel_path.parts:
+                    continue
+
+                if "tests" in rel_path.parts:
+                    tests_index = rel_path.parts.index("tests")
+                    if tests_index < len(rel_path.parts) - 2:
+                        continue
+
+            except ValueError:
+                continue
+
+            # Check cache first
+            cached_issues = self.cache.get_cached(file_path)
+            if cached_issues is not None:
+                if cached_issues:
+                    missing_addresses[str(rel_path)] = cached_issues
+                continue
+
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    content = f.read()
+
+                has_address = bool(
+                    re.search(r"^>\s*\*\*File\*\*:\s*`", content[:2000], re.MULTILINE)
+                )
+
+                file_issues = []
+                if not has_address:
+                    file_issues.append("Missing file address in header")
+
+                # Cache results
+                self.cache.cache_results(file_path, file_issues)
+                if file_issues:
+                    missing_addresses[str(rel_path)] = file_issues
+
+            except Exception as e:
+                file_issues = [f"Error reading file: {e}"]
+                self.cache.cache_results(file_path, file_issues)
+                missing_addresses[str(rel_path)] = file_issues
+
+        # Save cache
+        self.cache.save_cache()
+
+        return missing_addresses
+
+    def run_analysis(self) -> dict[str, Any]:
+        """
+        Run missing addresses analysis and return results in standard format.
+
+        Returns:
+            Dictionary with standard format structure:
+            {
+                "summary": {
+                    "total_issues": int,
+                    "files_affected": int,
+                    "status": str
+                },
+                "files": {
+                    "file_path": issue_count
+                },
+                "details": {
+                    "detailed_issues": Dict[str, List[str]]
+                }
+            }
+        """
+        missing_addresses = self.check_missing_addresses()
+
+        # Convert to standard format
+        files = {}
+        total_issues = 0
+        for file_path, issues in missing_addresses.items():
+            issue_count = len(issues)
+            files[file_path] = issue_count
+            total_issues += issue_count
+
+        # Determine status
+        if total_issues == 0:
+            status = "CLEAN"
+        elif total_issues < 5:
+            status = "NEEDS_ATTENTION"
+        else:
+            status = "CRITICAL"
+
+        return {
+            "summary": {
+                "total_issues": total_issues,
+                "files_affected": len(files),
+                "status": status,
+            },
+            "files": files,
+            "details": {"detailed_issues": dict(missing_addresses)},
+        }
+
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="Check for documentation files missing file addresses"
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Output results as JSON in standard format"
+    )
+
+    args = parser.parse_args()
+
+    analyzer = MissingAddressAnalyzer()
+
+    # Use run_analysis() to get standard format
+    if args.json:
+        import json
+
+        results = analyzer.run_analysis()
+        print(json.dumps(results, indent=2))
+        return 0
+
+    # Otherwise use check_missing_addresses() for human-readable output
+    results = analyzer.check_missing_addresses()
+
+    # Print results
+    if results:
+        print("\nMissing Address Issues:")
+        print(f"   Total files missing addresses: {len(results)}")
+        print(
+            f"   Total issues found: {sum(len(issues) for issues in results.values())}"
+        )
+        print("   Files missing addresses:")
+        for doc_file, issues in results.items():
+            print(f"     {doc_file}: {len(issues)} issues")
+            for issue in issues[:3]:
+                clean_issue = issue.encode("ascii", "ignore").decode("ascii")
+                print(f"       - {clean_issue}")
+    else:
+        print("\nAll documentation files have file addresses!")
+
+    return 0 if not results else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

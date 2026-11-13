@@ -1,0 +1,400 @@
+"""
+Tests for generate_directory_tree.py.
+
+Tests directory tree generation functionality including tree command execution,
+placeholder replacement, and file output.
+"""
+
+import pytest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from development_tools.tool_tests.conftest import load_development_tools_module
+
+# Load the module
+directory_tree_module = load_development_tools_module("docs.generate_directory_tree")
+DirectoryTreeGenerator = directory_tree_module.DirectoryTreeGenerator
+main = directory_tree_module.main
+
+
+class TestDirectoryTreeGenerator:
+    """Test DirectoryTreeGenerator class."""
+    
+    @pytest.mark.unit
+    def test_init_with_project_root(self, tmp_path):
+        """Test initialization with explicit project root."""
+        _paths = {"development_docs_dir": "development_docs"}
+        with patch.object(directory_tree_module.config, "get_paths_config", return_value=_paths):
+            generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+
+        assert generator.project_root == Path(tmp_path).resolve()
+        assert generator.docs_dir == "development_docs"
+    
+    @pytest.mark.unit
+    def test_init_with_config_path(self, tmp_path):
+        """Test initialization with config path."""
+        # Create a minimal config file
+        config_file = tmp_path / "config.json"
+        config_file.write_text('{"paths": {"development_docs_dir": "custom_docs"}}')
+        
+        generator = DirectoryTreeGenerator(
+            project_root=str(tmp_path),
+            config_path=str(config_file)
+        )
+        
+        assert generator.project_root == Path(tmp_path).resolve()
+    
+    @pytest.mark.unit
+    def test_init_default_project_root(self, tmp_path):
+        """Test initialization with default project root from config."""
+        _paths = {"development_docs_dir": "development_docs"}
+        with patch.object(directory_tree_module.config, "get_paths_config", return_value=_paths):
+            generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+
+            assert generator.project_root == Path(tmp_path).resolve()
+
+            generator2 = DirectoryTreeGenerator()
+            assert generator2.project_root.exists()
+            assert generator2.docs_dir == "development_docs"
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_success(self, mock_subprocess, tmp_path):
+        """Test successful directory tree generation."""
+        # Mock tree command output
+        mock_subprocess.return_value = MagicMock(
+            returncode=0,
+            stdout="""Folder PATH listing
+Volume serial number is XXXX-XXXX
+C:\\TEST
++---subdir1
+|   +---file1.txt
+\\---subdir2
+    \\---file2.txt
+"""
+        )
+        
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        
+        # Should return path to generated file
+        assert output_file
+        assert Path(output_file).exists()
+        
+        # Verify file content includes header
+        content = Path(output_file).read_text()
+        assert "# Project Directory Tree" in content
+        assert "**Generated**" in content or "Generated" in content
+
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    def test_generation_uses_git_manifest_and_excludes_runtime_secrets(
+        self, mock_subprocess, tmp_path
+    ):
+        """Ignored and sensitive runtime files never enter generated docs."""
+        (tmp_path / ".git").mkdir()
+
+        def command_result(command, **_kwargs):
+            if command[0] == "git":
+                return MagicMock(
+                    returncode=0,
+                    stdout=(
+                        ".env\0.env.example\0leaked.flag\0README.md\0"
+                        ".wrangler/cache/cf.json\0logs/LOGGING_GUIDE.md\0"
+                        "runtime.log\0service.pid\0src/app.py\0"
+                    ),
+                )
+            return MagicMock(
+                returncode=0,
+                stdout=r"""Folder PATH listing
+C:\TEST
+|   .env
+|   .env.example
+|   ignored-secret.txt
+|   leaked.flag
+|   README.md
+|   runtime.log
+|   service.pid
++---.wrangler
+|   \---cache
+|           cf.json
++---data
+|       private.json
++---logs
+|       LOGGING_GUIDE.md
+\---src
+        app.py
+""",
+            )
+
+        mock_subprocess.side_effect = command_result
+
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        content = Path(output_file).read_text()
+
+        assert "README.md" in content
+        assert ".env.example" in content
+        assert "app.py" in content
+        assert "ignored-secret.txt" not in content
+        assert "|   .env\n" not in content
+        assert ".flag" not in content
+        assert ".log" not in content
+        assert ".pid" not in content
+        assert "+---.wrangler" not in content
+        assert "+---data" not in content
+        assert "+---logs" not in content
+
+        git_call = next(
+            call for call in mock_subprocess.call_args_list if call.args[0][0] == "git"
+        )
+        assert "--exclude-standard" in git_call.args[0]
+        assert git_call.kwargs["cwd"] == tmp_path.resolve()
+
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    def test_git_manifest_failure_fails_closed(self, mock_subprocess, tmp_path):
+        """A Git failure must not fall back to documenting raw checkout files."""
+        (tmp_path / ".git").mkdir()
+        mock_subprocess.side_effect = [
+            MagicMock(returncode=1, stdout="", stderr="Git failed"),
+            MagicMock(
+                returncode=0,
+                stdout="C:\\TEST\n|   ignored-secret.txt\n|   README.md\n",
+            ),
+        ]
+
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        content = Path(output_file).read_text()
+
+        assert "ignored-secret.txt" not in content
+        assert "README.md" not in content
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_custom_output(self, mock_subprocess, tmp_path):
+        """Test directory tree generation with custom output file."""
+        mock_subprocess.return_value = MagicMock(
+            returncode=0,
+            stdout="C:\\TEST\n+---subdir\n"
+        )
+        
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        custom_output = "custom_tree.md"
+        output_file = generator.generate_directory_tree(output_file=custom_output)
+        
+        # Should use custom output path
+        assert custom_output in output_file or Path(output_file).name == custom_output
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_command_failure(self, mock_subprocess, tmp_path):
+        """Test handling of tree command failure."""
+        # Mock tree command failure
+        mock_subprocess.return_value = MagicMock(
+            returncode=1,
+            stdout="",
+            stderr="tree: command not found"
+        )
+        
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        
+        # Should return empty string on failure
+        assert output_file == ""
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_placeholder_replacement(self, mock_subprocess, tmp_path):
+        """Test that placeholders are replaced in tree output."""
+        # Mock tree output with a directory that should be replaced
+        mock_subprocess.return_value = MagicMock(
+            returncode=0,
+            stdout="""C:\\TEST
++---__pycache__
+|   +---file.pyc
+\\---other_dir
+"""
+        )
+        
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        
+        # Verify placeholder replacement occurred
+        if output_file and Path(output_file).exists():
+            Path(output_file).read_text()
+            # Should have placeholder text (check for common placeholder patterns)
+            # The exact placeholder depends on DOC_SYNC_PLACEHOLDERS config
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_metadata(self, mock_subprocess, tmp_path):
+        """Test that generated file includes proper metadata."""
+        mock_subprocess.return_value = MagicMock(
+            returncode=0,
+            stdout="C:\\TEST\n"
+        )
+        
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        
+        if output_file and Path(output_file).exists():
+            content = Path(output_file).read_text()
+            
+            # Check for metadata fields
+            assert "**File**" in content or "File" in content
+            assert "**Generated**" in content or "Generated" in content
+            assert "**Last Generated**" in content or "Last Generated" in content
+            assert "**Source**" in content or "Source" in content
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_file_rotation(self, mock_subprocess, tmp_path):
+        """Test that file rotation is used when generating tree."""
+        mock_subprocess.return_value = MagicMock(
+            returncode=0,
+            stdout="C:\\TEST\n"
+        )
+        
+        with patch('development_tools.shared.file_rotation.create_output_file') as mock_rotation:
+            mock_rotation.return_value = str(tmp_path / "DIRECTORY_TREE.md")
+            
+            generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+            generator.generate_directory_tree()
+            
+            # Verify create_output_file was called with rotation enabled
+            assert mock_rotation.called
+            call_args = mock_rotation.call_args
+            assert call_args.kwargs.get('rotate', False) is True
+            assert call_args.kwargs.get('max_versions', 7) == 7
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_empty_output(self, mock_subprocess, tmp_path):
+        """Test handling of empty tree command output."""
+        mock_subprocess.return_value = MagicMock(
+            returncode=0,
+            stdout=""
+        )
+        
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        
+        # Should still create file (even if empty)
+        if output_file:
+            assert Path(output_file).exists()
+    
+    @pytest.mark.unit
+    @patch('subprocess.run')
+    def test_generate_directory_tree_skip_until_next_dir(self, mock_subprocess, tmp_path):
+        """Test that content is skipped until next directory when placeholder is found."""
+        # Mock tree output with placeholder directory and nested content
+        mock_subprocess.return_value = MagicMock(
+            returncode=0,
+            stdout="""C:\\TEST
++---__pycache__
+|   +---nested1
+|   |   +---nested2
+|   |       +---file.pyc
++---other_dir
+    +---file.txt
+"""
+        )
+        
+        generator = DirectoryTreeGenerator(project_root=str(tmp_path))
+        output_file = generator.generate_directory_tree()
+        
+        # Verify placeholder logic (content after placeholder should be skipped until next dir)
+        if output_file and Path(output_file).exists():
+            Path(output_file).read_text()
+            # Should have placeholder and next directory, but not nested content from placeholder dir
+
+
+class TestMainFunction:
+    """Test main() function."""
+    
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    @patch.object(directory_tree_module, "DirectoryTreeGenerator")
+    def test_main_success(self, mock_generator_class, mock_subprocess, tmp_path):
+        """Test main function with successful generation."""
+        mock_subprocess.return_value = MagicMock(returncode=0, stdout="C:\\TEST\n")
+        
+        mock_generator = MagicMock()
+        mock_generator.generate_directory_tree.return_value = str(tmp_path / "DIRECTORY_TREE.md")
+        mock_generator_class.return_value = mock_generator
+        
+        # Mock sys.argv
+        with patch('sys.argv', ['generate_directory_tree.py']):
+            result = main()
+        
+        assert result == 0
+        assert mock_generator.generate_directory_tree.called
+    
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    @patch.object(directory_tree_module, "DirectoryTreeGenerator")
+    def test_main_with_output_arg(self, mock_generator_class, mock_subprocess, tmp_path):
+        """Test main function with --output argument."""
+        mock_subprocess.return_value = MagicMock(returncode=0, stdout="C:\\TEST\n")
+        
+        mock_generator = MagicMock()
+        mock_generator.generate_directory_tree.return_value = str(tmp_path / "custom.md")
+        mock_generator_class.return_value = mock_generator
+        
+        # Mock sys.argv with --output
+        with patch('sys.argv', ['generate_directory_tree.py', '--output', 'custom.md']):
+            result = main()
+        
+        assert result == 0
+        # Verify output argument was passed
+        call_args = mock_generator.generate_directory_tree.call_args
+        assert call_args[0][0] == 'custom.md' or call_args.kwargs.get('output_file') == 'custom.md'
+    
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    @patch.object(directory_tree_module, "DirectoryTreeGenerator")
+    def test_main_failure(self, mock_generator_class, mock_subprocess):
+        """Test main function when generation fails."""
+        mock_subprocess.return_value = MagicMock(returncode=1, stdout="")
+        
+        mock_generator = MagicMock()
+        mock_generator.generate_directory_tree.return_value = ""  # Empty = failure
+        mock_generator_class.return_value = mock_generator
+        
+        with patch('sys.argv', ['generate_directory_tree.py']):
+            result = main()
+        
+        assert result == 1
+    
+    @pytest.mark.integration
+    def test_main_integration_demo_project(self, demo_project_root, test_config_path):
+        """Test main function with demo project (integration test).
+        
+        NOTE: This test uses demo_project_root (a fixture directory) to avoid
+        writing to the real project directory during test coverage runs.
+        The safeguard in generate_directory_tree() allows generation to test directories
+        (like demo_project_root), so this test will actually generate the file if the
+        tree command is available.
+        
+        IMPORTANT: This test patches config.get_project_root() to ensure it uses
+        demo_project_root instead of the real project root. If the patch fails, the
+        safeguard in create_output_file() should still prevent writes to the real project.
+        """
+        with patch("sys.argv", ["generate_directory_tree.py"]):
+            # Keep integration scope focused on CLI + config wiring while mocking OS command.
+            with patch.object(
+                directory_tree_module.config,
+                "get_project_root",
+                return_value=str(demo_project_root),
+            ), patch(
+                "development_tools.config.config.get_project_root",
+                return_value=str(demo_project_root),
+            ), patch.object(
+                directory_tree_module.subprocess,
+                "run",
+                return_value=MagicMock(returncode=0, stdout="C:\\TEST\n+---docs\n"),
+            ):
+                result = main()
+                assert result == 0

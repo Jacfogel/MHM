@@ -1,0 +1,375 @@
+"""
+Tests for development_tools configuration module.
+
+Tests configuration validation, key settings existence, and helper functions.
+"""
+
+import pytest
+import importlib.util
+import sys
+from pathlib import Path
+
+# Import using importlib to handle path issues
+project_root = Path(__file__).parent.parent.parent
+# Load config through the package system to get proper exports
+config_path = project_root / "development_tools" / "config" / "__init__.py"
+if not config_path.exists():
+    # Fallback to config.py if __init__.py doesn't exist
+    config_path = project_root / "development_tools" / "config" / "config.py"
+spec = importlib.util.spec_from_file_location("development_tools.config", config_path)
+if spec is None or spec.loader is None:
+    raise RuntimeError("Could not load development_tools.config spec")
+config = importlib.util.module_from_spec(spec)
+sys.modules["development_tools.config"] = config
+spec.loader.exec_module(config)
+# Also ensure the actual config module is loaded
+if config_path.name == "__init__.py":
+    config_config_path = project_root / "development_tools" / "config" / "config.py"
+    if config_config_path.exists() and "development_tools.config.config" not in sys.modules:
+        config_config_spec = importlib.util.spec_from_file_location("development_tools.config.config", config_config_path)
+        if config_config_spec is not None and config_config_spec.loader is not None:
+            config_config_module = importlib.util.module_from_spec(config_config_spec)
+            sys.modules["development_tools.config.config"] = config_config_module
+            config_config_spec.loader.exec_module(config_config_module)
+
+
+class TestConfigKeySettings:
+    """Test that key configuration settings exist and have expected structure."""
+
+    @pytest.mark.unit
+    @pytest.mark.critical
+    def test_project_root_exists(self):
+        """Test that PROJECT_ROOT is defined."""
+        assert hasattr(config, 'PROJECT_ROOT')
+        assert isinstance(config.PROJECT_ROOT, str)
+
+    @pytest.mark.unit
+    def test_scan_directories_exists(self):
+        """Test that SCAN_DIRECTORIES is defined and is a list."""
+        assert hasattr(config, 'SCAN_DIRECTORIES')
+        assert isinstance(config.SCAN_DIRECTORIES, list)
+        # SCAN_DIRECTORIES may be empty by default (requires external config)
+        # Try to load external config and check get_scan_directories()
+        config.load_external_config()
+        scan_dirs = config.get_scan_directories()
+        assert isinstance(scan_dirs, list)
+        # If external config exists, scan_dirs should be populated
+        # If not, it's OK for it to be empty (project-specific config required)
+        if len(scan_dirs) == 0:
+            # Check if external config file exists - if it does, it should have scan_directories
+            project_root = config.get_project_root()
+            config_file = project_root / 'development_tools' / 'config' / 'development_tools_config.json'
+            if config_file.exists():
+                # Config file exists but scan_dirs is empty - this is a configuration issue
+                pytest.skip("External config file exists but scan_directories is empty (configuration issue)")
+
+    @pytest.mark.unit
+    def test_ai_collaboration_config_exists(self):
+        """Test that AI_COLLABORATION config exists and has expected keys."""
+        assert hasattr(config, 'AI_COLLABORATION')
+        assert isinstance(config.AI_COLLABORATION, dict)
+        expected_keys = ['concise_output', 'detailed_files', 'actionable_insights', 
+                        'context_aware', 'priority_issues', 'integration_mode']
+        for key in expected_keys:
+            assert key in config.AI_COLLABORATION
+
+    @pytest.mark.unit
+    def test_analyze_functions_config_exists(self):
+        """Test that FUNCTION_DISCOVERY config exists and has expected keys."""
+        assert hasattr(config, 'FUNCTION_DISCOVERY')
+        assert isinstance(config.FUNCTION_DISCOVERY, dict)
+        expected_keys = ['moderate_complexity_threshold', 'high_complexity_threshold',
+                        'critical_complexity_threshold', 'min_docstring_length',
+                        'handler_keywords', 'test_keywords', 'critical_functions']
+        for key in expected_keys:
+            assert key in config.FUNCTION_DISCOVERY
+
+    @pytest.mark.unit
+    def test_validation_config_exists(self):
+        """Test that VALIDATION config exists and has expected keys."""
+        assert hasattr(config, 'VALIDATION')
+        assert isinstance(config.VALIDATION, dict)
+        expected_keys = ['documentation_coverage_threshold', 'moderate_complexity_warning',
+                        'high_complexity_warning', 'critical_complexity_warning',
+                        'duplicate_function_warning', 'missing_docstring_warning',
+                        'critical_issues_first']
+        for key in expected_keys:
+            assert key in config.VALIDATION
+
+    @pytest.mark.unit
+    def test_audit_config_exists(self):
+        """Test that AUDIT config exists and has expected keys."""
+        assert hasattr(config, 'AUDIT')
+        assert isinstance(config.AUDIT, dict)
+        expected_keys = ['include_generated_files', 'include_test_files',
+                        'include_legacy_files', 'max_output_lines',
+                        'save_detailed_results', 'generate_summary', 'highlight_issues']
+        for key in expected_keys:
+            assert key in config.AUDIT
+
+    @pytest.mark.unit
+    def test_output_config_exists(self):
+        """Test that OUTPUT config exists and has expected keys."""
+        assert hasattr(config, 'OUTPUT')
+        assert isinstance(config.OUTPUT, dict)
+        expected_keys = ['use_emojis', 'show_progress', 'color_output',
+                        'detailed_reports', 'concise_format', 'priority_indicators',
+                        'action_items']
+        for key in expected_keys:
+            assert key in config.OUTPUT
+
+    @pytest.mark.unit
+    def test_workflow_config_exists(self):
+        """Test that WORKFLOW config exists."""
+        assert hasattr(config, 'WORKFLOW')
+        assert isinstance(config.WORKFLOW, dict)
+
+    @pytest.mark.unit
+    def test_documentation_config_exists(self):
+        """Test that DOCUMENTATION config exists."""
+        assert hasattr(config, 'DOCUMENTATION')
+        assert isinstance(config.DOCUMENTATION, dict)
+
+    @pytest.mark.unit
+    def test_quick_audit_config_exists(self):
+        """Test that QUICK_AUDIT config exists."""
+        assert hasattr(config, 'QUICK_AUDIT')
+        assert isinstance(config.QUICK_AUDIT, dict)
+
+    @pytest.mark.unit
+    def test_fix_version_sync_config_exists(self):
+        """Test that VERSION_SYNC config exists."""
+        assert hasattr(config, 'VERSION_SYNC')
+        assert isinstance(config.VERSION_SYNC, dict)
+
+
+class TestConfigHelperFunctions:
+    """Test that helper functions return expected types and structures."""
+
+    @pytest.mark.unit
+    def test_get_project_root_returns_path(self):
+        """Test that get_project_root() returns a Path object."""
+        result = config.get_project_root()
+        assert isinstance(result, Path)
+
+    @pytest.mark.unit
+    def test_get_scan_directories_returns_list(self):
+        """Test that get_scan_directories() returns a list."""
+        # Load external config to ensure we get the actual configured directories
+        config.load_external_config()
+        result = config.get_scan_directories()
+        assert isinstance(result, list)
+        # If external config exists, scan_dirs should be populated
+        # If not, it's OK for it to be empty (project-specific config required)
+        if len(result) == 0:
+            # Check if external config file exists - if it does, it should have scan_directories
+            project_root = config.get_project_root()
+            config_file = project_root / 'development_tools' / 'config' / 'development_tools_config.json'
+            if config_file.exists():
+                # Config file exists but scan_dirs is empty - this is a configuration issue
+                pytest.skip("External config file exists but scan_directories is empty (configuration issue)")
+            # If config file doesn't exist, empty list is expected (default behavior)
+
+    @pytest.mark.unit
+    def test_error_handling_partial_config_keeps_defaults_isolated(self):
+        """Partial external settings preserve every operation category and cannot leak."""
+        get_config = config.get_error_handling_config
+        function_globals = get_config.__globals__
+        previous_get_external_value = function_globals["_get_external_value"]
+        function_globals["_get_external_value"] = (
+            lambda key, default=None: {
+                "phase1_keywords": {"file_io": ["custom_read"]}
+            }
+            if key == "error_handling"
+            else default
+        )
+        try:
+            first = get_config()
+            assert first["phase1_keywords"]["file_io"] == ["custom_read"]
+            assert "validate" in first["phase1_keywords"]["validation"]
+
+            first["phase1_keywords"]["validation"].append("leaked")
+            second = get_config()
+            assert "leaked" not in second["phase1_keywords"]["validation"]
+        finally:
+            function_globals["_get_external_value"] = previous_get_external_value
+
+    @pytest.mark.unit
+    def test_get_analyze_functions_config_returns_dict(self):
+        """Test that get_analyze_functions_config() returns a dict."""
+        result = config.get_analyze_functions_config()
+        assert isinstance(result, dict)
+        assert 'moderate_complexity_threshold' in result
+
+    @pytest.mark.unit
+    def test_get_validation_config_returns_dict(self):
+        """Test that get_validation_config() returns a dict."""
+        result = config.get_validation_config()
+        assert isinstance(result, dict)
+        assert 'documentation_coverage_threshold' in result
+
+    @pytest.mark.unit
+    def test_get_audit_config_returns_dict(self):
+        """Test that get_audit_config() returns a dict."""
+        result = config.get_audit_config()
+        assert isinstance(result, dict)
+        assert 'include_test_files' in result
+
+    @pytest.mark.unit
+    def test_get_output_config_returns_dict(self):
+        """Test that get_output_config() returns a dict."""
+        result = config.get_output_config()
+        assert isinstance(result, dict)
+        assert 'concise_format' in result
+
+    @pytest.mark.unit
+    def test_get_workflow_config_returns_dict(self):
+        """Test that get_workflow_config() returns a dict."""
+        result = config.get_workflow_config()
+        assert isinstance(result, dict)
+
+    @pytest.mark.unit
+    def test_get_documentation_config_returns_dict(self):
+        """Test that get_documentation_config() returns a dict."""
+        result = config.get_documentation_config()
+        assert isinstance(result, dict)
+
+    @pytest.mark.unit
+    def test_get_auto_document_config_returns_dict(self):
+        """Test that get_auto_document_config() returns a dict."""
+        result = config.get_auto_document_config()
+        assert isinstance(result, dict)
+
+    @pytest.mark.unit
+    def test_get_ai_validation_config_returns_dict(self):
+        """Test that get_ai_validation_config() returns a dict."""
+        result = config.get_ai_validation_config()
+        assert isinstance(result, dict)
+
+    @pytest.mark.unit
+    def test_get_ai_collaboration_config_returns_dict(self):
+        """Test that get_ai_collaboration_config() returns a dict."""
+        result = config.get_ai_collaboration_config()
+        assert isinstance(result, dict)
+
+    @pytest.mark.unit
+    def test_get_quick_audit_config_returns_dict(self):
+        """Test that get_quick_audit_config() returns a dict."""
+        result = config.get_quick_audit_config()
+        assert isinstance(result, dict)
+
+    @pytest.mark.unit
+    def test_get_fix_version_sync_config_returns_dict(self):
+        """Test that get_fix_version_sync_config() returns a dict."""
+        result = config.get_fix_version_sync_config()
+        assert isinstance(result, dict)
+
+    @pytest.mark.unit
+    def test_get_host_config_has_backup_adapter_keys(self):
+        """Host adapter config always includes backup module/attr keys."""
+        result = config.get_host_config()
+        assert isinstance(result, dict)
+        assert "backup_manager_module" in result
+        assert "backup_manager_attr" in result
+        assert result["backup_manager_attr"] == "backup_manager"
+
+    @pytest.mark.unit
+    def test_get_static_analysis_config_includes_owned_config_paths(self):
+        """Static analysis config should include explicit owned config paths."""
+        result = config.get_static_analysis_config()
+        assert isinstance(result, dict)
+        assert "ruff_config_path" in result
+        assert "pyright_project_path" in result
+        assert "ruff_sync_root_compat" in result
+
+    @pytest.mark.unit
+    def test_get_analyze_function_registry_config_deep_merges_directory_descriptions(self):
+        """Partial directory_descriptions in JSON overlays AUDIT_FUNCTION_REGISTRY defaults."""
+        fn = config.get_analyze_function_registry_config
+        previous = fn.__globals__["_get_external_value"]
+        try:
+            fn.__globals__["_get_external_value"] = (
+                lambda key, default: (
+                    {
+                        "directory_descriptions": {"core": "Custom core blurb"},
+                        "priority_directories": ["core"],
+                    }
+                    if key == "analyze_function_registry"
+                    else default
+                )
+            )
+            result = config.get_analyze_function_registry_config()
+            assert result["directory_descriptions"]["core"] == "Custom core blurb"
+            assert "communication" in result["directory_descriptions"]
+            assert result["priority_directories"] == ["core"]
+        finally:
+            fn.__globals__["_get_external_value"] = previous
+
+    @pytest.mark.unit
+    def test_get_file_patterns_config_matches_module_defaults_without_json(self):
+        """file_patterns JSON is optional; defaults match FILE_PATTERNS."""
+        assert config.get_file_patterns_config() == dict(config.FILE_PATTERNS)
+
+    @pytest.mark.unit
+    def test_dev_tools_local_config_keys_are_supported_by_host_baseline(self):
+        """Local overrides can omit sections supplied by portable defaults."""
+        import json
+
+        root = Path(__file__).resolve().parent.parent.parent
+        live_path = root / "development_tools" / "config" / "development_tools_config.json"
+        if not live_path.exists():
+            pytest.skip("development_tools_config.json is gitignored and not available on CI")
+        live = json.loads(live_path.read_text(encoding="utf-8"))
+        ex = json.loads(
+            (root / "development_docs" / "devtools" / "development_tools_config.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        assert set(live) <= set(ex) - {"_comment"}
+
+    @pytest.mark.unit
+    def test_get_static_analysis_config_honors_external_overrides(self):
+        """External static-analysis overrides should merge over defaults."""
+        fn = config.get_static_analysis_config
+        previous_get_external_value = fn.__globals__["_get_external_value"]
+        try:
+            fn.__globals__["_get_external_value"] = (
+                lambda key, default: {
+                    "ruff_config_path": "custom/ruff.toml",
+                    "pyright_project_path": "custom/pyrightconfig.json",
+                    "ruff_sync_root_compat": False,
+                }
+                if key == "static_analysis"
+                else default
+            )
+            result = config.get_static_analysis_config()
+            assert result["ruff_config_path"] == "custom/ruff.toml"
+            assert result["pyright_project_path"] == "custom/pyrightconfig.json"
+            assert result["ruff_sync_root_compat"] is False
+        finally:
+            fn.__globals__["_get_external_value"] = previous_get_external_value
+
+
+class TestConfigPaths:
+    """Test that paths used in tests/fixtures are valid."""
+
+    @pytest.mark.unit
+    def test_project_root_path_exists(self):
+        """Test that project root path exists."""
+        project_root = config.get_project_root()
+        assert project_root.exists(), f"Project root should exist: {project_root}"
+
+    @pytest.mark.unit
+    def test_scan_directories_are_valid_names(self):
+        """Test that scan directory names are valid (non-empty strings)."""
+        # Load external config to ensure we get the actual configured directories
+        config.load_external_config()
+        directories = config.get_scan_directories()
+        # If directories is empty, skip this test (requires external config)
+        if len(directories) == 0:
+            pytest.skip("Scan directories is empty (requires external config)")
+        for directory in directories:
+            assert isinstance(directory, str)
+            assert len(directory) > 0
+            # Should not contain path separators in basic names
+            assert '/' not in directory or directory.startswith('./')

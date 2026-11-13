@@ -1,0 +1,2070 @@
+"""
+Tool wrapper methods for AIToolsService.
+
+Contains methods for running analysis, generation, and fix tools.
+"""
+# pyright: reportAttributeAccessIssue=false
+
+import argparse
+import copy
+import json
+import os
+import subprocess
+import sys
+from io import StringIO
+from pathlib import Path
+from typing import Any
+
+from development_tools.config import (
+    get_coverage_json_dir,
+    get_coverage_report_path,
+    get_legacy_report_path,
+)
+from development_tools.shared.logging import get_dev_tools_logger
+from development_tools import config as dev_config
+
+logger = get_dev_tools_logger("development_tools")
+
+# Import output storage
+from ..cache_dependency_paths import (
+    compute_full_static_check_source_signature,
+    requirements_lock_signature,
+)
+from ..output_storage import load_tool_result, save_tool_result
+import contextlib
+
+# Script registry - derived from tool_metadata._TOOLS (canonical source)
+from ..tool_metadata import get_script_registry
+
+SCRIPT_REGISTRY = get_script_registry()
+
+
+def _module_import_analyzer_class():
+    """Return ModuleImportAnalyzer from the live imports module.
+
+    Tests patch this name on the running wrapper's ``__globals__`` so xdist
+    cannot miss a second ``analyze_module_imports`` copy created by
+    ``load_development_tools_module``.
+    """
+    import development_tools.imports.analyze_module_imports as imports_mod
+
+    return imports_mod.ModuleImportAnalyzer
+
+
+def _static_check_tool_cache_metadata(*, from_disk_cache: bool) -> dict[str, str]:
+    """Labels for audit logs (orchestration maps cache_hit/cold_scan to utilized/created)."""
+    return {"cache_mode": "cache_hit" if from_disk_cache else "cold_scan"}
+
+def _static_check_cache_metadata_from_analyzer_details(
+    details: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Map ``details.shard_run`` from analyze_ruff/bandit/pyright JSON into orchestration metadata."""
+    if not isinstance(details, dict):
+        return {"cache_mode": "cold_scan"}
+    sr = details.get("shard_run")
+    if not isinstance(sr, dict):
+        return {"cache_mode": "cold_scan"}
+    hits = int(sr.get("fragment_cache_hits") or 0)
+    misses = int(sr.get("fragment_cache_misses") or 0)
+    subprocesses = int(sr.get("subprocesses") or 0)
+    if hits > 0 and misses == 0:
+        cache_mode = "cache_hit"
+    elif hits > 0 and misses > 0:
+        cache_mode = "partial_cache"
+    elif subprocesses > 0 or misses > 0:
+        cache_mode = "cold_scan"
+    else:
+        cache_mode = "cold_scan"
+    meta: dict[str, Any] = {
+        "cache_mode": cache_mode,
+        "shard_mode": sr.get("mode"),
+        "fragment_hits": hits,
+        "fragment_misses": misses,
+        "subprocesses": subprocesses,
+    }
+    if isinstance(sr.get("parity_note"), str) and sr["parity_note"]:
+        meta["parity_note"] = sr["parity_note"]
+    if isinstance(sr.get("reason"), str) and sr["reason"]:
+        meta["shard_fallback_reason"] = sr["reason"]
+    return meta
+
+# Windows: child inherits console control events unless isolated in a new process group.
+# Tier 3 runs these alongside heavy pytest workers; SIGINT to stop coverage must not
+# tear down nested pyright/ruff mid-communicate without emitting JSON.
+_WIN_PROCESS_GROUP_SCRIPTS = frozenset(
+    {
+        "run_test_coverage",
+        "run_test_suite",
+        "analyze_pyright",
+        "analyze_ruff",
+        "analyze_bandit",
+        "analyze_pip_audit",
+        "analyze_vulture",
+    }
+)
+
+class ToolWrappersMixin:
+    """Mixin class providing tool execution methods to AIToolsService."""
+
+    exclusion_config: dict[str, bool]
+    project_root: Path
+
+    def run_script(self, script_name: str, *args, timeout: int | None = 300) -> dict:
+        """Run a registered helper script from development_tools."""
+        script_rel_path = SCRIPT_REGISTRY.get(script_name)
+        if not script_rel_path:
+            return {
+                "success": False,
+                "output": "",
+                "error": f"Script '{script_name}' is not registered",
+            }
+        project_script_path = self.project_root / "development_tools" / script_rel_path
+        package_script_path = Path(__file__).resolve().parent.parent.parent / script_rel_path
+        script_path = project_script_path if project_script_path.exists() else package_script_path
+        if not script_path.exists():
+            return {
+                "success": False,
+                "output": "",
+                "error": f"Registered script '{script_name}' not found at {script_rel_path}",
+            }
+        cmd = [sys.executable, str(script_path)] + list(args)
+        env = os.environ.copy()
+        env["MHM_DEV_TOOLS_RUN"] = "1"
+        if script_name in {
+            "generate_function_registry",
+            "quick_status",
+            "generate_module_dependencies",
+            "analyze_module_dependencies",
+            "analyze_test_coverage",
+            "generate_test_coverage_report",
+            "run_test_coverage",
+        }:
+            env["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(self.project_root)
+            report_config = self.config_path or dev_config.get_loaded_config_file_path()
+            if report_config:
+                env["DEVTOOLS_REPORT_CONFIG"] = str(Path(report_config).resolve())
+        run_kwargs = {
+            "capture_output": True,
+            "text": True,
+            "cwd": str(self.project_root),
+            "timeout": timeout,
+            "env": env,
+        }
+        if os.name == "nt" and script_name in _WIN_PROCESS_GROUP_SCRIPTS:
+            create_new_group = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            if create_new_group:
+                run_kwargs["creationflags"] = create_new_group
+                logger.debug(
+                    f"Launching {script_name} in isolated Windows process group "
+                    "to reduce console control-event propagation."
+                )
+        try:
+            result = subprocess.run(cmd, **run_kwargs)
+            return {
+                "success": result.returncode == 0,
+                "output": result.stdout,
+                "error": result.stderr,
+                "returncode": result.returncode,
+            }
+        except KeyboardInterrupt:
+            # KeyboardInterrupt can be raised from console control events while waiting on subprocess I/O.
+            return {
+                "success": False,
+                "output": "",
+                "error": (
+                    f"Script '{script_name}' interrupted by KeyboardInterrupt "
+                    "(SIGINT/console control event while waiting for subprocess)"
+                ),
+                "returncode": 130,
+                "interrupted": True,
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                "success": False,
+                "output": "",
+                "error": f"Script '{script_name}' timed out after {timeout // 60 if timeout else 'N/A'} minutes",
+                "returncode": None,
+            }
+
+    def run_analyze_documentation(self, include_overlap: bool = False) -> dict:
+        """Run analyze_documentation with structured JSON handling."""
+        logger.debug("Analyzing documentation...")
+        args = ["--json"]
+        if include_overlap:
+            args.append("--overlap")
+
+        # Before running, check if we have cached overlap data to preserve
+        cached_overlap_data = None
+        cached_overlap_in_details = False
+        cached_has_section_overlaps = False
+        cached_has_consolidation = False
+        if not include_overlap:
+            try:
+                cached_data = load_tool_result(
+                    "analyze_documentation",
+                    "docs",
+                    project_root=self.project_root,
+                    normalize=False,
+                )
+                if cached_data and isinstance(cached_data, dict):
+                    cached_data_dict = cached_data.get("data", cached_data)
+                    details = cached_data_dict.get("details", {})
+                    has_section_overlaps = (
+                        "section_overlaps" in cached_data_dict
+                        or "section_overlaps" in details
+                    )
+                    has_consolidation = (
+                        "consolidation_recommendations" in cached_data_dict
+                        or "consolidation_recommendations" in details
+                    )
+                    if has_section_overlaps or has_consolidation:
+                        cached_has_section_overlaps = has_section_overlaps
+                        cached_has_consolidation = has_consolidation
+                        cached_overlap_in_details = (
+                            "section_overlaps" in details
+                            or "consolidation_recommendations" in details
+                        )
+                        cached_overlap_data = {
+                            "section_overlaps": (
+                                details.get("section_overlaps")
+                                if cached_overlap_in_details
+                                else cached_data_dict.get("section_overlaps")
+                            ),
+                            "consolidation_recommendations": (
+                                details.get("consolidation_recommendations")
+                                if cached_overlap_in_details
+                                else cached_data_dict.get(
+                                    "consolidation_recommendations"
+                                )
+                            ),
+                        }
+            except Exception as e:
+                logger.debug(f"Failed to load cached overlap data: {e}")
+
+        result = self.run_script("analyze_documentation", *args)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            # If we have cached overlap data and new data doesn't include it, merge it in
+            if cached_overlap_data and not include_overlap:
+                details = data.get("details", {})
+                has_overlap = (
+                    "section_overlaps" in data
+                    or "consolidation_recommendations" in data
+                    or "section_overlaps" in details
+                    or "consolidation_recommendations" in details
+                )
+                if not has_overlap:
+                    if cached_overlap_in_details:
+                        if "details" not in data:
+                            data["details"] = {}
+                        if cached_has_section_overlaps:
+                            data["details"]["section_overlaps"] = cached_overlap_data.get(
+                                "section_overlaps", {}
+                            )
+                        if cached_has_consolidation:
+                            data["details"]["consolidation_recommendations"] = (
+                                cached_overlap_data.get("consolidation_recommendations", [])
+                            )
+                        data["details"]["overlap_data_source"] = "cached"
+                    else:
+                        if cached_has_section_overlaps:
+                            data["section_overlaps"] = cached_overlap_data.get(
+                                "section_overlaps", {}
+                            )
+                        if cached_has_consolidation:
+                            data["consolidation_recommendations"] = cached_overlap_data.get(
+                                "consolidation_recommendations", []
+                            )
+                        if "details" not in data:
+                            data["details"] = {}
+                        data["details"]["overlap_data_source"] = "cached"
+                    logger.debug(
+                        "Preserved cached overlap analysis data in new results"
+                    )
+            result["data"] = data
+            self.results_cache["analyze_documentation"] = data
+            try:
+                save_tool_result(
+                    "analyze_documentation",
+                    "docs",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_documentation result: {e}")
+            result["issues_found"] = bool(
+                data.get("duplicates")
+                or data.get("placeholders")
+                or data.get("missing")
+            )
+            result["success"] = True
+            result["error"] = ""
+        else:
+            lowered = output.lower() if isinstance(output, str) else ""
+            if not result.get("success") and (
+                "verbatim duplicate" in lowered or "placeholder" in lowered
+            ):
+                result["issues_found"] = True
+                result["success"] = True
+                result["error"] = ""
+        return result
+
+    def run_analyze_function_registry(self) -> dict:
+        """Run analyze_function_registry in-process using the shared parse."""
+        logger.debug("Analyzing function registry...")
+        try:
+            from development_tools.functions.analyze_function_registry import execute
+
+            self._ensure_shared_function_scan()
+            _exit_code, _text, data = execute(
+                argparse.Namespace(),
+                project_root=Path(self.project_root),
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            try:
+                save_tool_result(
+                    "analyze_function_registry",
+                    "functions",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_function_registry result: {e}")
+            if not isinstance(data, dict):
+                return {"success": False, "error": "function registry returned no payload"}
+            details_raw = data.get("details")
+            details = details_raw if isinstance(details_raw, dict) else data
+            missing = details.get("missing") or {}
+            extra = details.get("extra") or {}
+            errors = details.get("errors") or []
+            missing_count = (
+                missing.get("count") if isinstance(missing, dict) else missing
+            )
+            extra_count = extra.get("count") if isinstance(extra, dict) else extra
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(missing_count or extra_count or errors),
+                "error": "",
+                "output": _text or "",
+                "returncode": _exit_code,
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_function_registry: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_module_dependencies(self) -> dict:
+        """Run analyze_module_dependencies and capture dependency drift summary."""
+        logger.debug("Analyzing module dependencies...")
+        result = self.run_script("analyze_module_dependencies")
+        output = result.get("output", "")
+        summary = self._parse_module_dependency_report(output)
+        # Always build a standard-format result so report generation finds data (avoids "no data found" warning).
+        if summary:
+            missing_dependencies = summary.get("missing_dependencies", 0)
+            missing_sections = summary.get("missing_sections", [])
+            total_issues = (
+                missing_dependencies + len(missing_sections)
+                if isinstance(missing_sections, list)
+                else missing_dependencies
+            )
+            standard_format = {
+                "summary": {"total_issues": total_issues, "files_affected": 0},
+                "details": summary,
+            }
+            issues = summary.get("missing_dependencies", 0)
+            issues = issues or len(summary.get("missing_sections") or [])
+            result["issues_found"] = bool(issues)
+            self.module_dependency_summary = summary
+        else:
+            standard_format = {
+                "summary": {"total_issues": 0, "files_affected": 0},
+                "details": {},
+            }
+            self.module_dependency_summary = {}
+            result["issues_found"] = False
+        result["data"] = standard_format
+        if "success" not in result:
+            result["success"] = True
+        try:
+            save_tool_result(
+                "analyze_module_dependencies",
+                "imports",
+                standard_format,
+                project_root=self.project_root,
+            )
+        except Exception as e:
+            logger.warning(
+                f"Failed to save analyze_module_dependencies result: {e}"
+            )
+        self.results_cache["analyze_module_dependencies"] = standard_format
+        return result
+
+    def _shared_scan_flags(self) -> tuple[bool, bool]:
+        include_tests = bool(self.exclusion_config.get("include_tests", False))
+        include_dev_tools = bool(self.exclusion_config.get("include_dev_tools", False))
+        return include_tests, include_dev_tools
+
+    def _ensure_shared_function_scan(self):
+        """Parse the function-analysis file set once per audit/service run."""
+        existing = getattr(self, "_shared_function_scan", None)
+        if existing is not None:
+            return existing
+        from development_tools.functions import analyze_functions as functions_mod
+        from development_tools.functions.shared_function_scan import (
+            build_shared_function_scan,
+        )
+
+        include_tests, include_dev_tools = self._shared_scan_flags()
+        scan = build_shared_function_scan(
+            Path(self.project_root),
+            include_tests=include_tests,
+            include_dev_tools=include_dev_tools,
+        )
+        self._shared_function_scan = scan
+        self._shared_functions_list = functions_mod.scan_all_functions(
+            include_tests=include_tests,
+            include_dev_tools=include_dev_tools,
+            parsed_modules=scan.modules,
+            project_root=Path(self.project_root),
+        )
+        self._shared_files_index_data = functions_mod.scan_all_python_files(
+            parsed_modules=scan.modules
+        )
+        return scan
+
+    def _shared_parsed_modules(self):
+        scan = getattr(self, "_shared_function_scan", None)
+        if scan is None:
+            return None
+        return scan.modules
+
+    def run_analyze_functions(self) -> dict:
+        """Run analyze_functions with structured JSON handling."""
+        logger.debug("Analyzing functions...")
+        try:
+            from development_tools.functions import analyze_functions as functions_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            self._ensure_shared_function_scan()
+            functions = getattr(self, "_shared_functions_list", None)
+            if functions is None:
+                functions = functions_mod.scan_all_functions(
+                    include_tests=include_tests,
+                    include_dev_tools=include_dev_tools,
+                    project_root=Path(self.project_root),
+                )
+                self._shared_functions_list = functions
+            categories = functions_mod.categorize_functions(functions)
+            if not functions_mod.validate_results(categories):
+                logger.warning(
+                    "analyze_functions results may be inflated; check generated-code detection."
+                )
+            json_data = functions_mod.build_analyze_functions_result(
+                functions,
+                project_root=Path(self.project_root),
+                categories=categories,
+            )
+            save_tool_result(
+                "analyze_functions",
+                "functions",
+                json_data,
+                project_root=self.project_root,
+            )
+            self.results_cache["analyze_functions"] = json_data
+            return {"success": True, "data": json_data}
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_functions: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_duplicate_functions(
+        self,
+        min_overall: float | None = None,
+        min_name: float | None = None,
+        consider_body_similarity: bool = False,
+        body_for_near_miss_only: bool = False,
+    ) -> dict:
+        """Run analyze_duplicate_functions with structured JSON handling."""
+        logger.debug("Analyzing duplicate functions...")
+        try:
+            from development_tools.functions import analyze_duplicate_functions as dup_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            analysis_config = dict(dup_mod._get_analysis_config())
+            if consider_body_similarity:
+                analysis_config["consider_body_similarity"] = True
+            if body_for_near_miss_only:
+                analysis_config["body_for_near_miss_only"] = True
+                analysis_config["consider_body_similarity"] = True
+            if min_overall is not None:
+                analysis_config["min_overall_similarity"] = min_overall
+            if min_name is not None:
+                analysis_config["min_name_similarity"] = min_name
+            use_body = bool(
+                analysis_config.get("consider_body_similarity", False)
+                or analysis_config.get("body_for_near_miss_only", False)
+            )
+            records, cache_stats = dup_mod._gather_function_records(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                consider_body_similarity=use_body,
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            data = dup_mod._analyze_duplicates(
+                records, analysis_config, cache_stats=cache_stats
+            )
+            save_tool_result(
+                "analyze_duplicate_functions",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_duplicate_functions: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_unused_functions(
+        self,
+        private_only: bool = False,
+        max_results: int = 100,
+    ) -> dict:
+        """Run analyze_unused_functions with structured JSON handling."""
+        logger.debug("Analyzing unused/uncalled functions...")
+        try:
+            from development_tools.functions import analyze_unused_functions as unused_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            data = unused_mod.analyze_unused_functions(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                include_private_only=private_only,
+                max_results=max_results,
+                project_root=Path(self.project_root),
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            save_tool_result(
+                "analyze_unused_functions",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_unused_functions: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_facade_shims(self, include_low_signal: bool = False) -> dict:
+        """Run analyze_facade_shims with structured JSON handling."""
+        logger.debug("Analyzing facade/shim candidates...")
+        try:
+            from development_tools.functions import analyze_facade_shims as facade_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            data = facade_mod.analyze_project(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                include_low_signal=include_low_signal,
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            save_tool_result(
+                "analyze_facade_shims",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_facade_shims: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_module_refactor_candidates(
+        self, include_tests: bool = False, include_dev_tools: bool = False
+    ) -> dict:
+        """Run analyze_module_refactor_candidates with structured JSON handling."""
+        logger.debug("Analyzing module refactor candidates...")
+        try:
+            from development_tools.functions import (
+                analyze_module_refactor_candidates as refactor_mod,
+            )
+
+            flag_tests, flag_dev = self._shared_scan_flags()
+            data = refactor_mod._scan_and_evaluate(
+                include_tests=include_tests or flag_tests,
+                include_dev_tools=include_dev_tools or flag_dev,
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            save_tool_result(
+                "analyze_module_refactor_candidates",
+                "functions",
+                data,
+                project_root=self.project_root,
+            )
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(summary.get("total_issues", 0)),
+                "error": "",
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_module_refactor_candidates: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_decision_support(self) -> dict:
+        """Run decision_support with structured JSON handling."""
+        logger.debug("Running decision_support...")
+        try:
+            from development_tools.functions import analyze_functions as functions_mod
+            from development_tools.reports import decision_support as decision_mod
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            functions = getattr(self, "_shared_functions_list", None)
+            if functions is None:
+                functions = functions_mod.scan_all_functions(
+                    include_tests=include_tests,
+                    include_dev_tools=include_dev_tools,
+                    project_root=Path(self.project_root),
+                )
+            buf = StringIO()
+            with contextlib.redirect_stdout(buf):
+                decision_mod.print_dashboard(functions)
+            result = {
+                "success": True,
+                "output": buf.getvalue(),
+                "error": "",
+            }
+            self._extract_decision_insights(result)
+            data = self.results_cache.get("decision_support")
+            if data is not None:
+                try:
+                    from ..result_format import normalize_to_standard_format
+
+                    data = normalize_to_standard_format("decision_support", data)
+                    save_tool_result(
+                        "decision_support",
+                        "reports",
+                        data,
+                        project_root=self.project_root,
+                    )
+                except ValueError as e:
+                    logger.error(f"Invalid decision_support result format: {e}")
+                    error_result = self._create_standard_format_result(
+                        0, 0, None, {"error": str(e)}
+                    )
+                    save_tool_result(
+                        "decision_support",
+                        "reports",
+                        error_result,
+                        project_root=self.project_root,
+                    )
+            else:
+                error_result = self._create_standard_format_result(
+                    0, 0, None, {"error": "decision_support produced no JSON output"}
+                )
+                save_tool_result(
+                    "decision_support",
+                    "reports",
+                    error_result,
+                    project_root=self.project_root,
+                )
+            return result
+        except Exception as e:
+            logger.warning(f"Failed to run decision_support: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_function_patterns(self) -> dict:
+        """Run analyze_function_patterns and save results."""
+        logger.debug("Analyzing function patterns...")
+        try:
+            from development_tools.functions import analyze_function_patterns as patterns_mod
+            from development_tools.functions import analyze_functions as functions_mod
+
+            actual_functions = getattr(self, "_shared_files_index_data", None)
+            if not actual_functions:
+                actual_functions = functions_mod.scan_all_python_files()
+            patterns = patterns_mod.analyze_function_patterns(actual_functions)
+            standard_format = {
+                "summary": {"total_issues": 0, "files_affected": 0},
+                "details": patterns,
+            }
+            save_tool_result(
+                "analyze_function_patterns",
+                "functions",
+                standard_format,
+                project_root=self.project_root,
+            )
+            return {
+                "success": True,
+                "data": standard_format,  # Return standard_format to match what was saved
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_function_patterns: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_module_imports(self) -> dict:
+        """Run analyze_module_imports and save results."""
+        logger.debug("Analyzing module imports...")
+        try:
+            analyzer = _module_import_analyzer_class()(
+                project_root=str(self.project_root)
+            )
+            self._ensure_shared_function_scan()
+            import_data = analyzer.scan_all_python_files(
+                parsed_modules=self._shared_parsed_modules()
+            )
+            standard_format = {
+                "summary": {"total_issues": 0, "files_affected": 0},
+                "details": import_data,
+            }
+            save_tool_result(
+                "analyze_module_imports",
+                "imports",
+                standard_format,
+                project_root=self.project_root,
+            )
+            # Cache for downstream tools in the same audit run (e.g., dependency patterns).
+            self.results_cache["analyze_module_imports"] = standard_format
+            return {"success": True, "data": standard_format}
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_module_imports: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_dependency_patterns(self) -> dict:
+        """Run analyze_dependency_patterns and save results."""
+        logger.debug("Analyzing dependency patterns...")
+        try:
+            from development_tools.imports.analyze_module_imports import (
+                ModuleImportAnalyzer,
+            )
+            from development_tools.imports.analyze_dependency_patterns import (
+                DependencyPatternAnalyzer,
+            )
+            actual_imports = None
+            cached_module_imports = self.results_cache.get("analyze_module_imports")
+            if isinstance(cached_module_imports, dict):
+                details = cached_module_imports.get("details")
+                if isinstance(details, dict):
+                    actual_imports = details
+                elif cached_module_imports:
+                    actual_imports = cached_module_imports
+            if not actual_imports:
+                import_analyzer = ModuleImportAnalyzer(project_root=str(self.project_root))
+                actual_imports = import_analyzer.scan_all_python_files()
+            pattern_analyzer = DependencyPatternAnalyzer()
+            patterns = pattern_analyzer.analyze_dependency_patterns(actual_imports)
+            standard_format = {
+                "summary": {"total_issues": 0, "files_affected": 0},
+                "details": patterns,
+            }
+            save_tool_result(
+                "analyze_dependency_patterns",
+                "imports",
+                standard_format,
+                project_root=self.project_root,
+            )
+            return {"success": True, "data": standard_format}
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_dependency_patterns: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_dev_tools_import_boundaries(self) -> dict:
+        """Run import boundary checker and save results."""
+        logger.debug("Analyzing dev tools import boundaries...")
+        try:
+            from development_tools.imports.analyze_dev_tools_import_boundaries import (
+                DevToolsImportBoundaryChecker,
+            )
+            checker = DevToolsImportBoundaryChecker(
+                project_root_path=str(self.project_root)
+            )
+            result = checker.analyze()
+            save_tool_result(
+                "analyze_dev_tools_import_boundaries",
+                "imports",
+                result,
+                project_root=self.project_root,
+            )
+            return {"success": True, "data": result}
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_dev_tools_import_boundaries: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_package_exports(self) -> dict:
+        """Run analyze_package_exports and save results."""
+        logger.debug("Analyzing package exports...")
+        try:
+            from development_tools.functions.analyze_package_exports import (
+                generate_audit_report,
+                analyze_imports_for_packages,
+                parse_function_registry_for_packages,
+                scan_package_modules_for_packages,
+            )
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+
+            package_config = dev_config.get_analyze_package_exports_config()
+            packages = list(package_config.get("packages") or [])
+            if not packages:
+                packages = ["core", "communication", "ui", "tasks", "ai", "user"]
+            all_reports = {}
+            max_workers = min(6, len(packages))
+            self._ensure_shared_function_scan()
+            parsed_modules = self._shared_parsed_modules()
+            import_usage_index = analyze_imports_for_packages(
+                packages, parsed_modules=parsed_modules
+            )
+            package_api_index = scan_package_modules_for_packages(
+                packages, parsed_modules=parsed_modules
+            )
+            registry_index = parse_function_registry_for_packages(packages)
+            logger.debug(
+                f"Analyzing package exports with parallel package scanning ({len(packages)} packages, {max_workers} workers)..."
+            )
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_package = {
+                    executor.submit(
+                        generate_audit_report,
+                        package,
+                        False,
+                        import_usage_index,
+                        package_api_index,
+                        registry_index,
+                    ): package
+                    for package in packages
+                }
+                for future in as_completed(future_to_package):
+                    package = future_to_package[future]
+                    try:
+                        report = future.result()
+                        if isinstance(report, dict):
+                            for key, value in report.items():
+                                if isinstance(value, set):
+                                    report[key] = sorted(value)
+                                elif isinstance(value, dict):
+                                    for nested_key, nested_value in value.items():
+                                        if isinstance(nested_value, set):
+                                            value[nested_key] = sorted(nested_value)
+                        all_reports[package] = report
+                        if isinstance(report, dict):
+                            logger.debug(
+                                f"Package export audit complete: {package} "
+                                f"(missing={len(report.get('missing_exports', []))}, "
+                                f"unnecessary={len(report.get('potentially_unnecessary', []))})"
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to audit package {package}: {e}")
+                        all_reports[package] = {
+                            "package": package,
+                            "error": str(e),
+                            "missing_exports": [],
+                            "potentially_unnecessary": [],
+                        }
+            total_missing = sum(
+                len(r.get("missing_exports", [])) for r in all_reports.values()
+            )
+            total_unnecessary = sum(
+                len(r.get("potentially_unnecessary", [])) for r in all_reports.values()
+            )
+            packages_with_missing = sum(
+                1 for r in all_reports.values() if r.get("missing_exports")
+            )
+            total_issues = total_missing + total_unnecessary
+            result_data = {
+                "summary": {
+                    "total_issues": total_issues,
+                    "files_affected": packages_with_missing,
+                },
+                "details": {
+                    "total_missing_exports": total_missing,
+                    "total_unnecessary_exports": total_unnecessary,
+                    "packages_with_missing": packages_with_missing,
+                    "packages": all_reports,
+                },
+            }
+            self.results_cache["analyze_package_exports"] = result_data
+            save_tool_result(
+                "analyze_package_exports",
+                "functions",
+                result_data,
+                project_root=self.project_root,
+            )
+            return {"success": True, "data": result_data}
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_package_exports: {e}")
+            return {"success": False, "error": str(e)}
+
+    def run_analyze_error_handling(self) -> dict:
+        """Run analyze_error_handling in-process using the shared parse."""
+        logger.debug("Analyzing error handling...")
+        try:
+            from development_tools.error_handling.analyze_error_handling import (
+                ErrorHandlingAnalyzer,
+            )
+
+            include_tests, include_dev_tools = self._shared_scan_flags()
+            self._ensure_shared_function_scan()
+            analyzer = ErrorHandlingAnalyzer(str(self.project_root))
+            data = analyzer.analyze_project(
+                include_tests=include_tests,
+                include_dev_tools=include_dev_tools,
+                parsed_modules=self._shared_parsed_modules(),
+            )
+            try:
+                save_tool_result(
+                    "analyze_error_handling",
+                    "error_handling",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_error_handling result: {e}")
+            if not isinstance(data, dict):
+                return {
+                    "success": False,
+                    "error": "error handling returned no payload",
+                }
+            details_raw = data.get("details")
+            details = details_raw if isinstance(details_raw, dict) else {}
+            summary_raw = data.get("summary")
+            summary = summary_raw if isinstance(summary_raw, dict) else {}
+            missing_count = details.get("functions_missing_error_handling", 0)
+            coverage = details.get("analyze_error_handling") or details.get(
+                "error_handling_coverage", 100
+            )
+            total_issues = summary.get("total_issues", 0)
+            return {
+                "success": True,
+                "data": data,
+                "issues_found": bool(total_issues)
+                or coverage < 80
+                or missing_count > 0,
+                "error": "",
+                "output": "",
+                "returncode": 0,
+            }
+        except Exception as e:
+            logger.warning(f"Failed to run analyze_error_handling: {e}")
+            return {"success": False, "error": str(e)}
+
+    def _persist_documentation_sync_aggregate_json(self) -> dict[str, Any]:
+        """Build aggregate doc-sync payload and save `docs/jsons/analyze_documentation_sync_results.json`.
+
+        Used by both `doc-sync` (CLI) and audit paths so the JSON file referenced by
+        AI_PRIORITIES exists after a standalone doc-sync run.
+        """
+        summary_payload = self.docs_sync_summary or {}
+        summary = (
+            summary_payload.get("summary", {})
+            if isinstance(summary_payload, dict)
+            else {}
+        )
+        details = (
+            summary_payload.get("details", {})
+            if isinstance(summary_payload, dict)
+            else {}
+        )
+        all_results = getattr(self, "docs_sync_results", {}).get("all_results", {})
+        path_drift_files = details.get("path_drift_files", [])
+        data: dict[str, Any] = {
+            "summary": {
+                "total_issues": summary.get("total_issues", 0),
+                "files_affected": (
+                    len(path_drift_files)
+                    if isinstance(path_drift_files, list)
+                    else 0
+                ),
+                "status": summary.get("status", "UNKNOWN"),
+            },
+            "details": {
+                "paired_doc_issues": details.get("paired_doc_issues", 0),
+                "path_drift_issues": details.get("path_drift_issues", 0),
+                "markdown_link_target_issues": details.get(
+                    "markdown_link_target_issues", 0
+                ),
+                "markdown_link_target_files": details.get(
+                    "markdown_link_target_files", {}
+                ),
+                "ascii_compliance_issues": details.get("ascii_issues", 0),
+                "heading_numbering_issues": details.get(
+                    "heading_numbering_issues", 0
+                ),
+                "missing_address_issues": details.get(
+                    "missing_address_issues", 0
+                ),
+                "unconverted_link_issues": details.get(
+                    "unconverted_link_issues", 0
+                ),
+                "path_drift_files": path_drift_files,
+                "paired_docs": all_results.get("paired_docs", {}),
+                "path_drift": all_results.get("path_drift", {}),
+                "ascii_compliance": all_results.get("ascii_compliance", {}),
+                "heading_numbering": all_results.get("heading_numbering", {}),
+                "missing_addresses": all_results.get("missing_addresses", {}),
+                "unconverted_links": all_results.get("unconverted_links", {}),
+                "example_marker_hint_count": details.get("example_marker_hint_count", 0),
+                "example_marker_findings": details.get("example_marker_findings", {}),
+            },
+        }
+        try:
+            save_tool_result(
+                "analyze_documentation_sync",
+                "docs",
+                data,
+                project_root=self.project_root,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to save analyze_documentation_sync result: {e}")
+        return data
+
+    def run_analyze_documentation_sync(self) -> dict:
+        """Run analyze_documentation_sync with structured data handling."""
+        try:
+            if self._run_doc_sync_check():
+                data = self._persist_documentation_sync_aggregate_json()
+                import io
+                import sys
+
+                output_buffer = io.StringIO()
+                original_stdout = sys.stdout
+                sys.stdout = output_buffer
+                try:
+                    from development_tools.docs.analyze_documentation_sync import (
+                        DocumentationSyncChecker,
+                    )
+
+                    checker = DocumentationSyncChecker()
+                    report_results = {
+                        "summary": data["summary"],
+                        "details": {
+                            "paired_doc_issues": data["details"].get(
+                                "paired_doc_issues", 0
+                            ),
+                            "paired_docs": data["details"].get("paired_docs", {}),
+                            "example_marker_hint_count": data["details"].get(
+                                "example_marker_hint_count", 0
+                            ),
+                            "example_marker_findings": data["details"].get(
+                                "example_marker_findings", {}
+                            ),
+                        },
+                    }
+                    checker.print_report(report_results)
+                    ex = report_results["details"].get("example_marker_findings") or {}
+                    if ex:
+                        print("\nEXAMPLE MARKER HINTS (advisory, V5 §3.0):")
+                        for fn, line_list in sorted(ex.items()):
+                            print(f"   {fn}:")
+                            for line in line_list[:20]:
+                                print(f"     - {line}")
+                            if len(line_list) > 20:
+                                print(f"     ... +{len(line_list) - 20} more")
+                    else:
+                        print(
+                            "\nExample marker scan: no advisory hints "
+                            "(or no paired files scanned)."
+                        )
+                    link_target_count = int(
+                        data["details"].get("markdown_link_target_issues", 0) or 0
+                    )
+                    path_drift_details = data["details"].get("path_drift", {})
+                    raw_link_target_files = data["details"].get(
+                        "markdown_link_target_files", {}
+                    )
+                    link_target_files = (
+                        raw_link_target_files
+                        if isinstance(raw_link_target_files, dict)
+                        else {}
+                    )
+                    if isinstance(path_drift_details, dict):
+                        nested_details = path_drift_details.get("details", {})
+                        if isinstance(nested_details, dict):
+                            raw_files = nested_details.get(
+                                "markdown_link_target_files", {}
+                            )
+                            if isinstance(raw_files, dict) and not link_target_files:
+                                link_target_files = raw_files
+                    if link_target_count:
+                        print("\nMARKDOWN LINK TARGET HINTS (advisory):")
+                        print(
+                            "   "
+                            f"{link_target_count} local markdown link(s) may not be "
+                            "clickable from their source document."
+                        )
+                        print(
+                            "   Run `python development_tools/run_development_tools.py "
+                            "doc-fix --convert-links` to rewrite repo-relative hrefs "
+                            "where the target exists."
+                        )
+                        for fn, line_list in sorted(link_target_files.items())[:20]:
+                            print(f"   {fn}:")
+                            for line in line_list[:5]:
+                                print(f"     - {line}")
+                            if len(line_list) > 5:
+                                print(f"     ... +{len(line_list) - 5} more")
+                        if len(link_target_files) > 20:
+                            print(f"   ... +{len(link_target_files) - 20} more files")
+                    else:
+                        print("\nMarkdown link target scan: no advisory hints.")
+                    output = output_buffer.getvalue()
+                finally:
+                    sys.stdout = original_stdout
+                out: dict[str, Any] = {
+                    "success": True,
+                    "output": output,
+                    "error": "",
+                    "returncode": 0,
+                    "data": data,
+                }
+                if hasattr(self, "_tool_cache_metadata"):
+                    cm = self._tool_cache_metadata.get("analyze_documentation_sync")
+                    if isinstance(cm, dict):
+                        out["cache_metadata"] = cm.copy()
+                return out
+            else:
+                return {
+                    "success": False,
+                    "error": "Documentation sync check failed",
+                    "output": "",
+                    "returncode": 1,
+                }
+        except Exception as e:
+            logger.error(f"Error running documentation sync: {e}", exc_info=True)
+            return {"success": False, "error": str(e), "output": "", "returncode": 1}
+
+    def run_analyze_path_drift(self) -> dict:
+        """Run analyze_path_drift with structured data handling."""
+        try:
+            from development_tools.docs.analyze_path_drift import PathDriftAnalyzer
+
+            analyzer = PathDriftAnalyzer()
+            structured_results = analyzer.run_analysis()
+            # run_analysis() always returns standard format with 'summary', 'files', and 'details' keys
+            summary = structured_results.get("summary", {})
+            files = (
+                structured_results.get("files", {})
+                if isinstance(structured_results, dict)
+                else {}
+            )
+            total_issues = summary.get("total_issues", 0)
+            details = (
+                structured_results.get("details", {})
+                if isinstance(structured_results, dict)
+                else {}
+            )
+            data = self._create_standard_format_result(
+                total_issues,
+                len(files) if isinstance(files, dict) else 0,
+                files if isinstance(files, dict) else {},
+                details,
+            )
+            output_lines: list[str] = []
+            if total_issues > 0:
+                output_lines.append("")
+                output_lines.append("Path Drift Issues:")
+                output_lines.append(f"   Total files with issues: {len(files)}")
+                output_lines.append(f"   Total issues found: {total_issues}")
+                output_lines.append("   Top files with most issues:")
+                sorted_files = sorted(files.items(), key=lambda x: x[1], reverse=True)
+                for doc_file, issue_count in sorted_files[:5]:
+                    output_lines.append(f"     {doc_file}: {issue_count} issues")
+            else:
+                output_lines.append("")
+                output_lines.append("No path drift issues found!")
+            output = "\n".join(output_lines)
+            try:
+                save_tool_result(
+                    "analyze_path_drift", "docs", data, project_root=self.project_root
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_path_drift result: {e}")
+            return {
+                "success": True,
+                "output": output,
+                "error": "",
+                "returncode": 0,
+                "data": data,
+            }
+        except Exception as e:
+            logger.error(f"Error running path drift analyzer: {e}", exc_info=True)
+            result = self.run_script("analyze_path_drift", "--json")
+            try:
+
+                def path_drift_converter(file_data: dict[str, Any]) -> dict[str, Any]:
+                    files_with_issues = {}
+                    detailed_issues = {}
+                    total_issues = 0
+                    for file_path, file_info in file_data.items():
+                        if isinstance(file_info, dict):
+                            results = file_info.get("results", [])
+                            if results:
+                                files_with_issues[file_path] = len(results)
+                                detailed_issues[file_path] = results
+                                total_issues += len(results)
+                    return {
+                        "files": files_with_issues,
+                        "total_issues": total_issues,
+                        "detailed_issues": detailed_issues,
+                    }
+
+                data = self._load_mtime_cached_tool_results(
+                    "analyze_path_drift",
+                    "docs",
+                    result,
+                    self._parse_path_drift_output,
+                    path_drift_converter,
+                )
+                if data:
+                    result["data"] = data
+                    result["success"] = True
+                    result["error"] = ""
+                else:
+                    result["success"] = False
+                    result["error"] = f"Failed to load path drift results: {e}"
+            except Exception as helper_error:
+                logger.debug(
+                    f"Failed to use unified helper for path drift fallback: {helper_error}"
+                )
+                output = result.get("output", "")
+                data = None
+                if output:
+                    try:
+                        data = json.loads(output)
+                    except json.JSONDecodeError:
+                        data = self._parse_path_drift_output(output)
+                if data:
+                    try:
+                        save_tool_result(
+                            "analyze_path_drift",
+                            "docs",
+                            data,
+                            project_root=self.project_root,
+                        )
+                    except Exception as save_error:
+                        logger.warning(
+                            f"Failed to save analyze_path_drift result: {save_error}"
+                        )
+                    result["data"] = data
+                    result["success"] = True
+                    result["error"] = ""
+                else:
+                    result["success"] = False
+                    result["error"] = f"Failed to parse path drift output: {e}"
+            return result
+
+    def run_generate_legacy_reference_report(self) -> dict:
+        """Run generate_legacy_reference_report to create LEGACY_REFERENCE_REPORT.md."""
+        logger.debug("Generating legacy reference report...")
+        # First, ensure we have legacy reference analysis results
+        legacy_data = None
+        if hasattr(self, "legacy_cleanup_summary") and self.legacy_cleanup_summary:
+            legacy_data = self.legacy_cleanup_summary
+        else:
+            # Try to load from cache
+            try:
+                legacy_result = self._load_tool_data(
+                    "analyze_legacy_references", "legacy", log_source=False
+                )
+                if legacy_result and isinstance(legacy_result, dict):
+                    legacy_data = legacy_result
+            except Exception as e:
+                logger.debug(f"Failed to load legacy data for report generation: {e}")
+
+        if not legacy_data:
+            return {
+                "success": False,
+                "output": "",
+                "error": "No legacy reference analysis data available. Run analyze_legacy_references first.",
+                "returncode": 1,
+            }
+
+        # Prepare findings file
+        import tempfile
+        import json
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
+            findings_file = f.name
+            details = (
+                legacy_data.get("details", {}) if isinstance(legacy_data, dict) else {}
+            )
+            findings = details.get("findings")
+            if findings is None:
+                return {
+                    "success": False,
+                    "output": "",
+                    "error": "Legacy reference results missing details.findings.",
+                    "returncode": 1,
+                }
+            json.dump(findings, f, indent=2)
+
+        try:
+            script_path = (
+                Path(__file__).resolve().parent.parent.parent
+                / "legacy"
+                / "generate_legacy_reference_report.py"
+            )
+            output_file = get_legacy_report_path(self.project_root)
+            cmd = [
+                sys.executable,
+                str(script_path),
+                "--findings-file",
+                findings_file,
+                "--output-file",
+                str(output_file),
+            ]
+            env = os.environ.copy()
+            env["MHM_DEV_TOOLS_RUN"] = "1"
+            report_config = self.config_path or dev_config.get_loaded_config_file_path()
+            if report_config:
+                env["DEVTOOLS_REPORT_CONFIG"] = str(Path(report_config).resolve())
+            result_proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+                timeout=300,
+                env=env,
+            )
+            # Clean up temp file
+            with contextlib.suppress(Exception):
+                Path(findings_file).unlink()
+
+            return {
+                "success": result_proc.returncode == 0,
+                "output": result_proc.stdout,
+                "error": result_proc.stderr,
+                "returncode": result_proc.returncode,
+            }
+        except subprocess.TimeoutExpired:
+            with contextlib.suppress(Exception):
+                Path(findings_file).unlink()
+            return {
+                "success": False,
+                "output": "",
+                "error": "generate_legacy_reference_report timed out after 5 minutes",
+                "returncode": None,
+            }
+        except Exception as e:
+            with contextlib.suppress(Exception):
+                Path(findings_file).unlink()
+            return {
+                "success": False,
+                "output": "",
+                "error": f"generate_legacy_reference_report failed: {e}",
+                "returncode": None,
+            }
+
+    def run_generate_test_coverage_report(self) -> dict:
+        """Run generate_test_coverage_report to generate TEST_COVERAGE_REPORT.md from existing coverage data.
+
+        This tool generates TEST_COVERAGE_REPORT.md, HTML, and JSON reports from existing coverage.json.
+        It should be run after run_test_coverage has executed tests and collected coverage data.
+        """
+        logger.debug("Generating test coverage report from existing coverage data...")
+
+        # Check if coverage.json exists
+        coverage_json = (
+            get_coverage_json_dir(self.project_root) / "coverage.json"
+        )
+        if not coverage_json.exists():
+            error_msg = "coverage.json not found. Run run_test_coverage first to generate coverage data."
+            logger.warning(f"Test coverage data not found: {error_msg}")
+            return {"success": False, "output": "", "error": error_msg, "returncode": 1}
+
+        try:
+            result = self.run_script("generate_test_coverage_report", timeout=300)
+            if result.get("success"):
+                test_coverage_report = (
+                    get_coverage_report_path(self.project_root)
+                )
+                if test_coverage_report.exists():
+                    logger.debug(
+                        f"Test coverage report generated: {test_coverage_report}"
+                    )
+                    return {
+                        "success": True,
+                        "output": "TEST_COVERAGE_REPORT.md generated successfully",
+                        "error": "",
+                        "returncode": 0,
+                    }
+                else:
+                    logger.warning(
+                        "Report generation completed but TEST_COVERAGE_REPORT.md not found"
+                    )
+                    return result
+            else:
+                # Log the actual error for debugging
+                error_msg = result.get("error", "Unknown error")
+                output_msg = result.get("output", "")
+                logger.warning(f"generate_test_coverage_report failed: {error_msg}")
+                if output_msg:
+                    logger.debug(f"Script output: {output_msg[:500]}")
+                return result
+        except Exception as e:
+            logger.error(f"Failed to generate test coverage report: {e}", exc_info=True)
+            return {
+                "success": False,
+                "output": "",
+                "error": f"generate_test_coverage_report failed: {e}",
+                "returncode": None,
+            }
+
+    def _is_historical_inventory_guard_path(self, normalized_path: str) -> bool:
+        """Exclude historical/planning docs from inventory-sync guard checks."""
+        lowered = normalized_path.lower().strip("/")
+        base_name = Path(lowered).name
+
+        if "/archive/" in f"/{lowered}/" or "/archived/" in f"/{lowered}/":
+            return True
+        if lowered.startswith("archive/") or lowered.startswith("archived/"):
+            return True
+        if "changelog_history/" in lowered:
+            return True
+
+        if base_name in {"ai_changelog.md", "changelog_detail.md", "ai_changelog_archive.md"}:
+            return True
+        if base_name in {"todo.md", "plans.md"}:
+            return True
+        if base_name in {
+            "ai_priorities.md",
+            "ai_status.md",
+            "consolidated_report.md",
+            "dev_tools_consolidated_report.md",
+        }:
+            return True
+
+        return bool(base_name.endswith("_plan.md") or base_name.startswith("plan_"))
+
+    def _check_deprecation_inventory_sync(self, inventory_rel_path: str) -> dict[str, Any]:
+        """
+        Check whether deprecation-like changes were made without inventory updates.
+
+        Returns a structured guard result. When `check_passed` is False, callers can
+        fail audit execution.
+        """
+        legacy_cfg = dev_config.get_external_value("legacy_cleanup", {}) or {}
+        guard_cfg = legacy_cfg.get("deprecation_inventory_sync_guard", {}) or {}
+        enabled = bool(guard_cfg.get("enabled", True))
+        # Canonical source for guard trigger keywords: config legacy_cleanup.deprecation_inventory_sync_guard.trigger_keywords
+        default_keywords = [
+            "deprecated",
+            "deprecation",
+            "legacy compatibility",
+            "compatibility bridge",
+            "to be removed",
+            "retire candidate",
+            "retire_candidate",
+            "obsolete",
+            "sunset",
+        ]
+        configured_keywords = guard_cfg.get("trigger_keywords", default_keywords)
+        trigger_keywords = [
+            str(keyword).strip().lower()
+            for keyword in configured_keywords
+            if isinstance(keyword, str) and str(keyword).strip()
+        ] or default_keywords
+
+        guard_result: dict[str, Any] = {
+            "enabled": enabled,
+            "inventory_path": inventory_rel_path.replace("\\", "/"),
+            "inventory_updated": False,
+            "git_available": False,
+            "check_passed": True,
+            "status": "skipped" if not enabled else "passed",
+            "reason": "guard_disabled" if not enabled else None,
+            "trigger_files": [],
+        }
+        if not enabled:
+            return guard_result
+
+        inventory_path = self.project_root / inventory_rel_path
+        if not inventory_path.exists():
+            # Fresh clone / new install: skip guard so audit doesn't fail
+            guard_result.update(
+                {
+                    "check_passed": True,
+                    "status": "skipped",
+                    "reason": "inventory_file_missing",
+                }
+            )
+            return guard_result
+
+        try:
+            status_proc = subprocess.run(
+                ["git", "status", "--porcelain"],
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+            )
+        except OSError:
+            guard_result.update(
+                {
+                    "status": "skipped",
+                    "reason": "git_binary_unavailable",
+                    "git_available": False,
+                }
+            )
+            return guard_result
+        if status_proc.returncode != 0:
+            guard_result.update(
+                {
+                    "status": "skipped",
+                    "reason": "git_status_unavailable",
+                    "git_available": False,
+                }
+            )
+            return guard_result
+
+        guard_result["git_available"] = True
+        changed_paths: list[str] = []
+        for raw_line in status_proc.stdout.splitlines():
+            line = raw_line.rstrip()
+            if len(line) < 4:
+                continue
+            path_fragment = line[3:].strip()
+            if " -> " in path_fragment:
+                path_fragment = path_fragment.split(" -> ", 1)[1].strip()
+            normalized = path_fragment.replace("\\", "/")
+            if normalized:
+                changed_paths.append(normalized)
+
+        if not changed_paths:
+            guard_result["reason"] = "no_worktree_changes"
+            return guard_result
+
+        inventory_normalized = inventory_rel_path.replace("\\", "/")
+        inventory_updated = inventory_normalized in changed_paths
+        guard_result["inventory_updated"] = inventory_updated
+        if inventory_updated:
+            guard_result["reason"] = "inventory_updated_in_change_set"
+            return guard_result
+
+        import fnmatch
+        from development_tools.shared.standard_exclusions import (
+            ALL_GENERATED_FILES,
+            GENERATED_FILE_PATTERNS,
+            should_exclude_file,
+        )
+
+        trigger_files: list[str] = []
+        scan_extensions = {".py", ".md", ".json", ".mdc", ".toml", ".yaml", ".yml"}
+        generated_exact = {
+            str(path).replace("\\", "/") for path in ALL_GENERATED_FILES
+        }
+
+        for rel_path in changed_paths:
+            normalized = rel_path.replace("\\", "/")
+            if normalized == inventory_normalized:
+                continue
+            # Guard targets production/runtime deprecation drift, not test scaffolding.
+            if normalized.startswith("tests/"):
+                continue
+            # Generated artifacts are derived outputs and should not force inventory sync.
+            if normalized in generated_exact:
+                continue
+            if any(
+                fnmatch.fnmatch(normalized, pattern)
+                or fnmatch.fnmatch(normalized, f"*/{pattern}")
+                for pattern in GENERATED_FILE_PATTERNS
+            ):
+                continue
+            if self._is_historical_inventory_guard_path(normalized):
+                continue
+            if should_exclude_file(normalized, tool_type="analysis", context="development"):
+                continue
+
+            suffix = Path(normalized).suffix.lower()
+            if suffix and suffix not in scan_extensions:
+                continue
+
+            lower_path = normalized.lower()
+            path_triggered = any(keyword in lower_path for keyword in trigger_keywords)
+            content_triggered = False
+
+            # Untracked files are not present in `git diff`; inspect file content directly.
+            abs_path = self.project_root / normalized
+            if abs_path.exists() and abs_path.is_file():
+                try:
+                    content = abs_path.read_text(encoding="utf-8", errors="ignore").lower()
+                    content_triggered = any(keyword in content for keyword in trigger_keywords)
+                except OSError:
+                    content_triggered = False
+
+            if not content_triggered:
+                try:
+                    diff_proc = subprocess.run(
+                        ["git", "diff", "--", normalized],
+                        capture_output=True,
+                        text=True,
+                        cwd=str(self.project_root),
+                    )
+                except OSError:
+                    diff_proc = None
+                if diff_proc and diff_proc.returncode == 0:
+                    diff_text = diff_proc.stdout.lower()
+                    content_triggered = any(
+                        keyword in diff_text for keyword in trigger_keywords
+                    )
+
+            if path_triggered or content_triggered:
+                trigger_files.append(normalized)
+
+        guard_result["trigger_files"] = sorted(set(trigger_files))
+        if trigger_files:
+            # Allow pass if inventory was recently updated (sync_log or metadata.last_updated)
+            # so we don't fail when inventory was updated in a prior commit and other
+            # deprecation-touching files remain in the worktree.
+            recent_days = int(guard_cfg.get("recent_days", 14))
+            try:
+                import json
+                from datetime import datetime, timezone
+
+                raw = inventory_path.read_text(encoding="utf-8")
+                data = json.loads(raw)
+                meta = data.get("metadata") or {}
+                last_updated = (meta.get("last_updated") or "").strip()
+                sync_log = meta.get("sync_log") or []
+                latest_sync = ""
+                if sync_log and isinstance(sync_log[-1], dict):
+                    latest_sync = (sync_log[-1].get("date") or "").strip()
+                for date_str in (last_updated, latest_sync):
+                    if not date_str:
+                        continue
+                    try:
+                        # Parse YYYY-MM-DD
+                        inv_date = datetime.strptime(date_str[:10], "%Y-%m-%d").replace(
+                            tzinfo=timezone.utc
+                        )
+                        now = datetime.now(timezone.utc)
+                        if (now - inv_date).days <= recent_days:
+                            guard_result.update(
+                                {
+                                    "check_passed": True,
+                                    "status": "passed",
+                                    "reason": "inventory_recently_updated",
+                                }
+                            )
+                            return guard_result
+                    except (ValueError, TypeError):
+                        pass
+            except (OSError, json.JSONDecodeError, KeyError):
+                pass
+            guard_result.update(
+                {
+                    "check_passed": False,
+                    "status": "failed",
+                    "reason": "inventory_not_updated_for_deprecation_like_changes",
+                }
+            )
+        else:
+            guard_result["reason"] = "no_deprecation_like_changes_detected"
+
+        return guard_result
+
+    def run_analyze_legacy_references(self) -> dict:
+        """Run analyze_legacy_references with structured data handling."""
+        try:
+            from development_tools.legacy.analyze_legacy_references import (
+                LegacyReferenceAnalyzer,
+            )
+
+            analyzer = LegacyReferenceAnalyzer(project_root=str(self.project_root))
+            findings = analyzer.scan_for_legacy_references()
+            total_files = sum(len(files) for files in findings.values())
+            total_markers = sum(
+                len(matches) for files in findings.values() for _, _, matches in files
+            )
+            cache_stats = getattr(analyzer, "cache_stats", {}) or {}
+            cache_hits = int(cache_stats.get("hits", 0) or 0)
+            cache_misses = int(cache_stats.get("misses", 0) or 0)
+            total_cache_checks = cache_hits + cache_misses
+            if total_cache_checks == 0:
+                cache_mode = "unknown"
+            elif cache_hits > 0 and cache_misses == 0:
+                cache_mode = "cache_only"
+            elif cache_hits > 0 and cache_misses > 0:
+                cache_mode = "partial_cache"
+            else:
+                cache_mode = "cold_scan"
+            serializable_findings = {}
+            for pattern_type, file_list in findings.items():
+                serializable_findings[pattern_type] = [
+                    [file_path, content, matches]
+                    for file_path, content, matches in file_list
+                ]
+            inventory_summary = analyzer.get_deprecation_inventory_summary()
+            report_path = get_legacy_report_path(self.project_root)
+            standard_format = {
+                "summary": {
+                    "total_issues": total_markers,
+                    "files_affected": total_files,
+                },
+                "details": {
+                    "findings": serializable_findings,
+                    "files_with_issues": total_files,
+                    "legacy_markers": total_markers,
+                    "report_path": (
+                        report_path.relative_to(self.project_root)
+                        if report_path.is_relative_to(self.project_root)
+                        else report_path
+                    ).as_posix(),
+                    "deprecation_inventory": inventory_summary,
+                    "deprecation_inventory_sync": {"status": "disabled", "check_passed": True},
+                    "cache": {
+                        "cache_mode": cache_mode,
+                        "hits": cache_hits,
+                        "misses": cache_misses,
+                        "total_cache_checks": total_cache_checks,
+                        "hit_rate": round((cache_hits / total_cache_checks) * 100, 1)
+                        if total_cache_checks
+                        else 0.0,
+                    },
+                },
+            }
+            try:
+                save_tool_result(
+                    "analyze_legacy_references",
+                    "legacy",
+                    standard_format,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_legacy_references result: {e}")
+            # Store in legacy_cleanup_summary for report generation
+            self.legacy_cleanup_summary = standard_format
+            # Also store in results_cache
+            if not hasattr(self, "results_cache"):
+                self.results_cache = {}
+            self.results_cache["analyze_legacy_references"] = standard_format
+            if not hasattr(self, "_tool_cache_metadata"):
+                self._tool_cache_metadata = {}
+            self._tool_cache_metadata["analyze_legacy_references"] = (
+                standard_format.get("details", {}).get("cache", {})
+            )
+
+            return {
+                "success": True,
+                "output": f"Found {total_markers} legacy markers in {total_files} files",
+                "error": "",
+                "returncode": 0,
+                "data": standard_format,
+            }
+        except Exception as e:
+            logger.error(
+                f"Error running legacy references analyzer: {e}", exc_info=True
+            )
+            return {"success": False, "error": str(e), "output": "", "returncode": 1}
+
+    def run_analyze_pyright(self) -> dict:
+        """Run pyright static analysis with structured JSON handling."""
+        logger.debug("Analyzing pyright diagnostics...")
+        # Per-shard cache lives in analyze_pyright.run_pyright (subprocess); no coarse wrapper bypass.
+        result = self.run_script("analyze_pyright", "--json", timeout=900)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
+            self.results_cache["analyze_pyright"] = data
+            try:
+                save_tool_result(
+                    "analyze_pyright",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_pyright result: {e}")
+        else:
+            err = (result.get("error") or "").strip()
+            if not err:
+                result["error"] = "No parseable JSON output from analyze_pyright"
+            else:
+                result["error"] = err
+                err_preview = err[:500] + ("..." if len(err) > 500 else "")
+                logger.warning(f"analyze_pyright produced no parseable JSON; stderr: {err_preview}")
+            result["success"] = False
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(None)
+        return result
+
+    def run_analyze_ruff(self) -> dict:
+        """Run ruff static analysis with structured JSON handling."""
+        logger.debug("Analyzing ruff diagnostics...")
+        # Per-shard cache lives in analyze_ruff.run_ruff (subprocess).
+        result = self.run_script("analyze_ruff", "--json", timeout=900)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
+            self.results_cache["analyze_ruff"] = data
+            try:
+                save_tool_result(
+                    "analyze_ruff",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_ruff result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_ruff"
+            result["success"] = False
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(None)
+        return result
+
+    def run_analyze_bandit(self) -> dict:
+        """Run bandit security analysis with structured JSON handling."""
+        logger.debug("Analyzing bandit security findings...")
+        # Per-shard cache lives in analyze_bandit.run_bandit (subprocess).
+        result = self.run_script("analyze_bandit", "--json", timeout=900)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
+            self.results_cache["analyze_bandit"] = data
+            try:
+                save_tool_result(
+                    "analyze_bandit",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_bandit result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_bandit"
+            result["success"] = False
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(None)
+        return result
+
+    def run_analyze_vulture(self) -> dict:
+        """Run vulture dead-code analysis with structured JSON handling."""
+        logger.debug("Analyzing vulture dead-code findings...")
+        result = self.run_script("analyze_vulture", "--json", timeout=600)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            details = data.get("details") if isinstance(data, dict) else None
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                details if isinstance(details, dict) else None
+            )
+            self.results_cache["analyze_vulture"] = data
+            try:
+                save_tool_result(
+                    "analyze_vulture",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_vulture result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_vulture"
+            result["success"] = False
+            result["cache_metadata"] = _static_check_cache_metadata_from_analyzer_details(
+                None
+            )
+        return result
+
+    def run_analyze_pip_audit(self) -> dict:
+        """Run pip-audit with structured JSON handling (requirements-lock cache)."""
+        logger.debug("Analyzing pip-audit dependency vulnerabilities...")
+        cached = self._try_pip_audit_cache("static_checks")
+        if cached is not None:
+            merged = copy.deepcopy(cached) if isinstance(cached, dict) else cached
+            if isinstance(merged, dict):
+                det = merged.setdefault("details", {})
+                if isinstance(det, dict):
+                    det["pip_audit_execution_state"] = "requirements_lock_cache_hit"
+                    det["pip_audit_subprocess_seconds"] = None
+                    det["pip_audit_timing_note"] = (
+                        "Requirements unchanged; reused pip-audit JSON from a prior run. "
+                        "Orchestration elapsed time reflects cache lookup only, not subprocess."
+                    )
+            result = {
+                "success": True,
+                "output": "",
+                "error": "",
+                "data": merged,
+                "returncode": 0,
+                "cache_metadata": _static_check_tool_cache_metadata(from_disk_cache=True),
+            }
+            summary = merged.get("summary", {}) if isinstance(merged, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            self.results_cache["analyze_pip_audit"] = merged
+            logger.debug("Using cached analyze_pip_audit result (requirements unchanged)")
+            return result
+        result = self.run_script("analyze_pip_audit", "--json", timeout=600)
+        output = result.get("output", "")
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result["data"] = data
+            summary = data.get("summary", {}) if isinstance(data, dict) else {}
+            result["issues_found"] = bool(summary.get("total_issues", 0))
+            result["success"] = True
+            result["error"] = ""
+            details = data.get("details", {}) if isinstance(data, dict) else {}
+            if isinstance(details, dict) and details.get("pip_audit_execution_state") == "skipped_env":
+                result["cache_metadata"] = {"cache_mode": "skipped_env"}
+            else:
+                result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+            self.results_cache["analyze_pip_audit"] = data
+            try:
+                save_tool_result(
+                    "analyze_pip_audit",
+                    "static_checks",
+                    data,
+                    project_root=self.project_root,
+                )
+                self._save_pip_audit_cache("static_checks", data)
+            except Exception as e:
+                logger.warning(f"Failed to save analyze_pip_audit result: {e}")
+        else:
+            if not result.get("error"):
+                result["error"] = "No parseable JSON output from analyze_pip_audit"
+            result["success"] = False
+            result["cache_metadata"] = _static_check_tool_cache_metadata(from_disk_cache=False)
+        return result
+
+    def _compute_requirements_lock_signature(self) -> str | None:
+        """Hash requirements.txt / pyproject.toml for pip-audit cache invalidation."""
+        try:
+            return requirements_lock_signature(Path(self.project_root))
+        except Exception as e:
+            logger.debug(f"Could not compute requirements lock signature: {e}")
+            return None
+
+    def _try_pip_audit_cache(self, domain: str) -> dict | None:
+        """Return cached pip-audit result if dependency files unchanged."""
+        from ..audit_storage_scope import jsons_dir_for_scope
+
+        sig = self._compute_requirements_lock_signature()
+        if not sig:
+            return None
+        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
+        cache_file = jsons_dir / ".analyze_pip_audit_requirements_cache.json"
+        if not cache_file.exists():
+            return None
+        try:
+            with open(cache_file, encoding="utf-8") as f:
+                cache_data = json.load(f)
+            if cache_data.get("requirements_signature") != sig:
+                return None
+        except (json.JSONDecodeError, OSError):
+            return None
+        loaded = load_tool_result(
+            "analyze_pip_audit", domain, project_root=self.project_root, normalize=False
+        )
+        if loaded and isinstance(loaded, dict):
+            return loaded
+        return None
+
+    def _save_pip_audit_cache(self, domain: str, data: dict) -> None:
+        """Persist requirements signature after a successful pip-audit run."""
+        from ..audit_storage_scope import jsons_dir_for_scope
+
+        sig = self._compute_requirements_lock_signature()
+        if not sig:
+            return
+        jsons_dir = jsons_dir_for_scope(self.project_root, domain)
+        cache_file = jsons_dir / ".analyze_pip_audit_requirements_cache.json"
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump({"requirements_signature": sig}, f)
+        except OSError as e:
+            logger.debug(f"Could not save pip-audit cache: {e}")
+
+    def _compute_source_signature(self) -> str | None:
+        """Full-repo static-check digest (Python sources + configs) for tests and diagnostics.
+
+        Ruff/Pyright/Bandit **disk** reuse uses per-shard manifests in ``analyze_*.py``;
+        see :func:`development_tools.shared.cache_dependency_paths.compute_full_static_check_source_signature`.
+        """
+        try:
+            return compute_full_static_check_source_signature(Path(self.project_root))
+        except Exception as e:
+            logger.debug(f"Could not compute source signature: {e}")
+            return None
+

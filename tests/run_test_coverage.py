@@ -1,0 +1,5328 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+
+"""
+Test Coverage Execution Tool (Portable)
+
+This script orchestrates pytest execution with coverage collection and generates
+coverage data files. It runs the actual test suite and collects coverage metrics.
+
+NOTE: This tool EXECUTES tests and GENERATES coverage data. For pure analysis of
+existing coverage data, use analyze_test_coverage.py instead.
+
+It is configurable via development_tools_config.json to work with any project's
+test setup and coverage configuration.
+
+Usage:
+    python tests/run_test_coverage.py [--output-file]
+"""
+
+import argparse
+import configparser
+import json
+import os
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from development_tools.shared.time_helpers import (
+    now_timestamp_full,
+    now_timestamp_filename,
+)
+
+# Add project root to path for core module imports
+# Script is at: development_tools/tests/generate_test_coverage.py
+# So we need to go up 3 levels: tests -> development_tools -> project_root
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Ensure dev-tools logger routing is active even when this module is invoked directly.
+os.environ.setdefault("MHM_DEV_TOOLS_RUN", "1")
+from development_tools.config import load_external_config
+
+load_external_config()
+
+from development_tools.shared.logging import get_dev_tools_logger
+import contextlib
+
+from development_tools.tests.coverage_json_helpers import (
+    coverage_path_to_rel_posix as _coverage_path_to_rel_posix,
+    recompute_coverage_totals_from_files as _recompute_coverage_totals_from_files,
+)
+from development_tools.tests.coverage_outcome_classification import (
+    build_cache_only_coverage_outcome as _build_cache_only_coverage_outcome_fn,
+    build_track_outcome as _build_track_outcome_fn,
+    classify_coverage_outcome as _classify_coverage_outcome_fn,
+    classify_windows_crash_return_code as _classify_windows_crash_return_code_fn,
+    format_return_code_hex as _format_return_code_hex_fn,
+    is_infra_cleanup_error as _is_infra_cleanup_error_fn,
+    is_interrupt_return_code as _is_interrupt_return_code_fn,
+    is_windows_crash_return_code as _is_windows_crash_return_code_fn,
+    is_xdist_worker_crash_output as _is_xdist_worker_crash_output_fn,
+    strip_xdist_args as _strip_xdist_args_fn,
+)
+from development_tools.tests.coverage_pytest_argv import (
+    build_dev_tools_coverage_pytest_cmd as _build_dev_tools_coverage_pytest_cmd,
+    build_isolated_tools_coverage_pytest_cmd as _build_isolated_tools_coverage_pytest_cmd,
+    build_main_coverage_pytest_cmd as _build_main_coverage_pytest_cmd,
+    build_no_parallel_coverage_pytest_cmd as _build_no_parallel_coverage_pytest_cmd,
+    build_no_parallel_test_args as _build_no_parallel_test_args_fn,
+    partition_coverage_pytest_paths as _partition_coverage_pytest_paths,
+)
+from development_tools.tests.coverage_shard_merge import (
+    detect_expected_parallel_workers as _detect_expected_parallel_workers_fn,
+    discover_parallel_coverage_artifacts as _discover_parallel_coverage_artifacts_fn,
+    domains_with_collapsed_coverage as _domains_with_collapsed_coverage_fn,
+    is_full_coverage_run as _is_full_coverage_run_fn,
+    load_coverage_json_dict as _load_coverage_json_dict_fn,
+    merge_coverage_json as _merge_coverage_json_fn,
+    overall_coverage_collapsed as _overall_coverage_collapsed_fn,
+    select_coverage_snapshot_to_publish as _select_coverage_snapshot_to_publish_fn,
+    coverage_json_is_healthy as _coverage_json_is_healthy_fn,
+    last_good_coverage_json_path as _last_good_coverage_json_path_fn,
+    should_merge_coverage_snapshots as _should_merge_coverage_snapshots_fn,
+    wait_for_parallel_coverage_artifacts as _wait_for_parallel_coverage_artifacts_fn,
+)
+from development_tools.tests.coverage_domain_cache import (
+    check_dev_tools_changed as _check_dev_tools_changed_fn,
+    get_config_mtime as _get_config_mtime_fn,
+    get_dev_tools_source_mtimes as _get_dev_tools_source_mtimes_fn,
+    get_dev_tools_test_mtimes as _get_dev_tools_test_mtimes_fn,
+)
+
+# Import config module (absolute import for portability)
+try:
+    from development_tools import config
+except ImportError:
+    # Fallback for when run as script
+    # Already have project_root from above, just ensure it's in path
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    from development_tools import config
+
+# Import decomposed coverage analysis and report generation tools
+try:
+    from development_tools.tests.analyze_test_coverage import TestCoverageAnalyzer
+    from development_tools.tests.generate_test_coverage_report import (
+        TestCoverageReportGenerator,
+    )
+except ImportError:
+    # Fallback for relative imports
+    try:
+        from .analyze_test_coverage import TestCoverageAnalyzer
+        from .generate_test_coverage_report import TestCoverageReportGenerator
+    except ImportError:
+        TestCoverageAnalyzer = None
+        TestCoverageReportGenerator = None
+
+# Load external config on module import (safe to call multiple times)
+config.load_external_config()
+
+logger = get_dev_tools_logger("development_tools")
+
+_DEV_TOOLS_TEST_POSIX_PREFIX = "development_tools/tool_tests/"
+
+
+class CoverageMetricsRegenerator:
+    """
+    Executes test suite with coverage collection and regenerates coverage metrics.
+
+    This class orchestrates pytest execution to run tests and collect coverage data.
+    It does NOT analyze coverage data - for analysis, use TestCoverageAnalyzer
+    from analyze_test_coverage.py.
+
+    Portable across projects via external configuration.
+    """
+
+    def __init__(
+        self,
+        project_root: str = ".",
+        parallel: bool = True,
+        num_workers: str | None = None,
+        pytest_command: list[str] | None = None,
+        coverage_config: str | None = None,
+        artifact_directories: dict[str, str] | None = None,
+        maxfail: int | None = None,
+        use_domain_cache: bool = True,
+    ):
+        """
+        Initialize coverage metrics regenerator.
+
+        Args:
+            project_root: Root directory of the project
+            parallel: Whether to run tests in parallel (default: True)
+            num_workers: Number of parallel workers or "auto" (default: "auto")
+            pytest_command: Optional pytest command as list (e.g., ['python', '-m', 'pytest']).
+                           If None, loads from config or uses default.
+            coverage_config: Optional path to coverage config file (e.g., 'coverage.ini').
+                            If None, loads from config or uses default.
+            artifact_directories: Optional dict with keys: html_output, archive, logs, dev_tools_html.
+                                If None, loads from config or uses defaults.
+            maxfail: Optional maximum number of test failures before stopping (default: 10).
+                    If None, loads from config or uses default of 10.
+            use_domain_cache: Whether to use test-file and dev tools coverage caching (default: True).
+                              When enabled, only runs test files for changed domains and merges cached data.
+                              Disable with --no-domain-cache flag.
+        """
+        self.project_root = Path(project_root).resolve()
+
+        # Load coverage configuration from external config
+        coverage_config_data = (
+            config.get_coverage_tool_config()
+            if hasattr(config, "get_coverage_tool_config")
+            else config.get_external_value("coverage", {})
+        )
+
+        # Get maxfail threshold (from parameter, config, or default)
+        if maxfail is not None:
+            self.maxfail = maxfail
+        else:
+            self.maxfail = coverage_config_data.get("maxfail", 10)
+
+        # Pytest command (from parameter, config, or default)
+        if pytest_command is not None:
+            self.pytest_command = pytest_command
+        else:
+            config_pytest = coverage_config_data.get("pytest_command", [])
+            if config_pytest:
+                self.pytest_command = (
+                    config_pytest
+                    if isinstance(config_pytest, list)
+                    else [config_pytest]
+                )
+            else:
+                # Default: use sys.executable with pytest module
+                self.pytest_command = [sys.executable, "-m", "pytest"]
+
+        # Pytest base arguments (from config or default)
+        # Replace --maxfail in base args if present, otherwise add it
+        base_args = coverage_config_data.get(
+            "pytest_base_args",
+            ["--cov-report=term-missing", "--tb=line", "-q", "--maxfail=10"],
+        )
+        # Update maxfail in base args if it exists, otherwise add it
+        self.pytest_base_args = []
+        maxfail_added = False
+        for arg in base_args:
+            if arg.startswith("--maxfail="):
+                self.pytest_base_args.append(f"--maxfail={self.maxfail}")
+                maxfail_added = True
+            else:
+                self.pytest_base_args.append(arg)
+        if not maxfail_added:
+            self.pytest_base_args.append(f"--maxfail={self.maxfail}")
+
+        # Test directory (from config or default)
+        self.test_directory = coverage_config_data.get("test_directory", "tests/")
+
+        # Coverage config path (from parameter, config, or default)
+        if coverage_config is not None:
+            self.coverage_config_path = self.project_root / coverage_config
+        else:
+            config_path = coverage_config_data.get(
+                "coverage_config", "development_tools/tests/coverage.ini"
+            )
+            self.coverage_config_path = self.project_root / config_path
+
+        # Artifact directories (from parameter, config, or defaults)
+        if artifact_directories is not None:
+            self.artifact_dirs = artifact_directories
+        else:
+            config_artifacts = coverage_config_data.get("artifact_directories", {})
+            if config_artifacts:
+                self.artifact_dirs = config_artifacts
+            else:
+                # Generic defaults
+                self.artifact_dirs = {
+                    "html_output": "htmlcov",
+                    "archive": "development_tools/reports/archive/coverage_artifacts",
+                    "logs": "development_tools/tests/logs",
+                    "dev_tools_html": None,  # Disabled - no longer generating dev tools HTML
+                }
+
+        # Set up paths from artifact directories
+        self.coverage_data_file: Path = self.project_root / ".coverage"
+        self.coverage_html_dir: Path = self.project_root / self.artifact_dirs.get(
+            "html_output", "htmlcov"
+        )
+        self.coverage_logs_dir: Path = self.project_root / self.artifact_dirs.get(
+            "logs", "development_tools/tests/logs"
+        )
+        self.archive_root: Path = self.project_root / self.artifact_dirs.get(
+            "archive", "development_tools/reports/archive/coverage_artifacts"
+        )
+
+        # Dev tools specific coverage paths
+        self.dev_tools_coverage_config_path: Path = (
+            self.project_root / "development_tools" / "tests" / "coverage_dev_tools.ini"
+        )
+        self.dev_tools_coverage_data_file: Path = (
+            self.project_root / "development_tools" / "tests" / ".coverage_dev_tools"
+        )
+        jsons_dir = config.get_coverage_json_dir(self.project_root)
+        jsons_dir.mkdir(parents=True, exist_ok=True)
+        self.dev_tools_coverage_json: Path = jsons_dir / "coverage_dev_tools.json"
+        self.dev_tools_coverage_html_dir: Path | None = (
+            None  # Disabled - no longer generating dev tools HTML
+        )
+
+        self.pytest_stdout_log: Path | None = None
+        self.pytest_stderr_log: Path | None = None
+        self.archived_directories: list[dict[str, str]] = []
+        self.command_logs: list[Path] = []
+        self.parallel = parallel
+        self.num_workers = (
+            num_workers or "auto"
+        )  # "auto" lets pytest-xdist decide, or specify a number
+        self._configure_coverage_paths()
+        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
+
+        # Core modules to track coverage for
+        # Core modules are loaded from external config. Don't rely on import-time
+        # snapshots in shared.constants (which can be empty if config loads later).
+        resolved_core_modules: list[str] = []
+        try:
+            from development_tools import config as dev_tools_config
+            from development_tools.shared.constants import (
+                CORE_MODULES as _FALLBACK_CORE,
+            )
+
+            constants_cfg = dev_tools_config.get_constants_config() or {}
+            configured = constants_cfg.get("core_modules")
+            if isinstance(configured, (list, tuple)):
+                resolved_core_modules = [
+                    str(m).strip() for m in configured if str(m).strip()
+                ]
+            if not resolved_core_modules:
+                resolved_core_modules = list(_FALLBACK_CORE)
+        except Exception:
+            # Absolute fallback: keep behavior consistent (may be empty).
+            try:
+                from development_tools.shared.constants import (
+                    CORE_MODULES as _FALLBACK_CORE2,
+                )
+
+                resolved_core_modules = list(_FALLBACK_CORE2)
+            except Exception:
+                resolved_core_modules = []
+
+        self.core_modules = resolved_core_modules
+
+        # Test-file-based caching (optional)
+        self.use_domain_cache = use_domain_cache
+        self.test_file_cache = None
+        self.domain_mapper = None
+        self.dev_tools_cache = None
+        if self.use_domain_cache:
+            try:
+                from development_tools.tests.test_file_coverage_cache import (
+                    TestFileCoverageCache,
+                )
+                from development_tools.tests.domain_mapper import DomainMapper
+
+                self.test_file_cache = TestFileCoverageCache(self.project_root)
+                self.domain_mapper = DomainMapper(self.project_root)
+                if logger:
+                    logger.debug("Test-file-based coverage caching enabled")
+            except ImportError as e:
+                if logger:
+                    logger.warning(
+                        f"Failed to import test-file cache modules: {e}. Test-file caching disabled."
+                    )
+                self.use_domain_cache = False
+                self.test_file_cache = None
+                self.domain_mapper = None
+
+        if self.use_domain_cache:
+            try:
+                from development_tools.tests.dev_tools_coverage_cache import (
+                    DevToolsCoverageCache,
+                )
+
+                self.dev_tools_cache = DevToolsCoverageCache(self.project_root)
+                if logger:
+                    logger.debug("Dev tools coverage caching enabled")
+            except ImportError as e:
+                if logger:
+                    logger.warning(
+                        f"Failed to import dev tools coverage cache: {e}. Dev tools caching disabled."
+                    )
+                self.dev_tools_cache = None
+
+        # Initialize analyzer and report generator
+        # Try to import if not already available (handles cases where imports failed at module level)
+        analyzer_class = TestCoverageAnalyzer
+        if analyzer_class is None:
+            try:
+                from development_tools.tests.analyze_test_coverage import (
+                    TestCoverageAnalyzer as AnalyzerClass,
+                )
+
+                analyzer_class = AnalyzerClass
+            except ImportError:
+                try:
+                    from .analyze_test_coverage import (
+                        TestCoverageAnalyzer as AnalyzerClass,
+                    )
+
+                    analyzer_class = AnalyzerClass
+                except ImportError:
+                    analyzer_class = None
+
+        if analyzer_class is not None:
+            self.analyzer = analyzer_class(str(self.project_root))
+        else:
+            self.analyzer = None
+            if logger:
+                logger.warning(
+                    "TestCoverageAnalyzer not available - coverage parsing may fail"
+                )
+
+        report_generator_class = TestCoverageReportGenerator
+        if report_generator_class is None:
+            try:
+                from development_tools.tests.generate_test_coverage_report import (
+                    TestCoverageReportGenerator as ReportGeneratorClass,
+                )
+
+                report_generator_class = ReportGeneratorClass
+            except ImportError:
+                try:
+                    from .generate_test_coverage_report import (
+                        TestCoverageReportGenerator as ReportGeneratorClass,
+                    )
+
+                    report_generator_class = ReportGeneratorClass
+                except ImportError:
+                    report_generator_class = None
+
+        if report_generator_class is not None:
+            artifact_dirs = {
+                "html_output": str(
+                    self.coverage_html_dir.relative_to(self.project_root)
+                ),
+                "archive": str(self.archive_root.relative_to(self.project_root)),
+                "logs": str(self.coverage_logs_dir.relative_to(self.project_root)),
+            }
+            self.report_generator = report_generator_class(
+                project_root=str(self.project_root),
+                coverage_config=(
+                    str(self.coverage_config_path.relative_to(self.project_root))
+                    if self.coverage_config_path.exists()
+                    else None
+                ),
+                artifact_directories=artifact_dirs,
+            )
+            # Update coverage_data_file path in report generator to match ours
+            self.report_generator.coverage_data_file = self.coverage_data_file
+        else:
+            self.report_generator = None
+            if logger:
+                logger.warning(
+                    "TestCoverageReportGenerator not available - report generation may fail"
+                )
+
+    def _configure_test_logging_env(self, env: dict[str, str]) -> dict[str, str]:
+        """Force test subprocess logging into test-only log roots."""
+        # Keep coverage stdout/stderr artifacts in development_tools/tests/logs,
+        # but isolate runtime app/component logs from pytest subprocesses under
+        # the configured tests data directory so they do not pollute coverage artifact directories.
+        try:
+            from development_tools import config as _config
+
+            paths_cfg = _config.get_paths_config()
+            tests_data_rel = paths_cfg.get("tests_data_dir") or "tests/data"
+        except Exception:
+            tests_data_rel = "tests/data"
+
+        tests_data_root = self.project_root / tests_data_rel
+        test_logs_root = tests_data_root / "tmp" / "runtime_logs"
+        test_tmp_root = tests_data_root / "tmp"
+        test_logs_root.mkdir(parents=True, exist_ok=True)
+        test_tmp_root.mkdir(parents=True, exist_ok=True)
+        # Force pytest subprocesses into pure test mode (not dev-tools mode),
+        # so logger path expectations in test suites remain deterministic.
+        env["MHM_DEV_TOOLS_RUN"] = "0"
+        env["MHM_TESTING"] = "1"
+        env["TEST_CONSOLIDATED_LOGGING"] = "1"
+        env["TEST_VERBOSE_LOGS"] = "0"
+        env["TEST_LOGS_DIR"] = str(test_logs_root)
+        env["LOGS_DIR"] = str(test_logs_root)
+        env["LOG_BACKUP_DIR"] = str(test_logs_root / "backups")
+        env["LOG_ARCHIVE_DIR"] = str(test_logs_root / "archive")
+        # Keep pytest temp usage inside repo-owned tests/data/tmp to reduce ACL drift.
+        env["TMP"] = str(test_tmp_root)
+        env["TEMP"] = str(test_tmp_root)
+        env["TMPDIR"] = str(test_tmp_root)
+        env["PYTEST_DEBUG_TEMPROOT"] = str(test_tmp_root)
+        # Ensure this external-library deprecation warning is suppressed even in
+        # subprocess/worker paths where pytest warning filters may not apply.
+        warning_filters = [
+            "ignore:'audioop' is deprecated and slated for removal in Python 3.13:DeprecationWarning",
+            "ignore:.*audioop.*deprecated.*:DeprecationWarning",
+        ]
+        existing_warning_filters = env.get("PYTHONWARNINGS", "").strip()
+        if existing_warning_filters:
+            warning_filters.insert(0, existing_warning_filters)
+        env["PYTHONWARNINGS"] = ",".join(warning_filters)
+        return env
+
+    def _create_pytest_temp_paths(self, run_label: str) -> tuple[Path, Path]:
+        """Create isolated pytest basetemp/cache dirs with workspace-first fallback."""
+        try:
+            from development_tools import config as _config
+
+            paths_cfg = _config.get_paths_config()
+            tests_data_rel = paths_cfg.get("tests_data_dir") or "tests/data"
+        except Exception:
+            tests_data_rel = "tests/data"
+
+        tests_data_root = self.project_root / tests_data_rel
+        candidates = [
+            tests_data_root / "tmp_pytest_runtime" / "pytest_runner",
+            tests_data_root / "tmp" / "pytest_runner",
+            Path(tempfile.gettempdir()) / "devtools_pytest_tmp",
+        ]
+        unique_id = f"{run_label}_{uuid.uuid4().hex[:8]}"
+        last_error: Exception | None = None
+
+        for root in candidates:
+            try:
+                root.mkdir(parents=True, exist_ok=True)
+                pytest_temp_base = root / f"devtools_pytest_tmp_{unique_id}"
+                pytest_temp_base.mkdir(parents=True, exist_ok=True)
+                pytest_cache_dir = pytest_temp_base / ".pytest_cache"
+                pytest_cache_dir.mkdir(parents=True, exist_ok=True)
+                return pytest_temp_base, pytest_cache_dir
+            except Exception as exc:
+                last_error = exc
+                continue
+
+        if last_error:
+            raise last_error
+        raise RuntimeError("Unable to create pytest temporary directories")
+
+    def _run_pytest_wait(
+        self,
+        cmd: list[str],
+        *,
+        timeout: int,
+        **kwargs: Any,
+    ) -> subprocess.CompletedProcess:
+        """Wait for a coverage pytest process, ignoring spurious Windows SIGINT.
+
+        A single console control event (often from xdist workers, not Ctrl+C)
+        used to abort ``subprocess.run`` with KeyboardInterrupt. Keep waiting
+        unless the shared multi-tap stop threshold is reached.
+
+        On Windows, pytest is started without a console so Ctrl+C in this
+        terminal reaches only ``run_test_coverage.py``, not the test workers.
+        """
+        from development_tools.shared.audit_signal_state import (
+            audit_sigint_requested,
+            ignore_spurious_sigint,
+        )
+
+        if os.name == "nt":
+            extra_flags = int(kwargs.get("creationflags") or 0)
+            extra_flags |= int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) or 0)
+            extra_flags |= int(getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000) or 0)
+            kwargs["creationflags"] = extra_flags
+        else:
+            kwargs.setdefault("start_new_session", True)
+
+        kwargs.pop("timeout", None)
+        with ignore_spurious_sigint(action_name="coverage"):
+            process = subprocess.Popen(cmd, **kwargs)
+            deadline = time.monotonic() + timeout
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    process.kill()
+                    with contextlib.suppress(Exception):
+                        process.communicate(timeout=10)
+                    raise subprocess.TimeoutExpired(cmd, timeout)
+                try:
+                    stdout, stderr = process.communicate(timeout=max(0.1, remaining))
+                    return subprocess.CompletedProcess(
+                        cmd,
+                        process.returncode if process.returncode is not None else 1,
+                        stdout or "",
+                        stderr or "",
+                    )
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    with contextlib.suppress(Exception):
+                        process.communicate(timeout=10)
+                    raise
+                except KeyboardInterrupt:
+                    if audit_sigint_requested():
+                        process.kill()
+                        with contextlib.suppress(Exception):
+                            process.communicate(timeout=10)
+                        return subprocess.CompletedProcess(
+                            cmd,
+                            130,
+                            "",
+                            "KeyboardInterrupt (coverage stop requested).",
+                        )
+                    if logger:
+                        logger.info(
+                            "Ignored spurious SIGINT/control event; coverage pytest still running"
+                        )
+
+    @staticmethod
+    def _strip_xdist_args(cmd: list[str]) -> list[str]:
+        """Return command list without xdist-specific arguments."""
+        return _strip_xdist_args_fn(cmd)
+
+    @staticmethod
+    def _remove_tree_with_retries(path: Path, retries: int = 20) -> bool:
+        """Best-effort recursive removal with retries for Windows handle/ACL lag."""
+
+        def _on_rm_error(func, target, exc_info):
+            try:
+                os.chmod(target, stat.S_IWRITE)
+                func(target)
+            except Exception:
+                pass
+
+        if not path.exists():
+            return True
+        for attempt in range(retries):
+            try:
+                shutil.rmtree(path, ignore_errors=False, onerror=_on_rm_error)
+                return True
+            except Exception:
+                import time
+
+                time.sleep(min(0.5, 0.05 * (attempt + 1)))
+        with contextlib.suppress(Exception):
+            shutil.rmtree(path, ignore_errors=True, onerror=_on_rm_error)
+        return not path.exists()
+
+    def _configure_coverage_paths(self) -> None:
+        """Load coverage configuration paths from coverage.ini (if it exists and specifies paths)."""
+        if not self.coverage_config_path.exists():
+            # Fall back to defaults (already set in __init__)
+            return
+
+        coverage_ini = configparser.ConfigParser()
+        coverage_ini.read(self.coverage_config_path)
+
+        # Only override if coverage.ini explicitly specifies paths
+        # data_file paths in coverage.ini are relative to project root (where pytest runs from)
+        data_file = coverage_ini.get("run", "data_file", fallback="").strip()
+        if data_file:
+            # coverage.ini may use ${COVERAGE_DATA_DIR}. Resolve it here so the runner
+            # doesn't create a literal "${COVERAGE_DATA_DIR}" directory at project root.
+            if "${COVERAGE_DATA_DIR}" in data_file:
+                data_file = data_file.replace(
+                    "${COVERAGE_DATA_DIR}", str(self.coverage_config_path.parent)
+                ).replace("/", os.sep)
+
+            # Resolve relative to project root, not config file location (unless already absolute).
+            if os.path.isabs(data_file):
+                self.coverage_data_file = Path(data_file).resolve()
+            else:
+                self.coverage_data_file = (self.project_root / data_file).resolve()
+
+        html_directory = coverage_ini.get("html", "directory", fallback="").strip()
+        if html_directory:
+            # HTML directory paths are also relative to project root
+            self.coverage_html_dir = (self.project_root / html_directory).resolve()
+
+        # Ensure parent directories exist when we later write artefacts
+        self.coverage_data_file.parent.mkdir(parents=True, exist_ok=True)
+        self.coverage_html_dir.parent.mkdir(parents=True, exist_ok=True)
+
+    def _ensure_python_path_in_env(self, env: dict[str, str]) -> dict[str, str]:
+        """Ensure PATH includes Python executable's directory for Windows DLL resolution.
+
+        On Windows, subprocesses may fail with STATUS_DLL_NOT_FOUND (0xC0000135) if PATH
+        doesn't include the Python executable's directory. This helper ensures PATH is
+        set correctly for subprocess execution.
+
+        Args:
+            env: Environment dictionary (typically from os.environ.copy())
+
+        Returns:
+            Modified environment dictionary with PATH updated if needed
+        """
+        if sys.platform == "win32":
+            python_exe = Path(sys.executable)
+            python_dir = str(python_exe.parent)
+            current_path = env.get("PATH", "")
+
+            # Add Python directory to PATH if not already present
+            if python_dir not in current_path:
+                # Prepend to ensure Python DLLs are found first
+                env["PATH"] = (
+                    f"{python_dir};{current_path}" if current_path else python_dir
+                )
+
+        return env
+
+    def _merge_coverage_json(
+        self, coverage_json_1: dict[str, Any], coverage_json_2: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Merge two coverage JSON dictionaries (line-union for unchanged domains)."""
+        changed_domains = getattr(self, "_merge_changed_domains", None)
+        return _merge_coverage_json_fn(
+            coverage_json_1,
+            coverage_json_2,
+            domain_mapper=self.domain_mapper,
+            changed_domains=changed_domains if isinstance(changed_domains, set) else None,
+            log=logger,
+        )
+
+    def _should_merge_fresh_coverage(
+        self,
+        cached_coverage_json: dict[str, Any] | None,
+        fresh_coverage_json: dict[str, Any] | None,
+    ) -> bool:
+        """Merge cached+fresh coverage, including collapsed --no-domain-cache runs."""
+        collapsed_domains: list[str] = []
+        if cached_coverage_json and fresh_coverage_json:
+            collapsed_domains = _domains_with_collapsed_coverage_fn(
+                fresh_coverage_json,
+                cached_coverage_json,
+                domain_mapper=self.domain_mapper,
+            )
+        overall_collapsed = _overall_coverage_collapsed_fn(
+            fresh_coverage_json or {},
+            cached_coverage_json or {},
+        )
+        if (collapsed_domains or overall_collapsed) and logger:
+            reason = (
+                f"domains {collapsed_domains}"
+                if collapsed_domains
+                else "overall coverage drop"
+            )
+            logger.warning(
+                "Fresh coverage collapsed vs merge base "
+                f"({reason}); merging to keep prior coverage"
+            )
+        return _should_merge_coverage_snapshots_fn(
+            use_domain_cache=self.use_domain_cache,
+            has_test_file_cache=bool(self.test_file_cache),
+            cached_coverage_json=cached_coverage_json,
+            fresh_coverage_json=fresh_coverage_json,
+            collapsed_domains=collapsed_domains,
+            overall_collapsed=overall_collapsed,
+        )
+
+    def _last_good_coverage_path(self) -> Path:
+        jsons_dir = config.get_coverage_json_dir(self.project_root)
+        return _last_good_coverage_json_path_fn(jsons_dir)
+
+    def _store_last_good_coverage(self, payload: dict[str, Any]) -> None:
+        """Keep a rotator-safe copy of a healthy coverage.json."""
+        if not _coverage_json_is_healthy_fn(payload):
+            return
+        last_good_path = self._last_good_coverage_path()
+        last_good_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            last_good_path.write_text(
+                json.dumps(payload, indent=2), encoding="utf-8"
+            )
+        except OSError as exc:
+            if logger:
+                logger.warning(f"Failed to store last-good coverage snapshot: {exc}")
+
+    def _guard_collapsed_coverage_json(
+        self,
+        fresh_coverage_json: dict[str, Any] | None,
+        cached_coverage_json: dict[str, Any] | None,
+        coverage_output: Path,
+    ) -> tuple[dict[str, Any] | None, bool]:
+        """Replace a collapsed fresh snapshot with last-good coverage.
+
+        Returns ``(payload, kept_baseline)``. ``kept_baseline`` means the caller
+        should not let ``coverage json`` from a partial ``.coverage`` overwrite it.
+        """
+        if not isinstance(fresh_coverage_json, dict):
+            return fresh_coverage_json, False
+        last_good = _load_coverage_json_dict_fn(self._last_good_coverage_path())
+        chosen, reason = _select_coverage_snapshot_to_publish_fn(
+            fresh_coverage_json,
+            previous=cached_coverage_json,
+            last_good=last_good,
+        )
+        if reason == "fresh":
+            self._store_last_good_coverage(chosen)
+            return chosen, False
+        if logger:
+            logger.warning(
+                "Rejecting collapsed coverage snapshot; keeping "
+                f"{reason} instead of publishing the fresh measurement"
+            )
+        try:
+            coverage_output.parent.mkdir(parents=True, exist_ok=True)
+            coverage_output.write_text(
+                json.dumps(chosen, indent=2), encoding="utf-8"
+            )
+        except OSError as exc:
+            if logger:
+                logger.warning(
+                    f"Failed to restore {reason} coverage snapshot: {exc}"
+                )
+            return fresh_coverage_json, False
+        self._store_last_good_coverage(chosen)
+        return chosen, True
+
+    def _detect_expected_parallel_workers(self, pytest_output: str) -> int | None:
+        """Extract expected xdist worker count from pytest output when available."""
+        return _detect_expected_parallel_workers_fn(pytest_output)
+
+    def _discover_parallel_coverage_artifacts(
+        self, coverage_dir: Path
+    ) -> dict[str, list[Path]]:
+        """Discover coverage shard files that should exist before combine."""
+        return _discover_parallel_coverage_artifacts_fn(
+            coverage_dir, self.project_root
+        )
+
+    def _wait_for_parallel_coverage_artifacts(
+        self,
+        coverage_dir: Path,
+        expected_workers: int | None,
+        timeout_seconds: float = 5.0,
+        poll_seconds: float = 0.25,
+    ) -> dict[str, Any]:
+        """Wait briefly for shard files to appear before combine on slower filesystems."""
+        return _wait_for_parallel_coverage_artifacts_fn(
+            coverage_dir,
+            expected_workers,
+            timeout_seconds=timeout_seconds,
+            poll_seconds=poll_seconds,
+            discover_fn=self._discover_parallel_coverage_artifacts,
+            log=logger,
+        )
+
+    def run_coverage_analysis(  # pyright: ignore[reportGeneralTypeIssues]
+        self,
+    ) -> dict[str, dict[str, Any]]:
+        """Run pytest coverage analysis and extract metrics."""
+        if logger:
+            logger.debug("Running pytest coverage analysis...")
+        self._cleanup_stray_pytest_cache_temp_dirs()
+
+        # Load coverage configuration from external config
+        coverage_config_data = (
+            config.get_coverage_tool_config()
+            if hasattr(config, "get_coverage_tool_config")
+            else config.get_external_value("coverage", {})
+        )
+
+        # Test-file-based caching: check for changed domains and determine test files to run
+        changed_domains = set()
+        test_files_to_run = []
+        cached_coverage_json = None
+        merged_coverage_saved = False
+
+        if self.use_domain_cache and self.test_file_cache:
+            # Get changed domains
+            changed_domains = self.test_file_cache.get_changed_domains()
+            invalidation_reason = getattr(
+                self.test_file_cache, "last_invalidation_reason", None
+            )
+            if logger and invalidation_reason:
+                logger.info(
+                    f"Test-file cache invalidation reason: {invalidation_reason}"
+                )
+
+            # Get test files that need to be re-run (those covering changed domains)
+            test_files_to_run = self.test_file_cache.get_test_files_to_run(
+                changed_domains
+            )
+
+            # Check for full coverage cache first (from previous full run when no domains changed)
+            full_coverage_cache = self.test_file_cache.get_full_coverage_cache()
+
+            # Get cached coverage from test files that don't need to run (for selective runs)
+            cached_test_file_coverage = self.test_file_cache.get_all_cached_coverage(
+                exclude_domains=changed_domains
+            )
+
+            if logger:
+                cache_stats = self.test_file_cache.get_cache_stats()
+                total_test_files = cache_stats["total_test_files"]
+                unmapped_count = cache_stats.get("unmapped_test_files", 0)
+                if changed_domains:
+                    logger.info(
+                        f"Test-file cache: {len(changed_domains)} domain(s) changed: {sorted(changed_domains)}"
+                    )
+                    # If we have a full coverage cache, any test file that isn't being re-run can "use cache"
+                    # (its coverage will come from the cached baseline during merge).
+                    full_coverage_cache_exists = bool(full_coverage_cache)
+                    can_use_cache = (
+                        (total_test_files - len(test_files_to_run))
+                        if full_coverage_cache_exists
+                        and len(test_files_to_run) < total_test_files
+                        else 0
+                    )
+                    # For full runs, test_files_to_run may include unmapped files; show the run count against itself.
+                    total_for_display = (
+                        len(test_files_to_run)
+                        if len(test_files_to_run) >= total_test_files
+                        else total_test_files
+                    )
+                    logger.info(
+                        f"Test-file cache: {len(test_files_to_run)} of {total_for_display} test file(s) need to run, "
+                        f"{can_use_cache} of {total_test_files} test file(s) can use cache"
+                    )
+                    if unmapped_count > 0:
+                        logger.warning(
+                            f"Test-file cache: {unmapped_count} test file(s) not mapped to any domain (will be included in full runs)"
+                        )
+                else:
+                    logger.info(
+                        f"Test-file cache: No domains changed - {cache_stats['test_files_cached']} of {total_test_files} test file(s) can use cache"
+                    )
+                    if unmapped_count > 0:
+                        logger.warning(
+                            f"Test-file cache: {unmapped_count} test file(s) not mapped to any domain"
+                        )
+                    if full_coverage_cache:
+                        logger.info(
+                            "Test-file cache: Found full coverage cache from previous run"
+                        )
+
+            # Use full coverage cache if available (for both no-change and selective runs)
+            # On selective runs, we'll merge this with fresh coverage from re-run tests
+            if full_coverage_cache:
+                cached_coverage_json = full_coverage_cache
+                if logger:
+                    if not changed_domains:
+                        logger.info(
+                            f"Using full coverage cache ({len(full_coverage_cache.get('files', {}))} files)"
+                        )
+                    else:
+                        logger.info(
+                            f"Using full coverage cache as base for merge ({len(full_coverage_cache.get('files', {}))} files)"
+                        )
+            # Otherwise, reconstruct cached coverage JSON from cached test file coverage (fallback)
+            elif cached_test_file_coverage:
+                cached_files = {}
+                for (
+                    _test_file_path,
+                    test_file_coverage,
+                ) in cached_test_file_coverage.items():
+                    if isinstance(test_file_coverage, dict):
+                        test_file_files = test_file_coverage.get("files", {})
+                        if isinstance(test_file_files, dict):
+                            # Merge files from this test file's coverage
+                            for file_path, file_data in test_file_files.items():
+                                if isinstance(file_data, dict):
+                                    # If file already exists, prefer the one with higher coverage
+                                    # (since multiple test files might cover the same source file)
+                                    if file_path in cached_files:
+                                        existing_summary = cached_files[file_path].get(
+                                            "summary", {}
+                                        )
+                                        new_summary = file_data.get("summary", {})
+                                        if isinstance(
+                                            existing_summary, dict
+                                        ) and isinstance(new_summary, dict):
+                                            existing_covered = existing_summary.get(
+                                                "covered_lines", 0
+                                            )
+                                            new_covered = new_summary.get(
+                                                "covered_lines", 0
+                                            )
+                                            # Prefer higher coverage (more comprehensive)
+                                            if new_covered > existing_covered:
+                                                cached_files[file_path] = file_data
+                                    else:
+                                        cached_files[file_path] = file_data
+
+                if cached_files:
+                    cached_coverage_json = {
+                        "files": cached_files,
+                        "totals": {
+                            "num_statements": 0,
+                            "covered_lines": 0,
+                            "missing_lines": 0,
+                            "percent_covered": 0.0,
+                        },
+                    }
+                    # Recalculate totals
+                    total_statements = 0
+                    total_covered = 0
+                    total_missing = 0
+                    for _file_path, file_data in cached_files.items():
+                        if isinstance(file_data, dict):
+                            summary = file_data.get("summary", {})
+                            if isinstance(summary, dict):
+                                total_statements += summary.get("num_statements", 0)
+                                total_covered += summary.get("covered_lines", 0)
+                                total_missing += summary.get("missing_lines", 0)
+
+                    cached_coverage_json["totals"]["num_statements"] = total_statements
+                    cached_coverage_json["totals"]["covered_lines"] = total_covered
+                    cached_coverage_json["totals"]["missing_lines"] = total_missing
+                    if total_statements > 0:
+                        cached_coverage_json["totals"]["percent_covered"] = round(
+                            (total_covered / total_statements) * 100, 2
+                        )
+
+                    if logger:
+                        logger.info(
+                            f"Loaded cached coverage from {len(cached_test_file_coverage)} test file(s) ({len(cached_files)} source files)"
+                        )
+
+        # Determine if we need to run tests
+        run_tests = True
+        test_filter_args = []
+
+        if self.use_domain_cache and self.test_file_cache:
+            if not test_files_to_run and cached_coverage_json:
+                # No test files need to run AND we have valid cached data - use cache only
+                run_tests = False
+                if logger:
+                    logger.info(
+                        "All test files cached - using cached coverage data only (skipping test execution)"
+                    )
+            elif not test_files_to_run and not cached_coverage_json:
+                # No test files need to run BUT no cached data available - must run all tests (first run or cache cleared)
+                run_tests = True
+                test_filter_args = []  # Run all tests
+                if logger:
+                    logger.info(
+                        "No domains changed but cache is empty - running all tests to populate cache"
+                    )
+            else:
+                # Some test files need to run - pass them to pytest
+                if logger:
+                    logger.info(
+                        f"Running {len(test_files_to_run)} test file(s) that cover changed domain(s)"
+                    )
+                # Convert Path objects to relative paths for pytest
+                test_filter_args = [
+                    str(tf.relative_to(self.project_root)) for tf in test_files_to_run
+                ]
+
+        # Host pytest must not collect development_tools/tool_tests/. That conftest
+        # requires development_tools/pytest.ini, so those tests run in a second
+        # process and their coverage data is combined into coverage.json.
+
+        jsons_dir = config.get_coverage_json_dir(self.project_root)
+        jsons_dir.mkdir(parents=True, exist_ok=True)
+        coverage_output = jsons_dir / "coverage.json"
+        if not cached_coverage_json and coverage_output.exists():
+            prior_coverage_json = _load_coverage_json_dict_fn(coverage_output)
+            if prior_coverage_json:
+                cached_coverage_json = prior_coverage_json
+                if logger:
+                    logger.info(
+                        "No in-memory coverage cache; using existing coverage.json "
+                        "as merge base"
+                    )
+
+        try:
+            self.archived_directories.clear()
+            self.command_logs.clear()
+            self.pytest_stdout_log = None
+            self.pytest_stderr_log = None
+            # Ensure directory exists
+            coverage_output.parent.mkdir(parents=True, exist_ok=True)
+            # Build coverage arguments dynamically from core modules
+            cov_args = []
+            for module in self.core_modules:
+                # Validate module name before adding to arguments
+                if not module or not module.strip():
+                    error_msg = f"Invalid empty module name in core_modules: {self.core_modules}"
+                    if logger:
+                        logger.error(error_msg)
+                    raise ValueError(error_msg)
+                cov_args.extend(["--cov", module.strip()])
+
+            # Validate no empty --cov arguments were created
+            if "--cov" in cov_args and cov_args.index("--cov") < len(cov_args) - 1:
+                # Check if any --cov is followed by another --cov (empty argument)
+                for i in range(len(cov_args) - 1):
+                    if cov_args[i] == "--cov" and cov_args[i + 1] == "--cov":
+                        error_msg = f"Detected empty --cov argument in command construction. cov_args: {cov_args}"
+                        if logger:
+                            logger.error(error_msg)
+                        raise ValueError(error_msg)
+
+            # Skip test execution if all domains are unchanged (using cache only)
+            if not run_tests:
+                if logger:
+                    logger.info(
+                        "Skipping test execution - using cached coverage data only"
+                    )
+
+                # Load cached coverage JSON and return it
+                if cached_coverage_json:
+                    # Save cached JSON to coverage_output with timestamp metadata
+                    try:
+                        timestamp_str = now_timestamp_full()
+                        timestamp_iso = datetime.now().isoformat()
+                        cached_coverage_json["_metadata"] = {
+                            "generated_by": "test-file cache (no test execution) - Development Tools",
+                            "last_generated": timestamp_str,
+                            "timestamp": timestamp_iso,
+                            "note": "This file is auto-generated from cache. Do not edit manually.",
+                        }
+                        with open(coverage_output, "w", encoding="utf-8") as f:
+                            json.dump(cached_coverage_json, f, indent=2)
+                    except Exception as e:
+                        if logger:
+                            logger.warning(f"Failed to save cached coverage JSON: {e}")
+
+                    if self.analyzer and coverage_output.exists():
+                        coverage_data = self.analyzer.load_coverage_json(
+                            coverage_output
+                        )
+                        overall_coverage = self.analyzer.extract_overall_from_json(
+                            coverage_output
+                        )
+                    else:
+                        # Fallback: extract from cached JSON structure
+                        coverage_data = {}
+                        for file_path, file_data in cached_coverage_json.get(
+                            "files", {}
+                        ).items():
+                            summary = file_data.get("summary", {})
+                            coverage_data[file_path] = {
+                                "statements": summary.get("num_statements", 0),
+                                "covered": summary.get("covered_lines", 0),
+                                "missed": summary.get("missing_lines", 0),
+                                "coverage": summary.get("percent_covered", 0.0),
+                            }
+                        overall_coverage = {
+                            "overall_coverage": cached_coverage_json["totals"].get(
+                                "percent_covered", 0.0
+                            ),
+                            "total_statements": cached_coverage_json["totals"].get(
+                                "num_statements", 0
+                            ),
+                            "total_missed": cached_coverage_json["totals"].get(
+                                "missing_lines", 0
+                            ),
+                        }
+
+                    return {
+                        "modules": coverage_data,
+                        "overall": overall_coverage,
+                        "coverage_collected": True,
+                        "from_cache": True,
+                        "coverage_outcome": self._build_cache_only_coverage_outcome(
+                            coverage_collected=True
+                        ),
+                    }
+                else:
+                    # Fallback: return empty result
+                    if logger:
+                        logger.warning(
+                            "No cached coverage data available - returning empty result"
+                        )
+                    return {
+                        "modules": {},
+                        "overall": {},
+                        "coverage_collected": False,
+                        "from_cache": True,
+                        "coverage_outcome": self._build_cache_only_coverage_outcome(
+                            coverage_collected=False
+                        ),
+                    }
+
+            # Parallel: exclude no_parallel/e2e (serial track later); omit JSON until combine.
+            # Serial: write JSON directly. Matches run_tests.py marker exclusions.
+            # Development-tools tests are removed here and run later with their pytest.ini.
+            path_split = _partition_coverage_pytest_paths(
+                test_filter_args,
+                default_test_path=self.test_directory,
+            )
+            skip_host_pytest = (
+                not path_split.use_host_default and not path_split.host_paths
+            )
+            host_filter_args = (
+                [] if path_split.use_host_default else list(path_split.host_paths)
+            )
+            tools_paths = list(path_split.tools_paths)
+            tools_return_code = None
+            tools_test_results: dict[str, Any] = {}
+            if tools_paths and logger:
+                logger.info(
+                    "Development-tools tests will run separately with "
+                    f"development_tools/pytest.ini ({len(tools_paths)} path(s))"
+                )
+            cmd = _build_main_coverage_pytest_cmd(
+                executable=sys.executable,
+                parallel=self.parallel,
+                num_workers=str(self.num_workers),
+                cov_args=cov_args,
+                coverage_config_path=self.coverage_config_path,
+                maxfail=self.maxfail,
+                test_filter_args=host_filter_args,
+                coverage_json_output=None if self.parallel else coverage_output,
+                default_test_path=self.test_directory,
+                extra_args=path_split.host_extra_args,
+                skip_default_path=skip_host_pytest,
+            )
+            if self.parallel and logger:
+                logger.info(
+                    f"Using parallel execution with {self.num_workers} workers (loadscope distribution), excluding no_parallel tests"
+                )
+
+            # Note: When using --cov-config, pytest-cov may still use the data_file from the config
+            # even if COVERAGE_FILE is set. We need to ensure the coverage files are created in the
+            # location we specify. The COVERAGE_FILE env var should override, but we'll verify after execution.
+
+            # Check for problematic environment variables
+            pytest_addopts = os.environ.get("PYTEST_ADDOPTS", "")
+            if pytest_addopts and "--cov" in pytest_addopts:
+                warning_msg = f"PYTEST_ADDOPTS contains --cov which may conflict: {pytest_addopts}"
+                if logger:
+                    logger.warning(warning_msg)
+
+            # Use separate coverage data files for parallel and no_parallel runs, then combine them
+            # This allows us to run no_parallel tests separately and merge their coverage
+            # Only needed when parallel execution is enabled
+            # Note: coverage.ini may specify data_file location, so we need to use the same directory
+            parallel_coverage_file = None
+            no_parallel_coverage_file = None
+            if self.parallel:
+                # Use the same directory as the main coverage file (respects coverage.ini data_file setting)
+                parallel_coverage_file = (
+                    self.coverage_data_file.parent / ".coverage_parallel"
+                )
+                no_parallel_coverage_file = (
+                    self.coverage_data_file.parent / ".coverage_no_parallel"
+                )
+
+            env = os.environ.copy()
+            env = self._configure_test_logging_env(env)
+            # Ensure PATH includes Python executable's directory for Windows DLL resolution
+            env = self._ensure_python_path_in_env(env)
+            # So coverage (and xdist workers) write under development_tools/tests, not project root
+            env["COVERAGE_DATA_DIR"] = str(self.coverage_data_file.parent)
+            if self.parallel:
+                # CRITICAL: Set COVERAGE_FILE to .coverage_parallel (not .coverage) so shard files aren't auto-combined
+                # pytest-xdist workers will create .coverage_parallel.worker0, .coverage_parallel.worker1, etc.
+                # in the same directory. If we used .coverage, pytest-cov would auto-combine them at the end.
+                # We need the shard files to remain separate so we can combine them with no_parallel coverage.
+                env["COVERAGE_FILE"] = str(parallel_coverage_file.resolve())
+                # Also set COVERAGE_RCFILE to ensure workers use the same config
+                if self.coverage_config_path.exists():
+                    env["COVERAGE_RCFILE"] = str(self.coverage_config_path.resolve())
+                if logger:
+                    logger.debug(
+                        f"Set COVERAGE_FILE={env['COVERAGE_FILE']} for parallel execution (shard files will be created as .coverage_parallel.worker* in {parallel_coverage_file.parent})"
+                    )
+            else:
+                env["COVERAGE_FILE"] = str(self.coverage_data_file.resolve())
+
+            # Use unique cache/basetemp directories per run to avoid cross-run collisions.
+            pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths("main")
+            env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+            # Force pytest cache provider to use writable temp cache directory.
+            cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
+            # Keep tmpdir fixtures isolated from tests/data/tmp cleanup logic.
+            cmd.append(f"--basetemp={pytest_temp_base}")
+
+            # Log the full command for debugging (single log entry instead of truncated + full)
+            if logger:
+                logger.debug(f"Running pytest coverage command: {' '.join(cmd)}")
+
+            # Get timeout from config, with sensible defaults
+            # Coverage collection adds overhead, so tests take longer than normal runs
+            # Normal test runs take ~5 minutes, with coverage they may take 7-10 minutes
+            # Default: 15 minutes (900 seconds) to allow for coverage overhead and system variations
+            # Configurable via development_tools_config.json: {"coverage": {"pytest_timeout": 900}}
+            pytest_timeout = coverage_config_data.get(
+                "pytest_timeout", 900
+            )  # 15 minutes default
+            if logger:
+                logger.info(f"Pytest timeout set to {pytest_timeout // 60} minutes")
+
+            # Create log files BEFORE running subprocess so we can see output even if it hangs
+            # Only create stdout log - user doesn't use stderr logs
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
+
+            # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
+            self._rotate_log_files("pytest_parallel_stdout", max_versions=8)
+
+            stdout_log_path = (
+                self.coverage_logs_dir / f"pytest_parallel_stdout_{timestamp}.log"
+            )
+            self.pytest_stdout_log = stdout_log_path
+            self.pytest_stderr_log = None  # No longer creating stderr logs
+
+            # Redirect output directly to files instead of capturing to avoid buffering/deadlock issues
+            # This allows us to see progress even if the subprocess hangs
+            # Capture stderr to stdout since we're not creating separate stderr logs
+            try:
+                with open(
+                    stdout_log_path, "w", encoding="utf-8", buffering=1
+                ) as stdout_file:
+                    if skip_host_pytest:
+                        stdout_file.write(
+                            "Host pytest skipped because this selection only contains "
+                            "development-tools tests. Those tests run with "
+                            "development_tools/pytest.ini in a separate process.\n"
+                        )
+                        result = subprocess.CompletedProcess(
+                            cmd, returncode=0, stdout="", stderr=""
+                        )
+                    else:
+                        result = self._run_pytest_wait(
+                            cmd,
+                            timeout=pytest_timeout,
+                            stdout=stdout_file,
+                            stderr=subprocess.STDOUT,  # Merge stderr into stdout
+                            text=True,
+                            cwd=self.project_root,
+                            env=env,
+                        )
+                # Read the captured output for processing
+                result.stdout = stdout_log_path.read_text(
+                    encoding="utf-8", errors="ignore"
+                )
+                result.stderr = ""  # Stderr was merged into stdout
+            except KeyboardInterrupt:
+                interrupt_msg = (
+                    "KeyboardInterrupt while waiting for pytest subprocess "
+                    "(SIGINT/control event)."
+                )
+                if logger:
+                    logger.warning(interrupt_msg)
+                partial_output = ""
+                if stdout_log_path.exists():
+                    partial_output = stdout_log_path.read_text(
+                        encoding="utf-8", errors="ignore"
+                    )
+                result = subprocess.CompletedProcess(
+                    cmd,
+                    returncode=130,
+                    stdout=partial_output,
+                    stderr=interrupt_msg,
+                )
+            except subprocess.TimeoutExpired:
+                # Pytest hung or took too long
+                # Read log files to check for progress (they should exist since we created them before running)
+                progress_indicator = False
+                stdout_content = ""
+                stderr_content = ""
+                if self.pytest_stdout_log and self.pytest_stdout_log.exists():
+                    try:
+                        stdout_content = self.pytest_stdout_log.read_text(
+                            encoding="utf-8", errors="ignore"
+                        )
+                        # Check for progress indicators (test output, percentages, etc.)
+                        progress_indicator = bool(
+                            "passed" in stdout_content.lower()
+                            or "failed" in stdout_content.lower()
+                            or "[  " in stdout_content
+                            or "%" in stdout_content
+                            or "TOTAL" in stdout_content
+                            or "bringing up nodes" in stdout_content.lower()
+                        )
+                    except Exception as e:
+                        if logger:
+                            logger.debug(f"Failed to read stdout log: {e}")
+
+                # Stderr is merged into stdout, so we don't need to read separate stderr log
+                stderr_content = ""
+
+                if logger:
+                    if progress_indicator:
+                        logger.warning(
+                            f"Pytest timed out after {pytest_timeout // 60} minutes, but tests were making progress"
+                        )
+                        logger.warning(
+                            "Tests may be running slower than expected. Consider increasing timeout in config:"
+                        )
+                        logger.warning(
+                            '  development_tools_config.json: {"coverage": {"pytest_timeout": <seconds>}}'
+                        )
+                    else:
+                        logger.error(
+                            f"Pytest timed out after {pytest_timeout // 60} minutes - tests may have hung or deadlocked"
+                        )
+                        logger.error("This could indicate:")
+                        logger.error(
+                            "  - A deadlock in parallel execution (pytest-xdist)"
+                        )
+                        logger.error("  - A test that hangs indefinitely")
+                        logger.error(
+                            "  - Resource contention (file locks, network, etc.)"
+                        )
+                        logger.error("  - System resource exhaustion")
+                        logger.error(
+                            "Consider running with --no-parallel to isolate the issue"
+                        )
+                    logger.info(
+                        'Timeout is configurable via development_tools_config.json: {"coverage": {"pytest_timeout": <seconds>}}'
+                    )
+                    if stdout_content:
+                        logger.info(
+                            f"Last stdout output (last 500 chars): {stdout_content[-500:]}"
+                        )
+                    if stderr_content:
+                        logger.info(
+                            f"Last stderr output (last 500 chars): {stderr_content[-500:]}"
+                        )
+                # Create a mock result to indicate timeout, but include any captured output
+                result = subprocess.CompletedProcess(
+                    cmd,
+                    returncode=1,
+                    stdout=stdout_content,
+                    stderr=stderr_content
+                    or f"Pytest timed out after {pytest_timeout // 60} minutes",
+                )
+
+            if (
+                self.parallel
+                and result.returncode != 0
+                and self._is_infra_cleanup_error(result.stdout or "")
+            ):
+                fallback_cmd = self._strip_xdist_args(cmd)
+                if fallback_cmd != cmd:
+                    if logger:
+                        logger.warning(
+                            "Parallel pytest run hit cleanup permission error; retrying once without xdist"
+                        )
+                    with open(
+                        stdout_log_path, "a", encoding="utf-8", buffering=1
+                    ) as stdout_file:
+                        stdout_file.write(
+                            "\n[RETRY] Re-running without xdist due to cleanup permission error\n"
+                        )
+                        try:
+                            retry_result = self._run_pytest_wait(
+                                fallback_cmd,
+                                timeout=pytest_timeout,
+                                stdout=stdout_file,
+                                stderr=subprocess.STDOUT,
+                                text=True,
+                                cwd=self.project_root,
+                                env=env,
+                            )
+                        except KeyboardInterrupt:
+                            if logger:
+                                logger.warning(
+                                    "KeyboardInterrupt while waiting for retry subprocess "
+                                    "(SIGINT/control event)."
+                                )
+                            retry_result = subprocess.CompletedProcess(
+                                fallback_cmd,
+                                returncode=130,
+                                stdout="",
+                                stderr=(
+                                    "KeyboardInterrupt while waiting for retry subprocess "
+                                    "(SIGINT/control event)."
+                                ),
+                            )
+                        except subprocess.TimeoutExpired:
+                            retry_result = subprocess.CompletedProcess(
+                                fallback_cmd,
+                                returncode=1,
+                                stdout="",
+                                stderr=(
+                                    f"Retry without xdist timed out after {pytest_timeout // 60} minutes"
+                                ),
+                            )
+                    retry_result.stdout = stdout_log_path.read_text(
+                        encoding="utf-8", errors="ignore"
+                    )
+                    retry_result.stderr = ""
+                    result = retry_result
+                    cmd = fallback_cmd
+
+            if self._is_interrupt_return_code(result.returncode) and logger:
+                logger.warning(
+                    "Main coverage pytest subprocess terminated with interrupt signature "
+                    f"(returncode={result.returncode}, hex={self._format_return_code_hex(result.returncode) or 'n/a'})."
+                )
+
+            # Log if the command completed too quickly (suspicious)
+            if result.returncode is not None and logger:
+                if not result.stdout or len(result.stdout) < 100:
+                    logger.warning(
+                        "Pytest completed very quickly with minimal output - may not have run tests properly"
+                    )
+                    if result.stderr:
+                        logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+
+            # Log files were already created and written to above
+            if logger and self.pytest_stdout_log and self.pytest_stdout_log.exists():
+                logger.info(f"Saved pytest output to {self.pytest_stdout_log}")
+
+            # Check if pytest actually ran by looking at log files (pytest with -q may not output to stdout)
+            # Also check stdout/stderr for output indicators
+            pytest_ran = False
+            log_content = ""
+            if self.pytest_stdout_log and self.pytest_stdout_log.exists():
+                log_content = self.pytest_stdout_log.read_text(
+                    encoding="utf-8", errors="ignore"
+                )
+                pytest_ran = bool(
+                    "TOTAL" in log_content
+                    or "passed" in log_content.lower()
+                    or "failed" in log_content.lower()
+                    or "[  " in log_content
+                    or "coverage:" in log_content.lower()
+                    or "ERROR" in log_content
+                    or "FAILED" in log_content
+                )
+
+            # Also check stdout/stderr if available
+            if not pytest_ran and result.stdout:
+                stdout_check = bool(
+                    "TOTAL" in result.stdout
+                    or "passed" in result.stdout.lower()
+                    or "[  " in result.stdout
+                    or "coverage:" in result.stdout.lower()
+                )
+                if stdout_check:
+                    pytest_ran = True
+                    log_content = result.stdout
+
+            # If we still don't have log content but pytest ran (based on return code or log file existence), use stdout
+            if not log_content and (pytest_ran or result.returncode is not None):
+                log_content = result.stdout or ""
+
+            # Parse test results from log file if available, otherwise from stdout
+            test_output = log_content if log_content else (result.stdout or "")
+            test_results = self._parse_pytest_test_results(test_output)
+
+            # Parse coverage from log file if available, otherwise from stdout
+            coverage_output_text = log_content if log_content else (result.stdout or "")
+            if self.analyzer:
+                coverage_data = self.analyzer.parse_coverage_output(
+                    coverage_output_text
+                )
+            else:
+                coverage_data = {}
+            # Only use existing coverage.json as fallback if pytest actually ran but didn't produce output
+            coverage_collected = bool(coverage_data)
+
+            if not coverage_data and coverage_output.exists() and pytest_ran:
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                else:
+                    coverage_data = {}
+                coverage_collected = bool(coverage_data)
+            elif not pytest_ran and logger:
+                logger.warning(
+                    "Pytest appears not to have run - no test output detected in stdout or log files"
+                )
+                if result.stderr:
+                    logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+                if self.pytest_stderr_log and self.pytest_stderr_log.exists():
+                    stderr_content = self.pytest_stderr_log.read_text(
+                        encoding="utf-8", errors="ignore"
+                    )
+                    if stderr_content:
+                        logger.warning(
+                            f"Pytest stderr from log (first 500 chars): {stderr_content[:500]}"
+                        )
+
+            if self.analyzer:
+                overall_coverage = self.analyzer.extract_overall_coverage(
+                    coverage_output_text
+                )
+            else:
+                overall_coverage = {}
+            # Always try to load from JSON file if it exists and pytest ran, as it's more accurate
+            # Note: In parallel mode, we don't generate JSON here - we'll combine coverage data files and regenerate JSON later
+            # So this code will only execute in serial mode or if coverage.json exists from a previous run
+            fresh_coverage_json = None
+            if coverage_output.exists() and pytest_ran and not self.parallel:
+                # Load fresh coverage JSON
+                try:
+                    with open(coverage_output, encoding="utf-8") as f:
+                        fresh_coverage_json = json.load(f)
+
+                    # Validate structure - ensure it has 'files' key
+                    if fresh_coverage_json and not isinstance(
+                        fresh_coverage_json.get("files"), dict
+                    ):
+                        if logger:
+                            logger.warning(
+                                "Fresh coverage JSON has invalid structure - missing or invalid 'files' key"
+                            )
+                        fresh_coverage_json = None
+                    elif fresh_coverage_json:
+                        # Add timestamp metadata
+                        timestamp_str = now_timestamp_full()
+                        timestamp_iso = datetime.now().isoformat()
+                        fresh_coverage_json["_metadata"] = {
+                            "generated_by": "pytest-cov --cov-report=json - Development Tools",
+                            "last_generated": timestamp_str,
+                            "timestamp": timestamp_iso,
+                            "note": "This file is auto-generated. Do not edit manually.",
+                        }
+                        # Save with metadata
+                        try:
+                            with open(coverage_output, "w", encoding="utf-8") as f:
+                                json.dump(fresh_coverage_json, f, indent=2)
+                        except Exception as e:
+                            if logger:
+                                logger.debug(
+                                    f"Failed to add metadata to coverage.json: {e}"
+                                )
+                        if logger:
+                            file_count = len(fresh_coverage_json.get("files", {}))
+                            logger.debug(
+                                f"Loaded fresh coverage JSON with {file_count} files"
+                            )
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to load fresh coverage JSON: {e}")
+                    fresh_coverage_json = None
+
+                if self.analyzer and fresh_coverage_json:
+                    json_data = self.analyzer.load_coverage_json(coverage_output)
+                else:
+                    json_data = {}
+                if json_data:
+                    # Recalculate overall from JSON data
+                    total_statements = sum(
+                        f.get("statements", 0) for f in json_data.values()
+                    )
+                    total_covered = sum(f.get("covered", 0) for f in json_data.values())
+                    if total_statements > 0:
+                        overall_coverage["overall_coverage"] = round(
+                            (total_covered / total_statements) * 100, 1
+                        )
+                        overall_coverage["total_statements"] = total_statements
+                        overall_coverage["total_missed"] = (
+                            total_statements - total_covered
+                        )
+                    if not coverage_data:
+                        coverage_data = json_data
+            elif (
+                not overall_coverage.get("overall_coverage")
+                and coverage_output.exists()
+                and pytest_ran
+                and not self.parallel
+            ):
+                if self.analyzer:
+                    overall_coverage = self.analyzer.extract_overall_from_json(
+                        coverage_output
+                    )
+                    coverage_collected = bool(overall_coverage.get("overall_coverage"))
+
+            # Parallel xdist: the captured log often omits the term-missing table (needs a
+            # "Name" header for parse_coverage_output) when pytest exits non-zero under
+            # --maxfail, even though pytest-cov wrote data files. Without this, we log
+            # ERROR "Coverage analysis failed" before combine — misleading vs test failures.
+            # Artifact may be per-worker `.coverage_parallel.*` shards and/or a non-empty
+            # base `.coverage_parallel` (combine logs "parallel source: .coverage_parallel").
+            if self.parallel and pytest_ran and not coverage_collected:
+                cov_parent = self.coverage_data_file.parent
+                shard_info = self._discover_parallel_coverage_artifacts(cov_parent)
+
+                def _nonempty(path: Path) -> bool:
+                    try:
+                        return path.is_file() and path.stat().st_size > 0
+                    except OSError:
+                        return False
+
+                parallel_main = cov_parent / ".coverage_parallel"
+                root_parallel_main = self.project_root / ".coverage_parallel"
+                if (
+                    shard_info["parallel_shards"]
+                    or shard_info["project_root_shards"]
+                    or _nonempty(parallel_main)
+                    or _nonempty(root_parallel_main)
+                ):
+                    coverage_collected = True
+                    if logger:
+                        logger.debug(
+                            "Parallel coverage data files present without parsable term-missing "
+                            "table in log; classifying as coverage collected for failure reporting"
+                        )
+
+            # Keep last-good coverage when this measurement collapsed, then merge
+            # selective reruns with the cache.
+            guarded_serial, kept_baseline = self._guard_collapsed_coverage_json(
+                fresh_coverage_json, cached_coverage_json, coverage_output
+            )
+            if kept_baseline:
+                fresh_coverage_json = guarded_serial
+                merged_coverage_saved = True
+            elif self._should_merge_fresh_coverage(
+                cached_coverage_json, fresh_coverage_json
+            ):
+                # Since we run all tests when domains change, fresh_coverage_json has full coverage
+                # We should merge it with cached coverage, but fresh takes precedence (it's from a full run)
+                cached_files_count = len(cached_coverage_json.get("files", {}))
+                fresh_files_count = len(fresh_coverage_json.get("files", {}))
+                if logger:
+                    logger.debug(
+                        f"Merging coverage: {cached_files_count} cached files + {fresh_files_count} fresh files"
+                    )
+
+                # Merge cached and fresh coverage JSON
+                # Fresh coverage is from a full test run, so it should be accurate
+                # Provide changed domain context to merge logic
+                self._merge_changed_domains = (
+                    set(changed_domains) if isinstance(changed_domains, set) else set()
+                )
+                merged_coverage_json = self._merge_coverage_json(
+                    cached_coverage_json, fresh_coverage_json
+                )
+                self._merge_changed_domains = None
+
+                # Validate merged result
+                merged_files_count = len(merged_coverage_json.get("files", {}))
+                if logger:
+                    logger.debug(
+                        f"Merged coverage contains {merged_files_count} files (expected ~{cached_files_count + fresh_files_count})"
+                    )
+
+                # Save merged coverage JSON with timestamp metadata
+                try:
+                    timestamp_str = now_timestamp_full()
+                    timestamp_iso = datetime.now().isoformat()
+                    merged_coverage_json["_metadata"] = {
+                        "generated_by": "pytest-cov + test-file cache merge - Development Tools",
+                        "last_generated": timestamp_str,
+                        "timestamp": timestamp_iso,
+                        "note": "This file is auto-generated. Do not edit manually.",
+                    }
+                    with open(coverage_output, "w", encoding="utf-8") as f:
+                        json.dump(merged_coverage_json, f, indent=2)
+                    merged_coverage_saved = True
+                    self._store_last_good_coverage(merged_coverage_json)
+                    if logger:
+                        logger.debug("Merged cached and fresh coverage data")
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to save merged coverage JSON: {e}")
+
+                # Reload coverage data from merged JSON
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                    # Recalculate overall from merged JSON (which includes both cached and fresh)
+                    merged_totals = merged_coverage_json.get("totals", {})
+                    total_statements = merged_totals.get("num_statements", 0)
+                    total_covered = merged_totals.get("covered_lines", 0)
+                    total_missing = merged_totals.get("missing_lines", 0)
+
+                    if logger:
+                        logger.debug(
+                            f"Using merged totals (serial): {total_statements} statements, {total_covered} covered, {total_missing} missing"
+                        )
+
+                    if total_statements > 0:
+                        overall_coverage["overall_coverage"] = merged_totals.get(
+                            "percent_covered", 0.0
+                        )
+                        overall_coverage["total_statements"] = total_statements
+                        overall_coverage["total_missed"] = total_missing
+
+                    if logger:
+                        logger.debug(
+                            f"Recalculated overall coverage from merged JSON (serial): {overall_coverage.get('overall_coverage', 0):.1f}%"
+                        )
+
+                # Update cache with coverage (serial mode)
+                # Use merged_coverage_json if we merged, otherwise use fresh_coverage_json
+                coverage_to_cache = (
+                    merged_coverage_json
+                    if (
+                        self.use_domain_cache
+                        and self.test_file_cache
+                        and cached_coverage_json
+                        and fresh_coverage_json
+                    )
+                    else fresh_coverage_json
+                )
+
+                # Persist cache whenever coverage data was collected.
+                # Next-run invalidation is handled by run-status metadata
+                # (failed domains / last run domains).
+                cache_write_allowed_pre_no_parallel = coverage_collected
+
+                # In parallel mode, defer cache writes until no_parallel has completed.
+                # This prevents persisting partial coverage cache state when serial phase fails.
+                if (
+                    self.parallel
+                    and self.use_domain_cache
+                    and self.test_file_cache
+                    and coverage_to_cache
+                ):
+                    if logger:
+                        logger.info(
+                            "Deferring test-file coverage cache write until no_parallel phase completes"
+                        )
+
+                if (
+                    self.use_domain_cache
+                    and self.test_file_cache
+                    and coverage_to_cache
+                    and (not self.parallel)
+                    and cache_write_allowed_pre_no_parallel
+                ):
+                    cache_stats = self.test_file_cache.get_cache_stats()
+                    total_test_files = cache_stats["total_test_files"]
+                    all_mapped_domains = set(
+                        self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
+                    )
+                    is_full_run = _is_full_coverage_run_fn(
+                        test_files_to_run=test_files_to_run,
+                        total_test_files=total_test_files,
+                        changed_domains=(
+                            set(changed_domains)
+                            if isinstance(changed_domains, set)
+                            else None
+                        ),
+                        all_domains=all_mapped_domains,
+                        ran_entire_test_tree=not test_filter_args,
+                    )
+                    did_merge = bool(
+                        cached_coverage_json
+                        and fresh_coverage_json
+                        and merged_coverage_saved
+                    )
+                    persist_full_cache = is_full_run or did_merge
+                    if persist_full_cache:
+                        self.test_file_cache.cache_full_coverage(coverage_to_cache)
+                    elif logger:
+                        logger.warning(
+                            "Skipping full coverage cache write: "
+                            "selective run did not merge unchanged-domain coverage"
+                        )
+                    if is_full_run:
+                        # Full run - update domain mappings for all test files
+                        all_test_files = self.test_file_cache.get_test_files_to_run(
+                            all_mapped_domains
+                        )
+                        for test_file in all_test_files:
+                            self.test_file_cache.update_test_file_mapping(
+                                test_file, reload_cache=False, save_cache=False
+                            )
+                        # Update and save source file mtimes for all domains (critical for change detection)
+                        if "source_files_mtime" not in self.test_file_cache.cache_data:
+                            self.test_file_cache.cache_data["source_files_mtime"] = {}
+                        for (
+                            domain
+                        ) in self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING:
+                            current_mtimes = (
+                                self.test_file_cache.get_source_file_mtimes(domain)
+                            )
+                            self.test_file_cache.cache_data["source_files_mtime"][
+                                domain
+                            ] = current_mtimes
+                        # Save cache
+                        self.test_file_cache._save_cache()
+                        if logger:
+                            logger.info(
+                                f"Cached full coverage JSON and updated domain mappings for {len(all_test_files)} test files"
+                            )
+                    elif test_files_to_run:
+                        # Selective run - mappings for files that ran
+                        for test_file in test_files_to_run:
+                            self.test_file_cache.update_test_file_mapping(
+                                test_file, reload_cache=False, save_cache=False
+                            )
+
+                        # Update and save source file mtimes for changed domains (critical for change detection)
+                        if "source_files_mtime" not in self.test_file_cache.cache_data:
+                            self.test_file_cache.cache_data["source_files_mtime"] = {}
+                        changed_domains = self.test_file_cache.get_changed_domains()
+                        for domain in changed_domains:
+                            current_mtimes = (
+                                self.test_file_cache.get_source_file_mtimes(domain)
+                            )
+                            self.test_file_cache.cache_data["source_files_mtime"][
+                                domain
+                            ] = current_mtimes
+
+                        # Save cache once (much more efficient than saving per test file)
+                        self.test_file_cache._save_cache()
+                        if logger:
+                            logger.info(
+                                f"Updated mappings for {len(test_files_to_run)} test files (serial mode)"
+                            )
+                elif (
+                    self.use_domain_cache
+                    and self.test_file_cache
+                    and coverage_to_cache
+                    and (not self.parallel)
+                    and (not cache_write_allowed_pre_no_parallel)
+                ):
+                    if logger:
+                        logger.info(
+                            "Skipping test-file coverage cache write because coverage data was not collected"
+                        )
+
+            # Enhanced error detection and reporting
+            if result.returncode != 0:
+                # Distinguish between coverage collection failures and test failures
+                if coverage_collected:
+                    # Coverage was collected successfully, but tests failed
+                    if logger:
+                        logger.warning(
+                            "Coverage data collected successfully, but some tests failed"
+                        )
+
+                    # Report test failures separately
+                    if test_results["failed_count"] > 0:
+                        failure_msg = f"Test failures: {test_results['test_summary']}"
+                        if test_results["random_seed"]:
+                            failure_msg += (
+                                f" (random seed: {test_results['random_seed']})"
+                            )
+
+                        if logger:
+                            logger.warning(failure_msg)
+
+                            # Check if maxfail was reached
+                            if test_results.get("maxfail_reached", False):
+                                logger.warning(
+                                    "Test run was ABORTED due to reaching maximum failure limit (--maxfail)"
+                                )
+
+                            if test_results["failed_tests"]:
+                                logger.warning("Failed tests:")
+                                for test_name in test_results["failed_tests"]:
+                                    logger.warning(f"  - {test_name}")
+                            else:
+                                logger.warning(
+                                    f"  See {self.pytest_stdout_log} for detailed test failure information"
+                                )
+
+                    # Report test errors (collection/setup/runtime) explicitly
+                    if test_results.get("error_count", 0) > 0:
+                        logger.warning(
+                            f"Test errors: {test_results.get('error_count', 0)} error(s)"
+                        )
+                        error_tests = test_results.get("error_tests", [])
+                        if error_tests:
+                            logger.warning("Errored tests:")
+                            for test_name in error_tests:
+                                logger.warning(f"  - {test_name}")
+                        else:
+                            logger.warning(
+                                f"  See {self.pytest_stdout_log} for detailed error information"
+                            )
+
+                    # Log skipped tests at info level
+                    if test_results["skipped_count"] > 0:
+                        if logger:
+                            logger.info(
+                                f"Test skips: {test_results['skipped_count']} test(s) skipped"
+                            )
+                else:
+                    # Coverage collection failed
+                    error_details = []
+
+                    # Check for common error patterns
+                    stderr_lower = result.stderr.lower() if result.stderr else ""
+                    stdout_lower = result.stdout.lower() if result.stdout else ""
+
+                    if (
+                        "unrecognized arguments" in stderr_lower
+                        or "unrecognized arguments" in stdout_lower
+                    ):
+                        error_details.append("Unrecognized arguments error detected")
+                        # Extract the problematic arguments from stderr
+                        if result.stderr:
+                            for line in result.stderr.split("\n"):
+                                if "unrecognized arguments" in line.lower():
+                                    error_details.append(
+                                        f"  Problematic arguments: {line.strip()}"
+                                    )
+
+                    # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
+                    if result.stderr and "--cov" in result.stderr:
+                        stderr_parts = result.stderr.split()
+                        for i in range(len(stderr_parts) - 1):
+                            if (
+                                stderr_parts[i] == "--cov"
+                                and stderr_parts[i + 1] == "--cov"
+                            ):
+                                error_details.append(
+                                    "Detected empty --cov argument in pytest error output"
+                                )
+                                break
+
+                    if "error: usage" in stderr_lower:
+                        error_details.append("Pytest usage/argument error detected")
+
+                    error_msg = (
+                        f"Coverage analysis failed (exit code {result.returncode})"
+                    )
+                    if error_details:
+                        error_msg += ":\n  - " + "\n  - ".join(error_details)
+                    stderr_hint_path = self.pytest_stderr_log or self.pytest_stdout_log
+                    error_msg += (
+                        f"\n  See {stderr_hint_path} for full stderr/stdout output"
+                    )
+                    cmd_str = " ".join(
+                        cmd
+                    )  # Convert command list to string for error message
+                    error_msg += f"\n  Command: {cmd_str}"
+
+                    if logger:
+                        logger.error(error_msg)
+                    else:
+                        print(f"ERROR: {error_msg}")
+            else:
+                # Parallel tests passed (not all tests - no_parallel tests run separately)
+                if logger and test_results["test_summary"]:
+                    if self.parallel:
+                        logger.info(
+                            f"Parallel tests passed: {test_results['test_summary']}"
+                        )
+                    else:
+                        logger.info(f"All tests passed: {test_results['test_summary']}")
+                    if test_results["random_seed"]:
+                        logger.info(f"Random seed used: {test_results['random_seed']}")
+
+            parallel_test_results = (
+                dict(test_results) if isinstance(test_results, dict) else {}
+            )
+
+            # If parallel execution was enabled, also run no_parallel tests separately in serial mode
+            no_parallel_test_results = {
+                "passed_count": 0,
+                "failed_count": 0,
+                "error_count": 0,
+                "skipped_count": 0,
+                "test_summary": "",
+                "failed_tests": [],
+                "error_tests": [],
+                "total_tests": 0,
+            }
+            no_parallel_return_code = None
+            no_parallel_output = ""
+            if tools_paths:
+                tools_run = self._run_isolated_tools_coverage(
+                    tools_paths=tools_paths,
+                    cov_args=cov_args,
+                    pytest_timeout=pytest_timeout,
+                )
+                tools_return_code = tools_run.get("return_code")
+                tools_test_results = (
+                    tools_run.get("results")
+                    if isinstance(tools_run.get("results"), dict)
+                    else {}
+                )
+                if tools_return_code not in (None, 0):
+                    no_parallel_return_code = self._fold_tools_pytest_failure(
+                        no_parallel_test_results,
+                        no_parallel_return_code,
+                        tools_return_code,
+                        tools_test_results,
+                    )
+                    if logger:
+                        logger.error(
+                            "Development-tools coverage pytest failed "
+                            f"(exit code {tools_return_code}). "
+                            f"See {tools_run.get('log_file')}"
+                        )
+            if self.parallel and pytest_ran:
+                if logger:
+                    logger.debug(
+                        "Running no_parallel tests separately in serial mode..."
+                    )
+
+                # Serial no_parallel track; JSON deferred until coverage data files are combined.
+                no_parallel_cmd = _build_no_parallel_coverage_pytest_cmd(
+                    executable=sys.executable,
+                    cov_args=cov_args,
+                    coverage_config_path=self.coverage_config_path,
+                    maxfail=self.maxfail,
+                    test_filter_args=host_filter_args,
+                    test_directory=self.test_directory,
+                    extra_args=path_split.host_extra_args,
+                    skip_default_path=skip_host_pytest,
+                )
+
+                # Use separate coverage data file for no_parallel tests
+                # Use absolute path to ensure coverage.py uses our specified location
+                no_parallel_env = os.environ.copy()
+                no_parallel_env = self._configure_test_logging_env(no_parallel_env)
+                # Ensure PATH includes Python executable's directory for Windows DLL resolution
+                no_parallel_env = self._ensure_python_path_in_env(no_parallel_env)
+                no_parallel_env["COVERAGE_DATA_DIR"] = str(
+                    self.coverage_data_file.parent
+                )
+                no_parallel_env["COVERAGE_FILE"] = str(
+                    no_parallel_coverage_file.resolve()
+                )
+                if self.coverage_config_path.exists():
+                    no_parallel_env["COVERAGE_RCFILE"] = str(
+                        self.coverage_config_path.resolve()
+                    )
+                # Use unique cache/basetemp directories per run to avoid cross-run collisions.
+                pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths(
+                    "no_parallel"
+                )
+                no_parallel_env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+                # Force pytest cache provider to use writable temp cache directory.
+                no_parallel_cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
+                # Keep tmpdir fixtures isolated from tests/data/tmp cleanup logic.
+                no_parallel_cmd.append(f"--basetemp={pytest_temp_base}")
+
+                # Create log file for no_parallel run (only stdout, stderr merged)
+                # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
+                timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                self._rotate_log_files("pytest_no_parallel_stdout", max_versions=8)
+                no_parallel_stdout_log = (
+                    self.coverage_logs_dir
+                    / f"pytest_no_parallel_stdout_{timestamp}.log"
+                )
+
+                # Log the full command for debugging (consistent with parallel run)
+                if logger:
+                    logger.debug(
+                        f"Running no_parallel tests: {' '.join(no_parallel_cmd)}"
+                    )
+                    logger.debug(
+                        f"No_parallel tests timeout set to {pytest_timeout // 60} minutes"
+                    )
+
+                try:
+                    with open(
+                        no_parallel_stdout_log, "w", encoding="utf-8", buffering=1
+                    ) as stdout_file:
+                        no_parallel_result = self._run_pytest_wait(
+                            no_parallel_cmd,
+                            timeout=pytest_timeout,
+                            stdout=stdout_file,
+                            stderr=subprocess.STDOUT,  # Merge stderr into stdout
+                            text=True,
+                            cwd=self.project_root,
+                            env=no_parallel_env,
+                        )
+                    # Read the captured output for processing
+                    no_parallel_result.stdout = no_parallel_stdout_log.read_text(
+                        encoding="utf-8", errors="ignore"
+                    )
+                    no_parallel_result.stderr = ""  # Stderr was merged into stdout
+
+                    # Log where output was saved (consistent with parallel run)
+                    if logger:
+                        logger.info(
+                            f"Saved no_parallel pytest output to {no_parallel_stdout_log}"
+                        )
+                except KeyboardInterrupt:
+                    if logger:
+                        logger.warning(
+                            "KeyboardInterrupt while waiting for no_parallel pytest subprocess "
+                            "(SIGINT/control event)."
+                        )
+                    no_parallel_result = subprocess.CompletedProcess(
+                        no_parallel_cmd,
+                        returncode=130,
+                        stdout=(
+                            no_parallel_stdout_log.read_text(
+                                encoding="utf-8", errors="ignore"
+                            )
+                            if no_parallel_stdout_log.exists()
+                            else ""
+                        ),
+                        stderr=(
+                            "KeyboardInterrupt while waiting for no_parallel pytest subprocess "
+                            "(SIGINT/control event)."
+                        ),
+                    )
+                except subprocess.TimeoutExpired:
+                    if logger:
+                        logger.warning(
+                            f"No_parallel tests timed out after {pytest_timeout // 60} minutes"
+                        )
+                    no_parallel_result = subprocess.CompletedProcess(
+                        no_parallel_cmd,
+                        returncode=1,
+                        stdout=(
+                            no_parallel_stdout_log.read_text(
+                                encoding="utf-8", errors="ignore"
+                            )
+                            if no_parallel_stdout_log.exists()
+                            else ""
+                        ),
+                        stderr=f"No_parallel tests timed out after {pytest_timeout // 60} minutes",
+                    )
+
+                # Parse no_parallel test results
+                # Read from log file if stdout is empty (can happen with quiet mode)
+                no_parallel_output = no_parallel_result.stdout or ""
+                no_parallel_return_code = no_parallel_result.returncode
+                if logger and self._is_interrupt_return_code(no_parallel_return_code):
+                    logger.warning(
+                        "No_parallel pytest subprocess terminated with interrupt signature "
+                        f"(returncode={no_parallel_return_code}, hex={self._format_return_code_hex(no_parallel_return_code) or 'n/a'})."
+                    )
+                if not no_parallel_output and no_parallel_stdout_log.exists():
+                    no_parallel_output = no_parallel_stdout_log.read_text(
+                        encoding="utf-8", errors="ignore"
+                    )
+
+                # Check if output looks incomplete (just dots, no summary) - indicates early termination
+                output_stripped = no_parallel_output.strip()
+                has_summary = (
+                    "passed" in no_parallel_output.lower()
+                    or "failed" in no_parallel_output.lower()
+                    or "coverage" in no_parallel_output.lower()
+                    or "TOTAL" in no_parallel_output
+                )
+                is_only_dots = output_stripped and all(
+                    c in ".sF\n\r" for c in output_stripped.replace(" ", "")
+                )
+
+                if is_only_dots and not has_summary and len(output_stripped) < 200:
+                    # Suspiciously short output with only dots - likely interrupted early
+                    if logger:
+                        logger.warning(
+                            f"No_parallel test run appears to have stopped early - log contains only {len(output_stripped)} progress dots with no summary"
+                        )
+                        logger.warning(
+                            f"Return code: {no_parallel_result.returncode}, Output length: {len(no_parallel_output)} chars"
+                        )
+                        if no_parallel_result.returncode != 0:
+                            if self._is_windows_crash_return_code(
+                                no_parallel_result.returncode
+                            ):
+                                self._log_windows_crash_context(
+                                    no_parallel_result.returncode,
+                                    no_parallel_stdout_log,
+                                )
+                            else:
+                                logger.warning(
+                                    f"Pytest exited with non-zero code {no_parallel_result.returncode} ({self._format_return_code_hex(no_parallel_result.returncode) or 'n/a'}) - check log for errors: {no_parallel_stdout_log}"
+                                )
+                            # Try to extract any error message from the output
+                            if no_parallel_output:
+                                lines = no_parallel_output.split("\n")
+                                error_lines = [
+                                    line
+                                    for line in lines
+                                    if any(
+                                        keyword in line.lower()
+                                        for keyword in [
+                                            "error",
+                                            "exception",
+                                            "traceback",
+                                            "failed",
+                                            "interrupted",
+                                        ]
+                                    )
+                                ]
+                                if error_lines:
+                                    logger.warning(
+                                        f"Potential error indicators in output: {error_lines[-3:]}"
+                                    )
+                        elif no_parallel_result.returncode == 0:
+                            logger.warning(
+                                "Pytest exited with code 0 but no summary found - possible interruption, crash, or incomplete output"
+                            )
+                            logger.warning(
+                                f"Check log file for details: {no_parallel_stdout_log}"
+                            )
+
+                no_parallel_test_results = self._parse_pytest_test_results(
+                    no_parallel_output
+                )
+                if tools_return_code not in (None, 0):
+                    no_parallel_return_code = self._fold_tools_pytest_failure(
+                        no_parallel_test_results,
+                        no_parallel_return_code,
+                        tools_return_code,
+                        tools_test_results,
+                    )
+                no_parallel_zero_tests_exit = (
+                    no_parallel_result.returncode == 5
+                    and not no_parallel_test_results.get("total_tests", 0)
+                    and not no_parallel_test_results.get("failed_count", 0)
+                    and not no_parallel_test_results.get("error_count", 0)
+                    and not no_parallel_test_results.get("failed_tests")
+                    and not no_parallel_test_results.get("error_tests")
+                )
+
+                # Check if output was empty - this indicates tests didn't run or output wasn't captured
+                if (
+                    not no_parallel_zero_tests_exit
+                    and (
+                        not no_parallel_output
+                        or (
+                            not no_parallel_test_results.get("total_tests", 0)
+                            and no_parallel_result.returncode != 0
+                        )
+                    )
+                ):
+                    if logger:
+                        logger.warning(
+                            "No_parallel tests produced no output - subprocess may have failed silently"
+                        )
+                        logger.warning(
+                            f"Return code: {no_parallel_result.returncode} ({self._format_return_code_hex(no_parallel_result.returncode) or 'n/a'}), Log file exists: {no_parallel_stdout_log.exists()}, Log size: {no_parallel_stdout_log.stat().st_size if no_parallel_stdout_log.exists() else 0} bytes"
+                        )
+                        if self._is_windows_crash_return_code(
+                            no_parallel_result.returncode
+                        ):
+                            self._log_windows_crash_context(
+                                no_parallel_result.returncode,
+                                no_parallel_stdout_log,
+                            )
+                        if no_parallel_stdout_log.exists():
+                            log_content = no_parallel_stdout_log.read_text(
+                                encoding="utf-8", errors="ignore"
+                            )
+                            if log_content:
+                                logger.warning(
+                                    f"Log file has {len(log_content)} chars but parser found no tests"
+                                )
+                                # Try to extract crash information from log
+                                if (
+                                    "Windows fatal exception" in log_content
+                                    or "access violation" in log_content.lower()
+                                ):
+                                    logger.error(
+                                        "Log contains Windows fatal exception - this indicates a crash, not a test failure"
+                                    )
+                                    # Extract the test that crashed
+                                    lines = log_content.split("\n")
+                                    for i, line in enumerate(lines):
+                                        if 'File "' in line and "test_" in line:
+                                            logger.error(
+                                                f"Crash occurred in: {line.strip()}"
+                                            )
+                                            # Show a few lines of context
+                                            for j in range(
+                                                max(0, i - 2), min(len(lines), i + 3)
+                                            ):
+                                                if j != i:
+                                                    logger.debug(
+                                                        f"  {lines[j].strip()}"
+                                                    )
+                                            break
+                            else:
+                                logger.warning(
+                                    "Log file is empty - subprocess may not have started or output was not captured"
+                                )
+
+                # Combine test results
+                test_results["passed_count"] += no_parallel_test_results.get(
+                    "passed_count", 0
+                )
+                test_results["failed_count"] += no_parallel_test_results.get(
+                    "failed_count", 0
+                )
+                test_results["error_count"] += no_parallel_test_results.get(
+                    "error_count", 0
+                )
+                test_results["skipped_count"] += no_parallel_test_results.get(
+                    "skipped_count", 0
+                )
+
+                if logger:
+                    if (
+                        no_parallel_result.returncode == 0
+                        and no_parallel_test_results.get("total_tests", 0) > 0
+                    ):
+                        logger.info(
+                            f"No_parallel tests completed: {no_parallel_test_results.get('passed_count', 0)} passed, {no_parallel_test_results.get('failed_count', 0)} failed, {no_parallel_test_results.get('skipped_count', 0)} skipped"
+                        )
+                    elif (
+                        no_parallel_result.returncode == 0
+                        and no_parallel_test_results.get("total_tests", 0) == 0
+                    ):
+                        logger.warning(
+                            "No_parallel tests exited with code 0 but no tests were found in output - possible issue with test collection or output capture"
+                        )
+                    elif no_parallel_zero_tests_exit:
+                        logger.info(
+                            "No_parallel tests skipped: no no_parallel tests matched this scoped run"
+                        )
+                    else:
+                        logger.warning(
+                            "No_parallel tests had failures/errors: "
+                            f"{no_parallel_test_results.get('failed_count', 0)} failed, "
+                            f"{no_parallel_test_results.get('error_count', 0)} errors, "
+                            f"{no_parallel_test_results.get('passed_count', 0)} passed, "
+                            f"{no_parallel_test_results.get('skipped_count', 0)} skipped"
+                        )
+
+                    # Check if maxfail was reached
+                    if no_parallel_test_results.get("maxfail_reached", False):
+                        logger.warning(
+                            "No_parallel test run was ABORTED due to reaching maximum failure limit (--maxfail)"
+                        )
+
+                    # Log skipped tests at info level
+                    if no_parallel_test_results.get("skipped_count", 0) > 0:
+                        logger.info(
+                            f"No_parallel test skips: {no_parallel_test_results.get('skipped_count', 0)} test(s) skipped"
+                        )
+
+                    # Log failed tests if any
+                    if no_parallel_test_results.get(
+                        "failed_count", 0
+                    ) > 0 and no_parallel_test_results.get("failed_tests"):
+                        logger.warning("No_parallel failed tests:")
+                        for test_name in no_parallel_test_results.get(
+                            "failed_tests", []
+                        )[
+                            :10
+                        ]:  # Limit to first 10
+                            logger.warning(f"  - {test_name}")
+                        if len(no_parallel_test_results.get("failed_tests", [])) > 10:
+                            logger.warning(
+                                f"  ... and {len(no_parallel_test_results.get('failed_tests', [])) - 10} more (see log for full list)"
+                            )
+
+                    if no_parallel_test_results.get("error_count", 0) > 0:
+                        logger.warning("No_parallel test errors:")
+                        for test_name in no_parallel_test_results.get(
+                            "error_tests", []
+                        )[:10]:
+                            logger.warning(f"  - {test_name}")
+                        if len(no_parallel_test_results.get("error_tests", [])) > 10:
+                            logger.warning(
+                                f"  ... and {len(no_parallel_test_results.get('error_tests', [])) - 10} more (see log for full list)"
+                            )
+
+                # Check if coverage files were created and log their locations
+                if logger:
+                    if parallel_coverage_file:
+                        logger.debug(
+                            f"Parallel coverage file path: {parallel_coverage_file}, exists: {parallel_coverage_file.exists()}"
+                        )
+                        # Also check what files actually exist in that directory
+                        if parallel_coverage_file.parent.exists():
+                            all_files = list(
+                                parallel_coverage_file.parent.glob(".coverage*")
+                            )
+                            logger.debug(
+                                f"All .coverage* files in {parallel_coverage_file.parent}: {[f.name for f in all_files]}"
+                            )
+                    if no_parallel_coverage_file:
+                        logger.debug(
+                            f"No_parallel coverage file path: {no_parallel_coverage_file}, exists: {no_parallel_coverage_file.exists()}"
+                        )
+
+                # Record run status for cache invalidation on the next run
+                if self.use_domain_cache and self.test_file_cache:
+                    try:
+                        parallel_ok = bool(pytest_ran and result.returncode == 0)
+                        no_parallel_ok = None
+                        no_parallel_coverage_present = None
+                        failed_domains = set()
+                        failed_or_error_tests = list(
+                            test_results.get("failed_tests", [])
+                        )
+                        failed_or_error_tests.extend(
+                            test_results.get("error_tests", [])
+                        )
+                        if failed_or_error_tests:
+                            for test_name in failed_or_error_tests:
+                                if not isinstance(test_name, str):
+                                    continue
+                                test_path = test_name.split("::")[0]
+                                if test_path:
+                                    try:
+                                        test_file = self.project_root / test_path
+                                        failed_domains.update(
+                                            self.test_file_cache.get_test_files_domains(
+                                                test_file
+                                            )
+                                        )
+                                    except Exception:
+                                        continue
+                        if self.parallel and pytest_ran:
+                            no_parallel_ok = bool(
+                                no_parallel_result.returncode == 0
+                                and tools_return_code in (None, 0)
+                                and no_parallel_test_results.get("total_tests", 0) > 0
+                            )
+                            no_parallel_coverage_present = bool(
+                                no_parallel_coverage_file
+                                and no_parallel_coverage_file.exists()
+                            )
+                            no_parallel_failed_or_error = list(
+                                no_parallel_test_results.get("failed_tests", [])
+                            )
+                            no_parallel_failed_or_error.extend(
+                                no_parallel_test_results.get("error_tests", [])
+                            )
+                            if no_parallel_failed_or_error:
+                                for test_name in no_parallel_failed_or_error:
+                                    if not isinstance(test_name, str):
+                                        continue
+                                    test_path = test_name.split("::")[0]
+                                    if test_path:
+                                        try:
+                                            test_file = self.project_root / test_path
+                                            failed_domains.update(
+                                                self.test_file_cache.get_test_files_domains(
+                                                    test_file
+                                                )
+                                            )
+                                        except Exception:
+                                            continue
+                        self.test_file_cache.update_run_status(
+                            parallel_ok=parallel_ok,
+                            no_parallel_ok=no_parallel_ok,
+                            no_parallel_coverage_present=no_parallel_coverage_present,
+                            failed_domains=sorted(failed_domains),
+                            run_domains=(
+                                sorted(changed_domains) if changed_domains else None
+                            ),
+                        )
+                    except Exception as e:
+                        if logger:
+                            logger.debug(
+                                f"Failed to record test coverage run status: {e}"
+                            )
+
+                # Combine coverage data files using coverage combine
+                # Check if coverage files exist (they may be in tests/ directory due to coverage.ini)
+                # Also check for shard files from parallel execution (e.g., .coverage.worker0, .coverage.worker1, etc.)
+                coverage_dir = self.coverage_data_file.parent
+                expected_parallel_workers = self._detect_expected_parallel_workers(
+                    log_content if log_content else (result.stdout or "")
+                )
+                parallel_exists = (
+                    parallel_coverage_file and parallel_coverage_file.exists()
+                )
+                no_parallel_exists = (
+                    no_parallel_coverage_file and no_parallel_coverage_file.exists()
+                )
+
+                shard_detection = self._wait_for_parallel_coverage_artifacts(
+                    coverage_dir=coverage_dir,
+                    expected_workers=expected_parallel_workers,
+                )
+                parallel_shard_files = shard_detection["parallel_shards"]
+                if logger and coverage_dir.exists():
+                    all_coverage_files = list(coverage_dir.glob(".coverage*"))
+                    logger.debug(
+                        f"All .coverage* files in {coverage_dir}: {[f.name for f in all_coverage_files]}"
+                    )
+                    coverage_file = coverage_dir / ".coverage"
+                    if coverage_file.exists():
+                        file_size = coverage_file.stat().st_size
+                        logger.debug(
+                            f"Found .coverage file ({file_size} bytes) - shard files may have been auto-combined"
+                        )
+
+                # If no shard files found but .coverage exists, it might contain the parallel coverage
+                # Check if we should use .coverage as the parallel coverage source
+                coverage_file = coverage_dir / ".coverage"
+                if (
+                    not parallel_shard_files
+                    and not parallel_exists
+                    and coverage_file.exists()
+                    and logger
+                ):
+                    logger.info(
+                        "No shard files found and .coverage_parallel doesn't exist, but .coverage exists. "
+                        "Using .coverage as parallel coverage source (pytest-cov may have written here)."
+                    )
+
+                # Check project root for shard files (shouldn't be there, but copy if found)
+                project_root_shards = shard_detection["project_root_shards"]
+                if project_root_shards and logger:
+                    logger.warning(
+                        f"Found {len(project_root_shards)} shard files in project root (should be in {coverage_dir}). "
+                        f"This indicates COVERAGE_FILE environment variable may not have been respected by pytest-xdist workers. "
+                        f"Shard files: {[f.name for f in project_root_shards[:5]]}"
+                    )
+                    # Copy them to the correct location so they can be combined
+                    for shard_file in project_root_shards:
+                        try:
+                            dest_file = coverage_dir / shard_file.name
+                            if not dest_file.exists():
+                                shutil.copy2(shard_file, dest_file)
+                                parallel_shard_files.append(dest_file)
+                                if logger:
+                                    logger.debug(
+                                        f"Copied misplaced shard file {shard_file.name} from project root to coverage directory"
+                                    )
+                        except Exception as copy_error:
+                            if logger:
+                                logger.warning(
+                                    f"Failed to copy misplaced shard file {shard_file.name}: {copy_error}"
+                                )
+
+                if (
+                    expected_parallel_workers is not None
+                    and len(parallel_shard_files) < expected_parallel_workers
+                    and not parallel_exists
+                    and not coverage_file.exists()
+                    and logger
+                ):
+                    logger.warning(
+                        "Coverage validation warning: expected at least "
+                        f"{expected_parallel_workers} parallel shard file(s), found {len(parallel_shard_files)}. "
+                        "Will continue with available artifacts, but coverage may be incomplete."
+                    )
+
+                # Enter combine block when we have parallel/no_parallel/shard files, or a non-empty .coverage
+                # (pytest-cov may write to .coverage when COVERAGE_FILE is not set for workers)
+                # Also check project root: pytest cwd=project_root can leave .coverage or .coverage_parallel there
+                _coverage_file = coverage_dir / ".coverage"
+                _project_root_coverage = self.project_root / ".coverage"
+                _project_root_parallel = self.project_root / ".coverage_parallel"
+                _has_coverage_fallback = (
+                    (_coverage_file.exists() and _coverage_file.stat().st_size > 0)
+                    or (
+                        _project_root_coverage.exists()
+                        and _project_root_coverage.stat().st_size > 0
+                    )
+                    or (
+                        _project_root_parallel.exists()
+                        and _project_root_parallel.stat().st_size > 0
+                    )
+                )
+                tools_coverage_present = bool(self._tools_coverage_artifact_paths())
+                if not (
+                    parallel_exists
+                    or no_parallel_exists
+                    or parallel_shard_files
+                    or _has_coverage_fallback
+                    or tools_coverage_present
+                ):
+                    if logger:
+                        logger.warning(
+                            "Skipping coverage combine: no coverage artifacts found "
+                            f"(coverage_dir={coverage_dir}, parallel_exists={parallel_exists}, "
+                            f"no_parallel_exists={no_parallel_exists}, shards={len(parallel_shard_files)}, "
+                            f"fallback={_has_coverage_fallback}, "
+                            f"tools_coverage_present={tools_coverage_present}). "
+                            "Check that COVERAGE_FILE/COVERAGE_DATA_DIR are set for pytest."
+                        )
+                        if parallel_shard_files:
+                            logger.debug(
+                                f"Found {len(parallel_shard_files)} parallel shard files: {[f.name for f in parallel_shard_files[:5]]}"
+                            )
+                else:
+                    if logger:
+                        logger.info(
+                            "Combining coverage data from parallel and no_parallel test runs..."
+                        )
+
+                    # Copy coverage files to the coverage data file directory with .coverage.* naming for combine
+                    # Coverage combine looks for .coverage.* files in the current directory
+                    # Use the same directory as the coverage data file (respects coverage.ini data_file setting)
+                    project_root_coverage_parallel = coverage_dir / ".coverage.parallel"
+                    project_root_coverage_no_parallel = (
+                        coverage_dir / ".coverage.no_parallel"
+                    )
+
+                    try:
+                        # Copy both coverage files to coverage directory with .coverage.* naming
+                        # Also check for shard files from parallel execution
+                        files_to_combine = []
+
+                        # Check for parallel coverage in multiple possible locations
+                        parallel_coverage_source = None
+                        if parallel_coverage_file and parallel_coverage_file.exists():
+                            # Check if file has content (not empty)
+                            file_size = parallel_coverage_file.stat().st_size
+                            if file_size > 0:
+                                parallel_coverage_source = parallel_coverage_file
+                                if logger:
+                                    logger.debug(
+                                        f"Using {parallel_coverage_file.name} as parallel coverage source ({file_size} bytes)"
+                                    )
+                            elif logger:
+                                logger.warning(
+                                    f"Parallel coverage file {parallel_coverage_file.name} exists but is empty ({file_size} bytes) - shard files may not have been combined"
+                                )
+                        elif not parallel_shard_files:
+                            # If no shard files and no .coverage_parallel, check coverage_dir then project root
+                            # (pytest-cov may write to cwd .coverage when COVERAGE_FILE is not respected)
+                            coverage_file = coverage_dir / ".coverage"
+                            if coverage_file.exists():
+                                file_size = coverage_file.stat().st_size
+                                if file_size > 0:
+                                    parallel_coverage_source = coverage_file
+                                    if logger:
+                                        logger.info(
+                                            f"Using .coverage as parallel coverage source (fallback - COVERAGE_FILE may not have been set correctly, {file_size} bytes)"
+                                        )
+                                elif logger:
+                                    logger.warning(
+                                        f".coverage exists but is empty ({file_size} bytes)"
+                                    )
+                            if (
+                                parallel_coverage_source is None
+                                and _project_root_coverage.exists()
+                            ):
+                                file_size = _project_root_coverage.stat().st_size
+                                if file_size > 0:
+                                    parallel_coverage_source = _project_root_coverage
+                                    if logger:
+                                        logger.info(
+                                            f"Using project root .coverage as parallel coverage source (pytest wrote to cwd, {file_size} bytes)"
+                                        )
+                            if (
+                                parallel_coverage_source is None
+                                and _project_root_parallel.exists()
+                            ):
+                                file_size = _project_root_parallel.stat().st_size
+                                if file_size > 0:
+                                    parallel_coverage_source = _project_root_parallel
+                                    if logger:
+                                        logger.info(
+                                            f"Using project root .coverage_parallel as parallel coverage source ({file_size} bytes)"
+                                        )
+
+                        if parallel_coverage_source:
+                            shutil.copy2(
+                                parallel_coverage_source, project_root_coverage_parallel
+                            )
+                            files_to_combine.append(project_root_coverage_parallel)
+                            if logger:
+                                logger.debug(
+                                    f"Copied parallel coverage file from {parallel_coverage_source} to {project_root_coverage_parallel}"
+                                )
+                        elif parallel_shard_files:
+                            # If main parallel coverage file doesn't exist (e.g., due to timeout),
+                            # but shard files exist, we can still combine using shard files
+                            if logger:
+                                logger.info(
+                                    f"Parallel coverage file not found (may have timed out), but {len(parallel_shard_files)} shard files exist - will combine shard files"
+                                )
+                        else:
+                            if logger:
+                                logger.warning(
+                                    f"Parallel coverage file not found: {parallel_coverage_file}, and no shard files found"
+                                )
+
+                        if (
+                            no_parallel_coverage_file
+                            and no_parallel_coverage_file.exists()
+                        ):
+                            shutil.copy2(
+                                no_parallel_coverage_file,
+                                project_root_coverage_no_parallel,
+                            )
+                            files_to_combine.append(project_root_coverage_no_parallel)
+                            if logger:
+                                logger.debug(
+                                    f"Copied no_parallel coverage file from {no_parallel_coverage_file} to {project_root_coverage_no_parallel}"
+                                )
+                        else:
+                            if logger:
+                                # Log at INFO when we have parallel coverage (expected if no no_parallel tests ran)
+                                log_fn = (
+                                    logger.info
+                                    if parallel_coverage_source
+                                    else logger.warning
+                                )
+                                log_fn(
+                                    f"No_parallel coverage file not found: {no_parallel_coverage_file}"
+                                )
+
+                        for tools_dest in self._copy_tools_coverage_for_combine(coverage_dir):
+                            files_to_combine.append(tools_dest)
+                            if logger:
+                                logger.debug(
+                                    f"Included development-tools coverage file {tools_dest.name}"
+                                )
+
+                        # Copy .coverage_parallel.<suffix> shards to .coverage.<suffix> so coverage combine
+                        # finds them. coverage combine looks for .coverage.* only; when COVERAGE_FILE was
+                        # .coverage_parallel, pytest-cov (data_suffix=True) creates .coverage_parallel.<machine>.<pid>.<random>
+                        # per worker, which would otherwise be ignored.
+                        if parallel_shard_files:
+                            for shard in parallel_shard_files:
+                                if ".coverage_parallel." in shard.name:
+                                    dest_name = shard.name.replace(
+                                        ".coverage_parallel.", ".coverage."
+                                    )
+                                    dest_path = coverage_dir / dest_name
+                                    try:
+                                        shutil.copy2(shard, dest_path)
+                                        files_to_combine.append(dest_path)
+                                        if logger:
+                                            logger.debug(
+                                                f"Copied shard {shard.name} to {dest_name} for combine"
+                                            )
+                                    except OSError as e:
+                                        if logger:
+                                            logger.warning(
+                                                f"Failed to copy shard {shard.name} to {dest_name}: {e}"
+                                            )
+                            if logger:
+                                logger.debug(
+                                    f"Will combine {len(parallel_shard_files)} shard files from parallel execution"
+                                )
+
+                        # Use coverage combine to merge the coverage data files
+                        # Set COVERAGE_FILE to the final combined file location
+                        combine_env = os.environ.copy()
+                        combine_env = self._configure_test_logging_env(combine_env)
+                        # Ensure PATH includes Python executable's directory for Windows DLL resolution
+                        combine_env = self._ensure_python_path_in_env(combine_env)
+                        combine_env["COVERAGE_FILE"] = str(
+                            self.coverage_data_file.resolve()
+                        )
+
+                        combine_cmd = [
+                            sys.executable,
+                            "-m",
+                            "coverage",
+                            "combine",
+                            "--data-file",
+                            str(self.coverage_data_file.resolve()),
+                        ]
+
+                        if logger:
+                            total_files = len(files_to_combine) + len(
+                                parallel_shard_files
+                            )
+                            logger.debug(
+                                f"Running coverage combine from {coverage_dir} with {total_files} files to combine"
+                            )
+                            if parallel_shard_files:
+                                logger.debug(
+                                    f"Shard files to combine ({len(parallel_shard_files)}): {[f.name for f in parallel_shard_files[:10]]}"
+                                )
+                            if files_to_combine:
+                                logger.debug(
+                                    f"Copied files to combine: {[f.name for f in files_to_combine]}"
+                                )
+
+                        # Run combine from the coverage directory so it finds the .coverage.* files
+                        combine_result = None
+                        max_combine_attempts = 2
+                        for attempt in range(1, max_combine_attempts + 1):
+                            combine_result = subprocess.run(
+                                combine_cmd,
+                                capture_output=True,
+                                text=True,
+                                cwd=coverage_dir,
+                                env=combine_env,
+                                timeout=60,  # Combine should be fast
+                            )
+                            combined_exists = self.coverage_data_file.exists()
+                            combined_size = (
+                                self.coverage_data_file.stat().st_size
+                                if combined_exists
+                                else 0
+                            )
+                            if (
+                                combine_result.returncode == 0
+                                and combined_exists
+                                and combined_size > 0
+                            ):
+                                break
+                            if logger:
+                                logger.warning(
+                                    "Coverage combine attempt "
+                                    f"{attempt}/{max_combine_attempts} produced incomplete output "
+                                    f"(returncode={combine_result.returncode}, exists={combined_exists}, size={combined_size})."
+                                )
+                            if attempt < max_combine_attempts:
+                                import time
+
+                                time.sleep(0.5)
+
+                        if combine_result.returncode != 0:
+                            if logger:
+                                stderr_msg = (
+                                    combine_result.stderr or combine_result.stdout or ""
+                                )
+                                if "No data to combine" not in stderr_msg:
+                                    logger.warning(
+                                        f"Coverage combine exited with code {combine_result.returncode}: {stderr_msg[:500]}"
+                                    )
+                                else:
+                                    logger.info(
+                                        "Coverage combine reported no data to combine - this may indicate coverage files weren't created properly"
+                                    )
+                                    # Log what files exist for debugging
+                                    all_files = (
+                                        list(coverage_dir.glob(".coverage*"))
+                                        if coverage_dir.exists()
+                                        else []
+                                    )
+                                    if all_files:
+                                        logger.debug(
+                                            f"Coverage files found in {coverage_dir}: {[f.name for f in all_files]}"
+                                        )
+                        elif logger:
+                            # Log what was actually combined for debugging
+                            combine_info = []
+                            if parallel_coverage_source:
+                                combine_info.append(
+                                    f"parallel source: {parallel_coverage_source.name}"
+                                )
+                            if parallel_shard_files:
+                                combine_info.append(
+                                    f"{len(parallel_shard_files)} shard files"
+                                )
+                            if (
+                                no_parallel_coverage_file
+                                and no_parallel_coverage_file.exists()
+                            ):
+                                combine_info.append(
+                                    f"no_parallel: {no_parallel_coverage_file.name}"
+                                )
+                            logger.info(
+                                f"Successfully combined coverage data from parallel and no_parallel runs ({', '.join(combine_info) if combine_info else 'no sources found'})"
+                            )
+                            # Validate that we actually have coverage data (detect silent failures)
+                            if self.coverage_data_file.exists():
+                                file_size = self.coverage_data_file.stat().st_size
+                                if file_size == 0:
+                                    logger.warning(
+                                        "Combined coverage file is empty - combine may have failed silently"
+                                    )
+                                else:
+                                    logger.debug(
+                                        f"Combined coverage file: {self.coverage_data_file.name} ({file_size} bytes)"
+                                    )
+                            else:
+                                logger.warning(
+                                    "Combined coverage file was not created after combine operation"
+                                )
+
+                        # Clean up temporary .coverage.* files from project root
+                        try:
+                            if project_root_coverage_parallel.exists():
+                                project_root_coverage_parallel.unlink()
+                            if project_root_coverage_no_parallel.exists():
+                                project_root_coverage_no_parallel.unlink()
+                        except Exception:
+                            pass
+                    except Exception as combine_error:
+                        if logger:
+                            logger.warning(
+                                f"Failed to combine coverage data: {combine_error}"
+                            )
+                        # Clean up on error
+                        try:
+                            if project_root_coverage_parallel.exists():
+                                project_root_coverage_parallel.unlink()
+                            if project_root_coverage_no_parallel.exists():
+                                project_root_coverage_no_parallel.unlink()
+                        except Exception:
+                            pass
+
+                    # Capture file existence status BEFORE cleanup for later validation
+                    parallel_file_existed = (
+                        parallel_coverage_file.exists()
+                        if parallel_coverage_file
+                        else False
+                    )
+                    no_parallel_file_existed = (
+                        no_parallel_coverage_file.exists()
+                        if no_parallel_coverage_file
+                        else False
+                    )
+                    shard_files_count = (
+                        len(parallel_shard_files)
+                        if "parallel_shard_files" in locals()
+                        else 0
+                    )
+
+                    # Clean up temporary coverage files from original locations
+                    # Also clean up process-specific files (e.g., .coverage_parallel.DESKTOP-*.X.*)
+                    self._cleanup_process_specific_coverage_files(coverage_dir)
+                    try:
+                        if parallel_coverage_file and parallel_coverage_file.exists():
+                            parallel_coverage_file.unlink()
+                        if (
+                            no_parallel_coverage_file
+                            and no_parallel_coverage_file.exists()
+                        ):
+                            no_parallel_coverage_file.unlink()
+                    except Exception as cleanup_error:
+                        if logger:
+                            logger.debug(
+                                f"Failed to cleanup temporary coverage files: {cleanup_error}"
+                            )
+
+                    # Regenerate coverage JSON from combined data
+                    if self.coverage_data_file.exists():
+                        # Archive old coverage.json BEFORE regenerating (to keep current file in main directory)
+                        archive_dir = coverage_output.parent / "archive"
+                        archive_dir.mkdir(parents=True, exist_ok=True)
+                        if not cached_coverage_json and coverage_output.exists():
+                            prior_coverage_json = _load_coverage_json_dict_fn(
+                                coverage_output
+                            )
+                            if prior_coverage_json:
+                                cached_coverage_json = prior_coverage_json
+                                if logger:
+                                    logger.info(
+                                        "No in-memory coverage cache; using existing "
+                                        "coverage.json as merge base before regenerate"
+                                    )
+                        if coverage_output.exists():
+                            timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+                            archive_name = f"coverage_{timestamp}.json"
+                            archive_path = archive_dir / archive_name
+                            shutil.move(str(coverage_output), str(archive_path))
+                            if logger:
+                                logger.debug(
+                                    f"Archived old coverage.json to {archive_name}"
+                                )
+
+                            # Clean up old archives to keep only 6 versions (current + 6 archived = 7 total)
+                            from development_tools.shared.file_rotation import (
+                                FileRotator,
+                            )
+
+                            rotator = FileRotator(base_dir=str(coverage_output.parent))
+                            rotator._cleanup_old_versions(
+                                "coverage", max_versions=6
+                            )  # Keep 6 archived (current is separate)
+
+                        json_cmd = [
+                            sys.executable,
+                            "-m",
+                            "coverage",
+                            "json",
+                            "-o",
+                            str(coverage_output),
+                            "--data-file",
+                            str(self.coverage_data_file.resolve()),
+                        ]
+                        json_env = os.environ.copy()
+                        json_env["COVERAGE_FILE"] = str(
+                            self.coverage_data_file.resolve()
+                        )
+                        if self.coverage_config_path.exists():
+                            json_env["COVERAGE_RCFILE"] = str(
+                                self.coverage_config_path.resolve()
+                            )
+                        try:
+                            json_result = subprocess.run(
+                                json_cmd,
+                                capture_output=True,
+                                text=True,
+                                cwd=self.project_root,
+                                env=json_env,
+                                timeout=120,
+                            )
+                            if json_result.returncode == 0:
+                                if logger:
+                                    logger.info(
+                                        "Regenerated coverage.json from combined coverage data"
+                                    )
+
+                                # Add timestamp metadata to coverage.json
+                                if coverage_output.exists():
+                                    try:
+                                        with open(
+                                            coverage_output, encoding="utf-8"
+                                        ) as f:
+                                            coverage_data_json = json.load(f)
+                                        timestamp_str = datetime.now().strftime(
+                                            "%Y-%m-%d %H:%M:%S"
+                                        )
+                                        timestamp_iso = datetime.now().isoformat()
+                                        coverage_data_json["_metadata"] = {
+                                            "generated_by": "coverage json - Development Tools",
+                                            "last_generated": timestamp_str,
+                                            "timestamp": timestamp_iso,
+                                            "note": "This file is auto-generated. Do not edit manually.",
+                                        }
+                                        with open(
+                                            coverage_output, "w", encoding="utf-8"
+                                        ) as f:
+                                            json.dump(coverage_data_json, f, indent=2)
+                                    except Exception as e:
+                                        if logger:
+                                            logger.debug(
+                                                f"Failed to add metadata to coverage.json: {e}"
+                                            )
+
+                                # Reload coverage data from the regenerated JSON
+                                if coverage_output.exists():
+                                    # Load fresh coverage JSON for merging
+                                    fresh_coverage_json_parallel = None
+                                    try:
+                                        with open(
+                                            coverage_output, encoding="utf-8"
+                                        ) as f:
+                                            fresh_coverage_json_parallel = json.load(f)
+
+                                        # Validate structure - ensure it has 'files' key
+                                        if (
+                                            fresh_coverage_json_parallel
+                                            and not isinstance(
+                                                fresh_coverage_json_parallel.get(
+                                                    "files"
+                                                ),
+                                                dict,
+                                            )
+                                        ):
+                                            if logger:
+                                                logger.warning(
+                                                    "Fresh coverage JSON (parallel) has invalid structure - missing or invalid 'files' key"
+                                                )
+                                            fresh_coverage_json_parallel = None
+                                        elif fresh_coverage_json_parallel and logger:
+                                            file_count = len(
+                                                fresh_coverage_json_parallel.get(
+                                                    "files", {}
+                                                )
+                                            )
+                                            logger.debug(
+                                                f"Loaded fresh coverage JSON (parallel) with {file_count} files"
+                                            )
+                                    except Exception as e:
+                                        if logger:
+                                            logger.warning(
+                                                f"Failed to load fresh coverage JSON after parallel combine: {e}"
+                                            )
+                                        fresh_coverage_json_parallel = None
+
+                                    guarded_parallel, kept_baseline = (
+                                        self._guard_collapsed_coverage_json(
+                                            fresh_coverage_json_parallel,
+                                            cached_coverage_json,
+                                            coverage_output,
+                                        )
+                                    )
+                                    if kept_baseline:
+                                        fresh_coverage_json_parallel = guarded_parallel
+                                        merged_coverage_saved = True
+                                    elif self._should_merge_fresh_coverage(
+                                        cached_coverage_json,
+                                        fresh_coverage_json_parallel,
+                                    ):
+                                        cached_files_count = len(
+                                            cached_coverage_json.get("files", {})
+                                        )
+                                        fresh_files_count = len(
+                                            fresh_coverage_json_parallel.get(
+                                                "files", {}
+                                            )
+                                        )
+
+                                        # Determine if this was a selective or full run
+                                        # If we have cached_coverage_json and test_files_to_run, it's a selective run
+                                        # If we don't have cached_coverage_json, it's a full run (cache cleared or first run)
+                                        total_test_files = 999
+                                        if self.test_file_cache:
+                                            total_test_files = (
+                                                self.test_file_cache.get_cache_stats().get(
+                                                    "total_test_files", 999
+                                                )
+                                            )
+                                        is_selective_run = (
+                                            bool(cached_coverage_json)
+                                            and bool(test_files_to_run)
+                                            and len(test_files_to_run)
+                                            < total_test_files
+                                        )
+
+                                        # Analyze file domains for debugging
+                                        if logger and self.domain_mapper:
+                                            cached_domains = set()
+                                            fresh_domains = set()
+                                            for file_path in cached_coverage_json.get(
+                                                "files", {}
+                                            ):
+                                                domain = self.domain_mapper.get_source_domain(
+                                                    file_path.replace("\\", "/")
+                                                )
+                                                if domain:
+                                                    cached_domains.add(domain)
+                                            for (
+                                                file_path
+                                            ) in fresh_coverage_json_parallel.get(
+                                                "files", {}
+                                            ):
+                                                domain = self.domain_mapper.get_source_domain(
+                                                    file_path.replace("\\", "/")
+                                                )
+                                                if domain:
+                                                    fresh_domains.add(domain)
+                                            run_type = (
+                                                "selective"
+                                                if is_selective_run
+                                                else "full"
+                                            )
+                                            logger.debug(
+                                                f"Merging coverage (parallel, {run_type} run): {cached_files_count} cached files from domains {sorted(cached_domains)} + {fresh_files_count} fresh files from test run (domains: {sorted(fresh_domains)})"
+                                            )
+
+                                        # Merge cached and fresh coverage JSON
+                                        # On selective runs: union executed lines for unchanged domains so coverage doesn't drop.
+                                        # For changed-domain files: prefer fresh to avoid mixing potentially stale line data.
+                                        self._merge_changed_domains = (
+                                            set(changed_domains)
+                                            if isinstance(changed_domains, set)
+                                            else set()
+                                        )
+                                        merged_coverage_json = (
+                                            self._merge_coverage_json(
+                                                cached_coverage_json,
+                                                fresh_coverage_json_parallel,
+                                            )
+                                        )
+                                        self._merge_changed_domains = None
+
+                                        # Validate merged result
+                                        merged_files_count = len(
+                                            merged_coverage_json.get("files", {})
+                                        )
+                                        merged_totals = merged_coverage_json.get(
+                                            "totals", {}
+                                        )
+                                        cached_totals = cached_coverage_json.get(
+                                            "totals", {}
+                                        )
+                                        fresh_totals = fresh_coverage_json_parallel.get(
+                                            "totals", {}
+                                        )
+                                        if logger and self.domain_mapper:
+                                            merged_domains = set()
+                                            for file_path in merged_coverage_json.get(
+                                                "files", {}
+                                            ):
+                                                domain = self.domain_mapper.get_source_domain(
+                                                    file_path.replace("\\", "/")
+                                                )
+                                                if domain:
+                                                    merged_domains.add(domain)
+                                            logger.debug(
+                                                f"Merged coverage (parallel) contains {merged_files_count} files from domains {sorted(merged_domains)} (expected ~{cached_files_count + fresh_files_count})"
+                                            )
+                                            logger.debug(
+                                                f"Merged totals: {merged_totals.get('num_statements', 0)} statements, {merged_totals.get('covered_lines', 0)} covered, {merged_totals.get('percent_covered', 0.0):.2f}%"
+                                            )
+                                            if is_selective_run:
+                                                logger.debug(
+                                                    f"  Cached (unchanged tests): {cached_totals.get('num_statements', 0)} statements, {cached_totals.get('covered_lines', 0)} covered, {cached_totals.get('percent_covered', 0.0):.2f}%"
+                                                )
+                                                logger.debug(
+                                                    f"  Fresh (re-run tests): {fresh_totals.get('num_statements', 0)} statements, {fresh_totals.get('covered_lines', 0)} covered, {fresh_totals.get('percent_covered', 0.0):.2f}%"
+                                                )
+
+                                        # Save merged coverage JSON with timestamp metadata
+                                        try:
+                                            timestamp_str = datetime.now().strftime(
+                                                "%Y-%m-%d %H:%M:%S"
+                                            )
+                                            timestamp_iso = datetime.now().isoformat()
+                                            merged_coverage_json["_metadata"] = {
+                                                "generated_by": "pytest-cov + test-file cache merge (parallel) - Development Tools",
+                                                "last_generated": timestamp_str,
+                                                "timestamp": timestamp_iso,
+                                                "note": "This file is auto-generated. Do not edit manually.",
+                                            }
+                                            with open(
+                                                coverage_output, "w", encoding="utf-8"
+                                            ) as f:
+                                                json.dump(
+                                                    merged_coverage_json, f, indent=2
+                                                )
+                                            merged_coverage_saved = True
+                                            self._store_last_good_coverage(
+                                                merged_coverage_json
+                                            )
+                                            if logger:
+                                                logger.debug(
+                                                    "Merged cached and fresh coverage data (parallel mode)"
+                                                )
+                                        except Exception as e:
+                                            if logger:
+                                                logger.warning(
+                                                    f"Failed to save merged coverage JSON: {e}"
+                                                )
+
+                                        # Use merged JSON for analysis and caching
+                                        fresh_coverage_json_parallel = (
+                                            merged_coverage_json
+                                        )
+                                    # Note: If we don't have cached_coverage_json, this is a full run (cache cleared or first run)
+                                    # In that case, fresh_coverage_json_parallel already has complete coverage, no merge needed
+
+                                    if self.analyzer:
+                                        coverage_data = (
+                                            self.analyzer.load_coverage_json(
+                                                coverage_output
+                                            )
+                                        )
+                                        overall_coverage = (
+                                            self.analyzer.extract_overall_from_json(
+                                                coverage_output
+                                            )
+                                        )
+
+                                        # Recalculate overall from merged JSON if we merged
+                                        if (
+                                            self.use_domain_cache
+                                            and self.test_file_cache
+                                            and cached_coverage_json
+                                            and fresh_coverage_json_parallel
+                                            and isinstance(
+                                                fresh_coverage_json_parallel, dict
+                                            )
+                                        ):
+                                            # Use totals from merged JSON (which includes both cached and fresh)
+                                            merged_totals = (
+                                                fresh_coverage_json_parallel.get(
+                                                    "totals", {}
+                                                )
+                                            )
+                                            total_statements = merged_totals.get(
+                                                "num_statements", 0
+                                            )
+                                            total_covered = merged_totals.get(
+                                                "covered_lines", 0
+                                            )
+                                            total_missing = merged_totals.get(
+                                                "missing_lines", 0
+                                            )
+
+                                            if logger:
+                                                logger.debug(
+                                                    f"Using merged totals: {total_statements} statements, {total_covered} covered, {total_missing} missing"
+                                                )
+
+                                            if total_statements > 0:
+                                                overall_coverage["overall_coverage"] = (
+                                                    merged_totals.get(
+                                                        "percent_covered", 0.0
+                                                    )
+                                                )
+                                                overall_coverage["total_statements"] = (
+                                                    total_statements
+                                                )
+                                                overall_coverage["total_missed"] = (
+                                                    total_missing
+                                                )
+
+                                            if logger:
+                                                logger.debug(
+                                                    f"Recalculated overall coverage from merged JSON: {overall_coverage.get('overall_coverage', 0):.1f}%"
+                                                )
+
+                                        # Re-evaluate coverage collection status after combined coverage.json load.
+                                        # This is especially important when the parallel phase times out or exits
+                                        # non-zero but coverage artifacts were still successfully combined.
+                                        total_statements = int(
+                                            overall_coverage.get("total_statements", 0)
+                                            or 0
+                                        )
+                                        recovered_coverage_collected = (
+                                            bool(coverage_data) or total_statements > 0
+                                        )
+                                        if (
+                                            recovered_coverage_collected
+                                            and not coverage_collected
+                                        ):
+                                            coverage_collected = True
+                                            if logger:
+                                                logger.info(
+                                                    "Recovered coverage data from combined parallel/no_parallel artifacts"
+                                                )
+
+                                        # Validate coverage percentage - if it's unexpectedly low, warn
+                                        # Expected coverage should be around 70-75% based on historical data
+                                        coverage_pct = overall_coverage.get(
+                                            "overall_coverage", 0
+                                        )
+                                        if coverage_pct > 0 and coverage_pct < 50:
+                                            logger.warning(
+                                                f"Coverage percentage ({coverage_pct}%) is unexpectedly low. "
+                                                f"Expected ~70-75%. This may indicate parallel coverage data was not included. "
+                                                f"Parallel file existed before cleanup: {parallel_file_existed}, "
+                                                f"No_parallel file existed before cleanup: {no_parallel_file_existed}, "
+                                                f"Shard files found: {shard_files_count}"
+                                            )
+
+                                        # Persist cache whenever combined coverage data exists.
+                                        # Failed runs are revalidated on the next run via failed-domain
+                                        # invalidation recorded in update_run_status().
+                                        final_cache_write_allowed = coverage_collected
+
+                                        # Update cache with coverage (parallel mode)
+                                        # On selective runs, fresh_coverage_json_parallel should already be the merged coverage
+                                        # (set on line 1749 if merge occurred, or original fresh if no merge)
+                                        if (
+                                            self.use_domain_cache
+                                            and self.test_file_cache
+                                            and fresh_coverage_json_parallel
+                                            and final_cache_write_allowed
+                                        ):
+                                            # Full run: entire test tree, all test files, or every domain.
+                                            # Missing cache alone is NOT a full run (selective 0% poison).
+                                            cache_stats = (
+                                                self.test_file_cache.get_cache_stats()
+                                            )
+                                            total_test_files = cache_stats[
+                                                "total_test_files"
+                                            ]
+                                            all_mapped_domains = set(
+                                                self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
+                                            )
+                                            is_full_run = _is_full_coverage_run_fn(
+                                                test_files_to_run=test_files_to_run,
+                                                total_test_files=total_test_files,
+                                                changed_domains=(
+                                                    set(changed_domains)
+                                                    if isinstance(
+                                                        changed_domains, set
+                                                    )
+                                                    else None
+                                                ),
+                                                all_domains=all_mapped_domains,
+                                                ran_entire_test_tree=not test_filter_args,
+                                            )
+                                            did_merge = bool(merged_coverage_saved)
+                                            persist_full_cache = is_full_run or did_merge
+
+                                            if persist_full_cache:
+                                                self.test_file_cache.cache_full_coverage(
+                                                    fresh_coverage_json_parallel
+                                                )
+                                            elif logger:
+                                                logger.warning(
+                                                    "Skipping full coverage cache write: "
+                                                    "selective run did not merge unchanged-domain coverage"
+                                                )
+
+                                            if is_full_run:
+                                                # Full run - update domain mappings for all test files
+                                                test_root = self.project_root / "tests"
+                                                all_test_files = [
+                                                    tf
+                                                    for tf in test_root.rglob(
+                                                        "test_*.py"
+                                                    )
+                                                    if self.test_file_cache.is_valid_test_file(
+                                                        tf
+                                                    )
+                                                ]
+                                                for test_file in all_test_files:
+                                                    self.test_file_cache.update_test_file_mapping(
+                                                        test_file,
+                                                        reload_cache=False,
+                                                        save_cache=False,
+                                                    )
+                                                # Update and save source file mtimes for all domains (critical for change detection)
+                                                if (
+                                                    "source_files_mtime"
+                                                    not in self.test_file_cache.cache_data
+                                                ):
+                                                    self.test_file_cache.cache_data[
+                                                        "source_files_mtime"
+                                                    ] = {}
+                                                for (
+                                                    domain
+                                                ) in (
+                                                    self.test_file_cache.domain_mapper.SOURCE_TO_TEST_MAPPING
+                                                ):
+                                                    current_mtimes = self.test_file_cache.get_source_file_mtimes(
+                                                        domain
+                                                    )
+                                                    self.test_file_cache.cache_data[
+                                                        "source_files_mtime"
+                                                    ][domain] = current_mtimes
+                                                # Save cache
+                                                self.test_file_cache._save_cache()
+                                                if logger:
+                                                    logger.info(
+                                                        f"Cached full coverage JSON and updated domain mappings for {len(all_test_files)} test files (parallel mode)"
+                                                    )
+                                            else:
+                                                # Selective run: mappings for files that ran; full JSON
+                                                # already persisted above when merge succeeded.
+                                                for test_file in test_files_to_run:
+                                                    self.test_file_cache.update_test_file_mapping(
+                                                        test_file,
+                                                        reload_cache=False,
+                                                        save_cache=False,
+                                                    )
+
+                                                # Update and save source file mtimes for changed domains (critical for change detection)
+                                                if (
+                                                    "source_files_mtime"
+                                                    not in self.test_file_cache.cache_data
+                                                ):
+                                                    self.test_file_cache.cache_data[
+                                                        "source_files_mtime"
+                                                    ] = {}
+                                                changed_domains = (
+                                                    self.test_file_cache.get_changed_domains()
+                                                )
+                                                for domain in changed_domains:
+                                                    current_mtimes = self.test_file_cache.get_source_file_mtimes(
+                                                        domain
+                                                    )
+                                                    self.test_file_cache.cache_data[
+                                                        "source_files_mtime"
+                                                    ][domain] = current_mtimes
+
+                                                # Save cache once (much more efficient than saving per test file)
+                                                self.test_file_cache._save_cache()
+                                                if logger:
+                                                    if persist_full_cache:
+                                                        logger.info(
+                                                            f"Cached merged coverage as full coverage cache and updated mappings for {len(test_files_to_run)} test files (parallel mode)"
+                                                        )
+                                                    else:
+                                                        logger.info(
+                                                            f"Updated mappings for {len(test_files_to_run)} test files without replacing full coverage cache (parallel mode)"
+                                                        )
+                                        elif (
+                                            self.use_domain_cache
+                                            and self.test_file_cache
+                                            and fresh_coverage_json_parallel
+                                            and (not final_cache_write_allowed)
+                                            and logger
+                                        ):
+                                            logger.info(
+                                                "Skipping test-file coverage cache write because coverage data was not collected"
+                                            )
+                                    else:
+                                        coverage_data = {}
+                                        overall_coverage = {}
+                            else:
+                                if logger:
+                                    logger.warning(
+                                        f"Failed to regenerate coverage JSON: {json_result.stderr}"
+                                    )
+                        except Exception as json_error:
+                            if logger:
+                                logger.warning(
+                                    f"Error regenerating coverage JSON: {json_error}"
+                                )
+
+            if tools_paths and not (self.parallel and pytest_ran):
+                self._combine_tools_coverage_for_serial(coverage_output)
+
+            try:
+                if self.report_generator:
+                    # Check if we have merged coverage data that should be preserved
+                    # If we merged cached + fresh coverage, don't let finalize_coverage_outputs() overwrite it
+                    merged_coverage_exists = merged_coverage_saved
+                    if (
+                        (not merged_coverage_exists)
+                        and self.use_domain_cache
+                        and self.test_file_cache
+                        and cached_coverage_json
+                    ):
+                        # Check if coverage.json exists and was recently modified (within last 5 seconds)
+                        # This indicates we just saved merged data
+                        if coverage_output.exists():
+                            import time
+
+                            file_age = time.time() - coverage_output.stat().st_mtime
+                            if file_age < 5:  # File was modified in last 5 seconds
+                                merged_coverage_exists = True
+                                if logger:
+                                    logger.info(
+                                        "Skipping coverage.json regeneration - merged coverage data exists and should be preserved"
+                                    )
+
+                    if not merged_coverage_exists:
+                        # Ensure coverage data file exists for finalize (e.g. if combine block was skipped)
+                        if not self.coverage_data_file.exists():
+                            _root_cov = self.project_root / ".coverage"
+                            if _root_cov.exists() and _root_cov.stat().st_size > 0:
+                                self.coverage_data_file.parent.mkdir(
+                                    parents=True, exist_ok=True
+                                )
+                                shutil.copy2(_root_cov, self.coverage_data_file)
+                                if logger:
+                                    logger.info(
+                                        "Using project root .coverage as coverage data (copied for report generation)"
+                                    )
+                        self.report_generator.finalize_coverage_outputs()
+                    else:
+                        # Only generate HTML report, don't regenerate JSON (it would overwrite merged data)
+                        if logger:
+                            logger.info(
+                                "Generating HTML coverage report (preserving merged coverage.json)..."
+                            )
+                        # Generate HTML from the coverage data file (not the JSON - JSON is for analysis only)
+                        html_cmd = [
+                            sys.executable,
+                            "-m",
+                            "coverage",
+                            "html",
+                            "-d",
+                            str(self.coverage_html_dir),
+                            "--data-file",
+                            str(self.coverage_data_file.resolve()),
+                        ]
+                        env = os.environ.copy()
+                        env = self._configure_test_logging_env(env)
+                        env["COVERAGE_FILE"] = str(self.coverage_data_file.resolve())
+                        env["COVERAGE_DATA_DIR"] = str(self.coverage_data_file.parent)
+                        if self.coverage_config_path.exists():
+                            env["COVERAGE_RCFILE"] = str(
+                                self.coverage_config_path.resolve()
+                            )
+                        try:
+                            html_result = subprocess.run(
+                                html_cmd,
+                                capture_output=True,
+                                text=True,
+                                cwd=self.project_root,
+                                env=env,
+                                timeout=600,
+                            )
+                            if html_result.returncode != 0 and logger:
+                                logger.warning(
+                                    f"coverage html exited with {html_result.returncode}: {html_result.stderr.strip()}"
+                                )
+                        except Exception as html_error:
+                            if logger:
+                                logger.warning(
+                                    f"Failed to generate HTML report: {html_error}"
+                                )
+                else:
+                    # Fallback to old method if report generator not available
+                    self._finalize_coverage_outputs_fallback()
+            except Exception as finalize_error:
+                if logger:
+                    logger.warning(
+                        f"Failed to finalize coverage artefacts: {finalize_error}"
+                    )
+
+            parallel_outcome = self._build_track_outcome(
+                return_code=result.returncode if "result" in locals() else None,
+                parsed_results=parallel_test_results,
+                output=test_output if isinstance(test_output, str) else "",
+                track_name="parallel",
+                log_file=self.pytest_stdout_log,
+            )
+            no_parallel_outcome = self._build_track_outcome(
+                return_code=no_parallel_return_code,
+                parsed_results=(
+                    no_parallel_test_results
+                    if isinstance(no_parallel_test_results, dict)
+                    else {}
+                ),
+                output=(
+                    no_parallel_output if isinstance(no_parallel_output, str) else ""
+                ),
+                track_name="no_parallel",
+                log_file=(
+                    no_parallel_stdout_log
+                    if "no_parallel_stdout_log" in locals()
+                    else None
+                ),
+            )
+            combined_failed_nodes = list(parallel_outcome.get("failed_node_ids", []))
+            combined_failed_nodes.extend(no_parallel_outcome.get("failed_node_ids", []))
+            dev_tools_test_outcome = self._build_unified_dev_tools_test_outcome(
+                parallel_test_results,
+                no_parallel_test_results,
+                parallel_outcome,
+                no_parallel_outcome,
+            )
+            coverage_outcome = {
+                "state": self._classify_coverage_outcome(
+                    parallel_outcome,
+                    no_parallel_outcome,
+                    bool(coverage_collected),
+                ),
+                "parallel": parallel_outcome,
+                "no_parallel": no_parallel_outcome,
+                "failed_node_ids": combined_failed_nodes,
+            }
+
+            return {
+                "modules": coverage_data,
+                "overall": overall_coverage,
+                "test_results": test_results,
+                # Coverage availability should be independent of test pass/fail state.
+                "coverage_collected": coverage_collected,
+                "pytest_ran": pytest_ran,  # Track whether pytest actually executed
+                "coverage_outcome": coverage_outcome,
+                "dev_tools_test_outcome": dev_tools_test_outcome,
+                "logs": {
+                    "stdout": (
+                        str(self.pytest_stdout_log) if self.pytest_stdout_log else None
+                    ),
+                    "stderr": (
+                        str(self.pytest_stderr_log) if self.pytest_stderr_log else None
+                    ),
+                },
+                "archived_directories": self.archived_directories,
+                "command_logs": [str(path) for path in self.command_logs],
+            }
+
+        except Exception as e:
+            import traceback
+
+            error_trace = traceback.format_exc()
+            if logger:
+                logger.error(f"Error running coverage analysis: {e}")
+                logger.error(f"Traceback: {error_trace}")
+            else:
+                print(f"Error running coverage analysis: {e}")
+                print(f"Traceback: {error_trace}")
+            # Return error info instead of empty dict so caller knows something went wrong
+            return {
+                "error": str(e),
+                "traceback": error_trace,
+                "modules": {},
+                "overall": {},
+                "coverage_collected": False,
+                "coverage_outcome": {
+                    "state": "coverage_failed",
+                    "parallel": {
+                        "state": "unknown",
+                        "classification": "unknown",
+                        "classification_reason": "coverage_execution_error",
+                        "actionable_context": "Coverage execution failed before track outcome could be computed.",
+                        "log_file": None,
+                        "return_code_hex": None,
+                    },
+                    "no_parallel": {
+                        "state": "unknown",
+                        "classification": "unknown",
+                        "classification_reason": "coverage_execution_error",
+                        "actionable_context": "Coverage execution failed before track outcome could be computed.",
+                        "log_file": None,
+                        "return_code_hex": None,
+                    },
+                    "failed_node_ids": [],
+                },
+            }
+
+    def _get_dev_tools_source_mtimes(self) -> dict[str, float]:
+        """Get current modification times for Python files in development_tools."""
+        return _get_dev_tools_source_mtimes_fn(self.project_root)
+
+    def _get_dev_tools_test_mtimes(self) -> dict[str, float]:
+        """Get current mtimes for development_tools test files."""
+        return _get_dev_tools_test_mtimes_fn(self.project_root)
+
+    def _get_config_mtime(self) -> float | None:
+        """Get current development_tools_config.json mtime if available."""
+        return _get_config_mtime_fn(self.project_root)
+
+    def _check_dev_tools_changed(self) -> bool:
+        """Check if development_tools source/tests/config invalidate the cache."""
+        return _check_dev_tools_changed_fn(
+            use_domain_cache=self.use_domain_cache,
+            dev_tools_cache=self.dev_tools_cache,
+            project_root=self.project_root,
+            log=logger,
+        )
+
+    def run_dev_tools_coverage(self) -> dict[str, dict[str, Any]]:
+        """Run pytest coverage analysis specifically for development_tools directory."""
+        if logger:
+            logger.debug("Running pytest coverage analysis for development_tools...")
+        self._cleanup_stray_pytest_cache_temp_dirs()
+
+        # Dev tools coverage caching: check if dev tools have changed
+        dev_tools_changed = True
+        cached_coverage_json = None
+
+        if self.use_domain_cache and self.dev_tools_cache:
+            dev_tools_changed = self._check_dev_tools_changed()
+
+            if not dev_tools_changed:
+                # Load cached coverage data
+                cached_coverage_json = self.dev_tools_cache.get_cached_coverage()
+                if cached_coverage_json:
+                    if logger:
+                        logger.info(
+                            "Dev tools unchanged - using cached coverage data (skipping test execution)"
+                        )
+                else:
+                    # Cache exists but no coverage data - need to run tests
+                    dev_tools_changed = True
+            else:
+                if logger:
+                    logger.info(
+                        "Dev tools source files changed - will run tests and update cache"
+                    )
+
+        try:
+            coverage_output = self.dev_tools_coverage_json
+            coverage_output.parent.mkdir(parents=True, exist_ok=True)
+
+            # Skip test execution if using cached data
+            if not dev_tools_changed and cached_coverage_json:
+                # Save cached JSON to coverage_output so analyzer can load it
+                try:
+                    with open(coverage_output, "w", encoding="utf-8") as f:
+                        json.dump(cached_coverage_json, f, indent=2)
+                    if logger:
+                        logger.info("Loaded cached dev tools coverage data")
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to save cached coverage JSON: {e}")
+                    # Fall through to run tests
+                    dev_tools_changed = True
+
+            if not dev_tools_changed and cached_coverage_json:
+                # Use cached data
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
+                    overall_coverage = self.analyzer.extract_overall_from_json(
+                        coverage_output
+                    )
+                else:
+                    # Fallback: extract from cached JSON structure
+                    coverage_data = {}
+                    for file_path, file_data in cached_coverage_json.get(
+                        "files", {}
+                    ).items():
+                        summary = file_data.get("summary", {})
+                        coverage_data[file_path] = {
+                            "statements": summary.get("num_statements", 0),
+                            "covered": summary.get("covered_lines", 0),
+                            "missed": summary.get("missing_lines", 0),
+                            "coverage": summary.get("percent_covered", 0.0),
+                        }
+                    overall_coverage = {
+                        "overall_coverage": cached_coverage_json["totals"].get(
+                            "percent_covered", 0.0
+                        ),
+                        "total_statements": cached_coverage_json["totals"].get(
+                            "num_statements", 0
+                        ),
+                        "total_missed": cached_coverage_json["totals"].get(
+                            "missing_lines", 0
+                        ),
+                    }
+
+                return {
+                    "modules": coverage_data,
+                    "overall": overall_coverage,
+                    "coverage_collected": True,
+                    "from_cache": True,
+                    "dev_tools_test_outcome": {
+                        "state": "skipped",
+                        "return_code": None,
+                        "passed_count": 0,
+                        "failed_count": 0,
+                        "error_count": 0,
+                        "skipped_count": 0,
+                        "failed_node_ids": [],
+                        "from_cache": True,
+                    },
+                    "coverage_outcome": self._build_cache_only_coverage_outcome(
+                        coverage_collected=True
+                    ),
+                }
+
+            # Coverage only for development_tools directory
+            # Note: coverage_output path is relative to project_root, so we need to make it absolute
+            coverage_output_abs = coverage_output.resolve()
+            dev_cov_config = (
+                self.dev_tools_coverage_config_path
+                if self.dev_tools_coverage_config_path.exists()
+                else self.coverage_config_path
+            )
+            # Create timestamp for log file
+            from datetime import datetime
+
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+            # Respect parallel mode for dev-tools coverage (aligns with main coverage workers).
+            cmd = _build_dev_tools_coverage_pytest_cmd(
+                executable=sys.executable,
+                parallel=self.parallel,
+                num_workers=str(self.num_workers),
+                coverage_json_output=coverage_output_abs,
+                coverage_config_path=dev_cov_config,
+                maxfail=10,
+                test_path="development_tools/tool_tests/",
+            )
+            if self.parallel and logger:
+                logger.info(
+                    f"Using parallel execution for dev tools coverage with {self.num_workers} workers (loadscope distribution)"
+                )
+
+            if logger:
+                logger.debug(
+                    f"Running dev tools coverage command: {' '.join(cmd[:5])} ..."
+                )
+
+            env = os.environ.copy()
+            env = self._configure_test_logging_env(env)
+            # Ensure PATH includes Python executable's directory for Windows DLL resolution
+            env = self._ensure_python_path_in_env(env)
+            # Set COVERAGE_FILE to absolute path to ensure files are created in the correct location
+            env["COVERAGE_FILE"] = str(self.dev_tools_coverage_data_file.resolve())
+            if dev_cov_config and dev_cov_config.exists():
+                env["COVERAGE_RCFILE"] = str(dev_cov_config.resolve())
+            # Use unique cache/basetemp directories per run to avoid cross-run collisions.
+            pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths(
+                "dev_tools"
+            )
+            env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+            # Force pytest cache provider to use writable temp cache directory.
+            cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
+            # Keep tmpdir fixtures isolated from tests/data/tmp cleanup logic.
+            cmd.append(f"--basetemp={pytest_temp_base}")
+
+            # Set up stdout logging for dev tools coverage (similar to main coverage)
+            # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
+            self._rotate_log_files("pytest_dev_tools_stdout", max_versions=8)
+
+            # Create timestamp for log file
+            timestamp = now_timestamp_filename()
+            dev_tools_stdout_log = (
+                self.coverage_logs_dir / f"pytest_dev_tools_stdout_{timestamp}.log"
+            )
+            dev_tools_stdout_log.parent.mkdir(parents=True, exist_ok=True)
+
+            # Run pytest and capture output to both stdout and log file
+            try:
+                result = self._run_pytest_wait(
+                    cmd,
+                    timeout=900,  # 15 minutes timeout
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,  # Merge stderr into stdout
+                    text=True,
+                    cwd=self.project_root,
+                    env=env,
+                )
+                # Ensure stdout is not None
+                if result.stdout is None:
+                    result.stdout = ""
+                if result.stderr is None:
+                    result.stderr = ""
+                # Write to log file
+                with open(
+                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
+                ) as log_file:
+                    log_file.write(result.stdout)
+                    if result.stderr and result.stderr != result.stdout:
+                        log_file.write("\n\n=== STDERR ===\n")
+                        log_file.write(result.stderr)
+            except KeyboardInterrupt:
+                interrupt_msg = (
+                    "KeyboardInterrupt while waiting for dev-tools coverage pytest subprocess "
+                    "(SIGINT/control event)."
+                )
+                if logger:
+                    logger.warning(interrupt_msg)
+                with open(
+                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
+                ) as log_file:
+                    log_file.write(interrupt_msg + "\n")
+
+                result = subprocess.CompletedProcess(
+                    cmd,
+                    returncode=130,
+                    stdout=interrupt_msg + "\n",
+                    stderr=interrupt_msg,
+                )
+            except subprocess.TimeoutExpired:
+                if logger:
+                    logger.error("Dev tools coverage pytest timed out after 15 minutes")
+                with open(
+                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
+                ) as log_file:
+                    log_file.write("ERROR: pytest timed out after 15 minutes\n")
+
+                # Create a fake result object for error handling
+                class FakeResult:
+                    returncode = 1
+                    stdout = "ERROR: pytest timed out after 15 minutes\n"
+                    stderr = ""
+
+                result = FakeResult()
+            except Exception as e:
+                if logger:
+                    logger.error(
+                        f"Error running dev tools coverage pytest: {e}", exc_info=True
+                    )
+                with open(
+                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
+                ) as log_file:
+                    log_file.write(f"ERROR: Exception running pytest: {e}\n")
+
+                # Create a fake result object for error handling
+                class FakeResultException:
+                    returncode = 1
+                    stdout = f"ERROR: Exception running pytest: {e}\n"
+                    stderr = ""
+
+                result = FakeResultException()
+
+            if self._is_interrupt_return_code(getattr(result, "returncode", None)):
+                if logger:
+                    logger.warning(
+                        "Dev tools coverage pytest subprocess terminated with interrupt signature "
+                        f"(returncode={result.returncode}, hex={self._format_return_code_hex(result.returncode) or 'n/a'})."
+                    )
+
+            if logger:
+                log_size = (
+                    dev_tools_stdout_log.stat().st_size
+                    if dev_tools_stdout_log.exists()
+                    else 0
+                )
+                logger.info(
+                    f"Saved dev tools pytest output to {dev_tools_stdout_log} ({log_size} bytes)"
+                )
+
+            # Record dev tools run status (even if coverage is missing)
+            if self.use_domain_cache and self.dev_tools_cache:
+                try:
+                    self.dev_tools_cache.update_run_status(
+                        last_run_ok=bool(result.returncode == 0),
+                        last_exit_code=result.returncode,
+                    )
+                except Exception as e:
+                    if logger:
+                        logger.debug(f"Failed to record dev tools run status: {e}")
+
+            # Parse coverage results (even if pytest exited with non-zero code, coverage may still be available)
+            if self.analyzer:
+                coverage_data = self.analyzer.parse_coverage_output(result.stdout)
+            else:
+                coverage_data = {}
+            if not coverage_data and coverage_output.exists():
+                if self.analyzer:
+                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
+
+                    # Add timestamp metadata to coverage_dev_tools.json
+                    try:
+                        with open(coverage_output, encoding="utf-8") as f:
+                            dev_tools_coverage_json = json.load(f)
+                        timestamp_str = now_timestamp_full()
+                        timestamp_iso = datetime.now().isoformat()
+                        dev_tools_coverage_json["_metadata"] = {
+                            "generated_by": "pytest-cov --cov-report=json - Development Tools (dev_tools)",
+                            "last_generated": timestamp_str,
+                            "timestamp": timestamp_iso,
+                            "note": "This file is auto-generated. Do not edit manually.",
+                        }
+                        with open(coverage_output, "w", encoding="utf-8") as f:
+                            json.dump(dev_tools_coverage_json, f, indent=2)
+                    except Exception as e:
+                        if logger:
+                            logger.debug(
+                                f"Failed to add metadata to coverage_dev_tools.json: {e}"
+                            )
+
+                    # Rotate coverage_dev_tools.json after loading
+                    if coverage_output.exists():
+                        from development_tools.shared.file_rotation import FileRotator
+
+                        rotator = FileRotator(base_dir=str(coverage_output.parent))
+                        rotator.rotate_file(str(coverage_output), max_versions=5)
+
+            if self.analyzer:
+                overall_coverage = self.analyzer.extract_overall_coverage(result.stdout)
+            else:
+                overall_coverage = {}
+            if (
+                not overall_coverage.get("overall_coverage")
+                and coverage_output.exists()
+            ) and self.analyzer:
+                overall_coverage = self.analyzer.extract_overall_from_json(
+                    coverage_output
+                )
+
+            # Log status after attempting to extract coverage
+            if result.returncode != 0:
+                if logger:
+                    # If we successfully extracted coverage, this is just test failures (not a coverage problem)
+                    if overall_coverage.get("overall_coverage") or coverage_data:
+                        logger.info(
+                            f"Dev tools coverage pytest completed with exit code {result.returncode} (some tests failed, but coverage data was successfully collected: {overall_coverage.get('overall_coverage', 'N/A')}%)"
+                        )
+                    else:
+                        logger.warning(
+                            f"Dev tools coverage pytest exited with code {result.returncode} and no coverage data could be extracted"
+                        )
+                        if result.stderr:
+                            logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+                        if result.stdout:
+                            # Log more of stdout to see what happened
+                            logger.warning(
+                                f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}"
+                            )
+
+            # If still no coverage data, check if the file was created
+            if (
+                not overall_coverage.get("overall_coverage")
+                and not coverage_output.exists()
+            ) and logger:
+                logger.warning(f"Coverage JSON file not created at {coverage_output}")
+                logger.info(f"Pytest return code: {result.returncode}")
+                if result.stdout:
+                    # Look for coverage summary in stdout
+                    if "TOTAL" in result.stdout:
+                        logger.info(
+                            "Coverage data found in stdout but JSON not created"
+                        )
+                    # Log more of stdout to diagnose the issue
+                    logger.warning(
+                        f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}"
+                    )
+                    # Also log first part to see if there are early errors
+                    if len(result.stdout) > 1000:
+                        logger.warning(
+                            f"Pytest stdout (first 500 chars): {result.stdout[:500]}"
+                        )
+                if result.stderr:
+                    logger.warning(f"Pytest stderr: {result.stderr[:500]}")
+
+            # Cache dev tools coverage if we ran tests
+            if (
+                self.use_domain_cache
+                and self.dev_tools_cache
+                and coverage_output.exists()
+                and dev_tools_changed
+                and result.returncode == 0
+                and bool(coverage_data)
+            ):
+                # Load fresh coverage JSON
+                try:
+                    with open(coverage_output, encoding="utf-8") as f:
+                        fresh_coverage_json = json.load(f)
+                    source_mtimes = self._get_dev_tools_source_mtimes()
+                    test_mtimes = self._get_dev_tools_test_mtimes()
+                    config_mtime = self._get_config_mtime()
+                    self.dev_tools_cache.update_cache(
+                        fresh_coverage_json,
+                        source_mtimes,
+                        test_mtimes=test_mtimes,
+                        config_mtime=config_mtime,
+                        last_run_ok=bool(result.returncode == 0),
+                        last_exit_code=result.returncode,
+                    )
+                    if logger:
+                        logger.debug("Cached dev tools coverage data")
+                except Exception as e:
+                    if logger:
+                        logger.warning(f"Failed to cache dev tools coverage: {e}")
+
+            # Clean up temporary coverage data files after generating report
+            self._cleanup_coverage_data_files()
+            # Also clean up any process-specific files that may have been created
+            self._cleanup_process_specific_coverage_files()
+
+            if logger:
+                if overall_coverage.get("overall_coverage"):
+                    logger.info(
+                        f"Dev tools coverage: {overall_coverage.get('overall_coverage', 0):.1f}%"
+                    )
+                else:
+                    logger.warning("Dev tools coverage data not available")
+
+            parsed_dev_tools_results = self._parse_pytest_test_results(
+                result.stdout if hasattr(result, "stdout") and result.stdout else ""
+            )
+            if logger:
+                logger.info(
+                    "Dev tools tests completed: "
+                    f"{parsed_dev_tools_results.get('passed_count', 0)} passed, "
+                    f"{parsed_dev_tools_results.get('failed_count', 0)} failed, "
+                    f"{parsed_dev_tools_results.get('skipped_count', 0)} skipped"
+                )
+                dev_tools_failed_nodes = list(
+                    parsed_dev_tools_results.get("failed_tests", [])
+                )
+                dev_tools_failed_nodes.extend(
+                    parsed_dev_tools_results.get("error_tests", [])
+                )
+                if dev_tools_failed_nodes:
+                    logger.warning("Dev tools failed/error tests:")
+                    for node in dev_tools_failed_nodes[:10]:
+                        logger.warning(f"  - {node}")
+                    if len(dev_tools_failed_nodes) > 10:
+                        logger.warning(
+                            f"  ... and {len(dev_tools_failed_nodes) - 10} more (see log for full list)"
+                        )
+            dev_tools_test_outcome = self._build_track_outcome(
+                return_code=(
+                    result.returncode if hasattr(result, "returncode") else None
+                ),
+                parsed_results=(
+                    parsed_dev_tools_results
+                    if isinstance(parsed_dev_tools_results, dict)
+                    else {}
+                ),
+                output="\n".join(
+                    [
+                        (
+                            result.stdout
+                            if hasattr(result, "stdout") and result.stdout
+                            else ""
+                        ),
+                        (
+                            result.stderr
+                            if hasattr(result, "stderr") and result.stderr
+                            else ""
+                        ),
+                    ]
+                ),
+            )
+
+            return {
+                "modules": coverage_data,
+                "overall": overall_coverage,
+                "coverage_collected": bool(coverage_data) or coverage_output.exists(),
+                "output_file": str(coverage_output),
+                "html_dir": None,  # HTML reports disabled
+                "from_cache": (
+                    not dev_tools_changed
+                    if self.use_domain_cache and self.dev_tools_cache
+                    else False
+                ),
+                "dev_tools_test_outcome": dev_tools_test_outcome,
+            }
+
+        except Exception as e:
+            if logger:
+                logger.error(f"Error running dev tools coverage analysis: {e}")
+            else:
+                print(f"Error running dev tools coverage analysis: {e}")
+            return {}
+
+    def _cleanup_process_specific_coverage_files(
+        self, coverage_dir: Path | None = None
+    ) -> None:
+        """Clean up process-specific coverage files (e.g., .coverage_parallel.DESKTOP-*.X.*).
+
+        These files are created by coverage.py when multiple processes try to write to the same
+        coverage file simultaneously. They need to be cleaned up after coverage collection.
+        """
+        if coverage_dir is None:
+            coverage_dir = self.coverage_data_file.parent
+
+        if not coverage_dir.exists():
+            return
+
+        cleanup_count = 0
+        try:
+            # Clean up process-specific parallel files
+            for proc_file in coverage_dir.glob(".coverage_parallel.*"):
+                if proc_file.is_file() and proc_file.name != ".coverage_parallel":
+                    try:
+                        proc_file.unlink()
+                        cleanup_count += 1
+                    except Exception:
+                        pass
+            # Clean up process-specific no_parallel files
+            for proc_file in coverage_dir.glob(".coverage_no_parallel.*"):
+                if proc_file.is_file() and proc_file.name != ".coverage_no_parallel":
+                    try:
+                        proc_file.unlink()
+                        cleanup_count += 1
+                    except Exception:
+                        pass
+            # Also clean up any process-specific .coverage files (from non-parallel runs)
+            for proc_file in coverage_dir.glob(".coverage.*"):
+                if proc_file.is_file() and proc_file.name != ".coverage":
+                    # Check if it's a process-specific file (contains hostname and PID pattern)
+                    # Pattern: .coverage.HOSTNAME.PID.RANDOM
+                    if "." in proc_file.name[10:]:  # After ".coverage."
+                        try:
+                            proc_file.unlink()
+                            cleanup_count += 1
+                        except Exception:
+                            pass
+        except Exception as exc:
+            if logger:
+                logger.debug(
+                    f"Failed to cleanup process-specific coverage files: {exc}"
+                )
+
+        if cleanup_count > 0 and logger:
+            logger.debug(
+                f"Cleaned up {cleanup_count} process-specific coverage file(s)"
+            )
+
+    def _cleanup_coverage_data_files(self) -> None:
+        """Clean up temporary .coverage_dev_tools.* files after coverage analysis."""
+        tests_dir = self.project_root / "development_tools" / "tests"
+
+        cleanup_count = 0
+
+        # Clean up files in tests directory (current location)
+        # Include process-specific files (e.g., .coverage_dev_tools.DESKTOP-*.X.*)
+        if tests_dir.exists():
+            # Clean up all .coverage_dev_tools.* files (including process-specific ones)
+            for coverage_file in tests_dir.glob(".coverage_dev_tools*"):
+                try:
+                    # Skip directories
+                    if coverage_file.is_file():
+                        coverage_file.unlink()
+                        cleanup_count += 1
+                except Exception as exc:
+                    if logger:
+                        logger.warning(f"Failed to clean up {coverage_file}: {exc}")
+
+        if cleanup_count > 0 and logger:
+            logger.info(f"Cleaned up {cleanup_count} temporary coverage data file(s)")
+
+    def _cleanup_stray_pytest_cache_temp_dirs(self) -> None:
+        """Best-effort cleanup for stray pytest cache temp directories."""
+        removed = 0
+        failed_paths: list[tuple[Path, str]] = []
+        roots = [
+            self.project_root,
+            self.project_root / "tests" / "data",
+            self.project_root / "tests" / "data" / "tmp",
+        ]
+        for root in roots:
+            if not root.exists():
+                continue
+            for entry in root.glob("pytest-cache-files-*"):
+                if not entry.is_dir():
+                    continue
+                try:
+                    if self._remove_tree_with_retries(entry):
+                        removed += 1
+                    else:
+                        failed_paths.append(
+                            (entry, "directory still exists after retries")
+                        )
+                except Exception as exc:
+                    failed_paths.append((entry, str(exc)))
+        if removed > 0 and logger:
+            logger.info(f"Removed {removed} stray pytest-cache-files-* directory(s)")
+        root_leftovers = [
+            p for p in self.project_root.glob("pytest-cache-files-*") if p.is_dir()
+        ]
+        if root_leftovers:
+            detail = ", ".join(str(p) for p in root_leftovers[:8])
+            if len(root_leftovers) > 8:
+                detail += f", ... (+{len(root_leftovers) - 8} more)"
+            if logger and failed_paths:
+                fail_detail = "; ".join(
+                    f"{path}: {reason}" for path, reason in failed_paths[:8]
+                )
+                logger.error(
+                    "pytest cache temp cleanup failures encountered: %s", fail_detail
+                )
+            raise RuntimeError(
+                "Stale root pytest cache temp directories detected before coverage run: "
+                f"{detail}. Remove these directories or fix permissions first."
+            )
+
+    def _parse_pytest_test_results(self, stdout: str) -> dict[str, Any]:
+        """Parse pytest output to extract test results, failures, and random seed."""
+        results = {
+            "random_seed": None,
+            "test_summary": None,
+            "failed_tests": [],
+            "error_tests": [],
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "deselected_count": 0,
+            "warnings_count": 0,
+            "total_tests": 0,
+            "maxfail_reached": False,
+        }
+
+        if not stdout:
+            return results
+
+        # Check if maxfail was reached (pytest stops early when maxfail is hit)
+        # Look for patterns like "interrupted: stopping after X failures" or "maxfail=X reached"
+        maxfail_patterns = [
+            r"interrupted:\s+stopping\s+after\s+\d+\s+failures?",
+            r"maxfail\s*=\s*\d+\s+reached",
+            r"stopping\s+after\s+\d+\s+failures?",
+        ]
+        for pattern in maxfail_patterns:
+            if re.search(pattern, stdout, re.IGNORECASE):
+                results["maxfail_reached"] = True
+                break
+
+        # Extract random seed if pytest-randomly is used
+        seed_pattern = r"--randomly-seed=(\d+)"
+        seed_match = re.search(seed_pattern, stdout)
+        if seed_match:
+            results["random_seed"] = seed_match.group(1)
+
+        # Extract test summary (e.g., "4 failed, 2276 passed, 1 skipped, 4 warnings" or "145 passed, 3439 deselected")
+        # Try full format first
+        summary_pattern = r"(\d+)\s+failed[,\s]+(\d+)\s+passed[,\s]+(\d+)\s+skipped[,\s]+(\d+)\s+warnings"
+        summary_match = re.search(summary_pattern, stdout)
+        if summary_match:
+            results["failed_count"] = int(summary_match.group(1))
+            results["passed_count"] = int(summary_match.group(2))
+            results["skipped_count"] = int(summary_match.group(3))
+            results["warnings_count"] = int(summary_match.group(4))
+            results["total_tests"] = (
+                results["failed_count"]
+                + results["passed_count"]
+                + results["skipped_count"]
+                + results["error_count"]
+            )
+            results["test_summary"] = (
+                f"{results['failed_count']} failed, {results['passed_count']} passed, {results['skipped_count']} skipped, {results['warnings_count']} warnings"
+            )
+        else:
+            # Try simpler format (e.g., "145 passed, 3439 deselected" or "1 failed, 3437 passed, 1 skipped")
+            # Look for patterns like "X passed, Y deselected" or "X failed, Y passed, Z skipped"
+            # Search for all number-label pairs in the summary line
+            simple_pattern = (
+                r"(\d+)\s+(failed|error|errors|passed|skipped|deselected|warnings)"
+            )
+            matches = re.findall(simple_pattern, stdout)
+            for count_str, label in matches:
+                count = int(count_str)
+                if label == "failed":
+                    results["failed_count"] = count
+                elif label in ("error", "errors"):
+                    results["error_count"] = count
+                elif label == "passed":
+                    results["passed_count"] = count
+                elif label == "skipped":
+                    results["skipped_count"] = count
+                elif label == "deselected":
+                    results["deselected_count"] = count
+                elif label == "warnings":
+                    results["warnings_count"] = count
+                # deselected is not counted in total, but we note it
+
+            # If no matches found but output contains only dots (quiet mode with all passed tests),
+            # try to count dots as passed tests (rough estimate)
+            if (
+                not matches
+                and stdout.strip()
+                and all(c in ".sF" for c in stdout.strip())
+            ):
+                # Count dots as passed, 'F' as failed, 's' as skipped
+                dot_count = stdout.count(".")
+                f_count = stdout.count("F")
+                s_count = stdout.count("s")
+                if dot_count > 0 or f_count > 0 or s_count > 0:
+                    results["passed_count"] = dot_count
+                    results["failed_count"] = f_count
+                    results["skipped_count"] = s_count
+                    results["total_tests"] = dot_count + f_count + s_count
+                    if results["total_tests"] > 0:
+                        parts = []
+                        if results["failed_count"] > 0:
+                            parts.append(f"{results['failed_count']} failed")
+                        if results["passed_count"] > 0:
+                            parts.append(f"{results['passed_count']} passed")
+                        if results["skipped_count"] > 0:
+                            parts.append(f"{results['skipped_count']} skipped")
+                        results["test_summary"] = (
+                            ", ".join(parts) if parts else "0 tests"
+                        )
+
+            if not results.get("test_summary"):
+                results["total_tests"] = (
+                    results["failed_count"]
+                    + results["error_count"]
+                    + results["passed_count"]
+                    + results["skipped_count"]
+                )
+                if results["total_tests"] > 0 or results["passed_count"] > 0:
+                    parts = []
+                    if results["failed_count"] > 0:
+                        parts.append(f"{results['failed_count']} failed")
+                    if results["error_count"] > 0:
+                        parts.append(f"{results['error_count']} errors")
+                    if results["passed_count"] > 0:
+                        parts.append(f"{results['passed_count']} passed")
+                    if results["skipped_count"] > 0:
+                        parts.append(f"{results['skipped_count']} skipped")
+                    if results["warnings_count"] > 0:
+                        parts.append(f"{results['warnings_count']} warnings")
+                    results["test_summary"] = ", ".join(parts) if parts else "0 tests"
+
+        # Extract failed test names from "FAILED" section
+        failed_section_pattern = r"FAILED\s+(.+?)(?=\n\n|\n===|$)"
+        re.findall(failed_section_pattern, stdout, re.DOTALL)
+
+        # Also look for "short test summary info" section
+        short_summary_pattern = r"short test summary info[^\n]*\n(.*?)(?=\n===|$)"
+        short_summary_match = re.search(short_summary_pattern, stdout, re.DOTALL)
+        if short_summary_match:
+            summary_lines = short_summary_match.group(1).strip().split("\n")
+            for line in summary_lines:
+                if line.strip().startswith("FAILED"):
+                    # Extract test path from "FAILED tests/path/to/test.py::test_function"
+                    test_match = re.search(r"FAILED\s+(.+)", line)
+                    if test_match:
+                        results["failed_tests"].append(test_match.group(1).strip())
+                elif line.strip().startswith("ERROR"):
+                    test_match = re.search(r"ERROR\s+(.+)", line)
+                    if test_match:
+                        results["error_tests"].append(test_match.group(1).strip())
+
+        if results["error_tests"]:
+            results["error_count"] = max(
+                results["error_count"], len(results["error_tests"])
+            )
+
+        return results
+
+    def _is_windows_crash_return_code(self, return_code: int | None) -> bool:
+        """Check whether return code matches a known Windows crash code."""
+        return _is_windows_crash_return_code_fn(return_code)
+
+    def _is_interrupt_return_code(self, return_code: int | None) -> bool:
+        """Check whether return code indicates interrupt/control-event termination."""
+        return _is_interrupt_return_code_fn(return_code)
+
+    def _format_return_code_hex(self, return_code: int | None) -> str | None:
+        """Return normalized hex code string for process return codes."""
+        return _format_return_code_hex_fn(return_code)
+
+    def _classify_windows_crash_return_code(
+        self, return_code: int | None
+    ) -> tuple[str | None, str | None]:
+        """Return crash reason and actionable context for known Windows return codes."""
+        return _classify_windows_crash_return_code_fn(return_code)
+
+    def _is_infra_cleanup_error(self, output: str) -> bool:
+        """Detect pytest teardown cleanup errors that are infra failures, not test failures."""
+        return _is_infra_cleanup_error_fn(output)
+
+    def _is_xdist_worker_crash_output(self, output: str) -> bool:
+        """Detect xdist/execnet worker crash patterns from pytest output."""
+        return _is_xdist_worker_crash_output_fn(output)
+
+    def _log_windows_crash_context(
+        self, return_code: int | None, log_file: Path | None
+    ) -> None:
+        """Emit consistent, non-duplicated crash diagnostics for known Windows crashes."""
+        if not logger:
+            return
+        reason, context = self._classify_windows_crash_return_code(return_code)
+        if reason is None:
+            return
+        return_code_hex = self._format_return_code_hex(return_code) or "unknown"
+        if reason == "windows_status_dll_not_found":
+            logger.error(
+                f"Pytest crashed with Windows error {return_code_hex} (STATUS_DLL_NOT_FOUND)"
+            )
+        elif reason == "windows_status_access_violation":
+            logger.error(
+                f"Pytest crashed with Windows error {return_code_hex} (STATUS_ACCESS_VIOLATION)"
+            )
+        if context:
+            logger.error(context)
+        if log_file:
+            logger.error(f"Check log for details: {log_file}")
+
+    def _dev_tools_test_path_predicate(self, node_id: str) -> bool:
+        """True when a pytest node id refers to tests under development_tools/tool_tests/."""
+        raw = node_id.replace("\\", "/")
+        return raw.startswith(_DEV_TOOLS_TEST_POSIX_PREFIX)
+
+    def _build_unified_dev_tools_test_outcome(
+        self,
+        parallel_test_results: dict[str, Any],
+        no_parallel_test_results: dict[str, Any],
+        parallel_outcome: dict[str, Any],
+        no_parallel_outcome: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Tier 3 dev-tools track derived from failures under development_tools/tool_tests/ only."""
+
+        def pick_logs() -> tuple[str | None, str | None]:
+            p_log = parallel_outcome.get("log_file")
+            n_log = no_parallel_outcome.get("log_file")
+            return (
+                str(p_log) if p_log else None,
+                str(n_log) if n_log else None,
+            )
+
+        def merge_failed(pred, pr: dict, npr: dict) -> list[str]:
+            out: list[str] = []
+            for seq_key in ("failed_tests", "error_tests"):
+                for n in pr.get(seq_key, []) or []:
+                    if isinstance(n, str) and pred(n):
+                        out.append(n)
+                for n in npr.get(seq_key, []) or []:
+                    if isinstance(n, str) and pred(n):
+                        out.append(n)
+            return out
+
+        failed_node_ids = merge_failed(
+            self._dev_tools_test_path_predicate,
+            parallel_test_results if isinstance(parallel_test_results, dict) else {},
+            (
+                no_parallel_test_results
+                if isinstance(no_parallel_test_results, dict)
+                else {}
+            ),
+        )
+        par_rc = parallel_outcome.get("return_code")
+        np_rc = no_parallel_outcome.get("return_code")
+        log_par, log_np = pick_logs()
+        if failed_node_ids:
+            classification_reason = "pytest_failed_or_errored"
+            actionable = (
+                "One or more tests under development_tools/tool_tests/ failed or errored "
+                "in the unified Tier 3 run."
+            )
+            rc = par_rc if par_rc not in (None, 0) else np_rc
+            return {
+                "state": "failed",
+                "classification": "failed",
+                "classification_reason": classification_reason,
+                "actionable_context": actionable,
+                "log_file": log_par or log_np,
+                "return_code_hex": parallel_outcome.get("return_code_hex")
+                or no_parallel_outcome.get("return_code_hex"),
+                "return_code": rc,
+                "passed_count": 0,
+                "failed_count": len(failed_node_ids),
+                "error_count": 0,
+                "skipped_count": 0,
+                "failed_node_ids": failed_node_ids,
+            }
+
+        # No dev-tools-specific failures: treat track as passed if both pytest runs were healthy.
+        p_st = parallel_outcome.get("classification", parallel_outcome.get("state"))
+        n_st = no_parallel_outcome.get(
+            "classification", no_parallel_outcome.get("state")
+        )
+        if p_st in ("infra_cleanup_error",) or n_st in ("infra_cleanup_error",):
+            rc = par_rc if np_rc in (None, 0) else np_rc
+            return self._build_track_outcome(
+                return_code=rc if isinstance(rc, int) else None,
+                parsed_results={"total_tests": 0},
+                output="",
+                track_name="development_tools",
+                log_file=(
+                    Path(log_par) if log_par else (Path(log_np) if log_np else None)
+                ),
+            )
+        if p_st == "crashed" or n_st == "crashed":
+            rc = par_rc if par_rc not in (None, 0) else np_rc
+            return self._build_track_outcome(
+                return_code=rc if isinstance(rc, int) else None,
+                parsed_results={"total_tests": 0},
+                output="",
+                track_name="development_tools",
+                log_file=(
+                    Path(log_par) if log_par else (Path(log_np) if log_np else None)
+                ),
+            )
+        return {
+            "state": "passed",
+            "classification": "passed",
+            "classification_reason": "no_dev_tools_failures_unified_run",
+            "actionable_context": (
+                "No failures reported under development_tools/tool_tests/ in the unified Tier 3 run."
+            ),
+            "log_file": log_par or log_np,
+            "return_code_hex": parallel_outcome.get("return_code_hex"),
+            "return_code": (par_rc if par_rc is not None else np_rc),
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "failed_node_ids": [],
+        }
+
+    def _write_dev_tools_coverage_json_from_main(
+        self, main_coverage_path: Path
+    ) -> None:
+        """Write coverage_dev_tools.json as a subset of unified main coverage.json."""
+        root = self.project_root.resolve()
+        try:
+            if not main_coverage_path.is_file():
+                return
+            with main_coverage_path.open("r", encoding="utf-8") as handle:
+                data = json.load(handle)
+        except (OSError, json.JSONDecodeError) as exc:
+            if logger:
+                logger.warning(
+                    f"Skipping dev-tools coverage subset: cannot read main coverage ({exc})"
+                )
+            return
+        if not isinstance(data, dict):
+            return
+        files = data.get("files")
+        if not isinstance(files, dict):
+            return
+        out_files: dict[str, Any] = {}
+        for path_key, payload in files.items():
+            if not isinstance(payload, dict):
+                continue
+            rel = _coverage_path_to_rel_posix(str(path_key), root)
+            if rel is None:
+                continue
+            if rel == "development_tools" or rel.startswith("development_tools/"):
+                out_files[str(path_key)] = payload
+        totals = _recompute_coverage_totals_from_files(out_files)
+        subset = dict(data)
+        subset["files"] = out_files
+        subset["totals"] = totals
+        meta = subset.get("_metadata")
+        if isinstance(meta, dict):
+            meta = dict(meta)
+            meta["dev_tools_subset_from"] = "unified_main_coverage.json"
+            subset["_metadata"] = meta
+        out_path = (
+            config.get_coverage_json_dir(root) / "coverage_dev_tools.json"
+        )
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with out_path.open("w", encoding="utf-8") as handle:
+                json.dump(subset, handle, indent=2)
+            if logger:
+                pct = float(totals.get("percent_covered", 0.0) or 0.0)
+                logger.info(
+                    f"Wrote dev-tools coverage subset to {out_path} ({pct:.1f}% of dev-tools statements)"
+                )
+        except OSError as exc:
+            if logger:
+                logger.warning(f"Failed to write {out_path}: {exc}")
+
+    def _build_track_outcome(
+        self,
+        return_code: int | None,
+        parsed_results: dict[str, Any],
+        output: str,
+        track_name: str = "track",
+        log_file: Path | None = None,
+    ) -> dict[str, Any]:
+        """Build normalized per-track outcome details for report generation."""
+        return _build_track_outcome_fn(
+            return_code,
+            parsed_results,
+            output,
+            track_name=track_name,
+            log_file=log_file,
+        )
+
+    def _build_no_parallel_test_args(self, test_filter_args: list[str]) -> list[str]:
+        """Return the pytest path arguments for the serial no_parallel phase."""
+        return _build_no_parallel_test_args_fn(
+            test_filter_args, self.test_directory
+        )
+
+    def _classify_coverage_outcome(
+        self,
+        parallel: dict[str, Any],
+        no_parallel: dict[str, Any],
+        coverage_collected: bool,
+    ) -> str:
+        """Compute aggregate coverage/test outcome state for Tier 3 reporting."""
+        return _classify_coverage_outcome_fn(
+            parallel, no_parallel, coverage_collected
+        )
+
+    def _build_cache_only_coverage_outcome(
+        self, coverage_collected: bool
+    ) -> dict[str, Any]:
+        """Build canonical Tier 3 outcome metadata for cache-only coverage runs."""
+        return _build_cache_only_coverage_outcome_fn(coverage_collected)
+
+    def _rotate_log_files(self, base_name: str, max_versions: int = 7) -> None:
+        """Rotate log files, keeping only the last max_versions copies total (consolidated)."""
+        try:
+            # Find all log files matching the base name pattern (both in main dir and archive)
+            main_log_files = sorted(
+                self.coverage_logs_dir.glob(f"{base_name}_*.log"),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+
+            archive_dir = self.coverage_logs_dir / "archive"
+            archived_files = []
+            if archive_dir.exists():
+                archived_files = sorted(
+                    archive_dir.glob(f"{base_name}_*.log"),
+                    key=lambda p: p.stat().st_mtime,
+                    reverse=True,
+                )
+
+            # Combine all files and sort by modification time (newest first)
+            all_files = [(f, f.stat().st_mtime) for f in main_log_files] + [
+                (f, f.stat().st_mtime) for f in archived_files
+            ]
+            all_files.sort(key=lambda x: x[1], reverse=True)
+
+            # Strategy: Keep 1 file in main (newest), max_versions-1 in archive
+            # max_versions=8 means: 1 current + 7 archived = 8 total
+            archive_dir.mkdir(parents=True, exist_ok=True)
+
+            # Separate files by location
+            main_files = [f for f, _ in all_files if f.parent == self.coverage_logs_dir]
+            archive_files = [f for f, _ in all_files if f.parent == archive_dir]
+
+            # Sort by modification time (newest first)
+            main_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            archive_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+
+            if logger:
+                logger.debug(
+                    f"Rotating {base_name} logs: {len(main_files)} in main, {len(archive_files)} in archive (target: 1 main + {max_versions - 1} archive)"
+                )
+
+            # Step 1: Move ALL files from main to archive (new file will be created after rotation)
+            # This ensures only the new file (created after rotation) remains in main
+            if len(main_files) > 0:
+                for file_path in main_files:
+                    try:
+                        # Use original filename (it already has timestamp)
+                        archive_path = archive_dir / file_path.name
+                        if not archive_path.exists():
+                            shutil.move(str(file_path), str(archive_path))
+                            if logger:
+                                logger.debug(f"Archived log file: {file_path.name}")
+                        else:
+                            # Archive file already exists, delete the duplicate from main
+                            file_path.unlink()
+                            if logger:
+                                logger.debug(
+                                    f"Removed duplicate log file: {file_path.name}"
+                                )
+                    except Exception as e:
+                        if logger:
+                            error_text = str(e).lower()
+                            if (
+                                "winerror 32" in error_text
+                                or "being used by another process" in error_text
+                            ):
+                                logger.debug(
+                                    f"Skipped archiving locked log file {file_path.name}: {e}"
+                                )
+                            else:
+                                logger.warning(
+                                    f"Failed to archive {file_path.name}: {e}"
+                                )
+
+            # Step 2: Ensure archive has at most max_versions-1 files (since 1 is in main)
+            max_archived = max_versions - 1  # Keep 7 archived files when max_versions=8
+            final_archive = sorted(
+                archive_dir.glob(f"{base_name}_*.log") if archive_dir.exists() else [],
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+
+            if len(final_archive) > max_archived:
+                files_to_delete = final_archive[max_archived:]
+                for file_path in files_to_delete:
+                    try:
+                        file_path.unlink()
+                        if logger:
+                            logger.debug(f"Removed old archived log: {file_path.name}")
+                    except Exception as e:
+                        if logger:
+                            logger.warning(
+                                f"Failed to remove old archive {file_path.name}: {e}"
+                            )
+
+            # Verify final count
+            final_main = list(self.coverage_logs_dir.glob(f"{base_name}_*.log"))
+            final_archive = (
+                list(archive_dir.glob(f"{base_name}_*.log"))
+                if archive_dir.exists()
+                else []
+            )
+            final_total = len(final_main) + len(final_archive)
+
+            if logger:
+                logger.debug(
+                    f"Log rotation complete for {base_name}: {final_total} files total ({len(final_main)} in main, {len(final_archive)} in archive)"
+                )
+
+            # Final safety check: if we still have too many, delete oldest
+            if len(final_main) > 1:
+                # Keep only newest in main
+                main_sorted = sorted(
+                    final_main, key=lambda p: p.stat().st_mtime, reverse=True
+                )
+                for old_file in main_sorted[1:]:
+                    try:
+                        old_file.unlink()
+                        if logger:
+                            logger.debug(f"Removed excess main log: {old_file.name}")
+                    except Exception as e:
+                        if logger:
+                            error_text = str(e).lower()
+                            if (
+                                "winerror 32" in error_text
+                                or "being used by another process" in error_text
+                            ):
+                                logger.debug(
+                                    f"Skipped removal of locked excess main file {old_file.name}: {e}"
+                                )
+                            else:
+                                logger.warning(
+                                    f"Failed to remove excess main file {old_file.name}: {e}"
+                                )
+            elif logger:
+                logger.debug(
+                    f"No rotation needed for {base_name}: {len(all_files)} files (max: {max_versions})"
+                )
+        except ImportError:
+            # FileRotator not available, skip rotation
+            if logger:
+                logger.debug("FileRotator not available, skipping log rotation")
+        except Exception as e:
+            if logger:
+                logger.debug(f"Failed to rotate log files: {e}")
+
+    def _finalize_coverage_outputs_fallback(self) -> None:
+        """Fallback method for finalizing coverage outputs if report generator is not available."""
+        # This is a minimal fallback - ideally the report generator should always be available
+        if logger:
+            logger.warning(
+                "Using fallback coverage finalization - report generator not available"
+            )
+
+    def _generate_coverage_summary_fallback(
+        self, coverage_data: dict[str, dict[str, Any]], overall_data: dict[str, Any]
+    ) -> str:
+        """Fallback method for generating coverage summary if report generator is not available."""
+        # This is a minimal fallback - ideally the report generator should always be available
+        if logger:
+            logger.warning(
+                "Using fallback coverage summary generation - report generator not available"
+            )
+        return f"Overall Coverage: {overall_data.get('overall_coverage', 0):.1f}%"
+
+    def get_current_timestamp(self) -> str:
+        """Get current timestamp in the format used by the plan."""
+        from datetime import datetime
+
+        return datetime.now().strftime("%Y-%m-%d")
+
+    def _fold_tools_pytest_failure(
+        self,
+        no_parallel_test_results: dict[str, Any],
+        no_parallel_return_code: int | None,
+        tools_return_code: int | None,
+        tools_test_results: dict[str, Any],
+    ) -> int | None:
+        """Record an isolated development-tools pytest failure on the serial track."""
+        tool_errors = list(tools_test_results.get("error_tests") or [])
+        tool_errors.extend(tools_test_results.get("failed_tests") or [])
+        if not tool_errors:
+            tool_errors = ["development_tools/tool_tests"]
+        existing = list(no_parallel_test_results.get("error_tests") or [])
+        for node_id in tool_errors:
+            if node_id not in existing:
+                existing.append(node_id)
+        no_parallel_test_results["error_tests"] = existing
+        no_parallel_test_results["error_count"] = len(existing)
+        if no_parallel_return_code in (None, 0):
+            return tools_return_code
+        return no_parallel_return_code
+
+    def _tools_coverage_artifact_paths(self) -> list[Path]:
+        """Return non-empty ``.coverage_devtools*`` files from the coverage directory."""
+        coverage_dir = self.coverage_data_file.parent
+        found: list[Path] = []
+        if not coverage_dir.exists():
+            return found
+        for src in sorted(coverage_dir.glob(".coverage_devtools*")):
+            try:
+                if src.is_file() and src.stat().st_size > 0:
+                    found.append(src)
+            except OSError:
+                continue
+        return found
+
+    def _copy_tools_coverage_for_combine(self, coverage_dir: Path) -> list[Path]:
+        """Copy tools coverage data to ``.coverage.devtools*`` names for ``coverage combine``."""
+        copied: list[Path] = []
+        for src in self._tools_coverage_artifact_paths():
+            suffix = src.name.removeprefix(".coverage_devtools")
+            dest = coverage_dir / f".coverage.devtools{suffix}"
+            try:
+                if src.resolve() != dest.resolve():
+                    shutil.copy2(src, dest)
+                copied.append(dest)
+            except OSError as exc:
+                if logger:
+                    logger.warning(
+                        f"Failed to copy development-tools coverage file {src.name}: {exc}"
+                    )
+        return copied
+
+    def _combine_tools_coverage_for_serial(self, coverage_output: Path) -> None:
+        """Merge an isolated tools coverage file into the serial host coverage data."""
+        artifacts = self._tools_coverage_artifact_paths()
+        if not artifacts:
+            return
+        coverage_dir = self.coverage_data_file.parent
+        sources: list[Path] = []
+        host_data = self.coverage_data_file
+        try:
+            if host_data.exists() and host_data.stat().st_size > 0:
+                host_copy = coverage_dir / ".coverage.host"
+                shutil.copy2(host_data, host_copy)
+                sources.append(host_copy)
+        except OSError as exc:
+            if logger:
+                logger.warning(f"Failed to stage host coverage for tools merge: {exc}")
+        sources.extend(self._copy_tools_coverage_for_combine(coverage_dir))
+        if not sources:
+            return
+        combine_env = os.environ.copy()
+        combine_env["COVERAGE_FILE"] = str(self.coverage_data_file.resolve())
+        if self.coverage_config_path.exists():
+            combine_env["COVERAGE_RCFILE"] = str(self.coverage_config_path.resolve())
+        combine_cmd = [
+            sys.executable,
+            "-m",
+            "coverage",
+            "combine",
+            "--data-file",
+            str(self.coverage_data_file.resolve()),
+        ]
+        try:
+            combine_result = subprocess.run(
+                combine_cmd,
+                capture_output=True,
+                text=True,
+                cwd=coverage_dir,
+                env=combine_env,
+                timeout=60,
+            )
+            if combine_result.returncode != 0 and logger:
+                logger.warning(
+                    "Serial development-tools coverage combine exited with "
+                    f"{combine_result.returncode}: {combine_result.stderr.strip()}"
+                )
+                return
+            json_cmd = [
+                sys.executable,
+                "-m",
+                "coverage",
+                "json",
+                "-o",
+                str(coverage_output),
+                "--data-file",
+                str(self.coverage_data_file.resolve()),
+            ]
+            json_result = subprocess.run(
+                json_cmd,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                env=combine_env,
+                timeout=60,
+            )
+            if json_result.returncode != 0 and logger:
+                logger.warning(
+                    "Serial development-tools coverage json exited with "
+                    f"{json_result.returncode}: {json_result.stderr.strip()}"
+                )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            if logger:
+                logger.warning(
+                    f"Failed to merge development-tools coverage into the serial run: {exc}"
+                )
+
+    def _run_isolated_tools_coverage(
+        self,
+        *,
+        tools_paths: list[str],
+        cov_args: list[str],
+        pytest_timeout: int,
+    ) -> dict[str, Any]:
+        """Run development-tools tests with development_tools/pytest.ini."""
+        empty_results = {
+            "passed_count": 0,
+            "failed_count": 0,
+            "error_count": 0,
+            "skipped_count": 0,
+            "test_summary": "",
+            "failed_tests": [],
+            "error_tests": [],
+            "total_tests": 0,
+        }
+        if not tools_paths:
+            return {
+                "return_code": None,
+                "output": "",
+                "results": empty_results,
+                "log_file": None,
+            }
+        coverage_dir = self.coverage_data_file.parent
+        coverage_dir.mkdir(parents=True, exist_ok=True)
+        for stale_name in (".coverage_devtools*", ".coverage.devtools*"):
+            for stale in coverage_dir.glob(stale_name):
+                try:
+                    if stale.is_file():
+                        stale.unlink()
+                except OSError as exc:
+                    if logger:
+                        logger.warning(
+                            f"Failed to remove stale coverage file {stale.name}: {exc}"
+                        )
+        tools_coverage_file = coverage_dir / ".coverage_devtools"
+        cmd = _build_isolated_tools_coverage_pytest_cmd(
+            executable=sys.executable,
+            parallel=self.parallel,
+            num_workers=str(self.num_workers),
+            cov_args=cov_args,
+            coverage_config_path=self.coverage_config_path,
+            maxfail=self.maxfail,
+            tools_paths=tools_paths,
+        )
+        env = os.environ.copy()
+        env = self._configure_test_logging_env(env)
+        env = self._ensure_python_path_in_env(env)
+        env["COVERAGE_DATA_DIR"] = str(coverage_dir)
+        env["COVERAGE_FILE"] = str(tools_coverage_file.resolve())
+        if self.coverage_config_path.exists():
+            env["COVERAGE_RCFILE"] = str(self.coverage_config_path.resolve())
+        pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths("devtools")
+        env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
+        cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
+        cmd.append(f"--basetemp={pytest_temp_base}")
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self._rotate_log_files("pytest_devtools_stdout", max_versions=8)
+        tools_stdout_log = (
+            self.coverage_logs_dir / f"pytest_devtools_stdout_{timestamp}.log"
+        )
+        tools_stdout_log.parent.mkdir(parents=True, exist_ok=True)
+        if logger:
+            logger.info(
+                "Running development-tools coverage pytest with "
+                "development_tools/pytest.ini"
+            )
+        try:
+            with open(tools_stdout_log, "w", encoding="utf-8", buffering=1) as stdout_file:
+                result = self._run_pytest_wait(
+                    cmd,
+                    timeout=pytest_timeout,
+                    stdout=stdout_file,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    cwd=self.project_root,
+                    env=env,
+                )
+            output = tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
+            result.stdout = output
+            result.stderr = ""
+        except KeyboardInterrupt:
+            output = (
+                tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
+                if tools_stdout_log.exists()
+                else ""
+            )
+            result = subprocess.CompletedProcess(
+                cmd,
+                returncode=130,
+                stdout=output,
+                stderr="KeyboardInterrupt while waiting for development-tools pytest.",
+            )
+        except subprocess.TimeoutExpired:
+            output = (
+                tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
+                if tools_stdout_log.exists()
+                else ""
+            )
+            result = subprocess.CompletedProcess(
+                cmd,
+                returncode=1,
+                stdout=output,
+                stderr=(
+                    "Development-tools pytest timed out after "
+                    f"{pytest_timeout // 60} minutes"
+                ),
+            )
+        if logger:
+            logger.info(
+                f"Saved development-tools pytest output to {tools_stdout_log}"
+            )
+        parsed = self._parse_pytest_test_results(result.stdout or "")
+        return {
+            "return_code": result.returncode,
+            "output": result.stdout or "",
+            "results": parsed if isinstance(parsed, dict) else empty_results,
+            "log_file": tools_stdout_log,
+        }
+
+    def run(self, dev_tools_only: bool = False) -> dict[str, Any]:
+        """Run coverage collection, ignoring stray SIGINT until 5 Ctrl+C in 2s."""
+        from development_tools.shared.audit_signal_state import ignore_spurious_sigint
+
+        with ignore_spurious_sigint(action_name="coverage"):
+            return self._run_with_sigint_ignored(dev_tools_only)
+
+    def _run_with_sigint_ignored(self, dev_tools_only: bool = False) -> dict[str, Any]:
+        """Run the coverage metrics regeneration."""
+        if dev_tools_only:
+            # Run dev tools coverage analysis only
+            coverage_results = self.run_dev_tools_coverage()
+
+            if not coverage_results:
+                error_msg = "Failed to get dev tools coverage data - run_dev_tools_coverage returned empty result"
+                logger.error(error_msg)
+                print(f"ERROR: {error_msg}", file=sys.stderr)
+                sys.exit(1)
+
+            # Check if coverage was actually collected
+            if not coverage_results.get("coverage_collected", False):
+                error_msg = "Dev tools coverage analysis completed but no coverage data was collected - tests may not have run"
+                logger.error(error_msg)
+                # Print to stdout so run_script() can capture it
+                print(f"ERROR: {error_msg}")
+                # Still return the results dict so caller can check coverage_collected flag
+                # Exit with non-zero code to indicate failure
+                sys.exit(1)
+
+            # Generate summary for dev tools
+            if self.report_generator:
+                coverage_summary = self.report_generator.generate_coverage_summary(
+                    coverage_results.get("modules", {}),
+                    coverage_results.get("overall", {}),
+                )
+            else:
+                # Fallback to old method if report generator not available
+                coverage_summary = self._generate_coverage_summary_fallback(
+                    coverage_results.get("modules", {}),
+                    coverage_results.get("overall", {}),
+                )
+
+            # Print summary (headers removed - added by consolidated report)
+            print(coverage_summary)
+
+            return coverage_results
+        else:
+            logger.debug("Generating test coverage...")
+
+            # Run coverage analysis
+            coverage_results = self.run_coverage_analysis()
+
+            if not coverage_results:
+                logger.error(
+                    "Failed to get coverage data - run_coverage_analysis returned empty result"
+                )
+                return {}
+
+            # Check if coverage was actually collected (not just using stale data)
+            if not coverage_results.get("coverage_collected", False):
+                logger.error(
+                    "Coverage analysis completed but no coverage data was collected - tests may not have run"
+                )
+                if coverage_results.get("error"):
+                    logger.error(
+                        f"Error from coverage analysis: {coverage_results.get('error')}"
+                    )
+                return {}
+
+            main_cov = (
+                config.get_coverage_json_dir(self.project_root) / "coverage.json"
+            )
+            if main_cov.exists():
+                self._write_dev_tools_coverage_json_from_main(main_cov)
+
+            # Generate summary
+            if self.report_generator:
+                coverage_summary = self.report_generator.generate_coverage_summary(
+                    coverage_results["modules"], coverage_results["overall"]
+                )
+            else:
+                # Fallback to old method if report generator not available
+                coverage_summary = self._generate_coverage_summary_fallback(
+                    coverage_results["modules"], coverage_results["overall"]
+                )
+
+            # Print summary (headers removed - added by consolidated report)
+            print(coverage_summary)
+
+            return coverage_results
+
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="Run test coverage execution and collect coverage data"
+    )
+    parser.add_argument(
+        "--output-file", help="Output file for coverage report (optional)"
+    )
+    parser.add_argument(
+        "--no-parallel",
+        action="store_true",
+        help="Disable parallel test execution (parallel enabled by default)",
+    )
+    parser.add_argument(
+        "--workers",
+        default="auto",
+        help="Number of parallel workers (default: 'auto' to let pytest-xdist decide, or specify a number)",
+    )
+    parser.add_argument(
+        "--dev-tools-only",
+        action="store_true",
+        help="Run coverage analysis only for development_tools directory (separate evaluation)",
+    )
+    parser.add_argument(
+        "--no-domain-cache",
+        action="store_true",
+        help="Disable test-file and dev tools coverage caching (runs all tests regardless of domain changes). Caching is enabled by default. Incomplete runs still merge with the last good coverage.json so a collapsed snapshot is not published.",
+    )
+
+    args = parser.parse_args()
+
+    from development_tools.shared.audit_signal_state import ignore_spurious_sigint
+
+    with ignore_spurious_sigint(action_name="coverage"):
+        try:
+            _run_coverage_cli(args)
+        except KeyboardInterrupt:
+            print(
+                "\nCoverage stopped: 5 Ctrl+C within 2s.",
+                flush=True,
+            )
+            sys.exit(130)
+
+
+def _run_coverage_cli(args: argparse.Namespace) -> None:
+    parallel_enabled = not args.no_parallel
+    regenerator = CoverageMetricsRegenerator(
+        project_root=str(config.get_project_root()),
+        parallel=parallel_enabled,
+        num_workers=args.workers if parallel_enabled else None,
+        use_domain_cache=not args.no_domain_cache,
+    )
+    results = regenerator.run(dev_tools_only=args.dev_tools_only)
+
+    # Treat missing/invalid coverage results as command failure.
+    # This ensures orchestration gets a non-zero exit and can classify Tier 3 correctly.
+    if not results or not results.get("coverage_collected", False):
+        sys.exit(1)
+
+    if args.output_file and results:
+        # Save detailed results to JSON file
+        output_payload = results
+        if args.dev_tools_only and isinstance(results, dict):
+            # Emit standard format payload for dev-tools coverage output files.
+            overall = (
+                results.get("overall", {})
+                if isinstance(results.get("overall"), dict)
+                else {}
+            )
+            total_missed = int(overall.get("total_missed", 0) or 0)
+            output_payload = {
+                "summary": {
+                    "total_issues": total_missed,
+                    "files_affected": 0,
+                },
+                "details": results,
+            }
+
+        output_path = Path(args.output_file)
+        with open(output_path, "w", encoding="utf-8") as f:
+            import json
+
+            json.dump(output_payload, f, indent=2)
+        print(f"\nDetailed coverage data saved to: {output_path}")
+
+
+if __name__ == "__main__":
+    main()

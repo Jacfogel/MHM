@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+# TOOL_PORTABILITY: portable
+
+"""
+ASCII Compliance Analyzer
+
+This script checks for non-ASCII characters in documentation files.
+Reports ALL non-ASCII characters found. Characters that can be auto-fixed
+are marked with their suggested replacement. Configuration is loaded from
+external config file (development_tools_config.json) if available, making
+this tool portable across different projects.
+
+Usage:
+    python docs/analyze_ascii_compliance.py
+"""
+
+import argparse
+import sys
+from pathlib import Path
+from typing import Any
+from collections import defaultdict
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from development_tools.shared.logging import get_dev_tools_logger
+
+# Handle both relative and absolute imports
+if __name__ != "__main__" and __package__ and "." in __package__:
+    from .. import config
+    from ..shared.standard_exclusions import should_exclude_file
+else:
+    from development_tools import config
+    from development_tools.shared.standard_exclusions import should_exclude_file
+
+# Load external config on module import (if not already loaded)
+try:
+    if hasattr(config, "load_external_config"):
+        config.load_external_config()
+except (AttributeError, ImportError):
+    pass
+
+logger = get_dev_tools_logger("development_tools")
+
+
+class ASCIIComplianceAnalyzer:
+    """Analyzes documentation files for ASCII compliance."""
+
+    def __init__(
+        self,
+        project_root: str | None = None,
+        config_path: str | None = None,
+        use_cache: bool = True,
+    ):
+        """
+        Initialize ASCII compliance analyzer.
+
+        Args:
+            project_root: Root directory of the project
+            config_path: Optional path to external config file
+            use_cache: Whether to use mtime-based caching for file results
+        """
+        # Load external config if provided
+        if config_path:
+            config.load_external_config(config_path)
+        else:
+            config.load_external_config()
+
+        # Use provided project_root or get from config
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(config.get_project_root()).resolve()
+
+        # Caching - use standardized storage
+        from development_tools.shared.mtime_cache import MtimeFileCache
+
+        self.cache = MtimeFileCache(
+            project_root=self.project_root,
+            use_cache=use_cache,
+            tool_name="analyze_ascii_compliance",
+            domain="docs",
+            tool_paths=[Path(__file__)],
+        )
+
+    def check_ascii_compliance(self) -> dict[str, list[str]]:
+        """
+        Check for non-ASCII characters in documentation files.
+
+        Reports ALL non-ASCII characters found. Characters that can be auto-fixed
+        are marked with their suggested replacement.
+
+        Returns:
+            Dictionary mapping file paths to lists of issues
+        """
+        ascii_issues = defaultdict(list)
+
+        # Import constants from shared.constants (ASCII_REPLACEMENTS = single canonical source)
+        from development_tools.shared.constants import ASCII_COMPLIANCE_FILES, ASCII_REPLACEMENTS
+
+        files_to_check = list(ASCII_COMPLIANCE_FILES)
+
+        for file_path in files_to_check:
+            if should_exclude_file(
+                file_path, tool_type="documentation", context="development"
+            ):
+                continue
+            full_path = self.project_root / file_path
+            if not full_path.exists():
+                continue
+
+            # Check cache first
+            cached_issues = self.cache.get_cached(full_path)
+            if cached_issues is not None:
+                if cached_issues:
+                    ascii_issues[file_path] = cached_issues
+                continue
+
+            try:
+                with open(full_path, encoding="utf-8") as f:
+                    content = f.read()
+
+                # Find ALL non-ASCII characters
+                non_ascii_chars = {}
+                for _i, char in enumerate(content):
+                    if ord(char) > 127:  # Non-ASCII
+                        if char not in non_ascii_chars:
+                            non_ascii_chars[char] = 0
+                        non_ascii_chars[char] += 1
+
+                file_issues = []
+                if non_ascii_chars:
+                    # Report all non-ASCII characters
+                    for char, count in sorted(non_ascii_chars.items()):
+                        if char in ASCII_REPLACEMENTS:
+                            file_issues.append(
+                                f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (auto-fixable: '{ASCII_REPLACEMENTS[char]}')"
+                            )
+                        else:
+                            file_issues.append(
+                                f"Non-ASCII character '{char}' (U+{ord(char):04X}): {count} instance(s) found (manual review needed)"
+                            )
+
+                # Cache results
+                self.cache.cache_results(full_path, file_issues)
+                if file_issues:
+                    ascii_issues[file_path] = file_issues
+
+            except Exception as e:
+                file_issues = [f"Error reading file: {e}"]
+                self.cache.cache_results(full_path, file_issues)
+                ascii_issues[file_path] = file_issues
+
+        # Save cache
+        self.cache.save_cache()
+
+        return ascii_issues
+
+    def run_analysis(self) -> dict[str, Any]:
+        """
+        Run ASCII compliance analysis and return results in standard format.
+
+        Returns:
+            Dictionary with standard format structure:
+            {
+                "summary": {
+                    "total_issues": int,
+                    "files_affected": int,
+                    "status": str
+                },
+                "files": {
+                    "file_path": issue_count
+                },
+                "details": {
+                    "detailed_issues": Dict[str, List[str]]
+                }
+            }
+        """
+        ascii_issues = self.check_ascii_compliance()
+
+        # Convert to standard format
+        files = {}
+        total_issues = 0
+        for file_path, issues in ascii_issues.items():
+            issue_count = len(issues)
+            files[file_path] = issue_count
+            total_issues += issue_count
+
+        # Determine status
+        if total_issues == 0:
+            status = "CLEAN"
+        elif total_issues < 10:
+            status = "NEEDS_ATTENTION"
+        else:
+            status = "CRITICAL"
+
+        return {
+            "summary": {
+                "total_issues": total_issues,
+                "files_affected": len(files),
+                "status": status,
+            },
+            "files": files,
+            "details": {
+                "files": files,
+                "file_count": len(files),
+                "total_issues": total_issues,
+                "detailed_issues": dict(ascii_issues),
+            },
+        }
+
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="Check for non-ASCII characters in documentation files"
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Output results as JSON in standard format"
+    )
+
+    args = parser.parse_args()
+
+    analyzer = ASCIIComplianceAnalyzer()
+
+    # Use run_analysis() to get standard format
+    if args.json:
+        import json
+
+        results = analyzer.run_analysis()
+        print(json.dumps(results, indent=2))
+        return 0
+
+    # Otherwise use check_ascii_compliance() for human-readable output
+    results = analyzer.check_ascii_compliance()
+
+    # Print results
+    if results:
+        print("\nASCII Compliance Issues:")
+        print(f"   Total files with non-ASCII characters: {len(results)}")
+        print(
+            f"   Total issues found: {sum(len(issues) for issues in results.values())}"
+        )
+        print("   Files with non-ASCII characters:")
+        for doc_file, issues in results.items():
+            print(f"     {doc_file}: {len(issues)} issues")
+            for issue in issues[:3]:  # Show first 3 issues per file
+                # Clean Unicode characters that cause encoding issues
+                clean_issue = issue.encode("ascii", "ignore").decode("ascii")
+                print(f"       - {clean_issue}")
+            if len(issues) > 3:
+                print(f"       ... and {len(issues) - 3} more issues")
+    else:
+        print("\nAll documentation files are ASCII compliant!")
+
+    return 0 if not results else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

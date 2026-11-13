@@ -1,0 +1,1347 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+
+"""
+Generate and update FUNCTION_REGISTRY.md automatically.
+Scans all .py files and creates comprehensive function documentation.
+Enhanced with automatic template generation for various function types.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
+"""
+
+import sys
+from pathlib import Path
+
+# Ensure we can import from development_tools when run as a script (path bootstrap)
+_functions_dir = Path(__file__).resolve().parent
+_dev_tools_dir = _functions_dir.parent
+if str(_dev_tools_dir) not in sys.path:
+    sys.path.insert(0, str(_dev_tools_dir))
+
+# Project root for core imports (development_tools/functions/ -> project root)
+project_root = _dev_tools_dir.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from development_tools.shared.common import markdown_file_link
+from development_tools.shared.logging import get_dev_tools_logger
+from development_tools.shared.time_helpers import now_timestamp_full
+from development_tools.shared.exclusion_utilities import is_constructor_name
+
+# Import config for project name
+try:
+    from development_tools import config
+except ImportError:
+    sys.path.insert(0, str(project_root))
+    from development_tools import config
+
+# Load external config on module import
+config.load_external_config()
+
+logger = get_dev_tools_logger("development_tools")
+
+
+def detect_function_type(
+    file_path: str, func_name: str, decorators: list[str], args: list[str]
+) -> str:
+    """Detect the type of function for template generation."""
+    file_lower = file_path.lower()
+    func_lower = func_name.lower()
+
+    # Auto-generated Qt functions
+    if file_lower.startswith("ui/generated/") and func_name == "qtTrId":
+        return "qt_translation"
+
+    # Auto-generated UI setup functions
+    if file_lower.startswith("ui/generated/") and func_name in [
+        "setupUi",
+        "retranslateUi",
+    ]:
+        return "ui_generated"
+
+    # Test functions
+    if func_lower.startswith("test_") or "test" in func_lower:
+        return "test_function"
+
+    # Special Python methods
+    if func_name.startswith("__") and func_name.endswith("__"):
+        return "special_method"
+
+    # Constructor methods
+    if func_name == "__init__":
+        return "constructor"
+
+    # Main functions
+    if func_name == "main":
+        return "main_function"
+
+    return "regular_function"
+
+
+def generate_function_template(
+    func_type: str, func_name: str, file_path: str, args: list[str]
+) -> str:
+    """Generate appropriate documentation template based on function type."""
+
+    if func_type == "qt_translation":
+        return "Auto-generated Qt translation function for internationalization support"
+
+    elif func_type == "ui_generated":
+        if func_name == "setupUi":
+            return f"Auto-generated Qt UI setup function for {file_path.split('/')[-1].replace('_pyqt.py', '')}"
+        elif func_name == "retranslateUi":
+            return f"Auto-generated Qt UI translation function for {file_path.split('/')[-1].replace('_pyqt.py', '')}"
+        else:
+            return f"Auto-generated Qt UI function for {file_path.split('/')[-1].replace('_pyqt.py', '')}"
+
+    elif func_type == "test_function":
+        # Extract test scenario from function name
+        test_name = func_name.replace("test_", "").replace("_", " ")
+        if "real_behavior" in func_name:
+            return f"REAL BEHAVIOR TEST: {test_name.title()}"
+        elif "integration" in func_name:
+            return f"INTEGRATION TEST: {test_name.title()}"
+        elif "unit" in func_name:
+            return f"UNIT TEST: {test_name.title()}"
+        else:
+            return f"Test {test_name.title()}"
+
+    elif func_type == "special_method":
+        special_method_descriptions = {
+            "__init__": "Initialize the object",
+            "__new__": "Create a new instance",
+            "__post_init__": "Post-initialization setup",
+            "__enter__": "Context manager entry",
+            "__exit__": "Context manager exit",
+        }
+        return special_method_descriptions.get(
+            func_name, f"Special Python method: {func_name}"
+        )
+
+    elif func_type == "constructor":
+        return "Initialize the object"
+
+    elif func_type == "main_function":
+        return "Main entry point for the module"
+
+    else:
+        return "No description"
+
+
+# Import discovery and pattern analysis from decomposed tools
+try:
+    from .analyze_functions import scan_all_python_files
+    from .analyze_function_patterns import analyze_function_patterns
+except ImportError:
+    # Fallback for when run as script
+    from development_tools.functions.analyze_functions import scan_all_python_files
+    from development_tools.functions.analyze_function_patterns import (
+        analyze_function_patterns,
+    )
+
+
+def _registry_paths() -> tuple[Path, Path]:
+    detail = Path(config.get_analyze_function_registry_config()["registry_path"])
+    summary = Path(config.get_paths_config()["ai_docs_dir"]) / "AI_FUNCTION_REGISTRY.md"
+    return detail, summary
+
+
+def generate_function_registry_content(actual_functions: dict[str, dict]) -> str:
+    """Generate the complete FUNCTION_REGISTRY_DETAIL.md content."""
+
+    # Calculate statistics
+    total_files = len(actual_functions)
+    total_functions = sum(data["total_functions"] for data in actual_functions.values())
+    total_classes = sum(data["total_classes"] for data in actual_functions.values())
+    total_methods = sum(
+        len(cls["methods"])
+        for data in actual_functions.values()
+        for cls in data["classes"]
+    )
+
+    # Function documentation stats
+    documented_functions = sum(
+        1
+        for data in actual_functions.values()
+        for func in data["functions"]
+        if func["has_docstring"]
+    )
+    template_functions = sum(
+        1
+        for data in actual_functions.values()
+        for func in data["functions"]
+        if func.get("has_template", False)
+    )
+
+    # Method documentation stats
+    documented_methods = sum(
+        1
+        for data in actual_functions.values()
+        for cls in data["classes"]
+        for method in cls["methods"]
+        if method["has_docstring"]
+    )
+    template_methods = sum(
+        1
+        for data in actual_functions.values()
+        for cls in data["classes"]
+        for method in cls["methods"]
+        if method.get("has_template", False)
+    )
+
+    # Class documentation stats
+    documented_classes = sum(
+        1
+        for data in actual_functions.values()
+        for cls in data["classes"]
+        if cls["docstring"]
+    )
+
+    # Total coverage
+    total_items = total_functions + total_methods
+    documented_items = documented_functions + documented_methods
+    template_items = template_functions + template_methods
+    coverage_percentage = (
+        (documented_items / total_items * 100) if total_items > 0 else 0
+    )
+
+    # Get project name from config
+    project_name = config.get_project_name("Project")
+
+    # Generate header
+    generated_at = now_timestamp_full()
+    content = f"""# Function Registry - {project_name} Project
+
+> **File**: `{_registry_paths()[0].as_posix()}`
+> **Generated**: This file is auto-generated. Do not edit manually.
+> **Last Generated**: {generated_at}
+> **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
+> **Audience**: Human developer and AI collaborators  
+> **Purpose**: Complete registry of all functions and classes in the {project_name} codebase  
+> **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement
+
+> **See [README.md](../README.md) for complete navigation and project overview**
+> **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
+> **See [TODO.md](../TODO.md) for current documentation priorities**
+
+## Overview
+
+### **Function Documentation Coverage: {coverage_percentage:.1f}% {'[OK] COMPLETED' if coverage_percentage >= 95 else '[WARNING] NEEDS ATTENTION' if coverage_percentage >= 50 else '[ERROR] CRITICAL GAP'}**
+- **Files Scanned**: {total_files}
+- **Functions Found**: {total_functions}
+- **Methods Found**: {total_methods}
+- **Classes Found**: {total_classes}
+- **Total Items**: {total_items}
+- **Functions Documented**: {documented_functions}
+- **Methods Documented**: {documented_methods}
+- **Classes Documented**: {documented_classes}
+- **Total Documented**: {documented_items}
+- **Template-Generated**: {template_items}
+- **Last Updated**: {now_timestamp_full().split(" ")[0]}
+
+**Status**: {'[OK] **EXCELLENT** - All functions have proper documentation' if coverage_percentage >= 95 else '[WARNING] **GOOD** - Most functions documented, some gaps remain' if coverage_percentage >= 50 else '[ERROR] **CRITICAL GAP** - Many functions lack documentation'}
+
+**Template Enhancement**: This registry now includes automatic template generation for:
+- **Auto-generated Qt functions** (qtTrId, setupUi, retranslateUi)
+- **Test functions** (with scenario-based descriptions)
+- **Special Python methods** (__init__, __new__, __post_init__, etc.)
+- **Constructor methods** and **main functions**
+
+**Note**: This registry is automatically generated from the actual codebase. Functions without docstrings are marked as needing documentation. Template-generated documentation is applied to improve coverage.
+
+## Function Categories
+
+### **Core System Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('core/'))})
+Core system utilities, configuration, error handling, and data management functions.
+
+### **Communication Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('communication/'))})
+Bot implementations, channel management, and communication utilities.
+
+### **User Interface Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('ui/'))})
+UI dialogs, widgets, and user interaction functions.
+
+### **User Management Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('user/'))})
+User context, preferences, and data management functions.
+
+### **Task Management Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('tasks/'))})
+Task management and scheduling functions.
+
+### **Test Functions** ({sum(data['total_functions'] for file_path, data in actual_functions.items() if file_path.startswith('tests/'))})
+Test functions and testing utilities.
+
+## Module Organization
+
+"""
+
+    # Group files by directory
+    dir_files = {}
+    for file_path, data in actual_functions.items():
+        dir_name = file_path.split("/")[0] if "/" in file_path else "root"
+        if dir_name not in dir_files:
+            dir_files[dir_name] = []
+        dir_files[dir_name].append((file_path, data))
+
+    # Generate content for each directory
+    for dir_name in sorted(dir_files.keys()):
+        content += f"### `{dir_name}/` - {get_directory_description(dir_name)}\n\n"
+
+        for file_path, data in sorted(dir_files[dir_name], key=lambda x: x[0]):
+            content += generate_file_section(file_path, data)
+
+    return content
+
+
+def get_directory_description(dir_name: str) -> str:
+    """Get a description for a directory."""
+    descriptions = {
+        "core": "Core System Modules",
+        "communication": "Communication Channel Implementations",
+        "ui": "User Interface Components",
+        "user": "User Data and Context",
+        "tasks": "Task Management",
+        "tests": "Test Files",
+        "root": "Root Files",
+    }
+    return descriptions.get(dir_name, "Unknown Directory")
+
+
+def generate_file_section(file_path: str, data: dict) -> str:
+    """Generate a section for a single file."""
+    content = f"#### `{file_path}`\n"
+
+    # Functions
+    if data["functions"]:
+        content += "**Functions:**\n"
+        for func in sorted(data["functions"], key=lambda x: x["name"]):
+            args_str = ", ".join(func["args"])
+            doc_status = "[OK]" if func["has_docstring"] else "[MISSING]"
+            content += f"- {doc_status} `{func['name']}({args_str})` - {func['docstring'] or 'No description'}\n"
+
+    # Classes
+    if data["classes"]:
+        content += "**Classes:**\n"
+        for cls in sorted(data["classes"], key=lambda x: x["name"]):
+            doc_status = "[OK]" if cls["docstring"] else "[MISSING]"
+            content += f"- {doc_status} `{cls['name']}` - {cls['docstring'] or 'No description'}\n"
+            for method in sorted(cls["methods"], key=lambda x: x["name"]):
+                args_str = ", ".join(method["args"])
+                method_doc_status = "[OK]" if method["has_docstring"] else "[MISSING]"
+                content += f"  - {method_doc_status} `{cls['name']}.{method['name']}({args_str})` - {method['docstring'] or 'No description'}\n"
+
+    content += "\n"
+    return content
+
+
+def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> str:
+    """Generate AI-optimized function registry content focusing on patterns and decision trees."""
+
+    # Calculate statistics
+    total_files = len(actual_functions)
+    total_functions = sum(data["total_functions"] for data in actual_functions.values())
+    sum(data["total_classes"] for data in actual_functions.values())
+    total_methods = sum(
+        len(cls["methods"])
+        for data in actual_functions.values()
+        for cls in data["classes"]
+    )
+
+    # Function documentation stats
+    documented_functions = sum(
+        1
+        for data in actual_functions.values()
+        for func in data["functions"]
+        if func["has_docstring"]
+    )
+    documented_methods = sum(
+        1
+        for data in actual_functions.values()
+        for cls in data["classes"]
+        for method in cls["methods"]
+        if method["has_docstring"]
+    )
+
+    total_items = total_functions + total_methods
+    documented_items = documented_functions + documented_methods
+    coverage_percentage = (
+        (documented_items / total_items * 100) if total_items > 0 else 0
+    )
+
+    # Analyze patterns
+    patterns = analyze_function_patterns(actual_functions)
+
+    # Find files needing attention
+    needing_attention = find_files_needing_attention(actual_functions, threshold=0.8)
+    high_priority = [
+        f for f in needing_attention if f["coverage"] < 0.5 or f["missing"] >= 5
+    ]
+    medium_priority = [f for f in needing_attention if f not in high_priority]
+
+    # Generate dynamic pattern section
+    pattern_section = generate_pattern_section(patterns, actual_functions)
+
+    # Generate dynamic entry points section
+    entry_points_section = generate_entry_points_section(patterns, actual_functions)
+
+    # Generate dynamic common operations section
+    common_operations_section = generate_common_operations_section(
+        actual_functions, patterns
+    )
+
+    # Generate complexity metrics section
+    complexity_section = generate_complexity_section(actual_functions)
+
+    # Generate dynamic file organization section
+    file_organization_section = generate_file_organization_section(actual_functions)
+
+    # Generate dynamic communication patterns section
+    communication_patterns_section = generate_communication_patterns_section(
+        patterns, actual_functions
+    )
+
+    # Generate dynamic decision trees from config (analyze_function_registry.decision_trees)
+    registry_config = config.get_analyze_function_registry_config()
+    decision_trees_config = registry_config.get("decision_trees", {})
+
+    def _render_tree_from_config(tree_key: str, fallback_entries: list[tuple[str, str]]) -> str:
+        tree_def = decision_trees_config.get(tree_key, {}) if isinstance(decision_trees_config, dict) else {}
+        title = tree_def.get("title", f"{tree_key.replace('_', ' ').title()} Decision Tree")
+        entries = tree_def.get("entries", fallback_entries)
+        if not entries:
+            return f"{title}:\n(No entries configured)"
+        lines = [f"{title}:"]
+        for i, entry in enumerate(entries):
+            path, desc = (entry[0], entry[1]) if len(entry) >= 2 else (entry[0], "Description")
+            prefix = "`-- " if i == len(entries) - 1 else "+-- "
+            lines.append(f"{prefix}{format_file_entry(path, desc, actual_functions)}")
+        return "\n".join(lines)
+
+    _fallback_user_data = [
+        ("core/user_data_read.py", "Primary data access"),
+        ("core/user_data_operations.py", "Data management"),
+        ("user/user_context.py", "User context management"),
+    ]
+    _fallback_ai = [
+        ("ai/chat/chatbot.py", "Main AI implementation"),
+        ("communication/message_processing/command_parser.py", "Natural language parsing"),
+    ]
+    _fallback_comm = [
+        ("communication/core/channel_orchestrator.py", "Main communication"),
+        ("communication/communication_channels/base/base_channel.py", "Channel base class"),
+    ]
+    _fallback_ui = [
+        ("ui/ui_app_qt.py", "Main admin interface"),
+        ("ui/dialogs/account_creator_dialog.py", "Account creation"),
+    ]
+    _fallback_core = [
+        ("core/config.py", "System configuration"),
+        ("core/service.py", "Main service"),
+    ]
+
+    user_data_tree = _render_tree_from_config("user_data", _fallback_user_data)
+    ai_tree = _render_tree_from_config("ai", _fallback_ai)
+    comm_tree = _render_tree_from_config("communication", _fallback_comm)
+    ui_tree = _render_tree_from_config("ui", _fallback_ui)
+    core_tree = _render_tree_from_config("core", _fallback_core)
+
+    # Generate dynamic "Areas Needing Attention" section
+    high_priority_section = ""
+    if high_priority:
+        high_priority_section = "### **High Priority** (Missing Documentation)\n"
+        for item in high_priority[:10]:  # Top 10
+            high_priority_section += f"- `{item['file']}` - {item['missing']}/{item['total']} functions undocumented ({item['coverage'] * 100:.0f}% coverage)\n"
+        high_priority_section += "\n"
+
+    medium_priority_section = ""
+    if medium_priority:
+        medium_priority_section = "### **Medium Priority** (Partial Coverage)\n"
+        for item in medium_priority[:10]:  # Top 10
+            medium_priority_section += f"- `{item['file']}` - {item['missing']}/{item['total']} functions undocumented ({item['coverage'] * 100:.0f}% coverage)\n"
+        medium_priority_section += "\n"
+
+    attention_section = "## [!] **Areas Needing Attention**\n\n"
+    if high_priority_section or medium_priority_section:
+        attention_section += high_priority_section + medium_priority_section
+    else:
+        attention_section += (
+            "[OK] **All files have excellent documentation coverage (>80%)**\n\n"
+        )
+
+    status_indicator = (
+        "[OK] EXCELLENT"
+        if coverage_percentage >= 95
+        else "[!] GOOD" if coverage_percentage >= 50 else "[X] NEEDS WORK"
+    )
+
+    detail_path, summary_path = _registry_paths()
+    detail_link = markdown_file_link(
+        detail_path, summary_path, Path(config.get_project_root())
+    )
+    content = f"""# AI Function Registry - Key Patterns & Decision Trees
+
+> **File**: `{summary_path.as_posix()}`
+> **Generated**: This file is auto-generated. Do not edit manually.
+> **Last Generated**: {now_timestamp_full()}
+> **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
+> **Audience**: AI Collaborators  
+> **Purpose**: Essential function patterns and decision trees for AI context  
+> **Style**: Pattern-focused, decision-tree driven, actionable
+
+## [*] **Current Status**
+
+### **Documentation Coverage: {coverage_percentage:.1f}% {status_indicator}**
+- **Total Functions**: {total_functions}
+- **Total Methods**: {total_methods}
+- **Documented**: {documented_items}/{total_items}
+- **Files Scanned**: {total_files}
+
+## [DECISION TREES] **Decision Trees for AI Context**
+
+### **[USER DATA] Need to Handle User Data?**
+```
+{user_data_tree}```
+
+### **[AI] Need AI/Chatbot Functionality?**
+```
+{ai_tree}```
+
+### **[COMM] Need Communication/Channels?**
+```
+{comm_tree}```
+
+### **[UI] Need UI/User Interface?**
+```
+{ui_tree}```
+
+### **[CORE] Need Core System Operations?**
+```
+{core_tree}```
+
+## [PATTERNS] **Key Function Patterns**
+
+{pattern_section}
+
+## [ENTRY POINTS] **Critical Functions for AI Context**
+
+### **Entry Points** (Start Here)
+{entry_points_section}
+
+### **Data Access Patterns**
+- **User Data**: {format_file_entry('core/user_data_read.py', 'User data operations', actual_functions)}
+- **Validation**: {format_file_entry('core/user_data_validation.py', 'Data validation', actual_functions)}
+- **File Operations**: {format_file_entry('core/file_operations.py', 'File I/O', actual_functions)}
+
+### **Communication Patterns**
+{communication_patterns_section}
+
+{attention_section}
+
+## [QUICK REF] **Quick Reference for AI**
+
+### **Common Operations**
+{common_operations_section}
+
+{complexity_section}
+
+### **Pattern Recognition**
+- **Handler classes** end with "Handler" and implement standard interface
+- **Manager classes** are singletons with lifecycle management
+- **Factory classes** have "Factory" in name and create related objects
+- **Context managers** can be used with `with` statements
+
+### **File Organization**
+{file_organization_section}
+
+> **For complete function details, see [{detail_path.name}]({detail_link})**
+"""
+
+    return content
+
+
+def get_file_stats(file_path: str, actual_functions: dict[str, dict]) -> dict[str, int]:
+    """Get statistics for a specific file from actual_functions."""
+    if file_path not in actual_functions:
+        return {"total": 0, "documented": 0, "functions": 0, "methods": 0}
+
+    data = actual_functions[file_path]
+    total_functions = len(data["functions"])
+    total_methods = sum(len(cls["methods"]) for cls in data["classes"])
+    total = total_functions + total_methods
+
+    documented_functions = sum(1 for func in data["functions"] if func["has_docstring"])
+    documented_methods = sum(
+        1
+        for cls in data["classes"]
+        for method in cls["methods"]
+        if method["has_docstring"]
+    )
+    documented = documented_functions + documented_methods
+
+    return {
+        "total": total,
+        "documented": documented,
+        "functions": total_functions,
+        "methods": total_methods,
+    }
+
+
+def format_file_entry(
+    file_path: str, description: str, actual_functions: dict[str, dict]
+) -> str:
+    """Format a file entry with dynamic function counts."""
+    stats = get_file_stats(file_path, actual_functions)
+    if stats["total"] == 0:
+        return f"`{file_path}` - {description}"
+
+    if stats["documented"] == stats["total"]:
+        return f"`{file_path}` - {description} ({stats['total']} functions)"
+    else:
+        return f"`{file_path}` - {description} ({stats['documented']}/{stats['total']} functions)"
+
+
+def find_files_needing_attention(
+    actual_functions: dict[str, dict], threshold: float = 0.8
+) -> list[dict]:
+    """Find files that need documentation attention (below threshold coverage)."""
+    needing_attention = []
+
+    for file_path, data in actual_functions.items():
+        total_functions = len(data["functions"])
+        total_methods = sum(len(cls["methods"]) for cls in data["classes"])
+        total = total_functions + total_methods
+
+        if total == 0:
+            continue
+
+        documented_functions = sum(
+            1 for func in data["functions"] if func["has_docstring"]
+        )
+        documented_methods = sum(
+            1
+            for cls in data["classes"]
+            for method in cls["methods"]
+            if method["has_docstring"]
+        )
+        documented = documented_functions + documented_methods
+
+        coverage = documented / total if total > 0 else 0.0
+
+        if coverage < threshold:
+            missing = total - documented
+            needing_attention.append(
+                {
+                    "file": file_path,
+                    "total": total,
+                    "documented": documented,
+                    "missing": missing,
+                    "coverage": coverage,
+                }
+            )
+
+    # Sort by missing count (descending), then by coverage (ascending)
+    needing_attention.sort(key=lambda x: (-x["missing"], x["coverage"]))
+
+    return needing_attention
+
+
+def generate_pattern_section(
+    patterns: dict[str, list], actual_functions: dict[str, dict]
+) -> str:
+    """Generate dynamic pattern section based on ALL detected patterns - concise and high-signal."""
+    section = ""
+
+    # Pattern definitions with concise descriptions
+    pattern_defs = {
+        "handlers": {
+            "title": "Handler Pattern",
+            "purpose": "Handle specific user intents or operations",
+            "pattern": [
+                "`can_handle(intent)` - Check if handler supports intent",
+                "`handle(user_id, parsed_command)` - Process the command",
+                "`get_help()` - Return help text",
+            ],
+            "min_examples": 3,
+        },
+        "managers": {
+            "title": "Manager Pattern",
+            "purpose": "Centralized management of system components",
+            "pattern": [
+                "Singleton instance management",
+                "Lifecycle methods (`start()`, `stop()`, `initialize()`)",
+                "Status reporting methods",
+            ],
+            "min_examples": 3,
+        },
+        "factories": {
+            "title": "Factory Pattern",
+            "purpose": "Create instances of related objects",
+            "pattern": [
+                "`register_*(name, class)` - Register types",
+                "`create_*(name, config)` - Create instances",
+                "`get_available_*()` - List available types",
+            ],
+            "min_examples": 2,
+        },
+        "widgets": {
+            "title": "Widget Pattern",
+            "purpose": "Reusable UI components",
+            "pattern": [
+                "Inherit from QWidget",
+                "Implement `get_*()` and `set_*()` methods",
+                "Signal-based updates",
+            ],
+            "min_examples": 3,
+        },
+        "dialogs": {
+            "title": "Dialog Pattern",
+            "purpose": "Modal user interaction windows",
+            "pattern": [
+                "Inherit from QDialog",
+                "Use widgets for data entry",
+                "Return result on accept/reject",
+            ],
+            "min_examples": 3,
+        },
+        "validators": {
+            "title": "Validator Pattern",
+            "purpose": "Data validation and sanitization",
+            "pattern": [
+                "`validate_*(data)` - Validate input",
+                "Return validation results",
+                "Centralized validation logic",
+            ],
+            "min_examples": 2,
+        },
+        "schemas": {
+            "title": "Schema Pattern",
+            "purpose": "Data models with validation (Pydantic)",
+            "pattern": [
+                "Pydantic BaseModel classes",
+                "Type-safe data structures",
+                "Automatic validation",
+            ],
+            "min_examples": 2,
+        },
+        "context_managers": {
+            "title": "Context Manager Pattern",
+            "purpose": "Safe resource management",
+            "pattern": [
+                "`__enter__()` and `__exit__()` methods",
+                "Automatic cleanup",
+                "Used with `with` statements",
+            ],
+            "min_examples": 2,
+        },
+        "decorators": {
+            "title": "Decorator Pattern",
+            "purpose": "Function/method decoration (error handling, logging)",
+            "pattern": [
+                "`@handle_errors` - Error handling decorator",
+                "`@<name>` - Custom decorators",
+                "Applied to functions/methods",
+            ],
+            "min_examples": 1,
+        },
+    }
+
+    # Generate sections for all detected patterns (in priority order)
+    pattern_order = [
+        "handlers",
+        "managers",
+        "factories",
+        "widgets",
+        "dialogs",
+        "validators",
+        "schemas",
+        "context_managers",
+        "decorators",
+    ]
+
+    for pattern_key in pattern_order:
+        if patterns.get(pattern_key) and len(patterns[pattern_key]) > 0:
+            pattern_list = patterns[pattern_key]
+            pattern_def = pattern_defs.get(pattern_key, {})
+
+            count = len(pattern_list)
+            # Get unique files and classes (prioritize files with documentation)
+            items_with_doc = [p for p in pattern_list if p.get("has_doc", False)]
+            items_without_doc = [p for p in pattern_list if not p.get("has_doc", False)]
+            sorted_items = items_with_doc + items_without_doc
+
+            # Get unique files (top 3)
+            unique_files = []
+            seen_files = set()
+            for item in sorted_items:
+                file_path = item.get("file", "")
+                if file_path and file_path not in seen_files:
+                    unique_files.append(file_path)
+                    seen_files.add(file_path)
+                    if len(unique_files) >= 3:
+                        break
+
+            locations = ", ".join([f"`{f}`" for f in unique_files[:3]])
+            if len(seen_files) > 3:
+                locations += f" (+{len(seen_files) - 3} more)"
+
+            # Get class/function names (top examples)
+            if "class" in pattern_list[0]:
+                examples = sorted_items[: pattern_def.get("min_examples", 3)]
+                example_text = "\n".join(
+                    [f"- `{ex['class']}` ({ex['file']})" for ex in examples]
+                )
+                if len(sorted_items) > pattern_def.get("min_examples", 3):
+                    example_text += f"\n- ... and {len(sorted_items) - pattern_def.get('min_examples', 3)} more"
+            else:
+                examples = sorted_items[: pattern_def.get("min_examples", 3)]
+                example_text = "\n".join(
+                    [
+                        f"- `{ex.get('function', ex.get('class', 'unknown'))}` ({ex['file']})"
+                        for ex in examples
+                    ]
+                )
+                if len(sorted_items) > pattern_def.get("min_examples", 3):
+                    example_text += f"\n- ... and {len(sorted_items) - pattern_def.get('min_examples', 3)} more"
+
+            pattern_lines = "\n".join(
+                [f"- {p}" for p in pattern_def.get("pattern", [])]
+            )
+
+            section += f"""### **{pattern_def.get('title', pattern_key)}** ({count} found)
+**Purpose**: {pattern_def.get('purpose', 'Pattern implementation')}
+**Location**: {locations}
+**Pattern**: 
+{pattern_lines}
+
+**Examples**:
+{example_text}
+
+"""
+
+    return section
+
+
+def generate_entry_points_section(
+    patterns: dict[str, list], actual_functions: dict[str, dict]
+) -> str:
+    """Generate dynamic entry points section from detected entry points."""
+    # Separate entry points by priority (higher priority functions first)
+    priority_functions = ["handle_message", "generate_response", "main"]
+    regular_entry_points = []
+    init_entry_points = []
+
+    # Track seen file/function combinations to avoid duplicates
+    seen = set()
+
+    for ep in patterns["entry_points"]:
+        file_path = ep["file"]
+        func_name = ep["function"]
+        key = (file_path, func_name)
+
+        if key in seen:
+            continue
+        seen.add(key)
+
+        has_doc = "[OK]" if ep.get("has_doc", False) else "[X]"
+
+        # Get description from config (analyze_function_registry.entry_point_descriptions)
+        registry_config = config.get_analyze_function_registry_config()
+        raw_ep = registry_config.get("entry_point_descriptions")
+        ep_descriptions = raw_ep if isinstance(raw_ep, dict) else {}
+        description = (
+            ep_descriptions.get(func_name, "Entry point")
+            if isinstance(ep_descriptions, dict)
+            else "Entry point"
+        )
+
+        entry_point = f"- {has_doc} `{file_path}::{func_name}()` - {description}"
+
+        if func_name in priority_functions:
+            regular_entry_points.append(
+                (priority_functions.index(func_name), entry_point)
+            )
+        elif func_name == "__init__":
+            # Only include __init__ from important entry point files
+            # Use project.key_files from config if available
+            important_files = config.get_project_key_files(["run_tests.py"])
+            if any(imp_file in file_path for imp_file in important_files):
+                init_entry_points.append(entry_point)
+        else:
+            regular_entry_points.append((999, entry_point))
+
+    # Sort priority functions by their priority index, then others
+    regular_entry_points.sort(key=lambda x: x[0])
+    entry_points = [ep[1] for ep in regular_entry_points] + init_entry_points[
+        :3
+    ]  # Max 3 init entries
+
+    # If we don't have enough meaningful entry points, add some common ones
+    if len(entry_points) < 4:
+        common_entry_points = [
+            "[OK] `communication/message_processing/interaction_manager.py::handle_message()` - Main message entry point",
+            "[OK] `ai/chat/chatbot.py::generate_response()` - AI response generation",
+            "[OK] `core/user_data_read.py::get_user_data()` - User data access",
+            "[OK] `ui/ui_app_qt.py::__init__()` - UI application startup",
+        ]
+        for common in common_entry_points:
+            if common not in entry_points:
+                entry_points.append(common)
+
+    return "\n".join(entry_points[:10])  # Top 10 entry points
+
+
+def generate_common_operations_section(
+    actual_functions: dict[str, dict], patterns: dict[str, list]
+) -> str:
+    """Generate dynamic common operations section - comprehensive and based on actual patterns."""
+    found_ops = {}
+
+    # Priority 1: Entry points (most common operations)
+    for ep in patterns.get("entry_points", []):
+        func_name = ep["function"]
+        file_path = ep["file"]
+        if func_name == "handle_message":
+            found_ops["User Message"] = f"`{file_path}::{func_name}()`"
+        elif func_name == "generate_response":
+            found_ops["AI Response"] = f"`{file_path}::{func_name}()`"
+        elif func_name == "main" and "run_" in file_path:
+            if "Main Entry" not in found_ops:
+                found_ops["Main Entry"] = f"`{file_path}::{func_name}()`"
+
+    # Priority 2: Data access operations (skip internal helpers)
+    for da in patterns.get("data_access", [])[:10]:
+        func_name = da["function"]
+        func_name.lower()
+        # Skip internal helper functions (double underscore prefix or internal patterns)
+        if func_name.startswith("_") and "__" in func_name:
+            continue
+        if "get_user_data" in func_name or (
+            func_name == "get_user_data"
+            or "get_user" in func_name
+            and not func_name.startswith("_")
+        ):
+            if "User Data Access" not in found_ops:
+                found_ops["User Data Access"] = f"`{da['file']}::{func_name}()`"
+        elif "save_user" in func_name or (
+            "save" in func_name
+            and "user" in da["file"]
+            and not func_name.startswith("_")
+        ):
+            if "User Data Save" not in found_ops:
+                found_ops["User Data Save"] = f"`{da['file']}::{func_name}()`"
+        elif (
+            "load" in func_name
+            and "user" in da["file"]
+            and not func_name.startswith("_")
+        ) and "User Data Load" not in found_ops:
+            found_ops["User Data Load"] = f"`{da['file']}::{func_name}()`"
+
+    # Priority 3: Communication operations
+    for comm in patterns.get("communication", [])[:5]:
+        func_name = comm["function"]
+        func_lower = func_name.lower()
+        if "send_" in func_lower and "message" not in found_ops:
+            found_ops["Send Message"] = f"`{comm['file']}::{func_name}()`"
+        elif "receive" in func_lower and "Receive Message" not in found_ops:
+            found_ops["Receive Message"] = f"`{comm['file']}::{func_name}()`"
+
+    # Priority 4: Error handling
+    for eh in patterns.get("error_handlers", [])[:3]:
+        if "Error Handling" not in found_ops:
+            found_ops["Error Handling"] = f"`{eh['file']}::{eh['function']}()`"
+
+    # Priority 5: Scheduling operations (skip internal helpers)
+    for sched in patterns.get("schedulers", [])[:5]:
+        func_name = sched["function"]
+        # Skip internal helper functions
+        if not func_name.startswith("_") and "Scheduling" not in found_ops:
+            # Prefer scheduler.py over file_operations.py
+            if "scheduler" in sched["file"].lower():
+                found_ops["Scheduling"] = f"`{sched['file']}::{func_name}()`"
+                break
+
+    # Priority 6: Look for common utility functions by searching actual functions
+
+    for file_path, data in actual_functions.items():
+        if "test" in file_path.lower():
+            continue
+        for func in data["functions"]:
+            func_name = func["name"]
+            func_lower = func_name.lower()
+
+            # Command parsing (skip internal helpers)
+            if (
+                ("parse" in func_lower and "command" in func_lower)
+                or func_name == "parse_command"
+            ) and not func_name.startswith("_") and "Command Parsing" not in found_ops:
+                found_ops["Command Parsing"] = f"`{file_path}::{func_name}()`"
+
+            # Validation (skip internal helper functions)
+            if (
+                "validate" in func_lower
+                and "Validation" not in found_ops
+                and "test" not in func_lower
+            ):
+                # Skip internal helper functions (those with double underscores or specific patterns)
+                if not func_name.startswith("_") and "validate" in file_path.lower():
+                    if "core" in file_path or "user_data" in file_path:
+                        found_ops["Validation"] = f"`{file_path}::{func_name}()`"
+                        break
+
+            # Configuration
+            if "get_config" in func_lower or "get_user_data_dir" in func_lower:
+                if "Configuration" not in found_ops:
+                    found_ops["Configuration"] = f"`{file_path}::{func_name}()`"
+
+    # Build numbered list with priority order from config (analyze_function_registry.common_operations_priority_order)
+    registry_config = config.get_analyze_function_registry_config()
+    raw_po = registry_config.get("common_operations_priority_order")
+    priority_order = raw_po if isinstance(raw_po, list) else []
+
+    numbered_ops = []
+    counter = 1
+
+    for op_name in priority_order:
+        if op_name in found_ops:
+            numbered_ops.append(f"{counter}. **{op_name}**: {found_ops[op_name]}")
+            counter += 1
+
+    # Return all found operations (no fallbacks - dynamic only)
+    return (
+        "\n".join(numbered_ops)
+        if numbered_ops
+        else "*No common operations detected - patterns may need updating*"
+    )
+
+
+def generate_complexity_section(actual_functions: dict[str, dict]) -> str:
+    """Generate complexity metrics section showing most complex functions."""
+    all_functions = []
+
+    # Collect all functions with their complexity
+    for file_path, data in actual_functions.items():
+        for func in data["functions"]:
+            all_functions.append(
+                {
+                    "file": file_path,
+                    "name": func["name"],
+                    "complexity": func.get("complexity", 0),
+                    "has_doc": func.get("has_docstring", False),
+                }
+            )
+
+        for cls in data["classes"]:
+            for method in cls["methods"]:
+                all_functions.append(
+                    {
+                        "file": file_path,
+                        "name": f"{cls['name']}.{method['name']}",
+                        "complexity": 0,  # Methods don't track complexity separately
+                        "has_doc": method.get("has_docstring", False),
+                    }
+                )
+
+    # Find most complex functions (using AST node count as complexity metric)
+    complex_functions = sorted(
+        [
+            f
+            for f in all_functions
+            if f["complexity"] > 200 and not is_constructor_name(f.get("name", ""))
+        ],
+        key=lambda x: x["complexity"],
+        reverse=True,
+    )[:5]
+
+    if not complex_functions:
+        return ""
+
+    complexity_lines = []
+    complexity_lines.append("\n### **Complexity Metrics**")
+    complexity_lines.append("Most complex functions (may need refactoring):")
+
+    for i, func in enumerate(complex_functions, 1):
+        status = "[OK]" if func["has_doc"] else "[!]"
+        complexity_lines.append(
+            f"{i}. {status} `{func['file']}::{func['name']}()` - Complexity: {func['complexity']}"
+        )
+
+    complexity_lines.append("")
+
+    return "\n".join(complexity_lines)
+
+
+def generate_file_organization_section(actual_functions: dict[str, dict]) -> str:
+    """Generate dynamic file organization section based on actual directory structure."""
+    directories = {}
+
+    # Organize files by directory
+    for file_path in actual_functions:
+        parts = file_path.split("/")
+        top_dir = parts[0] if len(parts) > 1 else "root"
+
+        if top_dir not in directories:
+            directories[top_dir] = {"files": 0, "functions": 0}
+
+        directories[top_dir]["files"] += 1
+        data = actual_functions[file_path]
+        directories[top_dir]["functions"] += len(data["functions"])
+        directories[top_dir]["functions"] += sum(
+            len(cls["methods"]) for cls in data["classes"]
+        )
+
+    # Descriptions from config (analyze_function_registry.directory_descriptions)
+    registry_config = config.get_analyze_function_registry_config()
+    raw_desc = registry_config.get("directory_descriptions")
+    descriptions = raw_desc if isinstance(raw_desc, dict) else {}
+    descriptions = dict(descriptions) if isinstance(descriptions, dict) else {}
+
+    # Build organization list; priority order from config or derive from descriptions
+    org_lines = []
+    priority_dirs = registry_config.get("priority_directories")
+    if not priority_dirs:
+        priority_dirs = [
+            "core",
+            "communication",
+            "ai",
+            "ui",
+            "user",
+            "tasks",
+        ]
+
+    for dir_name in priority_dirs:
+        if dir_name in directories:
+            desc = descriptions.get(dir_name, "")
+            file_count = directories[dir_name]["files"]
+            func_count = directories[dir_name]["functions"]
+            org_lines.append(
+                f"- `{dir_name}/` - {desc} ({file_count} files, {func_count} functions)"
+            )
+
+    # Add any other directories found
+    for dir_name in sorted(directories.keys()):
+        if dir_name not in priority_dirs and dir_name != "root":
+            desc = descriptions.get(dir_name, "")
+            file_count = directories[dir_name]["files"]
+            func_count = directories[dir_name]["functions"]
+            org_lines.append(
+                f"- `{dir_name}/` - {desc} ({file_count} files, {func_count} functions)"
+            )
+
+    return (
+        "\n".join(org_lines)
+        if org_lines
+        else "- `core/` - System utilities and data management\n- `communication/` - Communication channels and message processing\n- `ai/` - AI chatbot functionality\n- `ui/` - User interface components\n- `user/` - User context and preferences\n- `tasks/` - Task management system"
+    )
+
+
+def generate_communication_patterns_section(
+    patterns: dict[str, list], actual_functions: dict[str, dict]
+) -> str:
+    """Generate dynamic communication patterns section from detected communication functions."""
+    comm_patterns = []
+
+    # Find message sending functions - prioritize communication directory
+    send_funcs = []
+    for c in patterns["communication"]:
+        if "send_" in c["function"].lower() and "test" not in c["function"].lower():
+            priority = 2 if "communication" in c["file"].lower() else 1
+            send_funcs.append((priority, c))
+
+    # Sort by priority (communication dir first), then by function name
+    send_funcs.sort(key=lambda x: (-x[0], x[1]["function"]))
+
+    if send_funcs:
+        send_func = send_funcs[0][1]
+        comm_patterns.append(
+            f"- **Message Sending**: `{send_func['file']}::{send_func['function']}()`"
+        )
+
+    # Find channel status functions - prioritize communication directory
+    status_funcs = []
+    for c in patterns["communication"]:
+        func_lower = c["function"].lower()
+        if (
+            any(kw in func_lower for kw in ["is_", "status", "ready"])
+            and "test" not in func_lower
+        ):
+            priority = 2 if "communication" in c["file"].lower() else 1
+            status_funcs.append((priority, c))
+
+    status_funcs.sort(key=lambda x: (-x[0], x[1]["function"]))
+
+    if status_funcs:
+        status_func = status_funcs[0][1]
+        comm_patterns.append(
+            f"- **Channel Status**: `{status_func['file']}::{status_func['function']}()`"
+        )
+
+    # Look for parse functions in communication files - prioritize command_parser
+    parse_funcs = []
+    for file_path, data in actual_functions.items():
+        file_lower = file_path.lower()
+        if "communication" in file_lower:
+            priority = (
+                3
+                if "command_parser" in file_lower
+                else 2 if "message" in file_lower else 1
+            )
+            for func in data["functions"]:
+                func_lower = func["name"].lower()
+                if func_lower == "parse" or (
+                    func_lower.startswith("parse") and "timestamp" not in func_lower
+                ):
+                    parse_funcs.append(
+                        (
+                            priority,
+                            {
+                                "file": file_path,
+                                "function": func["name"],
+                                "has_doc": func.get("has_docstring", False),
+                            },
+                        )
+                    )
+                    break
+
+    parse_funcs.sort(key=lambda x: -x[0])
+
+    if parse_funcs:
+        parse_func = parse_funcs[0][1]
+        comm_patterns.append(
+            f"- **Command Parsing**: `{parse_func['file']}::{parse_func['function']}()`"
+        )
+
+    # Return detected patterns (no fallbacks - dynamic only)
+    if comm_patterns:
+        return "\n".join(comm_patterns)
+
+    # Return empty if no patterns found (no preset text)
+    return ""
+
+
+# Pattern analysis is now provided by analyze_function_patterns.py
+# Import it at the top of the file
+
+
+def update_function_registry():
+    """Update FUNCTION_REGISTRY_DETAIL.md and AI_FUNCTION_REGISTRY.md with current codebase analysis."""
+    logger.debug("[SCAN] Scanning all Python files...")
+    actual_functions = scan_all_python_files()
+
+    logger.info("[GEN] Generating FUNCTION_REGISTRY_DETAIL.md content...")
+    detail_content = generate_function_registry_content(actual_functions)
+
+    logger.info("[GEN] Generating AI_FUNCTION_REGISTRY.md content...")
+    ai_content = generate_ai_function_registry_content(actual_functions)
+
+    # Write DETAIL file with rotation
+    from development_tools.shared.file_rotation import create_output_file
+
+    project_root = Path(config.get_project_root()).resolve()
+    detail_path, ai_path = _registry_paths()
+    create_output_file(
+        str(detail_path),
+        detail_content,
+        rotate=True,
+        max_versions=7,
+        project_root=project_root,
+    )
+
+    # Write AI file with rotation
+    create_output_file(
+        str(ai_path),
+        ai_content,
+        rotate=True,
+        max_versions=7,
+        project_root=project_root,
+    )
+
+    # Calculate statistics
+    total_files = len(actual_functions)
+    total_functions = sum(data["total_functions"] for data in actual_functions.values())
+    total_methods = sum(
+        len(cls["methods"])
+        for data in actual_functions.values()
+        for cls in data["classes"]
+    )
+
+    # Function documentation stats
+    documented_functions = sum(
+        1
+        for data in actual_functions.values()
+        for func in data["functions"]
+        if func["has_docstring"]
+    )
+    template_functions = sum(
+        1
+        for data in actual_functions.values()
+        for func in data["functions"]
+        if func.get("has_template", False)
+    )
+
+    # Method documentation stats
+    documented_methods = sum(
+        1
+        for data in actual_functions.values()
+        for cls in data["classes"]
+        for method in cls["methods"]
+        if method["has_docstring"]
+    )
+    template_methods = sum(
+        1
+        for data in actual_functions.values()
+        for cls in data["classes"]
+        for method in cls["methods"]
+        if method.get("has_template", False)
+    )
+
+    # Total coverage
+    total_items = total_functions + total_methods
+    documented_items = documented_functions + documented_methods
+    template_items = template_functions + template_methods
+    coverage_percentage = (
+        (documented_items / total_items * 100) if total_items > 0 else 0
+    )
+
+    logger.info("[SUCCESS] Both function registry files updated successfully!")
+    logger.info("[FILES] Generated:")
+    logger.info(
+        f"   {detail_path.as_posix()} - Complete detailed registry"
+    )
+    logger.info(
+        f"   {ai_path.as_posix()} - Concise AI-focused registry"
+    )
+    logger.info("[STATS] Statistics:")
+    logger.info(f"   Files scanned: {total_files}")
+    logger.info(f"   Functions found: {total_functions}")
+    logger.info(f"   Methods found: {total_methods}")
+    logger.info(f"   Total items: {total_items}")
+    logger.info(f"   Functions documented: {documented_functions}")
+    logger.info(f"   Methods documented: {documented_methods}")
+    logger.info(f"   Total documented: {documented_items}")
+    logger.info(f"   Template-generated: {template_items}")
+    logger.info(f"   Coverage: {coverage_percentage:.1f}%")
+    logger.info(f"   Detail file: {detail_path}")
+    logger.info(f"   AI file: {ai_path}")
+
+    # Template breakdown
+    if template_items > 0:
+        logger.info("[TEMPLATES] Template Breakdown:")
+        template_types = {}
+        for data in actual_functions.values():
+            for func in data["functions"]:
+                if func.get("has_template", False):
+                    func_type = func.get("func_type", "unknown")
+                    template_types[func_type] = template_types.get(func_type, 0) + 1
+            for cls in data["classes"]:
+                for method in cls["methods"]:
+                    if method.get("has_template", False):
+                        method_type = method.get("method_type", "unknown")
+                        template_types[method_type] = (
+                            template_types.get(method_type, 0) + 1
+                        )
+
+        for template_type, count in sorted(template_types.items()):
+            logger.info(f"   {template_type}: {count}")
+
+
+if __name__ == "__main__":
+    update_function_registry()

@@ -1,0 +1,627 @@
+# TOOL_TIER: core
+
+"""
+Central registry describing every AI development tool module.
+
+This keeps the tier/trust metadata in one authoritative place so
+the CLI help text, documentation, and enforcement scripts stay consistent.
+"""
+
+from __future__ import annotations
+
+from collections import OrderedDict
+from dataclasses import dataclass
+from typing import Literal
+from collections.abc import Iterable
+
+Tier = Literal["core", "supporting", "experimental"]
+TrustLevel = Literal["stable", "partial", "advisory", "experimental"]
+
+# Display labels for tier names (used by tool_guide, help output)
+TIER_TITLES: dict[str, str] = {
+    "core": "Core (stable)",
+    "supporting": "Supporting (advisory)",
+    "experimental": "Experimental (use with approval)",
+}
+
+
+@dataclass(frozen=True)
+class ToolInfo:
+    name: str
+    path: str
+    tier: Tier
+    trust: TrustLevel
+    description: str
+
+
+_TOOLS: dict[str, ToolInfo] = {
+    "run_development_tools": ToolInfo(
+        name="run_development_tools",
+        path="development_tools/run_development_tools.py",
+        tier="core",
+        trust="stable",
+        description="CLI entry point that dispatches every development tooling command.",
+    ),
+    "operations": ToolInfo(
+        name="operations",
+        path="development_tools/shared/operations.py",
+        tier="core",
+        trust="stable",
+        description="Implements the heavy lifting for each runner command.",
+    ),
+    "config": ToolInfo(
+        name="config",
+        path="development_tools/config/config.py",
+        tier="core",
+        trust="stable",
+        description="Shared configuration for tool suites and execution contexts.",
+    ),
+    "standard_exclusions": ToolInfo(
+        name="standard_exclusions",
+        path="development_tools/shared/standard_exclusions.py",
+        tier="core",
+        trust="stable",
+        description="Canonical exclusion list used by every scanner.",
+    ),
+    "constants": ToolInfo(
+        name="constants",
+        path="development_tools/shared/constants.py",
+        tier="core",
+        trust="stable",
+        description="Doc pairing metadata, directory maps, and shared constants.",
+    ),
+    "common": ToolInfo(
+        name="common",
+        path="development_tools/shared/common.py",
+        tier="core",
+        trust="stable",
+        description="Shared file/io helpers used across tooling modules.",
+    ),
+    "analyze_documentation_sync": ToolInfo(
+        name="analyze_documentation_sync",
+        path="development_tools/docs/analyze_documentation_sync.py",
+        tier="core",
+        trust="stable",
+        description="Validates human/AI doc pairing and detects drift.",
+    ),
+    "analyze_path_drift": ToolInfo(
+        name="analyze_path_drift",
+        path="development_tools/docs/analyze_path_drift.py",
+        tier="core",
+        trust="stable",
+        description="Checks for path drift between code and documentation.",
+    ),
+    "analyze_missing_addresses": ToolInfo(
+        name="analyze_missing_addresses",
+        path="development_tools/docs/analyze_missing_addresses.py",
+        tier="core",
+        trust="stable",
+        description="Checks for documentation files missing file addresses.",
+    ),
+    "analyze_ascii_compliance": ToolInfo(
+        name="analyze_ascii_compliance",
+        path="development_tools/docs/analyze_ascii_compliance.py",
+        tier="core",
+        trust="stable",
+        description="Checks for non-ASCII characters in documentation files.",
+    ),
+    "analyze_heading_numbering": ToolInfo(
+        name="analyze_heading_numbering",
+        path="development_tools/docs/analyze_heading_numbering.py",
+        tier="core",
+        trust="stable",
+        description="Checks that H2 and H3 headings are numbered consecutively.",
+    ),
+    "analyze_unconverted_links": ToolInfo(
+        name="analyze_unconverted_links",
+        path="development_tools/docs/analyze_unconverted_links.py",
+        tier="core",
+        trust="stable",
+        description="Checks for file path references that should be converted to markdown links.",
+    ),
+    "generate_directory_tree": ToolInfo(
+        name="generate_directory_tree",
+        path="development_tools/docs/generate_directory_tree.py",
+        tier="core",
+        trust="stable",
+        description="Generates a directory tree for documentation.",
+    ),
+    "fix_documentation": ToolInfo(
+        name="fix_documentation",
+        path="development_tools/docs/fix_documentation.py",
+        tier="core",
+        trust="stable",
+        description="Dispatcher that orchestrates all documentation fix operations (calls specialized fixers).",
+    ),
+    "fix_documentation_addresses": ToolInfo(
+        name="fix_documentation_addresses",
+        path="development_tools/docs/fix_documentation_addresses.py",
+        tier="core",
+        trust="stable",
+        description="Adds file addresses to documentation files that don't have them.",
+    ),
+    "fix_documentation_ascii": ToolInfo(
+        name="fix_documentation_ascii",
+        path="development_tools/docs/fix_documentation_ascii.py",
+        tier="core",
+        trust="stable",
+        description="Fixes non-ASCII characters in documentation files.",
+    ),
+    "fix_documentation_headings": ToolInfo(
+        name="fix_documentation_headings",
+        path="development_tools/docs/fix_documentation_headings.py",
+        tier="core",
+        trust="stable",
+        description="Numbers H2 and H3 headings in documentation files.",
+    ),
+    "fix_documentation_links": ToolInfo(
+        name="fix_documentation_links",
+        path="development_tools/docs/fix_documentation_links.py",
+        tier="core",
+        trust="stable",
+        description="Converts file path references to markdown links in documentation.",
+    ),
+    "generate_function_registry": ToolInfo(
+        name="generate_function_registry",
+        path="development_tools/functions/generate_function_registry.py",
+        tier="core",
+        trust="stable",
+        description="Builds the authoritative function registry via AST parsing.",
+    ),
+    "generate_module_dependencies": ToolInfo(
+        name="generate_module_dependencies",
+        path="development_tools/imports/generate_module_dependencies.py",
+        tier="core",
+        trust="stable",
+        description="Orchestrates module dependency analysis and generates dependency documentation.",
+    ),
+    "analyze_module_imports": ToolInfo(
+        name="analyze_module_imports",
+        path="development_tools/imports/analyze_module_imports.py",
+        tier="core",
+        trust="stable",
+        description="Extracts and analyzes imports from Python files.",
+    ),
+    "analyze_dependency_patterns": ToolInfo(
+        name="analyze_dependency_patterns",
+        path="development_tools/imports/analyze_dependency_patterns.py",
+        tier="core",
+        trust="stable",
+        description="Analyzes dependency patterns, circular dependencies, and risk areas.",
+    ),
+    "analyze_dev_tools_import_boundaries": ToolInfo(
+        name="analyze_dev_tools_import_boundaries",
+        path="development_tools/imports/analyze_dev_tools_import_boundaries.py",
+        tier="supporting",
+        trust="advisory",
+        description="Flags non-approved core/business imports inside development_tools for portability.",
+    ),
+    "fix_legacy_references": ToolInfo(
+        name="fix_legacy_references",
+        path="development_tools/legacy/fix_legacy_references.py",
+        tier="core",
+        trust="stable",
+        description="Fixes legacy references using analysis results from analyze_legacy_references.",
+    ),
+    "analyze_legacy_references": ToolInfo(
+        name="analyze_legacy_references",
+        path="development_tools/legacy/analyze_legacy_references.py",
+        tier="core",
+        trust="stable",
+        description="Analyzes codebase for legacy references (scan, find, verify).",
+    ),
+    "generate_legacy_reference_report": ToolInfo(
+        name="generate_legacy_reference_report",
+        path="development_tools/legacy/generate_legacy_reference_report.py",
+        tier="core",
+        trust="stable",
+        description="Generates markdown reports from legacy reference analysis results.",
+    ),
+    "run_test_coverage": ToolInfo(
+        name="run_test_coverage",
+        path="development_tools/tests/run_test_coverage.py",
+        tier="core",
+        trust="stable",
+        description="Runs pytest coverage and manages coverage artifacts.",
+    ),
+    # Logical tool (service method run_dev_tools_coverage); implementation lives in run_test_coverage.py.
+    # Not a standalone CLI script — excluded from get_script_registry().
+    "generate_dev_tools_coverage": ToolInfo(
+        name="generate_dev_tools_coverage",
+        path="development_tools/tests/run_test_coverage.py",
+        tier="core",
+        trust="stable",
+        description="Runs pytest coverage scoped to development_tools (dev-tools coverage slice).",
+    ),
+    "run_test_suite": ToolInfo(
+        name="run_test_suite",
+        path="development_tools/tests/run_test_suite.py",
+        tier="core",
+        trust="stable",
+        description="Runs the configured quick pytest suite (excludes slow tests) for Tier 3 audits.",
+    ),
+    "analyze_test_coverage": ToolInfo(
+        name="analyze_test_coverage",
+        path="development_tools/tests/analyze_test_coverage.py",
+        tier="core",
+        trust="stable",
+        description="Analyzes test coverage data from pytest/coverage output.",
+    ),
+    "generate_test_coverage_report": ToolInfo(
+        name="generate_test_coverage_report",
+        path="development_tools/tests/generate_test_coverage_report.py",
+        tier="core",
+        trust="stable",
+        description="Generates coverage reports (JSON, HTML, summary) from analysis results.",
+    ),
+    "analyze_test_markers": ToolInfo(
+        name="analyze_test_markers",
+        path="development_tools/tests/analyze_test_markers.py",
+        tier="supporting",
+        trust="stable",
+        description="Analyze and manage pytest test category markers (unit/integration/behavior/ui).",
+    ),
+    "flaky_detector": ToolInfo(
+        name="flaky_detector",
+        path="development_tools/tests/flaky_detector.py",
+        tier="supporting",
+        trust="advisory",
+        description="Run repeated parallel pytest passes to detect intermittent failures.",
+    ),
+    "verify_process_cleanup": ToolInfo(
+        name="verify_process_cleanup",
+        path="development_tools/tests/verify_process_cleanup.py",
+        tier="supporting",
+        trust="advisory",
+        description="Check for potential orphaned pytest/python processes after test runs.",
+    ),
+    "cleanup_project": ToolInfo(
+        name="cleanup_project",
+        path="development_tools/shared/fix_project_cleanup.py",
+        tier="supporting",
+        trust="stable",
+        description="Clean up project cache files, temporary directories, and artifacts.",
+    ),
+    "analyze_error_handling": ToolInfo(
+        name="analyze_error_handling",
+        path="development_tools/error_handling/analyze_error_handling.py",
+        tier="core",
+        trust="stable",
+        description="Audits decorator usage and error handling adherence.",
+    ),
+    "generate_error_handling_report": ToolInfo(
+        name="generate_error_handling_report",
+        path="development_tools/error_handling/generate_error_handling_report.py",
+        tier="supporting",
+        trust="stable",
+        description="Generates reports from error handling analysis results.",
+    ),
+    "analyze_functions": ToolInfo(
+        name="analyze_functions",
+        path="development_tools/functions/analyze_functions.py",
+        tier="core",
+        trust="stable",
+        description="AST discovery utility backing several other tools.",
+    ),
+    "analyze_duplicate_functions": ToolInfo(
+        name="analyze_duplicate_functions",
+        path="development_tools/functions/analyze_duplicate_functions.py",
+        tier="supporting",
+        trust="partial",
+        description="Flags possible duplicate/similar functions and methods using weighted similarity.",
+    ),
+    "analyze_facade_shims": ToolInfo(
+        name="analyze_facade_shims",
+        path="development_tools/functions/analyze_facade_shims.py",
+        tier="supporting",
+        trust="advisory",
+        description=(
+            "Flags named/documented facade, shim, alias, re-export, and "
+            "compatibility bridge candidates; filters plain low-signal thin "
+            "wrappers by default."
+        ),
+    ),
+    "analyze_module_refactor_candidates": ToolInfo(
+        name="analyze_module_refactor_candidates",
+        path="development_tools/functions/analyze_module_refactor_candidates.py",
+        tier="supporting",
+        trust="partial",
+        description="Identifies large modules (by line or function count) as candidates for splitting into smaller modules.",
+    ),
+    "analyze_function_patterns": ToolInfo(
+        name="analyze_function_patterns",
+        path="development_tools/functions/analyze_function_patterns.py",
+        tier="core",
+        trust="stable",
+        description="Analyzes function patterns (handlers, managers, factories, etc.) for AI consumption.",
+    ),
+    "analyze_documentation": ToolInfo(
+        name="analyze_documentation",
+        path="development_tools/docs/analyze_documentation.py",
+        tier="supporting",
+        trust="partial",
+        description="Secondary doc analysis focused on corruption detection.",
+    ),
+    "analyze_function_registry": ToolInfo(
+        name="analyze_function_registry",
+        path="development_tools/functions/analyze_function_registry.py",
+        tier="supporting",
+        trust="partial",
+        description="Validates generated function registry output.",
+    ),
+    "analyze_module_dependencies": ToolInfo(
+        name="analyze_module_dependencies",
+        path="development_tools/imports/analyze_module_dependencies.py",
+        tier="supporting",
+        trust="partial",
+        description="Verifies generated dependency graphs for consistency.",
+    ),
+    "analyze_unused_functions": ToolInfo(
+        name="analyze_unused_functions",
+        path="development_tools/functions/analyze_unused_functions.py",
+        tier="supporting",
+        trust="advisory",
+        description="AST-based detector for unused/uncalled functions and methods.",
+    ),
+    "analyze_package_exports": ToolInfo(
+        name="analyze_package_exports",
+        path="development_tools/functions/analyze_package_exports.py",
+        tier="supporting",
+        trust="partial",
+        description="Flags from package import Name missing from __all__ or re-exports.",
+    ),
+    "analyze_config": ToolInfo(
+        name="analyze_config",
+        path="development_tools/config/analyze_config.py",
+        tier="supporting",
+        trust="partial",
+        description="Detects config drift and missing values across tools.",
+    ),
+    "analyze_ai_work": ToolInfo(
+        name="analyze_ai_work",
+        path="development_tools/ai_work/analyze_ai_work.py",
+        tier="supporting",
+        trust="partial",
+        description="Lightweight structural validator, advisory only.",
+    ),
+    "quick_status": ToolInfo(
+        name="quick_status",
+        path="development_tools/reports/quick_status.py",
+        tier="supporting",
+        trust="advisory",
+        description="Fast cached snapshot that depends on recent audits.",
+    ),
+    "analyze_system_signals": ToolInfo(
+        name="analyze_system_signals",
+        path="development_tools/reports/analyze_system_signals.py",
+        tier="supporting",
+        trust="advisory",
+        description="Operational health pulse (audit freshness, coverage rollup, core files, alerts); doc-sync stays under Documentation Signals.",
+    ),
+    "analyze_ruff": ToolInfo(
+        name="analyze_ruff",
+        path="development_tools/static_checks/analyze_ruff.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs ruff in JSON mode and summarizes lint findings for reports.",
+    ),
+    "analyze_pyright": ToolInfo(
+        name="analyze_pyright",
+        path="development_tools/static_checks/analyze_pyright.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs pyright in JSON mode and summarizes type-check diagnostics for reports.",
+    ),
+    "analyze_bandit": ToolInfo(
+        name="analyze_bandit",
+        path="development_tools/static_checks/analyze_bandit.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs bandit in JSON mode for security findings (MEDIUM/HIGH in summary).",
+    ),
+    "analyze_pip_audit": ToolInfo(
+        name="analyze_pip_audit",
+        path="development_tools/static_checks/analyze_pip_audit.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs pip-audit JSON report for dependency vulnerabilities (WARN when findings).",
+    ),
+    "analyze_vulture": ToolInfo(
+        name="analyze_vulture",
+        path="development_tools/static_checks/analyze_vulture.py",
+        tier="supporting",
+        trust="advisory",
+        description="Runs vulture dead-code scan (min-confidence gated; WARN when findings).",
+    ),
+    "decision_support": ToolInfo(
+        name="decision_support",
+        path="development_tools/reports/decision_support.py",
+        tier="supporting",
+        trust="advisory",
+        description="Aggregates metrics into recommendations and priorities.",
+    ),
+    "analyze_backup_health": ToolInfo(
+        name="analyze_backup_health",
+        path="development_tools/shared/service/commands.py",
+        tier="supporting",
+        trust="stable",
+        description="Runs backup health verification (inventory, recency, validation, restore drill).",
+    ),
+    "export_code_snapshot": ToolInfo(
+        name="export_code_snapshot",
+        path="development_tools/shared/export_code_snapshot.py",
+        tier="supporting",
+        trust="stable",
+        description="Exports Python files from a directory into a single Markdown snapshot for LLM context.",
+    ),
+    "export_docs_snapshot": ToolInfo(
+        name="export_docs_snapshot",
+        path="development_tools/shared/export_docs_snapshot.py",
+        tier="supporting",
+        trust="stable",
+        description="Exports documentation files into a single Markdown snapshot for LLM context.",
+    ),
+    "file_rotation": ToolInfo(
+        name="file_rotation",
+        path="development_tools/shared/file_rotation.py",
+        tier="supporting",
+        trust="stable",
+        description="Utility for timestamped file rotation/retention.",
+    ),
+    "tool_guide": ToolInfo(
+        name="tool_guide",
+        path="development_tools/shared/tool_guide.py",
+        tier="supporting",
+        trust="stable",
+        description="Generates summarized help text for CLI commands.",
+    ),
+    "fix_version_sync": ToolInfo(
+        name="fix_version_sync",
+        path="development_tools/docs/fix_version_sync.py",
+        tier="experimental",
+        trust="experimental",
+        description="Attempts cross-file version synchronization (fragile).",
+    ),
+    "fix_function_docstrings": ToolInfo(
+        name="fix_function_docstrings",
+        path="development_tools/functions/fix_function_docstrings.py",
+        tier="experimental",
+        trust="experimental",
+        description="Auto-generates docstrings for undocumented functions—high-risk, use with caution.",
+    ),
+    "generate_consolidated_report": ToolInfo(
+        name="generate_consolidated_report",
+        path="development_tools/reports/generate_consolidated_report.py",
+        tier="supporting",
+        trust="stable",
+        description="Generates AI_STATUS.md, AI_PRIORITIES.md, and CONSOLIDATED_REPORT.md.",
+    ),
+}
+
+
+COMMAND_GROUPS = OrderedDict(
+    {
+        "Core Commands": {
+            "tier": "core",
+            "description": "Daily-safe commands that power the audit-first workflow.",
+            "commands": [
+                "audit",
+                "docs",
+                "doc-sync",
+                "doc-fix",
+                "config",
+                "coverage",
+                "nightly-test-suite",
+                "legacy",
+            ],
+        },
+        "Supporting Commands": {
+            "tier": "supporting",
+            "description": "Advisory utilities and helpers that depend on fresh audits.",
+            "commands": [
+                "status",
+                "system-signals",
+                "validate",
+                "decision-support",
+                "flaky-detector",
+                "verify-process-cleanup",
+                "duplicate-functions",
+                "facade-shims",
+                "module-refactor-candidates",
+                "unused-functions",
+                "workflow",
+                "trees",
+                "cleanup",
+                "backup",
+                "export-code",
+                "export-docs",
+                "help",
+            ],
+        },
+        "Experimental Commands": {
+            "tier": "experimental",
+            "description": "High-risk or prototype commands - run only with explicit approval.",
+            "commands": [
+                "version-sync",
+            ],
+        },
+    }
+)
+
+
+def get_tool_metadata(name: str) -> ToolInfo:
+    """Return metadata for a specific tool."""
+
+    if name not in _TOOLS:
+        raise KeyError(f"Unknown AI tool '{name}'")
+    return _TOOLS[name]
+
+
+def iter_tools() -> Iterable[ToolInfo]:
+    """Yield metadata for every registered tool."""
+
+    return _TOOLS.values()
+
+
+def get_tools_by_tier(tier: Tier) -> list[ToolInfo]:
+    """Return tools that match the requested tier."""
+
+    return [info for info in _TOOLS.values() if info.tier == tier]
+
+
+def get_command_groups():
+    """Return ordered command group metadata used for help output."""
+
+    return COMMAND_GROUPS
+
+
+# Tools that use cache invalidation; audit orchestration uses this for cache-state logging.
+# Single canonical source (was in audit_orchestration._CACHE_AWARE_TOOLS).
+CACHE_AWARE_TOOLS: frozenset[str] = frozenset({
+    "run_test_suite",
+    "run_test_coverage",
+    "generate_dev_tools_coverage",
+    "analyze_legacy_references",
+    "analyze_documentation_sync",
+    "analyze_pip_audit",
+    "analyze_ruff",
+    "analyze_pyright",
+    "analyze_bandit",
+    "analyze_vulture",
+})
+
+
+# Tool names that are catalogued in _TOOLS but are not standalone scripts for run_script().
+_SCRIPT_REGISTRY_EXCLUDE: frozenset[str] = frozenset({
+    "run_development_tools",
+    "generate_dev_tools_coverage",  # service method; shares path with run_test_coverage
+})
+
+
+def get_script_registry() -> dict[str, str]:
+    """
+    Build script name -> path (relative to development_tools/) for run_script().
+    Canonical source: _TOOLS; keeps SCRIPT_REGISTRY in tool_wrappers in sync with tool catalog.
+    """
+    prefix = "development_tools/"
+    result: dict[str, str] = {}
+    for name, info in _TOOLS.items():
+        if name in _SCRIPT_REGISTRY_EXCLUDE:
+            continue
+        path = info.path
+        if path.startswith(prefix) and path.endswith(".py"):
+            result[name] = path[len(prefix) :]
+    return result
+
+
+__all__ = [
+    "ToolInfo",
+    "get_tool_metadata",
+    "get_tools_by_tier",
+    "iter_tools",
+    "COMMAND_GROUPS",
+    "get_command_groups",
+    "CACHE_AWARE_TOOLS",
+    "get_script_registry",
+    "TIER_TITLES",
+]

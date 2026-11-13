@@ -1,0 +1,225 @@
+# TOOL_TIER: core
+
+"""Inventory of caching strategies for audit tools (V5 §3.19).
+
+Checked-in JSON: ``development_tools/config/tool_cache_inventory.json``.
+"""
+
+from __future__ import annotations
+
+from development_tools.config import get_backup_report_path
+from development_tools.shared.audit_tiers import get_expected_tools_for_tier
+from development_tools.shared.tool_metadata import CACHE_AWARE_TOOLS, get_script_registry
+
+
+def _tool_domain_from_registry(script_registry: dict[str, str], tool_name: str) -> str:
+    rel = script_registry.get(tool_name, "").replace("\\", "/").strip()
+    parts = rel.split("/") if rel else []
+    return parts[0] if len(parts) >= 2 else "shared"
+
+
+def _tier2_and_tier3_tool_names() -> frozenset[str]:
+    """Tools that first appear in Tier 2 or Tier 3 (full audit), excluding Tier 1-only tools."""
+    tier1_no_quick = {
+        t for t in get_expected_tools_for_tier(1) if t != "quick_status"
+    }
+    full = set(get_expected_tools_for_tier(3, dev_tools_only=False))
+    return frozenset(full - tier1_no_quick)
+
+
+def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
+    static_check_tools = {"analyze_ruff", "analyze_pyright", "analyze_bandit"}
+    if tool_name in static_check_tools:
+        return {
+            "tool": tool_name,
+            "strategy": "shard_fragment_json_cache",
+            "implementation": (
+                "development_tools/static_checks/analyze_ruff|analyze_bandit|analyze_pyright.run_* "
+                "+ development_tools/shared/static_analysis_shard_cache.py "
+                "(coarse wrapper mtime cache not used for these tools)"
+            ),
+            "artifact_glob": (
+                f"development_tools/**/jsons/scopes/*/{domain}/.{tool_name}_shard_cache.v1.json; "
+                f"development_tools/**/jsons/scopes/*/{domain}/*{tool_name.split('_', 1)[1]}*.json"
+            ),
+            "invalidation": (
+                "Per-shard Python signatures via "
+                "development_tools.shared.cache_dependency_paths.compute_scoped_py_source_signature "
+                "or compute_full_repo_py_source_signature (__monolithic__); "
+                "static_check_config_digest over STATIC_CHECK_CONFIG_RELATIVE_PATHS busts all shards"
+            ),
+        }
+    if tool_name == "analyze_pip_audit":
+        return {
+            "tool": tool_name,
+            "strategy": "requirements_hash_json_cache",
+            "implementation": "development_tools/shared/service/tool_wrappers.py _try_pip_audit_cache / _save_pip_audit_cache",
+            "artifact_glob": "development_tools/**/jsons/scopes/*/static_checks/.analyze_pip_audit_requirements_cache.json",
+            "invalidation": (
+                "development_tools.shared.cache_dependency_paths.requirements_lock_signature "
+                "(PIP_AUDIT_DEPENDENCY_RELATIVE_PATHS; see tool_wrappers pip-audit cache)"
+            ),
+        }
+    if tool_name in {"run_test_coverage", "generate_dev_tools_coverage"}:
+        file_name = "coverage.json" if tool_name == "run_test_coverage" else "coverage_dev_tools.json"
+        return {
+            "tool": tool_name,
+            "strategy": "domain_test_file_cache_merge",
+            "implementation": "development_tools/tests/run_test_coverage.py (coverage metadata)",
+            "artifact_glob": f"development_tools/tests/jsons/{file_name}",
+            "invalidation": "Per test-file cache keys; see coverage JSON _metadata",
+        }
+    if tool_name == "run_test_suite":
+        return {
+            "tool": tool_name,
+            "strategy": "domain_test_file_suite_cache",
+            "implementation": (
+                "development_tools/tests/run_test_suite.py + "
+                "development_tools/tests/test_file_suite_cache.py "
+                "(domain invalidation via test_file_coverage_cache.py)"
+            ),
+            "artifact_glob": (
+                "development_tools/tests/jsons/test_file_suite_cache.json; "
+                "development_tools/tests/jsons/run_test_suite_results.json; "
+                "development_tools/tests/jsons/test_suite_junit/*.xml"
+            ),
+            "invalidation": (
+                "Shared domain/test-file invalidation with coverage cache; "
+                "config content hash (mtime-only rewrites do not bust); "
+                "per-test-file suite outcomes; disable with --no-domain-cache"
+            ),
+        }
+    if tool_name == "analyze_legacy_references":
+        return {
+            "tool": tool_name,
+            "strategy": "marker_scan_cache",
+            "implementation": "details.cache in tool JSON; orchestration CACHE_AWARE_TOOLS",
+            "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json",
+            "invalidation": "Content hash / scan metadata in tool payload",
+        }
+    if tool_name == "analyze_documentation_sync":
+        return {
+            "tool": tool_name,
+            "strategy": "paired_doc_cache",
+            "implementation": "orchestration cache metadata; doc sync payloads",
+            "artifact_glob": "development_tools/**/jsons/scopes/*/docs/*.json",
+            "invalidation": "Doc file mtimes and paired-doc registry; freshness compares scoped `docs/jsons/scopes/<scope>/` result JSON; both changelogs invalidate; ignores generated coverage/legacy reports; changelog trim runs before Tier 2 doc-sync; path-drift uses the same skip as other subchecks",
+        }
+    if tool_name == "analyze_test_markers":
+        return {
+            "tool": tool_name,
+            "strategy": "reads_coverage_artifacts",
+            "implementation": "development_tools/tests/analyze_test_markers.py (consumes coverage JSON)",
+            "artifact_glob": "development_tools/**/jsons/scopes/*/tests/*test_markers*.json",
+            "invalidation": "Re-run when coverage JSON or marker config changes",
+        }
+    if tool_name == "generate_test_coverage_report":
+        return {
+            "tool": tool_name,
+            "strategy": "downstream_of_coverage_json",
+            "implementation": "development_tools/tests/generate_test_coverage_report.py",
+            "artifact_glob": "development_tools/tests/jsons/coverage.json; development_docs/TEST_COVERAGE_REPORT.md",
+            "invalidation": "Regenerates when upstream coverage data is refreshed",
+        }
+    if tool_name == "generate_legacy_reference_report":
+        return {
+            "tool": tool_name,
+            "strategy": "downstream_of_analyze_legacy_references",
+            "implementation": "development_tools/legacy/generate_legacy_reference_report.py",
+            "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json; development_docs/LEGACY_REFERENCE_REPORT.md",
+            "invalidation": "Regenerates from analyze_legacy_references JSON",
+        }
+    if tool_name == "verify_process_cleanup":
+        return {
+            "tool": tool_name,
+            "strategy": "no_persistent_tool_json_cache",
+            "implementation": "development_tools/tests/verify_process_cleanup.py (process probe)",
+            "artifact_glob": "development_tools/**/jsons/scopes/*/verify_process_cleanup*.json",
+            "invalidation": "N/A — advisory probe; JSON is per-run output only",
+        }
+    if tool_name in {"analyze_error_handling", "analyze_module_imports"}:
+        return {
+            "tool": tool_name,
+            "strategy": "mtime_file_cache_plus_shared_parse",
+            "implementation": (
+                "MtimeFileCache per-file results plus in-process reuse of "
+                "shared_function_scan.ParsedModule trees from _ensure_shared_function_scan"
+            ),
+            "artifact_glob": f"development_tools/**/jsons/scopes/*/{domain}/*.json",
+            "invalidation": (
+                "File mtimes, config content hash, and tool hash; audit runs skip "
+                "re-parse when the shared AST is already available"
+            ),
+        }
+    if tool_name in {"analyze_package_exports", "analyze_function_registry"}:
+        return {
+            "tool": tool_name,
+            "strategy": "shared_function_scan_reuse",
+            "implementation": (
+                "In-process wrappers walk shared_function_scan.ParsedModule trees "
+                "instead of subprocess re-parse"
+            ),
+            "artifact_glob": f"development_tools/**/jsons/scopes/*/{domain}/*.json",
+            "invalidation": (
+                "Full re-walk of shared parse trees each audit; no extra file parse"
+            ),
+        }
+    if tool_name == "analyze_backup_health":
+        return {
+            "tool": tool_name,
+            "strategy": "no_persistent_tool_json_cache",
+            "implementation": "development_tools/shared/service/commands.py (backup health command)",
+            "artifact_glob": (
+                f"{get_backup_report_path('health')}; "
+                "development_tools/**/jsons/scopes/*/reports/*.json"
+            ),
+            "invalidation": "N/A — live backup checks; JSON overwrites each run",
+        }
+    return {
+        "tool": tool_name,
+        "strategy": "per_run_json_overwrite",
+        "implementation": "development_tools/shared/service/audit_orchestration.py + tool script",
+        "artifact_glob": f"development_tools/**/jsons/scopes/*/{domain}/*.json",
+        "invalidation": "Full re-analysis each audit unless covered by a specialized cache above",
+    }
+
+
+def build_tool_cache_inventory() -> dict:
+    """Return serializable cache strategy rows for CACHE_AWARE_TOOLS and all Tier 2/3 audit tools."""
+    script_registry = get_script_registry()
+    inventory_tools = sorted(frozenset(CACHE_AWARE_TOOLS) | _tier2_and_tier3_tool_names())
+    entries = []
+    for tool_name in inventory_tools:
+        domain = _tool_domain_from_registry(script_registry, tool_name)
+        entries.append(_cache_entry(tool_name, domain))
+    return {
+        "schema_version": 1,
+        "description": (
+            "Cache strategies derived from tool_metadata.CACHE_AWARE_TOOLS; "
+            "static checks use per-shard fragment caches (§3.19.2)."
+        ),
+        "entries": entries,
+        "phase2_cache_aware_followups": [
+            {
+                "tool": "run_test_coverage",
+                "note": "Domain/test-file keyed already; selective invalidation tuning (§3.19 backlog).",
+            },
+            {
+                "tool": "generate_dev_tools_coverage",
+                "note": "Same family as run_test_coverage; no path-shard subprocess model.",
+            },
+            {
+                "tool": "analyze_pip_audit",
+                "note": "requirements_lock_signature; sharding N/A.",
+            },
+            {
+                "tool": "analyze_legacy_references",
+                "note": "Marker scan cache; batching optional if measurable.",
+            },
+            {
+                "tool": "analyze_documentation_sync",
+                "note": "Paired-doc cache; batching optional if measurable.",
+            },
+        ],
+        "expansion_candidates": [],
+    }

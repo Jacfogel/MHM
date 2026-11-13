@@ -1,0 +1,343 @@
+# AI Development Tools Guide
+
+> **File**: `development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md`  
+> **Audience**: AI collaborators and automated tooling  
+> **Purpose**: Routing and constraints for all AI development tools used to analyze, audit, and maintain the MHM codebase  
+> **Style**: Minimal, reference-only (no deep explanations)  
+> **Pair**: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) - keep both H2 headings identical and consider changes in the context of the human counterpart.
+
+---
+
+## 1. Purpose and Scope
+
+This guide provides a precise, machine-friendly map of the AI development tools:
+- Summarizes **what commands exist** and **when to run them**
+- **Authoritative command list**: `python development_tools/run_development_tools.py help`; tool and tier metadata in `development_tools/shared/tool_metadata.py`. Guide tables are for orientation only.
+- Delegates deeper explanations to the human guide and the AI workflow/docs references:
+  - [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md)
+  - [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
+  - [AI_DOCUMENTATION_GUIDE.md](../ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
+
+Treat this file as the routing layer for AI collaborators; avoid duplicating human-facing narrative here.
+
+---
+
+## 2. Running the Tool Suite
+
+```powershell
+python development_tools/run_development_tools.py <command>
+python development_tools/run_dev_tools.py <command>  # Shorthand alias
+python development_tools/run_development_tools.py --project-root <path> <command>
+python development_tools/run_development_tools.py --config-path <path> <command>
+python development_tools/run_development_tools.py help
+```
+
+**Global Options**:
+- `--project-root <path>` - Override project root directory
+- `--config-path <path>` - Override config file path (default: `development_tools/config/development_tools_config.json`)
+
+**Most commonly used commands**:
+- `audit` - Standard audit (Tier 2 - default, includes quality checks)
+- `audit --quick` - Quick audit (Tier 1 - core metrics only, ~30-60s)
+- `audit --full` - Full audit (Tier 3 - comprehensive analysis, ~10-30min). Alias: `full-audit`.
+- `full-audit` - Alias command for `audit --full`.
+- `audit --full --strict` - Full audit with fail-fast exit semantics for Tier 3 test failures/crashes.
+- `audit --audit-scope <rel-path>` - B-016 MVP subtree Tier 2 (scan-dir tools only); exclusive with `--dev-tools-only`; scoped status under `reports/scopes/scope_*/`.
+- `status` - Quick system status (uses cached audit data)
+- `docs` - Regenerate static documentation artifacts (FUNCTION_REGISTRY, MODULE_DEPENDENCIES, DIRECTORY_TREE)
+- `doc-sync` - Check documentation synchronization
+- `doc-fix` - Fix documentation issues (addresses, ASCII, headings, links). Alias: `--full` == `--all`.
+- `legacy` - Scan for legacy references
+- `coverage` - Regenerate coverage metrics, marker analysis, and [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
+- `nightly-test-suite` - Run the full pytest suite (includes slow tests); scheduled nightly via `.github/workflows/nightly-tests.yml`
+- `config` - Check configuration consistency
+- `version-sync` - Experimental metadata/version sync via `docs/fix_version_sync.py` (see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#23-command-summary), section 2.3. "Command Summary").
+
+**Additional commands**: `system-signals`, `validate`, `decision-support`, `flaky-detector` (manual only; not part of `audit --full`), `verify-process-cleanup` (Tier 3 audit), `duplicate-functions`, `unused-functions`, `facade-shims`, `module-refactor-candidates`, `workflow`, `trees`, `cleanup` (alias: `clean-up`), `backup`, `export-code`, `export-docs`. For `duplicate-functions`, use `--consider-body-similarity` to include body/structural (AST) similarity; increases runtime and pair count (capped by `max_body_candidate_pairs` and `body_similarity_scope` in config). During **full audit** (`audit --full`), body similarity runs automatically only on *near-miss* name-token pairs (name similarity above `body_similarity_min_name_threshold` but below the normal reporting bar); disable with `run_body_similarity_on_full_audit: false` in config.
+
+**Note**: Coverage is separate from `audit --full`. Run `coverage` when you need refreshed coverage data, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. For fixing markers, use `development_tools/tests/fix_test_markers.py` directly.
+
+**Service Architecture**: The tool suite uses a modular service architecture. `AIToolsService` is composed from mixin classes in `development_tools/shared/service/`: `development_tools/shared/service/core.py` (base class), `development_tools/shared/service/utilities.py` (formatting/extraction), `development_tools/shared/service/data_loading.py` (data parsing), `development_tools/shared/service/tool_wrappers.py` (tool execution), `development_tools/shared/service/audit_orchestration.py` (audit workflow), `development_tools/shared/service/report_generation.py` (report generation), and `development_tools/shared/service/commands.py` (command handlers). The CLI interface (`COMMAND_REGISTRY` and command handlers) is in `development_tools/shared/cli_interface.py`. Import `AIToolsService` from `development_tools.shared.service` and `COMMAND_REGISTRY` from `development_tools.shared.cli_interface`.
+
+`run_development_tools.py` is the single dispatcher. All commands must:
+- Respect shared configuration (`development_tools/config/config.py` with external config file support)
+- Honor `shared/standard_exclusions.py`
+- Avoid importing application modules directly; optional host adapters use `host.*` config via `shared/host_hooks.py`
+
+**Configuration**: External config file `development_tools/config/development_tools_config.json` can override paths, project settings, audit behavior, and other configuration. See `development_tools/config/development_tools_config.json.example` for structure. Config directory: `development_tools_config.json` is project-specific (not in git; copy from `.example`). `DEPRECATION_INVENTORY.json` lives in `development_tools/config/jsons/` (covered by `development_tools/**/jsons/` ignore). `ruff.toml` is generated by `development_tools/config/sync_ruff_toml.py` (run `python -m development_tools.config.sync_ruff_toml` to regenerate).
+
+**Dependencies**: Root `requirements.txt` supplies Ruff, Pyright, pytest, coverage, and other audit helpers (no separate `development_tools/requirements.txt`). **Porting the tool suite**: copy `development_tools/` into another repo, install a matching Python stack, and ensure tools referenced in `development_tools/config/development_tools_config.json` are available; optional future: `pip install .[devtools]` or a pinned `requirements-devtools.txt`. Details in **Section 2** of [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite).
+
+**Static analysis config ownership**:
+- Ruff owned config path: `static_analysis.ruff_config_path` (default `development_tools/config/ruff.toml`)
+- Pyright owned project config path: `static_analysis.pyright_project_path` (default `pyproject.toml` for `[tool.pyright]`)
+- Root Ruff compatibility mirror toggle: `static_analysis.ruff_sync_root_compat` (default `true`)
+- `analyze_ruff` always passes explicit `--config` to the owned Ruff config path.
+- `analyze_pyright` always passes explicit `--project` to the configured Pyright config path unless `--project` is already present in `static_analysis.pyright_args`.
+
+**Lock handling**: Audit/coverage locks use metadata JSON payloads in the existing lock files. Stale or malformed locks are auto-cleaned; active locks (live PID within stale window) block conflicting `audit`, `full-audit`, and `docs` operations.
+
+**Test run config keys** (`test_run` section): pytest command/base args, test paths, workers, timeout, excluded markers, no-parallel marker, and SIGINT tap threshold for Tier 3's pytest run.
+
+**Coverage worker config keys** (`coverage` section): `main_workers`, `dev_tools_workers`, `main_workers_when_concurrent`, `dev_tools_workers_when_concurrent`. These apply to the explicit `coverage` command, not Tier 3 audit scheduling.
+
+---
+
+## 3. Audit Modes and Outputs
+
+### 3.1. Tier 1: Quick Audit - `audit --quick`
+- **Duration**: ~5-10 seconds (with parallel execution)
+- **Tools**: All tools <=2s execution time
+  - **Core tools**: `analyze_system_signals`, `quick_status`
+  - **Quick checks**: `analyze_documentation`, `analyze_config`, `analyze_ai_work`, `analyze_dev_tools_import_boundaries`
+- **Execution**: Tools run in parallel where possible, with dependency-aware grouping
+- **Use case**: Fast health check, pre-commit validation
+
+### 3.2. Tier 2: Standard Audit - `audit` (default)
+- **Duration**: ~15-25 seconds (with parallel execution)
+- **Tools**: All tools >2s but <=10s execution time
+  - **Function discovery**: `analyze_functions` runs first and shares one parse with `analyze_function_patterns`, `decision_support`, `analyze_duplicate_functions`, `analyze_unused_functions`, `analyze_facade_shims`, and `analyze_module_refactor_candidates`
+  - **Quality checks**: `analyze_error_handling`, `analyze_package_exports`
+  - **Documentation sync**: `analyze_documentation_sync` (includes multiple sub-tools)
+  - **Module dependencies**: `analyze_module_imports` then `analyze_dependency_patterns` / `analyze_module_dependencies`; `analyze_function_registry`
+- **Execution**: `analyze_functions` is core; remaining tools run in parallel where possible, with dependency-aware grouping
+- **Use case**: Standard quality checks, daily development workflow
+
+### 3.3. Tier 3: Full Audit - `audit --full`
+- **Duration**: Environment-dependent; heaviest wall-clock is usually `run_test_suite`
+- **Tools**: Everything in Tier 1 & 2 PLUS tools >10s (or groups containing tools >10s):
+  - **Test suite group** - `run_test_suite` runs pytest directly without coverage using the **quick** profile (`not e2e` and `not slow`). It discovers configured test paths (default `tests`), runs normal tests in a parallel-capable phase excluding `no_parallel`, then runs `no_parallel` tests serially. It falls back to serial pytest when xdist is unavailable and does not use MHM's project-specific `run_tests.py`. Domain-based caching (`tests/test_file_suite_cache.py`, shared invalidation with coverage cache) skips unchanged domains; disable with `--no-domain-cache`. **Nightly full suite**: `nightly-test-suite` (or `workflow nightly-test-suite`) runs the **full** profile (`not e2e` only, includes slow tests); GitHub Actions runs this on a daily schedule (`.github/workflows/nightly-tests.yml`).
+  - **Coverage** - not part of Tier 3. Run `python development_tools/run_development_tools.py coverage` less frequently when coverage metrics, marker analysis, or `development_docs/TEST_COVERAGE_REPORT.md` need refresh.
+  - **Legacy group** (runs in parallel with the test suite):
+    - `analyze_legacy_references` - Legacy code scanning (~62s, >10s)
+    - `generate_legacy_reference_report` - Legacy report generation (~1s, but part of legacy group)
+  - **Static analysis group** (runs in parallel with test suite and legacy groups):
+    - `analyze_ruff` - Ruff diagnostics summary (advisory)
+    - `analyze_pyright` - Pyright diagnostics summary (advisory)
+- **Execution**: The test-suite group, legacy group, and static-analysis group run in parallel where the platform allows
+- **Use case**: Comprehensive analysis, pre-release checks, periodic deep audits
+- **Tier 3 outcome states**: `clean`, `test_failures`, `crashed`, `infra_cleanup_error`.
+- **Strict mode behavior**: `audit --strict` returns non-zero for Tier 3 `test_failures`, `crashed`, or `infra_cleanup_error`; default audit mode remains non-strict.
+- **Track classification fields**: Tier 3 `tier3_test_outcome.parallel`/`tier3_test_outcome.no_parallel` include `classification`, `classification_reason`, `actionable_context`, `log_file`, and `return_code_hex` in addition to count fields.
+
+**Note**: All three tiers update the same output files:
+- AI-facing (root): `development_tools/AI_STATUS.md`, `development_tools/AI_PRIORITIES.md`, `development_tools/CONSOLIDATED_REPORT.md`
+- Central aggregation: `development_tools/reports/analysis_detailed_results.json`
+- Domain-specific JSON: Individual tool results in `development_tools/{domain}/jsons/{tool}_results.json` (with automatic archiving)
+
+**Report Format Standards**:
+- **AI_STATUS.md**: High-level summary including Function Docstring Coverage (with missing count) and Registry Gaps (separate metrics)
+- **AI_PRIORITIES.md**: Actionable priorities with prioritized example lists (functions and handler classes) using ", ... +N" format when there are more items. Documentation placeholder hits from `analyze_documentation` `details` are Quick Wins ([TODO.md](../TODO.md), fenced/inline code, and changelog files skipped). Function-registry extras (documented but not in the scan) are Watch List.
+- **CONSOLIDATED_REPORT.md**: Comprehensive details including all metrics from AI_STATUS plus detailed example lists in the Function Patterns section
+
+**Tool Output Format (Standard Format)**:
+- Analysis tools that participate in audit aggregation emit or are normalized to a standardized JSON structure:
+  ```json
+  {
+    "summary": {
+      "total_issues": <number>,
+      "files_affected": <number>,
+      "status": "<PASS|FAIL|WARN>" (optional)
+    },
+    "details": {
+      // Tool-specific data (original metrics, findings, etc.)
+    }
+  }
+  ```
+- Tools can be run with `--json` flag to output standard format directly
+- Results are expected to already be in standard format (strict validation)
+- Report generation code accesses data from `details` section when in standard format
+
+**Tool Output Storage**:
+- Individual tool results: `development_tools/{domain}/jsons/{tool}_results.json` (e.g., `functions/jsons/analyze_functions_results.json`)
+- Cache files: `development_tools/{domain}/jsons/.{tool}_cache.json`
+- Archives: `development_tools/{domain}/jsons/archive/` (keeps last 5 versions)
+- Central aggregation: `development_tools/reports/analysis_detailed_results.json` (aggregates all tool results)
+
+**Human-facing reports** (generated by Tier 3):
+- `development_docs/LEGACY_REFERENCE_REPORT.md`
+- [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)
+
+**Static documentation** (regenerated via `docs` command, not during audits):
+- `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
+- `ai_development_docs/AI_FUNCTION_REGISTRY.md`
+- `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
+- `development_docs/FUNCTION_REGISTRY_DETAIL.md`
+- `development_docs/DIRECTORY_TREE.md`
+
+The `status` command surfaces cached summaries from `reports/analysis_detailed_results.json` (complexity, validation, system signals); rerun `audit` if the cache is stale.
+
+**When to run each command**: See section 10. "Standard Audit Recipe" in [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md#10-standard-audit-recipe) for guidance on day-to-day checks, pre-merge checks, and documentation work.
+
+---
+
+## 4. Tool Catalog and Tiering
+
+Each module declares:
+
+```
+# TOOL_TIER: core | supporting | experimental
+```
+
+The authoritative table lives in `shared/tool_metadata.py`. Use this guide to pick the right group quickly:
+
+### 4.1. Naming Conventions
+
+Most tools follow prefix-based naming to indicate primary intent; shared and orchestration tools may not:
+
+- **`analyze_*`** - Finding + assessing (read-only examination, validation, detection)
+  - Examples: `analyze_functions.py`, `analyze_documentation.py`, `analyze_error_handling.py`
+- **`generate_*`** - Making artifacts (create/recreate documentation, registries, reports)
+  - Examples: `generate_function_registry.py`, `tests/run_test_suite.py`, `tests/run_test_coverage.py`, `generate_module_dependencies.py`
+- **`fix_*`** - Cleanup/repair (removal, cleanup operations)
+  - Examples: `fix_legacy_references.py`, `fix_version_sync.py`, `fix_project_cleanup.py`
+- **No prefix** - Reporting/utility tools (descriptive names)
+  - Examples: `decision_support.py`, `quick_status.py`, `analyze_system_signals.py`, `file_rotation.py`
+
+Tools are organized by domain (functions/, docs/, tests/, etc.) and follow these naming conventions consistently.
+
+**Directory Structure** (domain-based organization):
+- `functions/` - Function discovery, registry generation, audits
+- `imports/` - Import checking, module dependency analysis and audits (merged from `modules/`)
+- `error_handling/` - Error handling coverage analysis
+- `tests/` - Test execution, coverage metrics, and marker analysis
+- `docs/` - Documentation analysis and sync checking
+- `config/` - Configuration validation
+- `legacy/` - Legacy cleanup
+- `ai_work/` - AI work validation
+- `reports/` - Overarching analysis (consolidated reports)
+- `shared/` - Shared infrastructure (config, constants, exclusions, metadata)
+
+**Tool Categories**:
+- **Documentation & structure**: `docs/analyze_documentation_sync.py` (paired doc sync only), `docs/analyze_path_drift.py`, `docs/analyze_ascii_compliance.py`, `docs/analyze_heading_numbering.py`, `docs/analyze_missing_addresses.py`, `docs/analyze_unconverted_links.py`, `docs/generate_directory_tree.py`, `docs/fix_documentation.py` (dispatcher), `docs/fix_documentation_addresses.py`, `docs/fix_documentation_ascii.py`, `docs/fix_documentation_headings.py`, `docs/fix_documentation_links.py`, `functions/generate_function_registry.py`, `functions/analyze_function_patterns.py`, `functions/analyze_duplicate_functions.py`, `functions/analyze_facade_shims.py`, `functions/analyze_module_refactor_candidates.py`, `imports/generate_module_dependencies.py` (orchestrator), `imports/analyze_module_imports.py`, `imports/analyze_dependency_patterns.py`, `docs/analyze_documentation.py`
+- **Quality, validation, coverage**: `tests/run_test_suite.py`, `tests/run_test_coverage.py`, `tests/analyze_test_coverage.py`, `tests/generate_test_coverage_report.py`, `ai_work/analyze_ai_work.py`, `error_handling/analyze_error_handling.py`, `error_handling/generate_error_handling_report.py`
+- **Legacy, versioning, signals**: `legacy/fix_legacy_references.py`, `reports/analyze_system_signals.py`, `reports/quick_status.py`, `docs/fix_version_sync.py` (experimental)
+- **Static analysis**: `static_checks/analyze_ruff.py`, `static_checks/analyze_pyright.py`, `static_checks/check_channel_loggers.py`
+- **Decision & utilities**: `reports/decision_support.py`, `functions/analyze_functions.py`, `functions/fix_function_docstrings.py` (experimental), `config/analyze_config.py`, `shared/file_rotation.py`, `functions/analyze_*` helpers, `shared/tool_guide.py`
+
+Consult [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md) for the detailed tier and trust matrix.
+
+---
+
+## 5. Operating Standards and Maintenance
+
+- Use shared infrastructure: `shared/standard_exclusions.py`, `shared/constants.py`, `development_tools/config/config.py`, `shared/mtime_cache.py`
+- Keep the standard exclusions + config aligned so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` are skipped by the majority of analyzer runs.
+- **Caching**:
+  - **General analyzer caching (`shared/mtime_cache.py`)**: Caches file-based analyzer outputs by input mtimes and auto-invalidates when `development_tools/config/development_tools_config.json` *content* or the tool source changes. A timestamp-only rewrite of the config file does not bust the cache. Cache keys are namespaced by tool/domain/config-signature/tool-hash, and cache payload includes tool hash, tool mtimes, config hash, and last run status for failure-aware invalidation. Used by high-cost analyzers across `imports/`, `functions/`, `docs/`, `legacy/`, and `tests/analyze_test_coverage.py`. Legacy cache hits reuse stored matches without re-reading file contents; the INTENTIONAL LEGACY probe runs only on cache misses. Doc-sync freshness uses scoped `docs/jsons/scopes/<scope>/` result JSON, includes both changelogs, skips generated coverage/legacy-report mtimes, runs changelog trim before Tier 2 doc-sync, and path-drift uses the same skip as the other subchecks.
+  - **Shared function-scan reuse**: `analyze_error_handling`, `analyze_function_registry`, `analyze_package_exports`, and `analyze_module_imports` consume `_ensure_shared_function_scan()` trees in-process. Error-handling and module-imports still use `MtimeFileCache` for derived per-file results.
+  - **Coverage analysis cache**: `tests/analyze_test_coverage.py` caches coverage analysis from coverage JSON mtime.
+  - **Domain test suite cache (`tests/test_file_suite_cache.py`)**:
+    - Per-test-file pytest outcomes for `run_test_suite`; reuses domain invalidation from `tests/test_file_coverage_cache.py`.
+    - Runner/cache helpers (`development_tools/tests/run_test_suite.py`, `development_tools/tests/test_file_suite_cache.py`, `development_tools/tests/pytest_isolation.py`) soft-invalidate: clear the full-suite snapshot and re-run `development_tools` (plus any coverage-changed domains). Structural tools (`development_tools/tests/domain_mapper.py`, coverage/static-check configs) still bust all domains.
+    - Windows suite pytest uses `CREATE_NO_WINDOW` (like coverage), preserves timeout diagnostics through cache merging, and does not run retries or the no-parallel phase after interruption. Quick audits cap each phase at 900 seconds; nightly/full-profile runs retain 3,600 seconds. Selective tools file lists collapse to the tools root.
+    - Cache file: `development_tools/tests/jsons/test_file_suite_cache.json` (enabled by default; disable with `--no-domain-cache` on `run_test_suite`).
+  - **Domain test coverage cache (`tests/test_file_coverage_cache.py`)**:
+    - Uses `tests/domain_mapper.py` to rerun only test files covering changed domains.
+    - Core maps to `tests/core/` and `@pytest.mark.core`, not all of `tests/unit/`. `domain_dependencies` defaults are empty so a source edit does not fan out to other product domains. Cache path keys are forward-slash normalized so Windows lookups do not treat cached files as new.
+    - Stores run status and failed domains for failure-aware invalidation.
+    - Stores tool hash/tool mtimes and config mtime plus content hash for global invalidation when cache logic or config *content* changes (mtime-only rewrites do not bust).
+    - Cache file: `development_tools/tests/jsons/test_file_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`). Incomplete `--no-domain-cache` runs still merge with the last good `coverage.json` when overall coverage collapses.
+  - **Dev tools coverage cache (`tests/dev_tools_coverage_cache.py`)**:
+    - Caches `development_tools` coverage JSON keyed by dev-tools source/test mtimes and config content hash.
+    - Stores tool hash/tool mtimes for invalidation when coverage tooling code changes.
+    - Stores last run success/exit code and invalidates after failed previous runs.
+    - Cache file: `development_tools/tests/jsons/dev_tools_coverage_cache.json` (enabled by default; disable with `--no-domain-cache`).
+  - **Cache management**:
+    - `python development_tools/run_development_tools.py audit --clear-cache` (alias: `--cache-clear`) clears development-tools audit caches: `**/jsons/scopes/{full,dev_tools}/**`, `reports/scopes/{full,dev_tools}/**`, `reports/archive/**`, legacy flat `reports/analysis_detailed_results.json` and `reports/jsons/tool_timings.json`, plus existing per-tool dot-caches and coverage JSON under `tests/jsons/` (not `__pycache__` / `.pytest_cache` / `reports/logs/`).
+    - `python development_tools/run_development_tools.py cleanup --cache` clears all cache categories (tool caches/results + `__pycache__` + `.pytest_cache` + coverage cache artifacts).
+  - **Backup policy workflows**:
+    - `python development_tools/run_development_tools.py backup inventory` builds ownership and producer inventory from `backup_policy`.
+    - `python development_tools/run_development_tools.py backup retention --dry-run|--apply` enforces Category-B retention on development-tools-owned artifacts.
+    - `python development_tools/run_development_tools.py backup drill` executes isolated restore drill and writes drill reports.
+    - `python development_tools/run_development_tools.py backup verify` runs end-to-end backup health checks (inventory + newest-backup validation + restore drill).
+- **Documentation overlap (V5 Section 5.2 backlog)**: `analyze_documentation` / doc-sync can emit `section_overlaps` and consolidation hints; they also surface in `AI_STATUS.md` / `CONSOLIDATED_REPORT.md`. Treat as advisory-verify against [LIST_OF_LISTS.md](LIST_OF_LISTS.md) and paired-guide boundaries before large doc merges.
+- **Parallel Execution**: Tools run in parallel where possible, with dependency-aware grouping:
+  - **Tier 2**: Independent tools run in parallel; dependent groups (module imports, function patterns, decision support, function registry) run sequentially within groups but in parallel with each other
+  - **Tier 3**: Test-suite, legacy, and static-analysis groups run in parallel with each other (tools within each group run sequentially)
+  - **Tool Dependencies**: Some tools must stay together due to dependencies (see tool dependency notes in audit orchestration)
+- **Output Format**: All analysis tools output standard format JSON with `summary` (total_issues, files_affected, status) and `details` (tool-specific data). Use `--json` flag when running tools standalone to get standard format output.
+- Never hardcode project paths; derive them from configuration helpers
+- Keep tools isolated from MHM business logic
+- Store tests under `development_tools/tool_tests/` (with fixtures in `tests/fixtures/development_tools_demo/`)
+- For detailed testing guidance, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
+
+- All core tools are portable via external configuration (`development_tools/config/development_tools_config.json`). Tools can be used in other projects with minimal setup.
+- Preserve the directory structure (`development_tools/`, `ai_development_docs/`, `development_docs/`, `development_tools/reports/archive/`, `development_tools/tests/logs/`) to ease eventual extraction
+- Treat experimental tools cautiously (dry-run first, log outcomes)
+- Keep this guide paired with the human document; update both whenever commands, tiers, or workflows change
+
+---
+
+## 6. Generated File Metadata Standards
+
+All files generated by the development tools suite must include standardized metadata. See section 6. "Generated File Metadata Standards" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#6-generated-file-metadata-standards) for detailed standards.
+
+**Markdown files (.md):** Must include `File`, `Generated`, `Last Generated`, `Source`, and optionally `Audience`, `Purpose`, `Status`.
+
+**JSON files (.json):** Must include `generated_by`, `last_generated`, `source`, `note`, and `timestamp` at the root level.
+
+**Sample paths:**
+- Markdown: `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_tools/AI_STATUS.md`
+- JSON: `development_tools/reports/scopes/full/analysis_detailed_results.json` (scoped aggregate), `development_tools/error_handling/error_handling_details.json`
+
+**Note:** External tool outputs (e.g., `coverage.json` and `coverage_dev_tools.json` from pytest/coverage, located in `development_tools/tests/jsons/`) may not follow this standard.
+
+---
+
+## 7. Output Storage Standards
+
+Status reports use `create_output_file()`; analysis results and caches use domain-specific directories. Path resolution: use `project_root` from config, never hardcode. See section 7. "Output Storage Standards" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#7-output-storage-standards) for file types, naming, and path rules.
+
+---
+
+## 8. Exclusion Rules
+
+File-level exclusions: `shared/standard_exclusions.py` and `should_exclude_file()`. Universal exclusions include `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, `tests/coverage_html`, `tests/data/`. Context-specific exclusions (production/development/testing) and config override via `development_tools_config.json`.
+
+**Code-level markers**: Prefer canonical suppressions from `shared/exclusion_utilities.py`: `# devtools: ignore[duplicate-functions]: <reason>`, `# devtools: ignore[unused-functions]: <reason>`, `# devtools: ignore[facade-shims]: <reason>`, `# devtools: ignore[legacy-references]: <reason>`, and `# devtools: intentional[duplicate-functions]: <group_id>`. Existing duplicate-function aliases are still accepted but should not be added in new code.
+
+**Import boundary (Section 8.6 in paired guide)**: No host-package imports inside `development_tools/**` (`constants.local_module_prefixes` except `development_tools`). Use `shared/logging` (`get_dev_tools_logger`), `shared/time_helpers`, `shared/error_helpers`, and `shared/host_hooks.load_host_backup_manager` (config `host.backup_manager_module`; skip when empty). Checker: `analyze_dev_tools_import_boundaries` (Tier 1). Policy tests: `development_tools/tool_tests/test_import_boundary_policy.py`.
+
+**Pytest isolation (Section 8.7 in paired guide)**: Tools tests use `development_tools/pytest.ini` plus CLI `--confcutdir=development_tools/tool_tests` (do not put `confcutdir` in the INI; `--strict-config` rejects it). Do not run them under the host `pytest.ini`. Helper: `development_tools/tests/pytest_isolation.py`. Command: `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/`. CI `logging-enforcement.yml` Tooling Policy Consistency uses the same `-c` / `--confcutdir` flags.
+
+See section 8. "Exclusion Rules" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#8-exclusion-rules) for full rules, function-level exclusions, and import-boundary detail.
+
+---
+
+## 9. Directory taxonomy and configuration surface (Phase 1)
+
+- **Config surface**: Repo root `pyproject.toml` (`[tool.pyright]`, `[tool.bandit]`, ...); `development_tools/config/` - `development_tools/config/config.py`, `development_tools/config/development_tools_config.json` (+ `.example`), `development_tools/config/sync_ruff_toml.py`, owned `development_tools/config/ruff.toml`.
+- **Implementation**: `development_tools/shared/**` (service mixins, scanners, caches); generated JSON under `reports/jsons/`, `tests/jsons/`.
+- **Phase 2**: Gate is recorded in [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.7. Use shims only per section 1. "Standards" in [AI_LEGACY_COMPATIBILITY_GUIDE.md](../ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md#1-standards); see section 9. "Directory taxonomy and configuration surface (Phase 1)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#9-directory-taxonomy-and-configuration-surface-phase-1).
+- **Pyright SSOT**: root `pyproject.toml` **`[tool.pyright]`** only (IDE/whole repo; default `analyze_pyright`). Nested `development_tools/config/pyrightconfig.json` removed. **Ruff**: owned `development_tools/config/ruff.toml`; root `.ruff.toml` mirror. Policy tests: `pytest development_tools/tool_tests/test_pyright_config_paths.py`.
+- **Portability (V5 Section 7.6 / V6 B-004)**: Structural checks enforce `[tool.pyright]` + absent JSON configs. Prefer periodic full-repo Pyright via `pyproject.toml`. Optional `pytest -m e2e` smoke in [`development_tools/tool_tests/test_pyright_config_paths.py`](../development_tools/tool_tests/test_pyright_config_paths.py).
+- **Human detail**: section 9. "Directory taxonomy and configuration surface (Phase 1)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#9-directory-taxonomy-and-configuration-surface-phase-1).
+
+**AI_PRIORITIES defaults**: Theme -> guide -> JSON table: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md).
+
+---
+
+## 10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)
+
+**Radon (manual only, B-012 closed 2026-07-28)**: Same stance as [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit), section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" - uniqueness eval matched in-audit hotspots; not integrated into default `audit` tiers.
+
+**Bandit**, **pip-audit**, and **Vulture** run in **Tier 3** full audits (`audit --full`) via `analyze_bandit` / `analyze_pip_audit` / `analyze_vulture`; they are in root `requirements.txt`. **`DEV_TOOLS_PIP_AUDIT_SKIP`** (truthy) skips pip-audit network use in [`development_tools/static_checks/analyze_pip_audit.py`](static_checks/analyze_pip_audit.py) (CI/offline; see [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit), section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"). **Vulture** is min-confidence gated (default 80) and uses shared exclusions (`get_exclusions("vulture")` + config `tool_exclusions.vulture`); findings surface as Tier 4 advisory. **Radon** / **pydeps** / **pre-commit** / **deeper Ruff** declined for audit integration (B-012). Full detail: section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit).
+
+**TODO sync workflow** (B-010): (1) `sync-todo --dry-run` for stdout analysis only; (2) confirm **manual-review** items against AI_CHANGELOG / CHANGELOG_DETAIL before any hand edits; (3) `sync-todo --apply` only when auto-cleanable `- [x]` / `- [X]` lines look correct (never removes strikethrough/bold completions); (4) never combine `--dry-run` with `--apply`. Full recipe: [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit), section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)"
+
+**Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run `analyze_documentation_sync` with `--check-example-markers` over paths in **`DEFAULT_DOCS`** ([`shared/constants.py`](shared/constants.py), merged from `development_tools_config.json` via `get_constants_config()`). Hints are stored in doc-sync JSON and surfaced in **AI_STATUS** (summary), **CONSOLIDATED_REPORT**, and **AI_PRIORITIES** (Tier 4 when count > 0). Heuristics and exclusions: section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit). Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
+
+**Evaluation note (2026-07-28)**: **radon** / **pydeps** optional one-off installs for spot-checks only (not in `requirements.txt`). **pre-commit** optional on developer machines only; audit truth stays `run_development_tools.py` + `development_tools/tool_tests/`. Deeper Ruff declined without a named rule set.
+
+**Manual pilot (venv active)** - optional extras beyond the integrated wrappers:
+
+- `python -m pip install radon` (optional CC sampling).
+- `python -m bandit -c pyproject.toml -r core communication ui user ai tasks -ll` - ad-hoc path experiments; audit uses `development_tools/static_checks/analyze_bandit.py` with `[tool.bandit]` excludes.
+- `python -m pip_audit` - ad-hoc; audit uses `development_tools/static_checks/analyze_pip_audit.py` (requirements-hash cache).
+- `python -m radon cc development_tools -a -s` - advisory complexity sample; overlaps internal analyzers-manual only.
+- `python -m pip install pydeps` then `python -m pydeps core --max-bacon=2 --nodot --no-output --show-cycles` - optional; coupling/circular source of truth remains `analyze_dependency_patterns` (high-coupling = unique local fan-out > 10, excluding `__init__.py`).
+
+### 10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)
+
+Triage via `AI_PRIORITIES.md` (the combined triage layer) + existing tools; Tier 2 **`module-refactor-candidates`** is the large-module gap signal. Combined `analyze_gap*` declined - no blind Section 10.1 category. Full detail: section 10.1. "Gap-analysis alignment (V6 B-013 - closed 2026-07-28)" in [DEVELOPMENT_TOOLS_GUIDE.md](DEVELOPMENT_TOOLS_GUIDE.md#101-gap-analysis-alignment-v6-b-013---closed-2026-07-28).

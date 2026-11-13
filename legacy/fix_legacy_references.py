@@ -1,0 +1,426 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+# TOOL_PORTABILITY: portable
+
+"""
+Legacy Reference Fixer (Portable)
+
+This script fixes legacy references in codebases. It uses analysis results from
+analyze_legacy_references.py to perform cleanup operations. Configuration is loaded
+from external config file (development_tools_config.json) if available, making this
+tool portable across different projects.
+
+Usage:
+    python legacy/fix_legacy_references.py [--scan] [--clean] [--dry-run] [--find ITEM] [--verify ITEM]
+
+LEGACY CODE STANDARDS COMPLIANCE:
+This tool is part of the mandatory legacy code management system. When adding new
+legacy patterns, follow these requirements:
+1. Add specific patterns (not broad matches like "bot" or "legacy")
+2. Include replacement mappings for automated cleanup
+3. Test patterns to ensure they don't create false positives
+4. Document new patterns in this file's docstring
+5. Update the tool when new legacy code is identified
+6. Configure scan patterns in `DEPRECATION_INVENTORY.json` (`legacy_scan_patterns`); optional config override in `development_tools_config.json`
+"""
+
+import argparse
+import sys
+from pathlib import Path
+from typing import Any
+from collections import defaultdict
+
+# Add project root to path for core module imports
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from development_tools.shared.logging import get_dev_tools_logger
+
+# Handle both relative and absolute imports
+if __name__ != "__main__" and __package__ and "." in __package__:
+    from .. import config
+    from .analyze_legacy_references import LegacyReferenceAnalyzer
+    from .generate_legacy_reference_report import LegacyReferenceReportGenerator
+else:
+    from development_tools import config
+    from development_tools.legacy.analyze_legacy_references import (
+        LegacyReferenceAnalyzer,
+    )
+    from development_tools.legacy.generate_legacy_reference_report import (
+        LegacyReferenceReportGenerator,
+    )
+
+# Load external config on module import (if not already loaded)
+try:
+    if hasattr(config, "load_external_config"):
+        config.load_external_config()
+except (AttributeError, ImportError):
+    pass
+
+logger = get_dev_tools_logger("development_tools")
+
+# Project-specific required pattern keys are loaded from external config:
+# legacy_cleanup.required_pattern_keys in development_tools_config.json.
+# Generic dev_tools defaults to empty (no required keys) so the tool is portable.
+# When a project lists keys here, the fixer warns once if any are absent from the
+# resolved patterns (inventory + config merge), which signals an inventory drift.
+
+
+class LegacyReferenceFixer:
+    """Fixes legacy references in codebases (portable across projects)."""
+
+    def __init__(
+        self, project_root: str = ".", replacement_mappings: dict[str, str] | None = None
+    ):
+        """
+        Initialize legacy reference fixer.
+
+        Args:
+            project_root: Root directory of the project
+            replacement_mappings: Optional dict mapping old patterns to new patterns.
+                                  If None, loads from config or uses generic defaults.
+        """
+        self.project_root = Path(project_root).resolve()
+
+        # Load legacy configuration from external config
+        legacy_config = config.get_external_value("legacy_cleanup", {})
+
+        # Replacement mappings (from config or provided, with generic defaults)
+        if replacement_mappings is not None:
+            self.replacement_mappings = replacement_mappings
+        else:
+            # Load from config or use generic defaults
+            config_replacements = legacy_config.get("replacement_mappings", {})
+            if config_replacements:
+                self.replacement_mappings = config_replacements
+            else:
+                # Generic defaults (projects should provide their own via config)
+                self.replacement_mappings = {}
+
+        # Validate project-specific required pattern keys against resolved
+        # categories (inventory + config). Keys come from external config so the
+        # generic dev_tools tool stays portable; missing keys produce a one-time
+        # warning to surface inventory drift in the owning project.
+        #
+        # Gate the check so it only runs when we are operating on the same
+        # project the external config was loaded from. Tests and CI sometimes
+        # instantiate this fixer against fixture/demo projects (which lack the
+        # main project's deprecation inventory); without this gate those runs
+        # spuriously logged "missing required specific pattern key" against an
+        # unrelated project's inventory and surfaced inside ``ai_dev_tools.log``
+        # during ``audit --full``.
+        required_pattern_keys_raw = legacy_config.get("required_pattern_keys", [])
+        required_pattern_keys: list[str] = (
+            [str(k) for k in required_pattern_keys_raw if isinstance(k, str) and k]
+            if isinstance(required_pattern_keys_raw, list)
+            else []
+        )
+        if required_pattern_keys and self._project_matches_loaded_config():
+            _resolver = LegacyReferenceAnalyzer(
+                project_root=str(self.project_root), use_cache=False
+            )
+            configured_patterns = _resolver.legacy_patterns
+            for pattern_key in required_pattern_keys:
+                if pattern_key not in configured_patterns:
+                    logger.warning(
+                        "Legacy cleanup missing required specific pattern key after "
+                        f"inventory/config merge: {pattern_key}"
+                    )
+
+    def _project_matches_loaded_config(self) -> bool:
+        """Return True when ``self.project_root`` owns the loaded external config.
+
+        ``required_pattern_keys`` is project-specific data sourced from the
+        owning project's ``development_tools_config.json``. When this fixer is
+        instantiated against a different project (e.g., a test fixture / demo
+        project), the keys would be checked against the wrong inventory and
+        produce noisy warnings. Compare the resolved config file location to
+        the configured project root and only proceed when they line up.
+        """
+        try:
+            loaded_path = config.get_loaded_config_file_path()
+        except AttributeError:
+            return True
+        if loaded_path is None:
+            return False
+        try:
+            loaded_path.resolve().relative_to(self.project_root)
+            return True
+        except ValueError:
+            return False
+
+    def cleanup_legacy_references(
+        self,
+        findings: dict[str, list[tuple[str, str, list[dict[str, Any]]]]],
+        dry_run: bool = True,
+    ) -> dict[str, list[str]]:
+        """Clean up legacy references in the codebase."""
+        if logger:
+            logger.info(f"Cleaning up legacy references (dry_run={dry_run})...")
+
+        cleanup_results = defaultdict(list)
+        # Keep the result contract stable even when findings contain only patterns
+        # with no configured replacements.
+        cleanup_results["files_updated"]
+        cleanup_results["files_would_update"]
+        cleanup_results["changes"]
+        cleanup_results["errors"]
+
+        for _pattern_type, files in findings.items():
+            for file_path, content, matches in files:
+                file_path_obj = self.project_root / file_path
+
+                if not file_path_obj.exists():
+                    continue
+
+                if not content:
+                    try:
+                        content = file_path_obj.read_text(encoding="utf-8")
+                    except OSError:
+                        continue
+
+                # Sort matches by position (reverse order to avoid offset issues)
+                sorted_matches = sorted(matches, key=lambda x: x["start"], reverse=True)
+
+                updated_content = content
+                changes_made = []
+
+                for match in sorted_matches:
+                    original_text = match["match"]
+                    replacement_text = self.get_replacement(original_text)
+
+                    if replacement_text != original_text:
+                        # Replace the text
+                        start = match["start"]
+                        end = match["end"]
+                        updated_content = (
+                            updated_content[:start]
+                            + replacement_text
+                            + updated_content[end:]
+                        )
+
+                        changes_made.append(
+                            f"Line {match['line']}: '{original_text}' → '{replacement_text}'"
+                        )
+
+                if changes_made:
+                    if not dry_run:
+                        try:
+                            with open(file_path_obj, "w", encoding="utf-8") as f:
+                                f.write(updated_content)
+                            cleanup_results["files_updated"].append(
+                                f"{file_path} ({len(changes_made)} changes)"
+                            )
+                        except Exception as e:
+                            cleanup_results["errors"].append(
+                                f"Error updating {file_path}: {e}"
+                            )
+                    else:
+                        cleanup_results["files_would_update"].append(
+                            f"{file_path} ({len(changes_made)} changes)"
+                        )
+
+                    cleanup_results["changes"].extend(changes_made)
+
+        return cleanup_results
+
+    def get_replacement(self, original_text: str) -> str:
+        """Get the replacement text for a legacy reference."""
+        for old_pattern, new_pattern in self.replacement_mappings.items():
+            if old_pattern in original_text:
+                return original_text.replace(old_pattern, new_pattern)
+        return original_text
+
+    def run(
+        self, scan: bool = True, clean: bool = False, dry_run: bool = True
+    ) -> dict[str, Any]:
+        """
+        Run the legacy reference cleanup process.
+
+        Uses LegacyReferenceAnalyzer for analysis and LegacyReferenceReportGenerator for reports.
+
+        Args:
+            scan: Whether to scan for legacy references
+            clean: Whether to clean up found references
+            dry_run: Whether to preview changes without applying them
+
+        Returns:
+            Dictionary with results
+        """
+        results = {}
+
+        if scan:
+            if logger:
+                logger.info("Starting legacy reference scan...")
+
+            # Use analyzer for scanning
+            analyzer = LegacyReferenceAnalyzer(project_root=str(self.project_root))
+            findings = analyzer.scan_for_legacy_references()
+
+            # Generate report using report generator
+            report_generator = LegacyReferenceReportGenerator(
+                project_root=str(self.project_root)
+            )
+            report = report_generator.generate_cleanup_report(findings)
+
+            # Save report
+            report_file = report_generator.save_report(report)
+
+            results["findings"] = findings
+            results["report_file"] = str(report_file)
+
+            # Print summary
+            total_issues = sum(len(files) for files in findings.values())
+            print("\nLegacy Reference Scan Complete")
+            print(f"   Files with issues: {total_issues}")
+            print(f"   Report saved to: {report_file}")
+
+            if total_issues > 0:
+                for pattern_type, files in findings.items():
+                    if files:
+                        print(f"   {pattern_type}: {len(files)} files")
+
+        if clean and "findings" in results:
+            if logger:
+                logger.info("Starting cleanup process...")
+            cleanup_results = self.cleanup_legacy_references(
+                results["findings"], dry_run
+            )
+
+            results["cleanup"] = cleanup_results
+
+            # Print cleanup summary
+            if dry_run:
+                print("\nCleanup Preview (Dry Run)")
+                print(
+                    f"   Files that would be updated: {len(cleanup_results['files_would_update'])}"
+                )
+                print(f"   Total changes: {len(cleanup_results['changes'])}")
+            else:
+                print("\nCleanup Complete")
+                print(f"   Files updated: {len(cleanup_results['files_updated'])}")
+                print(f"   Total changes: {len(cleanup_results['changes'])}")
+
+                if cleanup_results["errors"]:
+                    print(f"   Errors: {len(cleanup_results['errors'])}")
+
+        return results
+
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="Clean up legacy references in codebase"
+    )
+    parser.add_argument(
+        "--scan",
+        action="store_true",
+        default=True,
+        help="Scan for legacy references (default: True)",
+    )
+    parser.add_argument(
+        "--clean", action="store_true", help="Clean up found legacy references"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=True,
+        help="Preview changes without making them (default: True)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force actual changes (overrides --dry-run)",
+    )
+    parser.add_argument(
+        "--find",
+        type=str,
+        metavar="ITEM",
+        help="Find all references to a specific legacy item (function, class, module, etc.)",
+    )
+    parser.add_argument(
+        "--verify",
+        type=str,
+        metavar="ITEM",
+        help="Verify that a legacy item is ready for removal",
+    )
+
+    args = parser.parse_args()
+
+    # Handle --find and --verify by delegating to analyzer
+    if args.find or args.verify:
+        analyzer = LegacyReferenceAnalyzer()
+
+        if args.find:
+            references = analyzer.find_all_references(args.find)
+
+            print(f"\nReferences to '{args.find}':")
+            print(f"   Total files: {len(references)}")
+
+            if references:
+                for file_path, refs in sorted(references.items()):
+                    print(f"\n   {file_path} ({len(refs)} reference(s)):")
+                    for ref in refs[:5]:  # Show first 5 references per file
+                        print(f"      Line {ref['line']}: {ref['line_content'][:80]}")
+                    if len(refs) > 5:
+                        print(f"      ... and {len(refs) - 5} more")
+            else:
+                print("   No references found - item may be safe to remove")
+
+            return
+
+        if args.verify:
+            verification = analyzer.verify_removal_readiness(args.verify)
+
+            print(f"\nRemoval Readiness Verification for '{args.verify}':")
+            print(
+                f"   Status: {'READY' if verification['ready_for_removal'] else 'NOT READY'}"
+            )
+            print("\n   Reference Summary:")
+            print(f"      Total files: {verification['counts']['total_files']}")
+            print(f"      Active code: {verification['counts']['active_code']}")
+            print(f"      Test files: {verification['counts']['test_files']}")
+            print(f"      Documentation: {verification['counts']['documentation']}")
+            print(f"      Config files: {verification['counts']['config_files']}")
+            print(f"      Archive files: {verification['counts']['archive_files']}")
+
+            print("\n   Recommendations:")
+            for rec in verification["recommendations"]:
+                rec_clean = (
+                    rec.replace("❌", "[ERROR]")
+                    .replace("⚠️", "[WARNING]")
+                    .replace("ℹ️", "[INFO]")
+                    .replace("✅", "[OK]")
+                )
+                print(f"      {rec_clean}")
+
+            if verification["counts"]["active_code"] > 0:
+                print("\n   Active Code Files (must update):")
+                for file_path, refs in verification["categorized"]["active_code"]:
+                    print(f"      - {file_path} ({len(refs)} reference(s))")
+
+            if verification["counts"]["test_files"] > 0:
+                print("\n   Test Files (update or remove):")
+                for file_path, refs in verification["categorized"]["test_files"]:
+                    print(f"      - {file_path} ({len(refs)} reference(s))")
+
+            return
+
+    # Handle force flag
+    if args.force:
+        args.dry_run = False
+
+    # Use fixer for cleanup operations
+    fixer = LegacyReferenceFixer()
+    fixer.run(scan=args.scan, clean=args.clean, dry_run=args.dry_run)
+
+    if args.clean and not args.dry_run:
+        print("\nLegacy references have been cleaned up!")
+        print("   Please review the changes and test the system.")
+    elif args.clean and args.dry_run:
+        print("\nTo apply the cleanup, run with --force")
+
+
+if __name__ == "__main__":
+    main()

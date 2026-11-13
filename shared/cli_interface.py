@@ -1,0 +1,1074 @@
+"""
+CLI interface for development tools.
+
+Contains command handlers and COMMAND_REGISTRY for the command-line interface.
+"""
+
+import argparse
+from collections import OrderedDict
+from dataclasses import dataclass
+from collections.abc import Callable, Sequence
+
+from development_tools.shared.logging import get_dev_tools_logger
+
+logger = get_dev_tools_logger("development_tools")
+
+# Import AIToolsService type for type hints
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .service.core import AIToolsService
+
+
+@dataclass(frozen=True)
+class CommandRegistration:
+    """Command registration dataclass for CLI interface."""
+
+    name: str
+    handler: Callable[["AIToolsService", Sequence[str]], int]
+    help: str
+    description: str = ""
+
+
+def _print_command_help(parser: argparse.ArgumentParser) -> None:
+    """Print command help."""
+    parser.print_help()
+    print()
+
+
+def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    parser = argparse.ArgumentParser(prog="audit", add_help=False)
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Run comprehensive audit (Tier 3 - runs quick pytest suite without slow tests).",
+    )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Run quick audit (Tier 1 - core metrics only).",
+    )
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+    )
+    parser.add_argument(
+        "--overlap",
+        action="store_true",
+        help="Include overlap analysis in documentation analysis (section overlaps and consolidation recommendations).",
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="For Tier 3, return non-zero when tests fail, crash, or process cleanup fails.",
+    )
+    parser.add_argument(
+        "--dev-tools-only",
+        action="store_true",
+        help="Run audit with development_tools as scan root; output DEV_TOOLS_STATUS.md, DEV_TOOLS_PRIORITIES.md, DEV_TOOLS_CONSOLIDATED_REPORT.md.",
+    )
+    parser.add_argument(
+        "--audit-scope",
+        metavar="PATH",
+        default=None,
+        help=(
+            "B-016 MVP: audit a relative project subtree (e.g. communication/). "
+            "Mutually exclusive with --dev-tools-only. Runs scan-dir-aware Tier 2 tools only; "
+            "does not overwrite AI_STATUS.md."
+        ),
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+
+    # Determine audit tier based on flags
+    quick_mode = ns.quick
+    full_mode = ns.full
+
+    # Set exclusion configuration
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+
+    # Dev-tools-only mode: scan development_tools only, output to DEV_TOOLS_* files.
+    # OR with run_development_tools.py global `--dev-tools-only` (set on service before this runs).
+    service.dev_tools_only_mode = bool(
+        getattr(ns, "dev_tools_only", False)
+        or getattr(service, "dev_tools_only_mode", False)
+    )
+
+    audit_scope_raw = getattr(ns, "audit_scope", None)
+    if audit_scope_raw and service.dev_tools_only_mode:
+        print(
+            "ERROR: --audit-scope and --dev-tools-only are mutually exclusive."
+        )
+        return 2
+    if audit_scope_raw:
+        from development_tools.shared.audit_scope import (
+            AuditScopeError,
+            resolve_audit_scope,
+        )
+
+        try:
+            rel, slug = resolve_audit_scope(service.project_root, audit_scope_raw)
+        except AuditScopeError as exc:
+            print(f"ERROR: invalid --audit-scope: {exc}")
+            return 2
+        service.audit_scope_path = rel
+        service.audit_scope_slug = slug
+        service.dev_tools_only_mode = False
+    else:
+        service.audit_scope_path = None
+        service.audit_scope_slug = None
+
+    success = service.run_audit(
+        quick=quick_mode,
+        full=full_mode,
+        include_overlap=ns.overlap,
+        strict=ns.strict,
+    )
+    return 0 if success else 1
+
+
+def _full_audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Alias for audit --full."""
+    return _audit_command(service, ["--full", *argv])
+
+
+def _docs_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'docs' command does not accept additional arguments.")
+            return 2
+        print("Usage: docs")
+        return 0
+
+    success = service.run_docs()
+    return 0 if success else 1
+
+
+def _validate_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'validate' command does not accept additional arguments.")
+            return 2
+        print("Usage: validate")
+        return 0
+
+    success = service.run_validate()
+    return 0 if success else 1
+
+
+def _config_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'config' command does not accept additional arguments.")
+            return 2
+        print("Usage: config")
+        return 0
+
+    success = service.run_config()
+    return 0 if success else 1
+
+
+def _workflow_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    parser = argparse.ArgumentParser(prog="workflow", add_help=False)
+    parser.add_argument("task_type", help="Workflow task to execute")
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    if not argv:
+        print("Usage: workflow <task_type>")
+        return 2
+
+    ns = parser.parse_args(list(argv))
+    success = service.run_workflow(ns.task_type)
+    return 0 if success else 1
+
+
+def _decision_support_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print(
+                "The 'decision-support' command does not accept additional arguments."
+            )
+            return 2
+        print("Usage: decision-support")
+        return 0
+
+    result = service.run_decision_support()
+    return (
+        0
+        if (isinstance(result, dict) and result.get("success", False)) or result
+        else 1
+    )
+
+
+def _fix_version_sync_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    parser = argparse.ArgumentParser(prog="version-sync", add_help=False)
+    parser.add_argument(
+        "scope",
+        nargs="?",
+        default="docs",
+        help="Scope to sync (docs, core, ai_docs, all).",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+    success = service.run_version_sync(ns.scope)
+    return 0 if success else 1
+
+
+def _status_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'status' command does not accept additional arguments.")
+            return 2
+        print("Usage: status")
+        return 0
+
+    # run_status() doesn't return a value, it just generates status files
+    # It logs errors but doesn't raise exceptions, so we consider it always successful
+    try:
+        service.run_status()
+        return 0
+    except Exception as e:
+        logger.error(f"Status command failed: {e}", exc_info=True)
+        return 1
+
+
+def _system_signals_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle system-signals command"""
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'system-signals' command does not accept additional arguments.")
+            return 2
+        print("Usage: system-signals")
+        return 0
+
+    success = service.run_analyze_system_signals()
+    return 0 if success else 1
+
+
+def _doc_sync_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'doc-sync' command does not accept additional arguments.")
+            return 2
+        print("Usage: doc-sync")
+        return 0
+
+    success = service.run_documentation_sync()
+    return 0 if success else 1
+
+
+def _doc_fix_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle doc-fix command with options for different fix types."""
+    parser = argparse.ArgumentParser(description="Fix documentation issues")
+    parser.add_argument(
+        "--add-addresses",
+        action="store_true",
+        help="Add file addresses to documentation files",
+    )
+    parser.add_argument(
+        "--fix-ascii",
+        action="store_true",
+        help="Fix non-ASCII characters in documentation",
+    )
+    parser.add_argument(
+        "--number-headings",
+        action="store_true",
+        help="Number H2 and H3 headings in documentation",
+    )
+    parser.add_argument(
+        "--convert-links",
+        action="store_true",
+        help="Convert file paths to markdown links",
+    )
+    parser.add_argument("--all", action="store_true", help="Apply all fix operations")
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Alias for --all (apply all fix operations).",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be changed without making changes",
+    )
+
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit:
+        return 2
+
+    # Determine fix type
+    fix_types = []
+    if args.add_addresses:
+        fix_types.append("add-addresses")
+    if args.fix_ascii:
+        fix_types.append("fix-ascii")
+    if args.number_headings:
+        fix_types.append("number-headings")
+    if args.convert_links:
+        fix_types.append("convert-links")
+
+    if args.all or args.full:
+        fix_type = "all"
+    elif len(fix_types) == 1:
+        fix_type = fix_types[0]
+    elif len(fix_types) > 1:
+        print("Error: Can only specify one fix type at a time (or use --all)")
+        return 2
+    else:
+        # Default to all if nothing specified
+        fix_type = "all"
+
+    success = service.run_documentation_fix(fix_type=fix_type, dry_run=args.dry_run)
+    return 0 if success else 1
+
+
+def _coverage_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'coverage' command does not accept additional arguments.")
+            return 2
+        print("Usage: coverage")
+        return 0
+
+    coverage_result = service.run_coverage_regeneration()
+    success = bool(
+        coverage_result.get("success", False)
+        if isinstance(coverage_result, dict)
+        else coverage_result
+    )
+    if success:
+        marker_result = service.run_test_markers("check")
+        success = bool(
+            marker_result.get("success", False)
+            if isinstance(marker_result, dict)
+            else marker_result
+        )
+    if success:
+        report_result = service.run_generate_test_coverage_report()
+        success = bool(
+            report_result.get("success", False)
+            if isinstance(report_result, dict)
+            else report_result
+        )
+    return 0 if success else 1
+
+
+def _nightly_test_suite_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    parser = argparse.ArgumentParser(prog="nightly-test-suite", add_help=False)
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Return non-zero when tests fail, crash, or cleanup fails.",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+    result = service.run_nightly_test_suite(strict=ns.strict)
+    state = str(result.get("state") or "crashed")
+    if ns.strict or state != "clean":
+        return 0 if state == "clean" else 1
+    return 0 if result.get("success") else 1
+
+
+def _legacy_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'legacy' command does not accept additional arguments.")
+            return 2
+        print("Usage: legacy")
+        return 0
+
+    success = service.run_legacy_cleanup()
+    return 0 if success else 1
+
+
+def _flaky_detector_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Run the migrated flaky detector utility."""
+    result = service.run_script("flaky_detector", *argv, timeout=3600)
+    return 0 if result.get("success") else 1
+
+
+def _verify_process_cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Run the migrated process cleanup verifier utility."""
+    result = service.run_script("verify_process_cleanup", *argv, timeout=300)
+    return 0 if result.get("success") else 1
+
+
+def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle duplicate-functions command (analysis only)."""
+    parser = argparse.ArgumentParser(prog="duplicate-functions", add_help=False)
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+    )
+    parser.add_argument(
+        "--consider-body-similarity",
+        action="store_true",
+        help="Include body/structural similarity (AST); increases runtime.",
+    )
+    parser.add_argument(
+        "--body-for-near-miss",
+        action="store_true",
+        help="Match full-audit near-miss behavior: run body similarity only for lower name-token candidates.",
+    )
+    parser.add_argument(
+        "--min-overall",
+        type=float,
+        default=None,
+        help="Override minimum overall similarity threshold.",
+    )
+    parser.add_argument(
+        "--min-name",
+        type=float,
+        default=None,
+        help="Override minimum name similarity threshold.",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+
+    result = service.run_analyze_duplicate_functions(
+        min_overall=ns.min_overall,
+        min_name=ns.min_name,
+        consider_body_similarity=ns.consider_body_similarity,
+        body_for_near_miss_only=ns.body_for_near_miss,
+    )
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    return 0 if success else 1
+
+
+def _facade_shims_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle facade-shims command (analysis only)."""
+    parser = argparse.ArgumentParser(prog="facade-shims", add_help=False)
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+    )
+    parser.add_argument(
+        "--include-low-signal",
+        action="store_true",
+        help="Include plain thin wrappers and generic import aliases filtered by default.",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+    result = service.run_analyze_facade_shims(
+        include_low_signal=ns.include_low_signal
+    )
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    return 0 if success else 1
+
+
+def _unused_functions_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle unused-functions command (analysis only)."""
+    parser = argparse.ArgumentParser(prog="unused-functions", add_help=False)
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+    )
+    parser.add_argument(
+        "--private-only",
+        action="store_true",
+        help="Only report private (underscore-prefixed) functions.",
+    )
+    parser.add_argument(
+        "--max-results",
+        type=int,
+        default=100,
+        metavar="N",
+        help="Maximum number of unused functions to report (default: 100).",
+    )
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+
+    result = service.run_analyze_unused_functions(
+        private_only=ns.private_only,
+        max_results=ns.max_results,
+    )
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    return 0 if success else 1
+
+
+def _module_refactor_candidates_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle module-refactor-candidates command (analysis only)."""
+    parser = argparse.ArgumentParser(
+        prog="module-refactor-candidates",
+        add_help=False,
+        description="Identify large modules as candidates for splitting.",
+    )
+    parser.add_argument(
+        "--include-tests", action="store_true", help="Include test files in analysis."
+    )
+    parser.add_argument(
+        "--include-dev-tools",
+        action="store_true",
+        help="Include development_tools in analysis.",
+    )
+    parser.add_argument(
+        "--include-all",
+        action="store_true",
+        help="Include tests and dev tools.",
+    )
+    parser.add_argument("--json", action="store_true", help="Output JSON to stdout.")
+
+    if any(arg in ("-h", "--help") for arg in argv):
+        _print_command_help(parser)
+        return 0
+
+    ns = parser.parse_args(list(argv))
+
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+
+    result = service.run_analyze_module_refactor_candidates(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all,
+    )
+    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+    if ns.json and isinstance(result, dict) and "data" in result:
+        import json as _json
+        print(_json.dumps(result["data"], indent=2))
+    return 0 if success else 1
+
+
+def _cleanup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle cleanup command."""
+    parser = argparse.ArgumentParser(prog="cleanup", add_help=False)
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Clean everything including tool caches, pytest/coverage caches, and test temp data",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Alias for --full.",
+    )
+    parser.add_argument(
+        "--cache",
+        action="store_true",
+        help="Clean all cache files (tool caches/results + __pycache__ + .pytest_cache + coverage cache artifacts)",
+    )
+    parser.add_argument(
+        "--test-data", action="store_true", help="Clean test data directories"
+    )
+    parser.add_argument(
+        "--coverage",
+        action="store_true",
+        help="Clean coverage files, logs, and test-file-based coverage cache",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be removed without actually removing",
+    )
+
+    if "-h" in argv or "--help" in argv:
+        print(
+            "Usage: cleanup [--full|--all] [--cache] [--test-data] [--coverage] [--dry-run]"
+        )
+        print(
+            "  --full       Clean everything including tool caches, pytest/coverage caches, and test temp data"
+        )
+        print("  --all        Alias for --full")
+        print(
+            "  --cache      Clean all cache files (tool caches/results + __pycache__ + .pytest_cache + coverage cache artifacts)"
+        )
+        print("  --test-data  Clean test data directories")
+        print(
+            "  --coverage   Clean coverage files, logs, and test-file-based coverage cache"
+        )
+        print("  --dry-run    Show what would be removed without making changes")
+        print()
+        print(
+            "Default behavior (no flags): Clean most artifacts (all cache files + temp test files)"
+        )
+        print("Use --full to include all cleanup categories explicitly")
+        return 0
+
+    try:
+        args, unknown = parser.parse_known_args(argv)
+        if unknown:
+            print(f"Unknown arguments: {unknown}")
+            print(
+                "Usage: cleanup [--full|--all] [--cache] [--test-data] [--coverage] [--dry-run]"
+            )
+            return 2
+    except SystemExit:
+        return 2
+
+    # If --full is specified, clean everything.
+    if args.full or args.all:
+        cache = True
+        test_data = True
+        coverage = True
+    else:
+        # Default: clean most generated artifacts.
+        if not any([args.cache, args.test_data, args.coverage]):
+            cache = True
+            test_data = True
+            coverage = True
+        else:
+            # --cache should include coverage-related cache artifacts as well.
+            cache = args.cache
+            test_data = args.test_data
+            coverage = args.coverage or args.cache
+
+    result = service.run_cleanup(
+        cache=cache,
+        test_data=test_data,
+        reports=False,
+        coverage=coverage,
+        full=args.full,
+        dry_run=args.dry_run,
+        include_tool_caches=(args.cache or args.full or args.all or (not any([args.cache, args.test_data, args.coverage]))),
+    )
+
+    if result.get("success"):
+        data = result.get("data", {})
+        total_removed = data.get("total_removed", 0)
+        total_failed = data.get("total_failed", 0)
+        if args.dry_run:
+            logger.info(f"DRY RUN: Would remove {total_removed} items")
+        else:
+            logger.info(
+                f"Cleanup completed: {total_removed} items removed, {total_failed} failed"
+            )
+        return 0 if total_failed == 0 else 1
+    else:
+        logger.error(f"Cleanup failed: {result.get('error', 'Unknown error')}")
+        return 1
+
+
+def _backup_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """Handle backup policy operations."""
+    parser = argparse.ArgumentParser(prog="backup", add_help=False)
+    subparsers = parser.add_subparsers(dest="backup_subcommand")
+
+    subparsers.add_parser("inventory", add_help=False)
+
+    retention_parser = subparsers.add_parser("retention", add_help=False)
+    retention_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview retention actions without deleting files (default).",
+    )
+    retention_parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Apply retention actions and delete selected files.",
+    )
+
+    drill_parser = subparsers.add_parser("drill", add_help=False)
+    drill_parser.add_argument(
+        "--backup-path",
+        type=str,
+        default=None,
+        help="Optional explicit backup artifact path. Defaults to newest available backup.",
+    )
+    drill_parser.add_argument(
+        "--restore-config",
+        action="store_true",
+        help="Include config restore in the isolated restore drill.",
+    )
+
+    verify_parser = subparsers.add_parser("verify", add_help=False)
+    verify_parser.add_argument(
+        "--skip-drill",
+        action="store_true",
+        help="Skip isolated restore drill and run inventory/recency/validation checks only.",
+    )
+
+    if "-h" in argv or "--help" in argv:
+        print("Usage:")
+        print("  backup inventory")
+        print("  backup retention [--dry-run|--apply]")
+        print("  backup drill [--backup-path <path>] [--restore-config]")
+        print("  backup verify [--skip-drill]")
+        return 0
+
+    if not argv:
+        print("Usage:")
+        print("  backup inventory")
+        print("  backup retention [--dry-run|--apply]")
+        print("  backup drill [--backup-path <path>] [--restore-config]")
+        print("  backup verify [--skip-drill]")
+        return 2
+
+    try:
+        ns = parser.parse_args(list(argv))
+    except SystemExit:
+        return 2
+
+    if ns.backup_subcommand == "inventory":
+        result = service.run_backup_inventory()
+        return 0 if result.get("success") else 1
+
+    if ns.backup_subcommand == "retention":
+        apply_flag = bool(getattr(ns, "apply", False))
+        dry_run_flag = bool(not apply_flag)
+        # If both are specified, --apply takes precedence.
+        result = service.run_backup_retention(dry_run=dry_run_flag, apply=apply_flag)
+        return 0 if result.get("success") else 1
+
+    if ns.backup_subcommand == "drill":
+        result = service.run_backup_drill(
+            backup_path=ns.backup_path,
+            restore_users=True,
+            restore_config=bool(ns.restore_config),
+        )
+        return 0 if result.get("success") else 1
+
+    if ns.backup_subcommand == "verify":
+        result = service.run_backup_health_check(run_drill=not bool(ns.skip_drill))
+        return 0 if result.get("success") else 1
+
+    print("Invalid backup subcommand. Use: inventory, retention, drill, or verify.")
+    return 2
+
+
+def _export_code_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """
+    Export Python files into a single Markdown snapshot.
+
+    Note: this command does not require AIToolsService; we accept it to conform
+    to the CommandRegistration signature.
+    """
+    # Delegate parsing + behavior to the tool module
+    from development_tools.shared.export_code_snapshot import main
+
+    # main() expects argv excluding the command name (same as we receive here)
+    return int(main(list(argv)))
+
+
+def _export_docs_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    """
+    Generate a docs snapshot markdown bundle (similar to export_code_snapshot).
+
+    This intentionally delegates argument parsing to export_docs_snapshot.main()
+    so we only maintain the CLI flags in one place.
+    """
+    from development_tools.shared.export_docs_snapshot import (
+        main as export_docs_snapshot_main,
+    )
+
+    try:
+        return int(export_docs_snapshot_main(argv))
+    except SystemExit as e:
+        # argparse uses SystemExit; normalize to a CLI return code.
+        return int(e.code) if isinstance(e.code, int) else 2
+    except Exception as e:
+        logger.error(f"export-docs command failed: {e}", exc_info=True)
+        return 1
+
+
+def _trees_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ("-h", "--help") for arg in argv):
+            print("The 'trees' command does not accept additional arguments.")
+            return 2
+        print("Usage: trees")
+        return 0
+
+    success = service.generate_directory_trees()
+    return 0 if success else 1
+
+
+def _show_help_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    service.show_help()
+    return 0
+
+
+COMMAND_REGISTRY = OrderedDict(
+    [
+        (
+            "audit",
+            CommandRegistration(
+                "audit",
+                _audit_command,
+                "Run audit (Tier 2 - standard). Use --quick for Tier 1, --full for Tier 3.",
+            ),
+        ),
+        (
+            "full-audit",
+            CommandRegistration(
+                "full-audit",
+                _full_audit_command,
+                "Alias for `audit --full` (Tier 3 - comprehensive analysis).",
+            ),
+        ),
+        (
+            "docs",
+            CommandRegistration(
+                "docs", _docs_command, "Regenerate documentation artifacts."
+            ),
+        ),
+        (
+            "validate",
+            CommandRegistration(
+                "validate", _validate_command, "Validate AI-generated work."
+            ),
+        ),
+        (
+            "config",
+            CommandRegistration(
+                "config", _config_command, "Check configuration consistency."
+            ),
+        ),
+        (
+            "workflow",
+            CommandRegistration(
+                "workflow", _workflow_command, "Execute an audit-first workflow task."
+            ),
+        ),
+        (
+            "decision-support",
+            CommandRegistration(
+                "decision-support",
+                _decision_support_command,
+                "Generate decision support insights.",
+            ),
+        ),
+        (
+            "version-sync",
+            CommandRegistration(
+                "version-sync",
+                _fix_version_sync_command,
+                "Synchronize version metadata.",
+            ),
+        ),
+        (
+            "status",
+            CommandRegistration(
+                "status", _status_command, "Print quick system status."
+            ),
+        ),
+        (
+            "system-signals",
+            CommandRegistration(
+                "system-signals",
+                _system_signals_command,
+                "Generate system health and status signals.",
+            ),
+        ),
+        (
+            "doc-sync",
+            CommandRegistration(
+                "doc-sync", _doc_sync_command, "Check documentation synchronisation."
+            ),
+        ),
+        (
+            "doc-fix",
+            CommandRegistration(
+                "doc-fix",
+                _doc_fix_command,
+                "Fix documentation issues (addresses, ASCII, headings, links).",
+            ),
+        ),
+        (
+            "coverage",
+            CommandRegistration(
+                "coverage", _coverage_command, "Regenerate coverage metrics, marker analysis, and coverage report."
+            ),
+        ),
+        (
+            "nightly-test-suite",
+            CommandRegistration(
+                "nightly-test-suite",
+                _nightly_test_suite_command,
+                "Run the full pytest suite (includes slow tests) for nightly validation.",
+            ),
+        ),
+        (
+            "legacy",
+            CommandRegistration(
+                "legacy", _legacy_command, "Scan for legacy references."
+            ),
+        ),
+        (
+            "flaky-detector",
+            CommandRegistration(
+                "flaky-detector",
+                _flaky_detector_command,
+                "Detect flaky tests via repeated parallel runs.",
+            ),
+        ),
+        (
+            "verify-process-cleanup",
+            CommandRegistration(
+                "verify-process-cleanup",
+                _verify_process_cleanup_command,
+                "Check for orphaned pytest/python worker processes.",
+            ),
+        ),
+        (
+            "duplicate-functions",
+            CommandRegistration(
+                "duplicate-functions",
+                _duplicate_functions_command,
+                "Detect possible duplicate or similar functions (analysis only).",
+            ),
+        ),
+        (
+            "facade-shims",
+            CommandRegistration(
+                "facade-shims",
+                _facade_shims_command,
+                "Detect named/documented facade, shim, alias, and compatibility bridge candidates.",
+            ),
+        ),
+        (
+            "module-refactor-candidates",
+            CommandRegistration(
+                "module-refactor-candidates",
+                _module_refactor_candidates_command,
+                "Identify large modules as candidates for splitting.",
+            ),
+        ),
+        (
+            "unused-functions",
+            CommandRegistration(
+                "unused-functions",
+                _unused_functions_command,
+                "Detect unused/uncalled functions and methods (analysis only, advisory).",
+            ),
+        ),
+        (
+            "cleanup",
+            CommandRegistration(
+                "cleanup",
+                _cleanup_command,
+                "Clean up project cache and temporary files.",
+            ),
+        ),
+        (
+            "clean-up",
+            CommandRegistration(
+                "clean-up",
+                _cleanup_command,
+                "Alias for `cleanup` (clean project cache and temporary files).",
+            ),
+        ),
+        (
+            "backup",
+            CommandRegistration(
+                "backup",
+                _backup_command,
+                "Backup policy operations: inventory, retention, restore drill, and health verification.",
+            ),
+        ),
+        (
+            "export-code",
+            CommandRegistration(
+                "export-code",
+                _export_code_command,
+                "Export Python files into a single Markdown snapshot (LLM-friendly).",
+            ),
+        ),
+        (
+            "export-docs",
+            CommandRegistration(
+                "export-docs",
+                _export_docs_command,
+                "Export documentation files into a single Markdown snapshot (LLM-friendly).",
+            ),
+        ),
+        (
+            "trees",
+            CommandRegistration(
+                "trees", _trees_command, "Generate directory tree reports."
+            ),
+        ),
+        (
+            "help",
+            CommandRegistration(
+                "help", _show_help_command, "Show detailed help information."
+            ),
+        ),
+    ]
+)
+
+
+def list_commands() -> Sequence[CommandRegistration]:
+    """List all registered commands."""
+    return tuple(COMMAND_REGISTRY.values())

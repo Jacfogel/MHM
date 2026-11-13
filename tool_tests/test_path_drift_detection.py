@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+# INTENTIONAL LEGACY: This test file intentionally references legacy paths (bot/old_module.py)
+# in test data to verify path drift detection works correctly. These references should NOT
+# be flagged as issues - they are test code.
+"""
+Test path drift detection functionality.
+
+This test verifies that path drift detection correctly identifies
+documentation references to files that don't exist.
+"""
+
+import json
+import pytest
+
+# Import helper from conftest
+from development_tools.tool_tests.conftest import load_development_tools_module
+
+# Load the module using the helper
+path_drift_module = load_development_tools_module("docs.analyze_path_drift")
+PathDriftAnalyzer = path_drift_module.PathDriftAnalyzer
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("suffix", ["#2-rules", "?view=raw", "?view=raw#2-rules"])
+def test_markdown_suffix_does_not_turn_link_label_into_missing_path(tmp_path, suffix):
+    """A valid anchored/query href is checked as a file, not its filename label."""
+    (tmp_path / "core").mkdir()
+    (tmp_path / "core" / "GUIDE.md").write_text("## 2. Rules\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text(
+        f"See [GUIDE.md](core/GUIDE.md{suffix}) for the rules.\n",
+        encoding="utf-8",
+    )
+    analyzer = PathDriftAnalyzer(project_root=str(tmp_path), use_cache=False)
+    assert analyzer.check_path_drift() == {}
+    assert analyzer.check_markdown_link_targets() == {}
+
+
+@pytest.mark.unit
+def test_missing_anchored_href_is_still_reported(tmp_path):
+    """Ignoring a URL suffix must not hide a genuinely absent destination."""
+    (tmp_path / "README.md").write_text(
+        "See [Rules](core/MISSING.md?view=raw#2-rules).\n", encoding="utf-8"
+    )
+    analyzer = PathDriftAnalyzer(project_root=str(tmp_path), use_cache=False)
+    issues = analyzer.check_markdown_link_targets()
+    assert "core/MISSING.md?view=raw#2-rules" in str(issues)
+    assert "Missing markdown link target" in str(issues)
+
+
+@pytest.mark.unit
+class TestPathDriftDetection:
+    """Test path drift detection."""
+    
+    def test_path_drift_detects_missing_file(self, tmp_path):
+        """Test that path drift detection finds references to non-existent files."""
+        # Create a temporary project structure (use development_docs to avoid
+        # any exclusion patterns that might match "docs/" in real configs)
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+        docs_dir = project_dir / "development_docs"
+        docs_dir.mkdir()
+
+        doc_file = docs_dir / "README.md"
+        doc_file.write_text(
+            "# Test Documentation\n\n"
+            "This file references a non-existent file: `core/nonexistent_module.py`\n\n"
+            "Also references: `tests/missing_test.py`\n"
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        results = analyzer.check_path_drift()
+
+        # Verify that the documentation file is flagged
+        doc_file_str = str(doc_file.relative_to(project_dir)).replace("\\", "/")
+        doc_file_win = str(doc_file.relative_to(project_dir))
+        found = doc_file_str in results or doc_file_win in results
+        doc_paths = analyzer.scan_documentation_paths()
+        assert found, (
+            f"Expected {doc_file_str} (or Windows path) to be in drift results. "
+            f"Got: {list(results.keys())}. Doc paths: {list(doc_paths.keys())}"
+        )
+
+        # Get the key that was actually used (could be either format)
+        result_key = doc_file_str if doc_file_str in results else doc_file_win
+        issues = results[result_key]
+        assert len(issues) > 0, "Expected at least one path drift issue"
+        
+        # Check that the non-existent files are mentioned
+        issue_text = ' '.join(issues)
+        assert 'nonexistent_module.py' in issue_text or 'missing_test.py' in issue_text, \
+            f"Expected non-existent file to be mentioned in issues: {issues}"
+    
+    def test_path_drift_ignores_existing_files(self, tmp_path):
+        """Test that path drift detection doesn't flag existing files."""
+        # Create a temporary project structure
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+        
+        # Create actual files
+        core_dir = project_dir / "core"
+        core_dir.mkdir()
+        existing_file = core_dir / "existing_module.py"
+        existing_file.write_text("# Existing module")
+        
+        # Create documentation that references the existing file
+        docs_dir = project_dir / "docs"
+        docs_dir.mkdir()
+        
+        doc_file = docs_dir / "README.md"
+        doc_file.write_text("""
+# Test Documentation
+
+This file references an existing file: `core/existing_module.py`
+""")
+        
+        # Create analyzer
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir))
+        
+        # Run path drift check
+        results = analyzer.check_path_drift()
+        
+        # Verify that the documentation file is NOT flagged (or flagged for other reasons only)
+        doc_file_str = str(doc_file.relative_to(project_dir))
+        if doc_file_str in results:
+            # If it's flagged, make sure it's not for the existing file
+            issues = results[doc_file_str]
+            issue_text = ' '.join(issues)
+            assert 'existing_module.py' not in issue_text, \
+                f"Existing file should not be flagged: {issues}"
+    
+    def test_path_drift_accepts_an_existing_website_test_link(self, tmp_path):
+        """A markdown link to an existing non-Python file is not an outdated module."""
+        project_dir = tmp_path / "test_project"
+        website_dir = project_dir / "website"
+        specs_dir = project_dir / "specs"
+        website_dir.mkdir(parents=True)
+        specs_dir.mkdir()
+        (website_dir / "home.test.mjs").write_text("// test\n", encoding="utf-8")
+        doc_file = specs_dir / "SPEC_COVERAGE_MATRIX.md"
+        doc_file.write_text(
+            "See [website/home.test.mjs](../website/home.test.mjs).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        results = analyzer.check_path_drift()
+
+        doc_key = str(doc_file.relative_to(project_dir))
+        issues = results.get(doc_key, []) + results.get(doc_key.replace("\\", "/"), [])
+        assert not any("home.test.mjs" in issue for issue in issues), issues
+
+    def test_path_drift_with_reference_report(self, tmp_path):
+        """Test that path drift detection skips compatibility reference docs."""
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+
+        dev_docs_dir = project_dir / "development_docs"
+        dev_docs_dir.mkdir(parents=True)
+
+        legacy_file = dev_docs_dir / "LEGACY_REFERENCE_REPORT.md"
+        legacy_file.write_text("""
+# Reference Report
+
+This file intentionally references old paths:
+- `bot/old_module.py` (compatibility path)
+- `old_directory/file.py` (historical reference)
+""")
+
+        config_file = project_dir / "dev_tools_config.json"
+        config_file.write_text(
+            json.dumps(
+                {
+                    "path_drift": {
+                        "legacy_documentation_files": [
+                            "development_docs/LEGACY_REFERENCE_REPORT.md"
+                        ]
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(
+            project_root=str(project_dir),
+            config_path=str(config_file),
+            use_cache=False,
+        )
+
+        results = analyzer.check_path_drift()
+
+        legacy_file_str = str(legacy_file.relative_to(project_dir))
+        assert legacy_file_str not in results, (
+            f"Legacy reference doc should be skipped entirely: {results.get(legacy_file_str)}"
+        )
+
+    def test_markdown_link_target_hints_repo_relative_link_in_nested_doc(self, tmp_path):
+        """Repo-relative markdown links in nested docs should be flagged as not clickable."""
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+
+        root_doc = project_dir / "README.md"
+        root_doc.write_text("# Root\n", encoding="utf-8")
+        ai_docs_dir = project_dir / "ai_development_docs"
+        ai_docs_dir.mkdir()
+        nested_doc = ai_docs_dir / "AI_GUIDE.md"
+        nested_doc.write_text(
+            "# AI Guide\n\nSee [README.md](README.md).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        results = analyzer.check_markdown_link_targets()
+
+        doc_key = "ai_development_docs/AI_GUIDE.md"
+        assert doc_key in results
+        assert "not clickable" in results[doc_key][0]
+        assert "`../README.md`" in results[doc_key][0]
+
+    def test_markdown_link_target_hints_accepts_correct_relative_link(self, tmp_path):
+        """Correct relative markdown links should not be flagged."""
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+
+        root_doc = project_dir / "README.md"
+        root_doc.write_text("# Root\n", encoding="utf-8")
+        ai_docs_dir = project_dir / "ai_development_docs"
+        ai_docs_dir.mkdir()
+        nested_doc = ai_docs_dir / "AI_GUIDE.md"
+        nested_doc.write_text(
+            "# AI Guide\n\nSee [README.md](../README.md).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        results = analyzer.check_markdown_link_targets()
+
+        assert results == {}
+
+    def test_run_analysis_surfaces_markdown_link_target_hints(self, tmp_path):
+        """Markdown link target hints should be exposed in standard analysis details."""
+        project_dir = tmp_path / "test_project"
+        project_dir.mkdir()
+        (project_dir / "README.md").write_text("# Root\n", encoding="utf-8")
+        docs_dir = project_dir / "development_docs"
+        docs_dir.mkdir()
+        (docs_dir / "GUIDE.md").write_text(
+            "# Guide\n\nSee [README.md](README.md).\n",
+            encoding="utf-8",
+        )
+
+        analyzer = PathDriftAnalyzer(project_root=str(project_dir), use_cache=False)
+        result = analyzer.run_analysis()
+
+        assert result["summary"]["total_issues"] == 0
+        assert result["details"]["markdown_link_target_issues"] == 1
+        assert "development_docs/GUIDE.md" in result["details"]["markdown_link_target_files"]

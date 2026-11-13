@@ -1,0 +1,10 @@
+{
+  "project": {"name": "Project"},
+  "constants": {"paired_docs": {}},
+  "host": {"backup_manager_module": ""},
+  "paths": {
+    "report_logs_dir": "development_tools/reports/logs",
+    "report_archive_dir": "development_tools/reports/archive",
+    "tool_timings_dir": "development_tools/reports/scopes"
+  }
+}

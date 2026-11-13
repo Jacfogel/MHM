@@ -1,0 +1,1394 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+
+"""Portable pytest suite runner for Tier 3 audits.
+
+Runs pytest without coverage and emits a structured Tier 3 test outcome that
+matches the existing audit report contract.
+"""
+
+from __future__ import annotations
+
+import argparse
+import contextlib
+import importlib.util
+import json
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+
+DEFAULT_TEST_RUN = {
+    "pytest_command": [sys.executable, "-m", "pytest"],
+    "pytest_base_args": ["--tb=short", "--maxfail=10"],
+    "test_paths": None,
+    "workers": "auto",
+    # Keep the standalone runner aligned with the configured audit timeout.
+    "timeout_seconds": 3600,
+    "exclude_markers": ["e2e", "slow"],
+    "default_profile": "quick",
+    "suite_profile": "quick",
+    "no_parallel_marker": "no_parallel",
+    "sigint_taps_to_stop": 5,
+    "sigint_window_seconds": 2.0,
+    "sigint_debounce_seconds": 0.35,
+    "junit_dir": "development_tools/tests/jsons/test_suite_junit",
+}
+
+
+_INTERRUPT_TAPS = 0
+_LAST_INTERRUPT_TIME: float | None = None
+_STOP_REQUESTED = False
+_ACTIVE_PROCESS: subprocess.Popen[str] | None = None
+_SIGINT_CFG = DEFAULT_TEST_RUN.copy()
+_CURRENT_SUITE_RUN_ID: str | None = None
+
+try:
+    from development_tools.shared.logging import get_dev_tools_logger
+    from development_tools.tests.pytest_isolation import (
+        existing_tools_roots,
+        host_ignore_args,
+        is_tools_test_path,
+        normalize_rel,
+        partition_test_paths,
+        tools_suite_pytest_args,
+    )
+    from development_tools.tests.test_file_coverage_cache import TestFileCoverageCache
+
+    _suite_logger = get_dev_tools_logger("development_tools")
+except ImportError:
+    _suite_logger = None
+    TestFileCoverageCache = None  # type: ignore[misc, assignment]
+    existing_tools_roots = None  # type: ignore[misc, assignment]
+    host_ignore_args = None  # type: ignore[misc, assignment]
+    is_tools_test_path = None  # type: ignore[misc, assignment]
+    normalize_rel = None  # type: ignore[misc, assignment]
+    partition_test_paths = None  # type: ignore[misc, assignment]
+    tools_suite_pytest_args = None  # type: ignore[misc, assignment]
+
+
+@dataclass
+class PhaseResult:
+    name: str
+    command: list[str]
+    return_code: int | None
+    duration_seconds: float
+    counts: dict[str, int]
+    failed_node_ids: list[str]
+    output_tail: str
+    junit_xml: str
+    interrupted: bool = False
+    junit_reports: tuple[str, ...] = ()
+
+    def results_by_test_file(self) -> dict[str, dict[str, Any]]:
+        """Read every pytest report that contributed to this phase."""
+        results: dict[str, dict[str, Any]] = {}
+        for report in self.junit_reports or (self.junit_xml,):
+            results.update(_parse_junit_by_test_file(Path(report)))
+        return results
+
+    @property
+    def classification(self) -> str:
+        if self.interrupted:
+            return "crashed"
+        if self.return_code in (None,):
+            return "crashed"
+        if self.return_code == 5 and self.counts.get("total", 0) == 0:
+            return "skipped"
+        if self.return_code < 0 or self.return_code in {130, 3221225786, 3221225477}:
+            return "crashed"
+        if self.return_code not in (0, 5) and self.counts.get("total", 0) == 0:
+            return "crashed"
+        # Pytest exit code 1 with setup errors is a finished test run. Only
+        # non-standard exits (usage errors, interrupts) stay crashes, so the
+        # suite cache can record the failed files instead of every domain.
+        if self.counts.get("errors", 0) > 0 and self.return_code not in (0, 1, 5):
+            return "crashed"
+        if (
+            self.counts.get("failed", 0) > 0
+            or self.counts.get("errors", 0) > 0
+            or self.return_code not in (0, 5)
+        ):
+            return "failed"
+        return "passed"
+
+
+def _load_config(profile: str | None = None) -> dict[str, Any]:
+    try:
+        from development_tools import config
+
+        return config.get_test_run_config(profile)
+    except Exception:
+        result = dict(DEFAULT_TEST_RUN)
+        profile_name = str(profile or result.get("default_profile") or "quick").strip().lower()
+        if profile_name == "full":
+            result["exclude_markers"] = ["e2e"]
+        else:
+            result["exclude_markers"] = ["e2e", "slow"]
+        result["suite_profile"] = profile_name
+        if not result.get("test_paths"):
+            result["test_paths"] = ["tests"]
+        return result
+
+
+def _has_xdist() -> bool:
+    return importlib.util.find_spec("xdist") is not None
+
+
+def _resolved_worker_count(workers_cfg: str | None) -> int:
+    """Match run_tests.py worker policy; leave headroom during Tier 3 audit contention."""
+    workers_text = str(workers_cfg or "auto").strip().lower()
+    if workers_text not in {"", "auto", "none"}:
+        try:
+            return max(1, int(workers_text))
+        except ValueError:
+            pass
+    import multiprocessing
+
+    cpu_count = multiprocessing.cpu_count()
+    if os.environ.get("MHM_TIER3_AUDIT") == "1":
+        return min(4, max(2, cpu_count // 3))
+    return min(6, max(2, cpu_count // 2))
+
+
+def _suite_run_id() -> str:
+    """Stable run id for one suite invocation (parallel + serial share the same root)."""
+    global _CURRENT_SUITE_RUN_ID
+    if _CURRENT_SUITE_RUN_ID is None:
+        _CURRENT_SUITE_RUN_ID = time.strftime("%Y%m%d_%H%M%S")
+    return _CURRENT_SUITE_RUN_ID
+
+
+def _use_signal_timeout_method() -> bool:
+    """Return True when pytest-timeout can abort hung tests with SIGALRM."""
+    return os.name != "nt"
+
+
+def _append_pytest_runtime_options(
+    command: list[str],
+    *,
+    force_serial: bool,
+    worker_count: int | None = None,
+) -> None:
+    """Apply the same runtime isolation/verbosity defaults as run_tests.py."""
+    run_id = _suite_run_id()
+    pytest_root = Path("tests/data/tmp/pytest_runner") / run_id
+    parallel_basetemp = pytest_root / "parallel"
+    serial_basetemp = pytest_root / "serial"
+    pytest_cache_dir = Path("tests/data/tmp/pytest_cache")
+    parallel_basetemp.mkdir(parents=True, exist_ok=True)
+    serial_basetemp.mkdir(parents=True, exist_ok=True)
+    basetemp = serial_basetemp if force_serial else parallel_basetemp
+    pytest_cache_dir.mkdir(parents=True, exist_ok=True)
+    command.extend(
+        [
+            "--basetemp",
+            str(basetemp),
+            "-o",
+            f"cache_dir={pytest_cache_dir}",
+            "--ignore=tests/data",
+            "--ignore=tests/data/tmp",
+            "--ignore-glob=tests/data/tmp/**",
+            "-q",
+        ]
+    )
+    if _use_signal_timeout_method():
+        command.append("--timeout-method=signal")
+    if not force_serial and worker_count and worker_count > 1:
+        command.extend(["-n", str(worker_count), "--dist=loadscope"])
+
+
+def _marker_expression(*, include_no_parallel: bool, cfg: dict[str, Any]) -> str:
+    no_parallel = str(cfg.get("no_parallel_marker") or "no_parallel")
+    parts: list[str] = [no_parallel if include_no_parallel else f"not {no_parallel}"]
+    for marker in cfg.get("exclude_markers") or []:
+        marker_text = str(marker).strip()
+        if marker_text:
+            parts.append(f"not {marker_text}")
+    return " and ".join(parts)
+
+
+def _pytest_command(cfg: dict[str, Any]) -> list[str]:
+    command = [str(part) for part in (cfg.get("pytest_command") or DEFAULT_TEST_RUN["pytest_command"])]
+    if command and command[0].lower() in {"python", "python.exe", "{python}"}:
+        command[0] = sys.executable
+    return command
+
+
+def build_phase_command(
+    *,
+    phase: str,
+    cfg: dict[str, Any],
+    junit_xml: Path,
+    force_serial: bool = False,
+    test_paths: list[str] | None = None,
+    extra_args: list[str] | None = None,
+    marker_phase: str | None = None,
+) -> list[str]:
+    command = _pytest_command(cfg)
+    if extra_args:
+        command.extend(str(part) for part in extra_args)
+    command.extend(str(part) for part in (cfg.get("pytest_base_args") or []))
+    command.extend(["--junitxml", str(junit_xml)])
+    track = marker_phase or phase
+    include_no_parallel = track == "no_parallel"
+    command.extend(["-m", _marker_expression(include_no_parallel=include_no_parallel, cfg=cfg)])
+    worker_count: int | None = None
+    if track == "parallel" and not force_serial and _has_xdist():
+        worker_count = _resolved_worker_count(str(cfg.get("workers") or "auto"))
+    _append_pytest_runtime_options(
+        command,
+        force_serial=force_serial or worker_count in (None, 1),
+        worker_count=worker_count,
+    )
+    paths = test_paths if test_paths is not None else (cfg.get("test_paths") or ["tests"])
+    command.extend(str(path) for path in paths)
+    return command
+
+
+def _handle_sigint(signum: int, _frame: object) -> None:
+    global _INTERRUPT_TAPS, _LAST_INTERRUPT_TIME, _STOP_REQUESTED
+    now = time.time()
+    window = float(_SIGINT_CFG.get("sigint_window_seconds", 2.0) or 2.0)
+    debounce = float(_SIGINT_CFG.get("sigint_debounce_seconds", 0.35) or 0.35)
+    threshold = int(_SIGINT_CFG.get("sigint_taps_to_stop", 5) or 5)
+    if _LAST_INTERRUPT_TIME is not None:
+        elapsed = now - _LAST_INTERRUPT_TIME
+        if elapsed < debounce:
+            return
+        if elapsed > window:
+            _INTERRUPT_TAPS = 0
+    _INTERRUPT_TAPS += 1
+    _LAST_INTERRUPT_TIME = now
+    if threshold <= _INTERRUPT_TAPS:
+        _STOP_REQUESTED = True
+        if _ACTIVE_PROCESS is not None:
+            _terminate_process_tree(_ACTIVE_PROCESS)
+        return
+    remaining = threshold - _INTERRUPT_TAPS
+    print(f"[SIGINT] Ignoring interrupt; {remaining} more within {int(window)}s to stop.", flush=True)
+
+
+def _terminate_process_tree(process: subprocess.Popen[str]) -> None:
+    if process.poll() is not None:
+        return
+    try:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        else:
+            os.killpg(process.pid, signal.SIGTERM)
+    except Exception:
+        with contextlib.suppress(Exception):
+            process.terminate()
+
+
+def _junit_case_file_and_node(classname: str, name: str) -> tuple[str | None, str]:
+    """Map a JUnit classname to a test file and a pytest node id.
+
+    Classnames look like ``tests.unit.test_checkin_view.TestCheckinView``.
+    The class segment is not a path. Treating the whole classname as a file
+    made failed-domain tracking miss the real test, so the next audit reran
+    every domain from the previous suite.
+    """
+    test_name = name or "unknown"
+    dotted = (classname or "").strip()
+    if not dotted:
+        if "::" in test_name:
+            return test_name.split("::", 1)[0], test_name
+        return None, test_name
+
+    parts = [part for part in dotted.split(".") if part]
+    file_index: int | None = None
+    for index in range(len(parts), 0, -1):
+        candidate = "/".join(parts[:index]) + ".py"
+        if Path(candidate).is_file():
+            file_index = index
+            break
+
+    class_parts: list[str] = []
+    if file_index is None:
+        module_parts = list(parts)
+        while module_parts and module_parts[-1][:1].isupper():
+            class_parts.append(module_parts.pop())
+        class_parts.reverse()
+        file_parts = module_parts or parts
+        file_rel = "/".join(file_parts) + ".py"
+    else:
+        file_rel = "/".join(parts[:file_index]) + ".py"
+        class_parts = parts[file_index:]
+
+    node = file_rel
+    if class_parts:
+        node += "::" + "::".join(class_parts)
+    node += f"::{test_name}"
+    return file_rel, node
+
+
+def _test_file_rel_from_case(classname: str, name: str) -> str | None:
+    file_rel, _node = _junit_case_file_and_node(classname, name)
+    return file_rel
+
+
+def _parse_junit_by_test_file(xml_path: Path) -> dict[str, dict[str, Any]]:
+    """Group JUnit cases by test file path (project-relative)."""
+    by_file: dict[str, dict[str, Any]] = {}
+    if not xml_path.exists():
+        return by_file
+    try:
+        root = ET.parse(xml_path).getroot()  # nosec B314 - local pytest output
+    except Exception:
+        return by_file
+    for case in root.findall(".//testcase"):
+        classname = case.get("classname") or ""
+        name = case.get("name") or "unknown"
+        rel = _test_file_rel_from_case(classname, name)
+        if not rel:
+            continue
+        entry = by_file.setdefault(
+            rel,
+            {
+                "counts": {"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0},
+                "failed_node_ids": [],
+            },
+        )
+        counts = entry["counts"]
+        counts["total"] += 1
+        if case.find("skipped") is not None:
+            counts["skipped"] += 1
+            counts["passed"] += 0
+        elif case.find("failure") is not None or case.find("error") is not None:
+            if case.find("error") is not None:
+                counts["errors"] += 1
+            else:
+                counts["failed"] += 1
+            _file_rel, node = _junit_case_file_and_node(classname, name)
+            entry["failed_node_ids"].append(node)
+        else:
+            counts["passed"] += 1
+    for entry in by_file.values():
+        entry["failed_node_ids"] = sorted(set(entry["failed_node_ids"]))
+    return by_file
+
+
+def _merge_counts(*parts: dict[str, int]) -> dict[str, int]:
+    merged = {"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0}
+    for part in parts:
+        for key in merged:
+            merged[key] += int(part.get(key, 0) or 0)
+    return merged
+
+
+def _phase_from_counts(
+    *,
+    name: str,
+    counts: dict[str, int],
+    failed_node_ids: list[str],
+    junit_xml: str,
+    duration_seconds: float = 0.0,
+    return_code: int = 0,
+) -> PhaseResult:
+    return PhaseResult(
+        name=name,
+        command=[],
+        return_code=return_code,
+        duration_seconds=duration_seconds,
+        counts=counts,
+        failed_node_ids=sorted(set(failed_node_ids)),
+        output_tail="",
+        junit_xml=junit_xml,
+    )
+
+
+def _parse_junit(xml_path: Path) -> tuple[dict[str, int], list[str]]:
+    counts = {"total": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0}
+    failed_nodes: list[str] = []
+    if not xml_path.exists():
+        return counts, failed_nodes
+    try:
+        root = ET.parse(xml_path).getroot()  # nosec B314 - local pytest output
+    except Exception:
+        return counts, failed_nodes
+    for suite in root.findall(".//testsuite"):
+        total = int(suite.get("tests", 0) or 0)
+        failures = int(suite.get("failures", 0) or 0)
+        errors = int(suite.get("errors", 0) or 0)
+        skipped = int(suite.get("skipped", 0) or 0)
+        counts["total"] += total
+        counts["failed"] += failures
+        counts["errors"] += errors
+        counts["skipped"] += skipped
+        counts["passed"] += max(0, total - failures - errors - skipped)
+    for case in root.findall(".//testcase"):
+        if case.find("failure") is None and case.find("error") is None:
+            continue
+        classname = case.get("classname") or ""
+        name = case.get("name") or "unknown"
+        _file_rel, node = _junit_case_file_and_node(classname, name)
+        failed_nodes.append(node)
+    return counts, sorted(set(failed_nodes))
+
+
+_DOT_PROGRESS_LINE = re.compile(r"^[.\s]+(?:\[\s*\d+%\s*\])?$")
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
+_TIMEOUT_DUMP_RE = re.compile(
+    r"(\+{3,}.*timeout.*\+{3,}|timeouterror|dumping stacks|current thread 0x|fatal python error)",
+    re.I,
+)
+
+
+def _pytest_output_tail(output: str, *, limit: int = 80) -> str:
+    """Keep diagnostic lines, skipping pytest progress-only dots.
+
+    Timeout/faulthandler dumps put the hung thread first and leftover worker
+    threads last. Keep both ends so nightly summaries still show the hung
+    test instead of only leaked event-loop stacks.
+    """
+    lines = (output or "").splitlines()
+    if not lines:
+        return ""
+    useful: list[str] = []
+    for line in lines:
+        stripped = _ANSI_ESCAPE.sub("", line).strip()
+        if not stripped or _DOT_PROGRESS_LINE.fullmatch(stripped):
+            continue
+        useful.append(line)
+    selected = useful or lines
+    dump_idx = None
+    for index, line in enumerate(selected):
+        if _TIMEOUT_DUMP_RE.search(_ANSI_ESCAPE.sub("", line)):
+            dump_idx = index
+            break
+    if dump_idx is not None:
+        selected = selected[dump_idx:]
+    if len(selected) <= limit:
+        return "\n".join(selected)
+    head_n = max(1, limit // 2)
+    tail_n = limit - head_n
+    return "\n".join([*selected[:head_n], *selected[-tail_n:]])
+
+
+def _should_write_suite_cache(phases: list[PhaseResult]) -> bool:
+    """Skip cache writes after timeout/SIGINT so incomplete JUnit cannot wipe results."""
+    return bool(phases) and not any(phase.interrupted for phase in phases)
+
+
+def _is_xdist_teardown_interrupt_output(output: str) -> bool:
+    """Detect local xdist/execnet teardown hangs after test execution completes."""
+    lowered = output.lower()
+    return all(
+        marker in lowered
+        for marker in (
+            "xdist",
+            "teardown_nodes",
+            "execnet",
+            "keyboardinterrupt",
+        )
+    )
+
+
+def _is_xdist_worker_crash_output(output: str) -> bool:
+    """Detect xdist/execnet worker crash patterns in pytest output."""
+    if not output:
+        return False
+    lowered = output.lower()
+    crash_markers = (
+        "node down: not properly terminated",
+        "windows fatal exception",
+        "execnet.gateway_base",
+        "pluggyteardownraisedwarning",
+        "oserror: cannot send (already closed?)",
+    )
+    return any(marker in lowered for marker in crash_markers)
+
+
+def _should_retry_parallel_serially(phase: PhaseResult) -> bool:
+    """Retry parallel pytest serially after xdist worker instability.
+
+    Never retry after a timeout/SIGINT interrupt: the outer audit budget is
+    already nearly spent, and a fresh serial attempt can burn another hour.
+    """
+    if phase.interrupted:
+        return False
+    if phase.classification not in {"crashed", "failed"}:
+        return False
+    tail = phase.output_tail or ""
+    return _is_xdist_teardown_interrupt_output(tail) or _is_xdist_worker_crash_output(
+        tail
+    )
+
+
+def _announce(message: str) -> None:
+    """Write a progress line to the audit console and the tools log."""
+    print(message, flush=True)
+    if _suite_logger:
+        _suite_logger.info(message)
+
+
+def _phase_timeout_seconds(cfg: dict[str, Any]) -> int:
+    """Return the configured pytest phase timeout in seconds."""
+    try:
+        return max(1, int(cfg.get("timeout_seconds") or 3600))
+    except (TypeError, ValueError):
+        return 3600
+
+
+def _merged_return_code(parts: list[PhaseResult]) -> int | None:
+    """Return the worst pytest exit code from split host/tools invocations."""
+    if any(part.interrupted for part in parts):
+        interrupted = next(part for part in parts if part.interrupted)
+        return interrupted.return_code
+    codes = [part.return_code if part.return_code is not None else 2 for part in parts]
+    crash = next((code for code in codes if code not in (0, 1, 5)), None)
+    if crash is not None:
+        return crash
+    if any(code == 1 for code in codes):
+        return 1
+    if all(code == 5 for code in codes):
+        return 5
+    return 0
+
+
+def _merge_phase_results(name: str, parts: list[PhaseResult]) -> PhaseResult:
+    """Combine host and tools pytest results into one named track."""
+    if len(parts) == 1:
+        only = parts[0]
+        if only.name == name:
+            return only
+        return PhaseResult(
+            name=name,
+            command=only.command,
+            return_code=only.return_code,
+            duration_seconds=only.duration_seconds,
+            counts=only.counts,
+            failed_node_ids=only.failed_node_ids,
+            output_tail=only.output_tail,
+            junit_xml=only.junit_xml,
+            interrupted=only.interrupted,
+            junit_reports=only.junit_reports,
+        )
+    commands: list[str] = []
+    for part in parts:
+        commands.extend(part.command)
+        commands.append(";")
+    if commands:
+        commands.pop()
+    tails = [part.output_tail for part in parts if part.output_tail]
+    failed: list[str] = []
+    for part in parts:
+        failed.extend(part.failed_node_ids)
+    diagnostic_part = next(
+        (part for part in parts if part.classification in {"failed", "crashed"}),
+        parts[0],
+    )
+    return PhaseResult(
+        name=name,
+        command=commands,
+        return_code=_merged_return_code(parts),
+        duration_seconds=round(sum(part.duration_seconds for part in parts), 3),
+        counts=_merge_counts(*(part.counts for part in parts)),
+        failed_node_ids=sorted(set(failed)),
+        output_tail="\n".join(tails),
+        junit_xml=diagnostic_part.junit_xml,
+        interrupted=any(part.interrupted for part in parts),
+        junit_reports=tuple(
+            report for part in parts for report in (part.junit_reports or (part.junit_xml,))
+        ),
+    )
+
+
+def _collapse_tools_paths(tools_paths: list[str], tools_roots: list[str]) -> list[str]:
+    """Prefer tools roots when every selected path sits under those roots.
+
+    Selective cache often passes ~140 individual files; collapsing keeps the
+    Windows CreateProcess command line short and matches a normal tools collect.
+    """
+    if not tools_paths or not tools_roots:
+        return tools_paths
+    if is_tools_test_path is None or normalize_rel is None:
+        return tools_paths
+    if not all(is_tools_test_path(path, tools_roots) for path in tools_paths):
+        return tools_paths
+    used: list[str] = []
+    for root in tools_roots:
+        root_n = normalize_rel(root)
+        if any(is_tools_test_path(path, [root_n]) for path in tools_paths):
+            if root_n not in used:
+                used.append(root_n)
+    return used or tools_paths
+
+
+def _tools_roots_from_cfg(cfg: dict[str, Any]) -> list[str]:
+    """Return configured tools-test roots that exist on disk."""
+    if existing_tools_roots is None:
+        return []
+    configured = cfg.get("devtools_test_paths") or []
+    if not isinstance(configured, list):
+        return []
+    roots = [str(root) for root in configured if str(root).strip()]
+    return existing_tools_roots(roots)
+
+
+def _tools_isolation_args(cfg: dict[str, Any], tools_roots: list[str]) -> list[str]:
+    """Return ``-c`` / ``--confcutdir`` argv for the tools pytest invocation."""
+    if tools_suite_pytest_args is None:
+        return []
+    pytest_ini = str(cfg.get("devtools_pytest_config") or "development_tools/pytest.ini")
+    confcutdir = str(cfg.get("devtools_confcutdir") or (tools_roots[0] if tools_roots else "development_tools/tool_tests"))
+    return tools_suite_pytest_args(pytest_ini=pytest_ini, confcutdir=confcutdir)
+
+
+def _invoke_pytest(
+    name: str,
+    cfg: dict[str, Any],
+    junit_dir: Path,
+    *,
+    force_serial: bool = False,
+    test_paths: list[str] | None = None,
+    extra_args: list[str] | None = None,
+    marker_phase: str | None = None,
+    timeout_seconds: int | None = None,
+) -> PhaseResult:
+    """Run one pytest subprocess and return a structured phase result."""
+    global _ACTIVE_PROCESS
+    junit_xml = junit_dir / f"{name}.xml"
+    with contextlib.suppress(OSError):
+        junit_xml.unlink()
+    command = build_phase_command(
+        phase=name,
+        cfg=cfg,
+        junit_xml=junit_xml,
+        force_serial=force_serial,
+        test_paths=test_paths,
+        extra_args=extra_args,
+        marker_phase=marker_phase or name,
+    )
+    start = time.perf_counter()
+    output = ""
+    return_code: int | None = None
+    interrupted = False
+    popen_kwargs: dict[str, Any] = {
+        "stdout": subprocess.PIPE,
+        "stderr": subprocess.STDOUT,
+        "text": True,
+        "cwd": str(Path.cwd()),
+        "env": {
+            **os.environ,
+            # Keep pytest on test loggers; do not inherit audit CLI MHM_TESTING=0.
+            "MHM_TESTING": "1",
+            "MHM_TIER3_AUDIT": "1",
+        },
+    }
+    if os.name == "nt":
+        # Match coverage: hide the console so Ctrl+C / console events do not
+        # strand xdist workers and hang teardown near 100%.
+        creationflags = int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) or 0)
+        creationflags |= int(getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000) or 0)
+        if creationflags:
+            popen_kwargs["creationflags"] = creationflags
+    else:
+        popen_kwargs["start_new_session"] = True
+    try:
+        _ACTIVE_PROCESS = subprocess.Popen(command, **popen_kwargs)
+        try:
+            output, _ = _ACTIVE_PROCESS.communicate(
+                timeout=int(timeout_seconds if timeout_seconds is not None else cfg.get("timeout_seconds") or 3600)
+            )
+        except subprocess.TimeoutExpired as timeout_error:
+            interrupted = True
+            _terminate_process_tree(_ACTIVE_PROCESS)
+            try:
+                output, _ = _ACTIVE_PROCESS.communicate(timeout=30)
+            except subprocess.TimeoutExpired as cleanup_error:
+                # A Windows xdist tree can outlive taskkill long enough for the
+                # drain itself to time out. Preserve the partial diagnostics
+                # and return a structured interrupted result instead of
+                # crashing the Tier 3 orchestrator.
+                partial_output = cleanup_error.output or timeout_error.output or ""
+                if isinstance(partial_output, bytes):
+                    partial_output = partial_output.decode(errors="replace")
+                output = str(partial_output)
+                _terminate_process_tree(_ACTIVE_PROCESS)
+                with contextlib.suppress(Exception):
+                    _ACTIVE_PROCESS.kill()
+                with contextlib.suppress(Exception):
+                    drained_output, _ = _ACTIVE_PROCESS.communicate(timeout=5)
+                    if drained_output:
+                        output = drained_output
+        return_code = _ACTIVE_PROCESS.returncode
+        if interrupted and return_code is None:
+            return_code = 124
+    except KeyboardInterrupt:
+        interrupted = True
+        if _ACTIVE_PROCESS is not None:
+            _terminate_process_tree(_ACTIVE_PROCESS)
+    finally:
+        _ACTIVE_PROCESS = None
+    counts, failed_nodes = _parse_junit(junit_xml)
+    if _STOP_REQUESTED:
+        interrupted = True
+    tail = _pytest_output_tail(output)
+    return PhaseResult(
+        name=name,
+        command=command,
+        return_code=return_code,
+        duration_seconds=round(time.perf_counter() - start, 3),
+        counts=counts,
+        failed_node_ids=failed_nodes,
+        output_tail=tail,
+        junit_xml=str(junit_xml),
+        interrupted=interrupted,
+    )
+
+
+def _run_phase(
+    name: str,
+    cfg: dict[str, Any],
+    junit_dir: Path,
+    *,
+    force_serial: bool = False,
+    test_paths: list[str] | None = None,
+) -> PhaseResult:
+    """Run host and tools pytest invocations for one parallel/serial track."""
+    requested = test_paths if test_paths is not None else (cfg.get("test_paths") or ["tests"])
+    requested_list = [str(path) for path in requested]
+    tools_roots = _tools_roots_from_cfg(cfg)
+    host_paths = requested_list
+    tools_paths: list[str] = []
+    if tools_roots and partition_test_paths is not None:
+        host_paths, tools_paths = partition_test_paths(requested_list, tools_roots)
+        tools_paths = _collapse_tools_paths(tools_paths, tools_roots)
+
+    deadline = time.perf_counter() + _phase_timeout_seconds(cfg)
+
+    def _remaining() -> int:
+        return max(1, int(deadline - time.perf_counter()))
+
+    parts: list[PhaseResult] = []
+    if host_paths:
+        _announce(
+            f"run_test_suite {name}: host pytest files={len(host_paths)} "
+            f"timeout={_remaining()}s"
+        )
+        host_extra = host_ignore_args(tools_roots) if tools_roots and host_ignore_args is not None else []
+        parts.append(
+            _invoke_pytest(
+                name,
+                cfg,
+                junit_dir,
+                force_serial=force_serial,
+                test_paths=host_paths,
+                extra_args=host_extra,
+                marker_phase=name,
+                timeout_seconds=_remaining(),
+            )
+        )
+        if _STOP_REQUESTED or parts[-1].interrupted:
+            return _merge_phase_results(name, parts)
+    if tools_paths:
+        remaining = int(deadline - time.perf_counter())
+        if remaining < 1:
+            _announce(f"run_test_suite {name}: skipping tools pytest (timeout budget exhausted)")
+            return _merge_phase_results(name, parts)
+        _announce(
+            f"run_test_suite {name}: tools pytest paths={len(tools_paths)} "
+            f"timeout={remaining}s"
+        )
+        parts.append(
+            _invoke_pytest(
+                f"{name}_devtools",
+                cfg,
+                junit_dir,
+                force_serial=force_serial,
+                test_paths=tools_paths,
+                extra_args=_tools_isolation_args(cfg, tools_roots),
+                marker_phase=name,
+                timeout_seconds=remaining,
+            )
+        )
+    if not parts:
+        return _invoke_pytest(
+            name,
+            cfg,
+            junit_dir,
+            force_serial=force_serial,
+            test_paths=requested_list,
+            marker_phase=name,
+            timeout_seconds=_remaining(),
+        )
+    return _merge_phase_results(name, parts)
+
+
+def _track_from_phase(phase: PhaseResult) -> dict[str, Any]:
+    classification = phase.classification
+    timed_out = phase.interrupted and phase.return_code == 124
+    reason = (
+        "pytest_timeout"
+        if timed_out
+        else {
+            "passed": "pytest_passed",
+            "failed": "pytest_failed",
+            "crashed": "pytest_crashed_or_interrupted",
+            "skipped": "no_tests_collected_for_marker",
+        }.get(classification, "unknown")
+    )
+    actionable_context = ""
+    if timed_out:
+        actionable_context = (
+            "The pytest phase exceeded its configured timeout; inspect partial "
+            "counts and slow or hanging tests before increasing the limit."
+        )
+    elif classification in {"failed", "crashed"}:
+        actionable_context = "Inspect pytest output and JUnit XML for failing tests."
+    return {
+        "state": classification,
+        "classification": classification,
+        "classification_reason": reason,
+        "actionable_context": actionable_context,
+        "log_file": phase.junit_xml,
+        "return_code_hex": hex(phase.return_code) if isinstance(phase.return_code, int) else None,
+        "return_code": phase.return_code,
+        "passed_count": phase.counts.get("passed", 0),
+        "failed_count": phase.counts.get("failed", 0),
+        "error_count": phase.counts.get("errors", 0),
+        "skipped_count": phase.counts.get("skipped", 0),
+        "failed_node_ids": phase.failed_node_ids,
+    }
+
+
+def _aggregate(phases: list[PhaseResult]) -> dict[str, Any]:
+    failed_nodes = sorted({node for phase in phases for node in phase.failed_node_ids})
+    labels = [phase.classification for phase in phases]
+    if "crashed" in labels:
+        state = "crashed"
+    elif "failed" in labels:
+        state = "test_failures"
+    else:
+        state = "clean"
+    by_name = {phase.name: phase for phase in phases}
+    parallel_phase = by_name.get("parallel", phases[0])
+    no_parallel_phase = by_name.get("no_parallel")
+    return {
+        "state": state,
+        "parallel": _track_from_phase(parallel_phase),
+        "no_parallel": (
+            _track_from_phase(no_parallel_phase)
+            if no_parallel_phase is not None
+            else {
+                "state": "skipped",
+                "classification": "skipped",
+                "classification_reason": "not_run_after_parallel_interruption",
+                "actionable_context": "",
+                "log_file": None,
+                "return_code_hex": None,
+                "return_code": None,
+                "passed_count": 0,
+                "failed_count": 0,
+                "error_count": 0,
+                "skipped_count": 0,
+                "failed_node_ids": [],
+            }
+        ),
+        "failed_node_ids": failed_nodes,
+    }
+
+
+def _build_cache_metadata(
+    suite_cache: Any,
+    *,
+    cache_mode: str,
+    suite_profile: str,
+    changed_domains: set[str] | None = None,
+    test_files_to_run: int | None = None,
+) -> dict[str, Any]:
+    stats = suite_cache.get_cache_stats() if suite_cache else {}
+    return {
+        "cache_mode": cache_mode,
+        "source": "run_test_suite",
+        "suite_profile": suite_profile,
+        "invalidation_reason": getattr(suite_cache, "last_invalidation_reason", None)
+        or ("domain_cache" if cache_mode != "cold_scan" else "full_run"),
+        "changed_domains": sorted(changed_domains or []),
+        "test_files_to_run": test_files_to_run,
+        "test_files_cached": stats.get("test_files_cached"),
+        "has_full_suite_cache": stats.get("has_full_suite_cache"),
+    }
+
+
+def _aggregate_cached_phases(
+    suite_cache: Any,
+    junit_dir: Path,
+    *,
+    full_snapshot: dict[str, Any] | None = None,
+    per_file_cached: dict[str, dict[str, Any]] | None = None,
+) -> list[PhaseResult]:
+    if full_snapshot:
+        parallel = full_snapshot.get("parallel") or {}
+        no_parallel = full_snapshot.get("no_parallel") or {}
+        return [
+            _phase_from_counts(
+                name="parallel",
+                counts=parallel.get("counts") or {},
+                failed_node_ids=parallel.get("failed_node_ids") or [],
+                junit_xml=str(junit_dir / "parallel.xml"),
+                duration_seconds=float(full_snapshot.get("parallel_duration_seconds") or 0),
+            ),
+            _phase_from_counts(
+                name="no_parallel",
+                counts=no_parallel.get("counts") or {},
+                failed_node_ids=no_parallel.get("failed_node_ids") or [],
+                junit_xml=str(junit_dir / "no_parallel.xml"),
+                duration_seconds=float(full_snapshot.get("no_parallel_duration_seconds") or 0),
+            ),
+        ]
+    parallel_counts: dict[str, int] = {}
+    no_parallel_counts: dict[str, int] = {}
+    parallel_failed: list[str] = []
+    no_parallel_failed: list[str] = []
+    for data in (per_file_cached or {}).values():
+        if not isinstance(data, dict):
+            continue
+        if isinstance(data.get("parallel"), dict):
+            parallel_counts = _merge_counts(
+                parallel_counts, data["parallel"].get("counts") or {}
+            )
+            parallel_failed.extend(data["parallel"].get("failed_node_ids") or [])
+        if isinstance(data.get("no_parallel"), dict):
+            no_parallel_counts = _merge_counts(
+                no_parallel_counts, data["no_parallel"].get("counts") or {}
+            )
+            no_parallel_failed.extend(data["no_parallel"].get("failed_node_ids") or [])
+    return [
+        _phase_from_counts(
+            name="parallel",
+            counts=parallel_counts,
+            failed_node_ids=parallel_failed,
+            junit_xml=str(junit_dir / "parallel.xml"),
+        ),
+        _phase_from_counts(
+            name="no_parallel",
+            counts=no_parallel_counts,
+            failed_node_ids=no_parallel_failed,
+            junit_xml=str(junit_dir / "no_parallel.xml"),
+        ),
+    ]
+
+
+def _failed_test_file_rels_from_phases(phases: list[PhaseResult]) -> set[str]:
+    rels: set[str] = set()
+    for phase in phases:
+        for node in phase.failed_node_ids:
+            file_part = node.split("::", 1)[0]
+            if file_part:
+                rels.add(file_part.replace("\\", "/"))
+    return rels
+
+
+def _phase_ok_for_run_status(
+    phase: PhaseResult, *, allow_empty_no_parallel_skip: bool = False
+) -> bool:
+    """Whether a phase outcome should count as success for cache run status."""
+    if phase.classification == "passed":
+        return True
+    return bool(
+        allow_empty_no_parallel_skip
+        and phase.name == "no_parallel"
+        and phase.classification == "skipped"
+    )
+
+
+def _merge_phase_with_cache(
+    phase: PhaseResult,
+    cached_by_file: dict[str, dict[str, Any]],
+    phase_key: str,
+) -> PhaseResult:
+    """Merge cached counts without erasing fresh process diagnostics."""
+    fresh_by_file = phase.results_by_test_file()
+    merged_counts: dict[str, int] = {}
+    merged_failed: list[str] = []
+    seen_files = set(cached_by_file.keys()) | set(fresh_by_file.keys())
+    for rel in sorted(seen_files):
+        cached_entry = cached_by_file.get(rel, {})
+        cached_phase = (
+            cached_entry.get(phase_key) if isinstance(cached_entry, dict) else None
+        )
+        fresh_phase = fresh_by_file.get(rel)
+        if isinstance(cached_phase, dict) and rel not in fresh_by_file:
+            merged_counts = _merge_counts(merged_counts, cached_phase.get("counts") or {})
+            merged_failed.extend(cached_phase.get("failed_node_ids") or [])
+        elif isinstance(fresh_phase, dict):
+            merged_counts = _merge_counts(merged_counts, fresh_phase.get("counts") or {})
+            merged_failed.extend(fresh_phase.get("failed_node_ids") or [])
+    return PhaseResult(
+        name=phase.name,
+        command=list(phase.command),
+        return_code=phase.return_code,
+        duration_seconds=phase.duration_seconds,
+        counts=merged_counts,
+        failed_node_ids=sorted(set(merged_failed)),
+        output_tail=phase.output_tail,
+        junit_xml=phase.junit_xml,
+        interrupted=phase.interrupted,
+        junit_reports=phase.junit_reports,
+    )
+
+
+def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str, Any]:
+    global _SIGINT_CFG, _CURRENT_SUITE_RUN_ID
+    _CURRENT_SUITE_RUN_ID = None
+    _SIGINT_CFG = cfg
+    previous_handler = signal.getsignal(signal.SIGINT) if hasattr(signal, "SIGINT") else None
+    if hasattr(signal, "SIGINT"):
+        signal.signal(signal.SIGINT, _handle_sigint)
+    junit_dir = Path(str(cfg.get("junit_dir") or DEFAULT_TEST_RUN["junit_dir"]))
+    if not junit_dir.is_absolute():
+        junit_dir = Path.cwd() / junit_dir
+    junit_dir.mkdir(parents=True, exist_ok=True)
+
+    suite_cache = None
+    changed_domains: set[str] = set()
+    test_files_to_run: list[Path] = []
+    cache_mode = "cold_scan"
+    suite_profile = str(cfg.get("suite_profile") or cfg.get("default_profile") or "quick")
+    if use_domain_cache:
+        try:
+            from development_tools.tests.test_file_suite_cache import TestFileSuiteCache
+
+            suite_cache = TestFileSuiteCache(Path.cwd())
+            changed_domains = suite_cache.get_changed_domains(suite_profile)
+            test_files_to_run = suite_cache.get_test_files_to_run(changed_domains)
+            if _suite_logger:
+                _suite_logger.info(
+                    "run_test_suite domain cache: invalidation=%s changed_domains=%s "
+                    "files_to_run=%s has_full_snapshot=%s",
+                    getattr(suite_cache, "last_invalidation_reason", None)
+                    or getattr(suite_cache.coverage_cache, "last_invalidation_reason", None),
+                    sorted(changed_domains),
+                    len(test_files_to_run),
+                    suite_cache.get_full_suite_cache() is not None,
+                )
+        except Exception:
+            suite_cache = None
+            use_domain_cache = False
+
+    phases: list[PhaseResult] = []
+    cache_metadata: dict[str, Any] = {}
+    try:
+        run_pytest = True
+        test_filter_paths: list[str] | None = None
+        cached_per_file: dict[str, dict[str, Any]] = {}
+        full_snapshot = None
+        if use_domain_cache and suite_cache:
+            full_snapshot = suite_cache.get_full_suite_cache()
+            cached_per_file = suite_cache.get_all_cached_suite_results(
+                exclude_domains=changed_domains
+            )
+            if (
+                not test_files_to_run
+                and suite_cache.can_reuse_full_suite_cache(suite_profile)
+            ):
+                run_pytest = False
+                cache_mode = "cache_hit"
+                if _suite_logger:
+                    _suite_logger.info(
+                        "run_test_suite using cache only (no pytest): snapshot=%s cached_files=%s",
+                        True,
+                        len(cached_per_file),
+                    )
+                phases = _aggregate_cached_phases(
+                    suite_cache,
+                    junit_dir,
+                    full_snapshot=full_snapshot,
+                    per_file_cached=cached_per_file,
+                )
+            elif (
+                not test_files_to_run
+                and cached_per_file
+                and suite_cache.can_reuse_full_suite_cache(suite_profile)
+            ):
+                run_pytest = False
+                cache_mode = "cache_hit"
+                if _suite_logger:
+                    _suite_logger.info(
+                        "run_test_suite using per-file cache only (no pytest): cached_files=%s",
+                        len(cached_per_file),
+                    )
+                phases = _aggregate_cached_phases(
+                    suite_cache,
+                    junit_dir,
+                    full_snapshot=None,
+                    per_file_cached=cached_per_file,
+                )
+            elif test_files_to_run:
+                cache_mode = "selective_run"
+                test_filter_paths = [
+                    str(tf.relative_to(Path.cwd())) for tf in test_files_to_run
+                ]
+            else:
+                cache_mode = "full_run"
+
+        if run_pytest:
+            force_serial = not _has_xdist()
+            parallel_phase = _run_phase(
+                "parallel",
+                cfg,
+                junit_dir,
+                force_serial=force_serial,
+                test_paths=test_filter_paths,
+            )
+            if not force_serial and _should_retry_parallel_serially(parallel_phase):
+                retry_reason = (
+                    "xdist worker crash"
+                    if _is_xdist_worker_crash_output(parallel_phase.output_tail or "")
+                    else "xdist/execnet teardown interrupt"
+                )
+                retry_phase = _run_phase(
+                    "parallel",
+                    cfg,
+                    junit_dir,
+                    force_serial=True,
+                    test_paths=test_filter_paths,
+                )
+                retry_phase.output_tail = (
+                    f"[RETRY] Parallel pytest hit {retry_reason}; "
+                    "reran phase serially.\n"
+                    f"[XDIST OUTPUT TAIL]\n{parallel_phase.output_tail}\n"
+                    f"[SERIAL OUTPUT TAIL]\n{retry_phase.output_tail}"
+                )
+                parallel_phase = retry_phase
+            if use_domain_cache and suite_cache and test_filter_paths and cached_per_file:
+                parallel_phase = _merge_phase_with_cache(
+                    parallel_phase, cached_per_file, "parallel"
+                )
+            phases.append(parallel_phase)
+            if not _STOP_REQUESTED and not parallel_phase.interrupted:
+                no_parallel_phase = _run_phase(
+                    "no_parallel",
+                    cfg,
+                    junit_dir,
+                    force_serial=True,
+                    test_paths=test_filter_paths,
+                )
+                if use_domain_cache and suite_cache and test_filter_paths and cached_per_file:
+                    no_parallel_phase = _merge_phase_with_cache(
+                        no_parallel_phase, cached_per_file, "no_parallel"
+                    )
+                phases.append(no_parallel_phase)
+
+            if (
+                use_domain_cache
+                and suite_cache
+                and not _STOP_REQUESTED
+                and _should_write_suite_cache(phases)
+            ):
+                parallel_by_file = parallel_phase.results_by_test_file()
+                no_parallel_by_file = (
+                    phases[-1].results_by_test_file()
+                    if len(phases) > 1
+                    else {}
+                )
+                normalize_rel = (
+                    TestFileCoverageCache._normalize_test_file_rel
+                    if TestFileCoverageCache is not None
+                    else lambda p: p.replace("\\", "/")
+                )
+                files_to_update = (
+                    {
+                        normalize_rel(str(p.relative_to(Path.cwd())))
+                        for p in test_files_to_run
+                    }
+                    if test_files_to_run
+                    else set(parallel_by_file) | set(no_parallel_by_file)
+                )
+                for rel in files_to_update:
+                    test_path = Path.cwd() / rel
+                    if not test_path.exists():
+                        continue
+                    suite_cache.cache_test_file_suite(
+                        test_path,
+                        parallel=parallel_by_file.get(rel),
+                        no_parallel=no_parallel_by_file.get(rel),
+                    )
+                outcome_preview = _aggregate(phases)
+                allow_np_skip = bool(test_filter_paths)
+                parallel_ok = _phase_ok_for_run_status(phases[0])
+                no_parallel_ok = (
+                    _phase_ok_for_run_status(
+                        phases[1], allow_empty_no_parallel_skip=allow_np_skip
+                    )
+                    if len(phases) > 1
+                    else None
+                )
+                failed_domains: set[str] = set()
+                run_domains: set[str] = set()
+                for rel in files_to_update:
+                    test_path = Path.cwd() / rel
+                    if not test_path.exists():
+                        continue
+                    run_domains.update(
+                        suite_cache.coverage_cache.get_test_files_domains(test_path)
+                    )
+                if outcome_preview["state"] != "clean":
+                    for rel in _failed_test_file_rels_from_phases(phases):
+                        test_path = Path.cwd() / rel
+                        if test_path.exists():
+                            failed_domains.update(
+                                suite_cache.coverage_cache.get_test_files_domains(
+                                    test_path
+                                )
+                            )
+                np_present = len(phases) <= 1 or phases[1].classification != "crashed"
+                suite_cache.update_run_status(
+                    parallel_ok=parallel_ok,
+                    no_parallel_ok=no_parallel_ok,
+                    no_parallel_coverage_present=np_present,
+                    failed_domains=failed_domains,
+                    run_domains=(
+                        run_domains
+                        or changed_domains
+                        or suite_cache._all_domains()
+                    ),
+                    suite_profile=suite_profile,
+                )
+                if outcome_preview["state"] == "clean":
+                    if cache_mode != "selective_run" or cached_per_file:
+                        suite_cache.cache_full_suite(
+                            {
+                                "parallel": {
+                                    "counts": phases[0].counts,
+                                    "failed_node_ids": phases[0].failed_node_ids,
+                                },
+                                "no_parallel": {
+                                    "counts": phases[-1].counts,
+                                    "failed_node_ids": phases[-1].failed_node_ids,
+                                },
+                                "parallel_duration_seconds": phases[0].duration_seconds,
+                                "no_parallel_duration_seconds": phases[-1].duration_seconds,
+                            }
+                        )
+                        if _suite_logger:
+                            _suite_logger.info(
+                                "run_test_suite cached full suite snapshot (mode=%s)",
+                                cache_mode,
+                            )
+                    elif _suite_logger:
+                        _suite_logger.info(
+                            "run_test_suite skipped incomplete full-suite snapshot after selective run"
+                        )
+                else:
+                    suite_cache.clear_full_suite_cache()
+                    if _suite_logger:
+                        _suite_logger.info(
+                            "run_test_suite cleared full suite snapshot after state=%s",
+                            outcome_preview["state"],
+                        )
+            elif use_domain_cache and suite_cache and not _STOP_REQUESTED:
+                if _suite_logger:
+                    _suite_logger.info(
+                        "run_test_suite skipping suite-cache update after interrupted pytest"
+                    )
+    finally:
+        if hasattr(signal, "SIGINT") and previous_handler is not None:
+            signal.signal(signal.SIGINT, previous_handler)
+
+    if not cache_metadata and suite_cache:
+        cache_metadata = _build_cache_metadata(
+            suite_cache,
+            cache_mode=cache_mode,
+            suite_profile=suite_profile,
+            changed_domains=changed_domains,
+            test_files_to_run=len(test_files_to_run),
+        )
+    elif not cache_metadata:
+        cache_metadata = {
+            "cache_mode": "disabled",
+            "source": "run_test_suite",
+            "suite_profile": suite_profile,
+            "invalidation_reason": "domain_cache_disabled",
+        }
+
+    outcome = _aggregate(phases)
+    outcome["suite_profile"] = suite_profile
+    return {
+        "tool_name": "run_test_suite",
+        "summary": {
+            "total_issues": len(outcome.get("failed_node_ids", [])),
+            "files_affected": 0,
+            "status": "PASS" if outcome["state"] == "clean" else "FAIL",
+        },
+        "details": {
+            "tier3_test_outcome": outcome,
+            "phases": [
+                {
+                    "name": phase.name,
+                    "command": phase.command,
+                    "return_code": phase.return_code,
+                    "duration_seconds": phase.duration_seconds,
+                    "counts": phase.counts,
+                    "classification": phase.classification,
+                    "failed_node_ids": phase.failed_node_ids,
+                    "junit_xml": phase.junit_xml,
+                    "output_tail": phase.output_tail,
+                    "interrupted": phase.interrupted,
+                }
+                for phase in phases
+            ],
+            "xdist_available": _has_xdist(),
+            "domain_cache": cache_metadata,
+        },
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run pytest suite without coverage for Tier 3 audits.")
+    parser.add_argument("--output-file", default=None)
+    parser.add_argument("--workers", default=None)
+    parser.add_argument("--timeout", type=int, default=None)
+    parser.add_argument(
+        "--profile",
+        choices=["quick", "full"],
+        default="quick",
+        help="quick: exclude e2e and slow (Tier 3 default); full: exclude e2e only (nightly).",
+    )
+    parser.add_argument(
+        "--no-domain-cache",
+        action="store_true",
+        help="Disable domain-based test selection and suite result caching (runs all tests).",
+    )
+    args = parser.parse_args(argv)
+    cfg = _load_config(args.profile)
+    if args.workers:
+        cfg["workers"] = args.workers
+    if args.timeout:
+        cfg["timeout_seconds"] = args.timeout
+    payload = run_suite(cfg, use_domain_cache=not args.no_domain_cache)
+    output = json.dumps(payload, indent=2)
+    state = payload["details"]["tier3_test_outcome"]["state"]
+    if args.output_file:
+        out = Path(args.output_file)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(output, encoding="utf-8")
+        # Keep stdout small when invoked via run_script(capture_output=True).
+        print(
+            f"run_test_suite profile={args.profile} state={state} "
+            f"issues={payload.get('summary', {}).get('total_issues', 0)} "
+            f"output={out.as_posix()}"
+        )
+    else:
+        print(output)
+    return 0 if state == "clean" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

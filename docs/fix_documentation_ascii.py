@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+# TOOL_PORTABILITY: portable
+
+"""
+Documentation ASCII Fixer
+
+Fixes non-ASCII characters in documentation files by replacing them with ASCII equivalents.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
+
+Usage:
+    python docs/fix_documentation_ascii.py [--dry-run]
+"""
+
+import sys
+from pathlib import Path
+from typing import Any
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from development_tools.shared.logging import get_dev_tools_logger
+
+# Handle both relative and absolute imports
+try:
+    from .. import config
+    from ..shared.constants import ASCII_COMPLIANCE_FILES
+    from ..shared.standard_exclusions import should_exclude_file
+except ImportError:
+    from development_tools import config
+    from development_tools.shared.constants import ASCII_COMPLIANCE_FILES
+    from development_tools.shared.standard_exclusions import should_exclude_file
+
+# Ensure external config is loaded
+config.load_external_config()
+
+logger = get_dev_tools_logger("development_tools")
+
+
+class DocumentationASCIIFixer:
+    """Fixes non-ASCII characters in documentation files."""
+
+    def __init__(self, project_root: str | None = None):
+        """Initialize the documentation ASCII fixer."""
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(config.get_project_root()).resolve()
+
+    def fix_ascii(self, dry_run: bool = False) -> dict[str, Any]:
+        """Fix non-ASCII characters in documentation files.
+
+        Uses ASCII_REPLACEMENTS from shared.constants (single canonical source).
+        """
+        from development_tools.shared.constants import ASCII_REPLACEMENTS
+
+        files_updated = 0
+        replacements_made = 0
+        errors = 0
+
+        for file_path_str in ASCII_COMPLIANCE_FILES:
+            if should_exclude_file(
+                file_path_str, tool_type="documentation", context="development"
+            ):
+                continue
+            file_path = self.project_root / file_path_str
+            if not file_path.exists():
+                continue
+
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    content = f.read()
+
+                original_content = content
+                file_replacements = 0
+
+                for non_ascii, ascii_replacement in ASCII_REPLACEMENTS.items():
+                    if non_ascii in content:
+                        count = content.count(non_ascii)
+                        content = content.replace(non_ascii, ascii_replacement)
+                        file_replacements += count
+
+                if content != original_content:
+                    if not dry_run:
+                        with open(file_path, "w", encoding="utf-8") as f:
+                            f.write(content)
+                        files_updated += 1
+                    else:
+                        # In dry-run mode, still count files that would be updated
+                        files_updated += 1
+                    replacements_made += file_replacements
+            except Exception as e:
+                errors += 1
+                if logger:
+                    logger.error(f"Error processing {file_path_str}: {e}")
+
+        return {
+            "files_updated": files_updated,
+            "replacements_made": replacements_made,
+            "errors": errors,
+        }
+
+
+def main():
+    """Main entry point."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Fix non-ASCII characters in documentation"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be changed without making changes",
+    )
+
+    args = parser.parse_args()
+
+    fixer = DocumentationASCIIFixer()
+    result = fixer.fix_ascii(dry_run=args.dry_run)
+
+    print(
+        f"\nFix ASCII: Updated {result['files_updated']} files, Made {result['replacements_made']} replacements, Errors {result['errors']}"
+    )
+
+    return 0 if result["errors"] == 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

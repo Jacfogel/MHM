@@ -1,0 +1,458 @@
+#!/usr/bin/env python3
+# TOOL_TIER: core
+# TOOL_PORTABILITY: portable
+
+"""
+Documentation Link Conversion Fixer
+
+Converts file path references to markdown links in documentation.
+
+Configuration is loaded from external config file (development_tools_config.json)
+if available, making this tool portable across different projects.
+
+Usage:
+    python docs/fix_documentation_links.py [--dry-run]
+"""
+
+import re
+import os
+import sys
+from pathlib import Path
+from typing import Any
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from development_tools.shared.logging import get_dev_tools_logger
+
+# Handle both relative and absolute imports
+try:
+    from .. import config
+    from ..shared.constants import DEFAULT_DOCS
+    from .analyze_path_drift import (
+        MARKDOWN_LINK_PATTERN,
+        is_external_or_anchor_href,
+        iter_markdown_files_for_link_targets,
+        split_href_path_suffix,
+    )
+    from .analyze_unconverted_links import UnconvertedLinkAnalyzer
+    from ..shared.standard_exclusions import should_exclude_file
+except ImportError:
+    from development_tools import config
+    from development_tools.shared.constants import DEFAULT_DOCS
+    from development_tools.docs.analyze_path_drift import (
+        MARKDOWN_LINK_PATTERN,
+        is_external_or_anchor_href,
+        iter_markdown_files_for_link_targets,
+        split_href_path_suffix,
+    )
+    from development_tools.docs.analyze_unconverted_links import UnconvertedLinkAnalyzer
+    from development_tools.shared.standard_exclusions import should_exclude_file
+
+# Ensure external config is loaded
+config.load_external_config()
+
+logger = get_dev_tools_logger("development_tools")
+
+
+class DocumentationLinkFixer:
+    """Fixes unconverted file path references in documentation files."""
+
+    def __init__(self, project_root: str | None = None):
+        """Initialize the documentation link fixer."""
+        if project_root:
+            self.project_root = Path(project_root).resolve()
+        else:
+            self.project_root = Path(config.get_project_root()).resolve()
+
+        # Create link analyzer instance to reuse helper methods
+        self.link_analyzer = UnconvertedLinkAnalyzer(
+            project_root=str(self.project_root)
+        )
+
+    def _is_generated_file(self, file_path: Path) -> bool:
+        """Check if a file is generated (should not be edited)."""
+        from development_tools.shared.exclusion_utilities import is_generated_file
+        from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+
+        # Fast path: authoritative list (relative to project root)
+        try:
+            rel_path_str = str(file_path.relative_to(self.project_root)).replace(
+                "\\", "/"
+            )
+            if rel_path_str in ALL_GENERATED_FILES:
+                return True
+        except ValueError:
+            # Not under project root; fall back to heuristic detection only
+            pass
+
+        # Heuristic detection (header markers, /generated/, suffix patterns, _pyqt.py)
+        return is_generated_file(str(file_path))
+
+    def _is_known_generated_file(self, file_path: Path) -> bool:
+        """Check the authoritative generated-file list without heuristic matching."""
+        from development_tools.shared.standard_exclusions import ALL_GENERATED_FILES
+
+        try:
+            rel_path_str = str(file_path.relative_to(self.project_root)).replace(
+                "\\", "/"
+            )
+        except ValueError:
+            return False
+        return rel_path_str in ALL_GENERATED_FILES
+
+    def _iter_markdown_files_for_link_target_fixes(self) -> list[Path]:
+        """Return non-generated Markdown files checked by markdown target analysis."""
+        return [
+            md_file
+            for md_file, _rel_path in iter_markdown_files_for_link_targets(
+                self.project_root
+            )
+            if not self._is_known_generated_file(md_file)
+        ]
+
+    def _normalize_markdown_link_targets(
+        self,
+        content: str,
+        file_path: Path,
+        file_conversions: list[str],
+        breakdown: dict[str, Any],
+    ) -> tuple[str, int]:
+        """Rewrite repo-relative local markdown hrefs to source-relative hrefs."""
+        lines = content.split("\n")
+        new_lines: list[str] = []
+        in_code_block = False
+        changes = 0
+
+        for line_num, line in enumerate(lines, start=1):
+            if line.strip().startswith("```"):
+                in_code_block = not in_code_block
+                new_lines.append(line)
+                continue
+            if in_code_block:
+                breakdown["skipped_code_block"] += 1
+                new_lines.append(line)
+                continue
+
+            def replace_href(match: re.Match[str], line_num: int = line_num) -> str:
+                nonlocal changes
+                prefix, raw_href, suffix = match.groups()
+                stripped_href = raw_href.strip()
+                angle_wrapped = stripped_href.startswith("<") and stripped_href.endswith(">")
+                href = stripped_href.strip("<>")
+                if not href or is_external_or_anchor_href(href):
+                    return match.group(0)
+
+                href_path, href_suffix = split_href_path_suffix(href)
+                href_path = href_path.strip()
+                if not href_path or href_path.startswith("/"):
+                    return match.group(0)
+
+                relative_target = (file_path.parent / href_path).resolve()
+                if relative_target.exists():
+                    return match.group(0)
+
+                repo_target = (self.project_root / href_path).resolve()
+                try:
+                    repo_target.relative_to(self.project_root)
+                except ValueError:
+                    return match.group(0)
+                if not repo_target.exists():
+                    breakdown["skipped_missing_markdown_target"] += 1
+                    return match.group(0)
+
+                suggested = Path(os.path.relpath(repo_target, file_path.parent)).as_posix()
+                replacement_href = f"{suggested}{href_suffix}"
+                if angle_wrapped:
+                    replacement_href = f"<{replacement_href}>"
+                if replacement_href == raw_href:
+                    return match.group(0)
+
+                changes += 1
+                file_conversions.append(
+                    f"Line {line_num}: [{href}] -> [{replacement_href}]"
+                )
+                return f"{prefix}{replacement_href}{suffix}"
+
+            new_lines.append(MARKDOWN_LINK_PATTERN.sub(replace_href, line))
+
+        return "\n".join(new_lines), changes
+
+    def fix_convert_links(self, dry_run: bool = False) -> dict[str, Any]:
+        """
+        Convert file path references to markdown links in documentation and
+        normalize local markdown hrefs so they are clickable from their source file.
+
+        In metadata sections (H1 heading + lines starting with >), only links each
+        unique file once to avoid repetitive links. In body content, multiple links
+        to the same file are allowed.
+
+        Only processes non-generated .md files.
+        """
+        files_updated = 0
+        updated_files: set[str] = set()
+        changes_made = 0
+        errors = 0
+        breakdown = {
+            "files_processed": 0,
+            "files_skipped_generated": 0,
+            "files_skipped_not_found": 0,
+            "conversions_by_file": {},
+            "metadata_dedup_count": 0,
+            "skipped_code_block": 0,
+            "skipped_example_context": 0,
+            "skipped_invalid_path": 0,
+            "skipped_already_link": 0,
+            "skipped_self_reference": 0,
+            "markdown_link_target_fixes": 0,
+            "skipped_missing_markdown_target": 0,
+        }
+
+        for file_path_str in DEFAULT_DOCS:
+            if should_exclude_file(
+                file_path_str, tool_type="documentation", context="development"
+            ):
+                continue
+            file_path = self.project_root / file_path_str
+            if not file_path.exists():
+                breakdown["files_skipped_not_found"] += 1
+                continue
+
+            # Skip generated files
+            if self._is_generated_file(file_path):
+                breakdown["files_skipped_generated"] += 1
+                continue
+
+            breakdown["files_processed"] += 1
+
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    content = f.read()
+
+                lines = content.split("\n")
+                new_lines = []
+                modified = False
+                file_conversions = []
+
+                # Track which paths are already linked in metadata section
+                metadata_linked_files = set()
+
+                # First pass: Find all paths that are already links in metadata section
+                for line_num, line in enumerate(lines):
+                    is_metadata_section = self.link_analyzer._is_metadata_section(
+                        lines, line_num
+                    )
+                    if is_metadata_section:
+                        # Check for existing links in metadata
+                        link_pattern = r"\[([^\]]+)\]\(([^)]+\.md)\)"
+                        for match in re.finditer(link_pattern, line):
+                            linked_path = match.group(2).replace("\\", "/")
+                            metadata_linked_files.add(linked_path)
+
+                # Second pass: Convert unconverted paths
+                for line_num, line in enumerate(lines):
+                    original_line = line
+                    is_metadata_section = self.link_analyzer._is_metadata_section(
+                        lines, line_num
+                    )
+
+                    if self.link_analyzer._is_in_code_block(lines, line_num):
+                        breakdown["skipped_code_block"] += 1
+                        new_lines.append(line)
+                        continue
+
+                    if self.link_analyzer._is_in_example_context(line, lines, line_num):
+                        breakdown["skipped_example_context"] += 1
+                        new_lines.append(line)
+                        continue
+
+                    pattern = r"`([a-zA-Z_][a-zA-Z0-9_/\\]*\.md)`"
+
+                    def replace_path(
+                        match,
+                        line=line,
+                        line_num=line_num,
+                        lines=lines,
+                        file_path=file_path,
+                        is_metadata_section=is_metadata_section,
+                        metadata_linked_files=metadata_linked_files,
+                        file_conversions=file_conversions,
+                    ):
+                        path = match.group(1).replace("\\", "/")
+
+                        # Use link analyzer's methods for consistency
+                        if self.link_analyzer._is_already_link(line, path):
+                            breakdown["skipped_already_link"] += 1
+                            return match.group(0)
+
+                        if self.link_analyzer._is_file_metadata_line(line):
+                            return match.group(0)
+
+                        if not self.link_analyzer._should_convert_path_to_link(
+                            path, line, line_num, lines, file_path
+                        ):
+                            if path == file_path.name:
+                                breakdown["skipped_self_reference"] += 1
+                            return match.group(0)
+
+                        if not self.link_analyzer._is_valid_file_path_for_link(
+                            path, file_path
+                        ):
+                            breakdown["skipped_invalid_path"] += 1
+                            return match.group(0)
+
+                        # Check if target file is generated (don't link to generated files)
+                        target_path = self.project_root / path
+                        if target_path.exists() and self._is_generated_file(
+                            target_path
+                        ):
+                            breakdown["skipped_invalid_path"] += 1
+                            return match.group(0)
+
+                        # In metadata section, skip if this path is already linked anywhere in metadata
+                        if is_metadata_section:
+                            if path in metadata_linked_files:
+                                breakdown["metadata_dedup_count"] += 1
+                                return match.group(
+                                    0
+                                )  # Leave unchanged - already linked in metadata
+                            metadata_linked_files.add(
+                                path
+                            )  # Track that we're converting this one
+
+                        path_obj = Path(path)
+                        filename = path_obj.name
+                        file_conversions.append(
+                            f"Line {line_num + 1}: `{path}` -> [{filename}]({path})"
+                        )
+                        return f"[{filename}]({path})"
+
+                    new_line = re.sub(pattern, replace_path, line)
+                    if new_line != original_line:
+                        modified = True
+                        changes_made += 1
+                    new_lines.append(new_line)
+
+                if file_conversions:
+                    breakdown["conversions_by_file"][file_path_str] = file_conversions
+
+                if modified and not dry_run:
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write("\n".join(new_lines))
+                    if file_path_str not in updated_files:
+                        files_updated += 1
+                        updated_files.add(file_path_str)
+            except Exception as e:
+                errors += 1
+                if logger:
+                    logger.error(f"Error processing {file_path_str}: {e}")
+
+        for file_path in self._iter_markdown_files_for_link_target_fixes():
+            file_path_str = str(file_path.relative_to(self.project_root)).replace("\\", "/")
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                file_conversions: list[str] = []
+                new_content, href_changes = self._normalize_markdown_link_targets(
+                    content,
+                    file_path,
+                    file_conversions,
+                    breakdown,
+                )
+                if href_changes:
+                    changes_made += href_changes
+                    breakdown["markdown_link_target_fixes"] += href_changes
+                    existing_conversions = breakdown["conversions_by_file"].setdefault(
+                        file_path_str, []
+                    )
+                    existing_conversions.extend(file_conversions)
+                    if not dry_run:
+                        file_path.write_text(new_content, encoding="utf-8")
+                        if file_path_str not in updated_files:
+                            files_updated += 1
+                            updated_files.add(file_path_str)
+            except Exception as e:
+                errors += 1
+                if logger:
+                    logger.error(f"Error normalizing markdown links in {file_path_str}: {e}")
+
+        result = {
+            "files_updated": files_updated,
+            "changes_made": changes_made,
+            "errors": errors,
+            "breakdown": breakdown,
+        }
+
+        if dry_run:
+            # Print detailed breakdown in dry-run mode
+            print("\nLink Conversion Breakdown:")
+            print(f"  Files processed: {breakdown['files_processed']}")
+            print(
+                f"  Files skipped (generated): {breakdown['files_skipped_generated']}"
+            )
+            print(
+                f"  Files skipped (not found): {breakdown['files_skipped_not_found']}"
+            )
+            print(f"  Total conversions: {changes_made}")
+            print(f"  Metadata deduplications: {breakdown['metadata_dedup_count']}")
+            print(f"  Skipped (code block): {breakdown['skipped_code_block']}")
+            print(
+                f"  Skipped (example context): {breakdown['skipped_example_context']}"
+            )
+            print(f"  Skipped (invalid path): {breakdown['skipped_invalid_path']}")
+            print(f"  Skipped (already link): {breakdown['skipped_already_link']}")
+            print(f"  Skipped (self reference): {breakdown['skipped_self_reference']}")
+            print(
+                "  Markdown link target fixes: "
+                f"{breakdown['markdown_link_target_fixes']}"
+            )
+            print(
+                "  Skipped (missing markdown target): "
+                f"{breakdown['skipped_missing_markdown_target']}"
+            )
+            if breakdown["conversions_by_file"]:
+                print("\n  Conversions by file:")
+                for file_str, conversions in list(
+                    breakdown["conversions_by_file"].items()
+                )[:10]:
+                    print(f"    {file_str}: {len(conversions)} conversions")
+                    for conv in conversions[:3]:
+                        print(f"      {conv}")
+                    if len(conversions) > 3:
+                        print(f"      ... and {len(conversions) - 3} more")
+                if len(breakdown["conversions_by_file"]) > 10:
+                    print(
+                        f"    ... and {len(breakdown['conversions_by_file']) - 10} more files"
+                    )
+
+        return result
+
+
+def main():
+    """Main entry point."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Convert file paths to markdown links in documentation"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be changed without making changes",
+    )
+
+    args = parser.parse_args()
+
+    fixer = DocumentationLinkFixer()
+    result = fixer.fix_convert_links(dry_run=args.dry_run)
+
+    print(
+        f"\nConvert Links: Updated {result['files_updated']} files, Made {result['changes_made']} changes, Errors {result['errors']}"
+    )
+
+    return 0 if result["errors"] == 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
