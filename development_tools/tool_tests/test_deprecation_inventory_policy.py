@@ -1,4 +1,4 @@
-"""Structural checks for development_tools/config/jsons/DEPRECATION_INVENTORY.json (V5 §5.6)."""
+"""Structural checks for development_docs/devtools/DEPRECATION_INVENTORY.json (V5 §5.6)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if str(project_root) not in sys.path:
 
 @pytest.mark.unit
 def test_deprecation_inventory_loads_and_root_ruff_bridge_active() -> None:
-    path = project_root / "development_tools" / "config" / "jsons" / "DEPRECATION_INVENTORY.json"
+    path = project_root / "development_docs" / "devtools" / "DEPRECATION_INVENTORY.json"
     data = json.loads(path.read_text(encoding="utf-8"))
     active = data.get("active_or_candidate_inventory", [])
     assert isinstance(active, list) and len(active) >= 1

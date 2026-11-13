@@ -145,9 +145,9 @@ def test_example_allowlist_covers_core_logging_infrastructure():
 
     example = (
         Path(__file__).resolve().parents[2]
-        / "development_tools"
-        / "config"
-        / "development_tools_config.json.example"
+        / "development_docs"
+        / "devtools"
+        / "development_tools_config.json"
     )
     data = json.loads(example.read_text(encoding="utf-8"))
     allowlist = set(

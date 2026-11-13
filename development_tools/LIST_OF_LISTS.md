@@ -54,7 +54,7 @@ Consumers: `development_tools/shared/service/audit_orchestration.py`, `developme
 
 | What | Canonical source | Notes |
 |------|------------------|-------|
-| **Inventory** | `development_tools/config/jsons/DEPRECATION_INVENTORY.json` | `active_or_candidate_inventory`, `removed_inventory`, `global_sweep_keywords`, `legacy_scan_patterns` |
+| **Inventory** | `development_docs/devtools/DEPRECATION_INVENTORY.json` | `active_or_candidate_inventory`, `removed_inventory`, `global_sweep_keywords`, `legacy_scan_patterns` |
 | **Scan patterns** | Inventory `legacy_scan_patterns` | Optional config `legacy_cleanup.legacy_patterns` override only |
 | **Live `legacy_cleanup` knobs** | config `required_pattern_keys`, `replacement_mappings` | Path/guard/skip defaults live in code; omit from JSON unless overriding |
 | **Guard trigger keywords** | Code defaults in `development_tools/shared/service/tool_wrappers.py` - `_check_deprecation_inventory_sync` | Distinct purpose from inventory `global_sweep_keywords` |
@@ -170,7 +170,7 @@ None for the current scan. Product help curated lists remain intentional (see [P
 | Add an exclusion (Ruff/scans) | config `exclusions` (prefer additions/removals) + regenerate ruff via `python -m development_tools.config.sync_ruff_toml` |
 | Add a paired doc | config `constants.paired_docs` + DOCUMENTATION_GUIDE Section 4.1 |
 | Add a doc to version-sync | config `fix_version_sync.docs` or `.ai_docs` |
-| Add a deprecation/legacy item | `development_tools/config/jsons/DEPRECATION_INVENTORY.json` |
+| Add a deprecation/legacy item | `development_docs/devtools/DEPRECATION_INVENTORY.json` |
 | Add a test marker | config `test_markers.categories` (+ `pytest.ini` for pytest behavior) |
 | Add a path-drift exclusion | config `path_drift.legacy_documentation_files` |
 | Tune ignored heading/TOC fragments | config `path_drift.ignored_path_patterns` |

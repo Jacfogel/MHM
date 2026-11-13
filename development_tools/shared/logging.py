@@ -59,8 +59,11 @@ def _resolve_log_file_path() -> Path:
     explicit = os.getenv("LOG_AI_DEV_TOOLS_FILE", "").strip()
     if explicit:
         return Path(explicit).resolve()
-    default_base = Path(__file__).resolve().parents[2] / "development_tools" / "reports" / "logs"
-    base = Path(os.getenv("DEV_TOOLS_LOGS_DIR", str(default_base))).resolve()
+    from development_tools.config import get_external_value, get_project_root
+
+    root = Path(get_project_root()).resolve()
+    configured = get_external_value("paths.report_logs_dir", "development_tools/reports/logs")
+    base = Path(os.getenv("DEV_TOOLS_LOGS_DIR", str(root / configured))).resolve()
     return (base / "ai_dev_tools.log").resolve()
 
 

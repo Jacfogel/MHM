@@ -40,7 +40,9 @@ def load_external_config(config_path: str | None = None) -> bool:
         config_file = Path(config_path).resolve()
     else:
         # Try to find config in development_tools/config/
-        project_root = _get_default_project_root()
+        project_root = Path(os.environ["DEVTOOLS_REPORT_PROJECT_ROOT"]) if os.environ.get(
+            "DEVTOOLS_REPORT_PROJECT_ROOT"
+        ) else _get_default_project_root()
         config_file = (
             project_root
             / "development_tools"
@@ -53,15 +55,12 @@ def load_external_config(config_path: str | None = None) -> bool:
             _external_config = None
             _config_file_path = None
             return False
-        # Default path missing: prefer committed example over stale in-memory config
-        # (portability smoke tests load minimal JSON via explicit config_path).
-        example_file = (
-            _get_default_project_root()
-            / "development_tools"
-            / "config"
-            / "development_tools_config.json.example"
-        )
-        if example_file.exists():
+        root = project_root
+        host_file = root / "development_docs/devtools/development_tools_config.json"
+        example_file = root / "development_tools/config/development_tools_config.json.example"
+        if host_file.is_file():
+            config_file = host_file
+        elif example_file.is_file():
             config_file = example_file
         elif _external_config is not None:
             return True
@@ -734,7 +733,12 @@ def get_legacy_report_path(project_root: Path) -> Path:
 def get_deprecation_inventory_path(project_root: Path) -> Path:
     """Resolve the inventory shared by the legacy scanner and report."""
     default = "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
-    return project_root / _get_external_value("legacy_cleanup.deprecation_inventory_file", default)
+    configured = _get_external_value("legacy_cleanup.deprecation_inventory_file", default)
+    inventory = project_root / configured
+    host_inventory = project_root / "development_docs/devtools/DEPRECATION_INVENTORY.json"
+    if configured == default and not inventory.exists() and host_inventory.is_file():
+        return host_inventory
+    return inventory
 
 
 SUITE_PROFILES: dict[str, dict[str, Any]] = {
@@ -1624,6 +1628,34 @@ def get_status_report_paths(
     key = "dev_tools_status_files" if dev_tools_only else "status_files"
     paths = get_status_config()[key]
     return {name: project_root / paths[name] for name in STATUS[key]}
+
+
+def get_report_archive_dir(project_root: Path) -> Path:
+    """Resolve the directory for rotated development-tools reports."""
+    return project_root / _get_external_value(
+        "paths.report_archive_dir", "development_tools/reports/archive"
+    )
+
+
+def get_scoped_audit_report_path(scope_slug: str) -> Path:
+    """Return the configured Markdown destination for a custom audit scope."""
+    directory = Path(
+        _get_external_value("status.scoped_report_dir", "development_tools/reports/scopes")
+    )
+    return directory / scope_slug / "SCOPED_AUDIT_STATUS.md"
+
+
+BACKUP_REPORT_FILES = {
+    "inventory": "backup_inventory.json",
+    "retention": "backup_retention_report.json",
+    "health": "backup_health_report.json",
+}
+
+
+def get_backup_report_path(report: str) -> str:
+    """Return the configured destination for a backup command's JSON report."""
+    default = f"development_tools/reports/jsons/{BACKUP_REPORT_FILES[report]}"
+    return _get_external_value(f"backup_reports.{report}", default)
 
 
 # System signals configuration

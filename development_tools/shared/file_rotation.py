@@ -49,10 +49,14 @@ def path_looks_like_test_directory(path: Path) -> bool:
 class FileRotator:
     """Handles file rotation, backup, and archiving for AI development tools."""
 
-    def __init__(self, base_dir: str = "development_tools"):
+    def __init__(
+        self, base_dir: str = "development_tools", *, archive_dir: Path | None = None
+    ):
         self.base_dir = Path(base_dir)
         # If base_dir is development_tools/, archive goes to reports/archive
-        if self.base_dir.name == "development_tools" or str(self.base_dir).endswith(
+        if archive_dir is not None:
+            self.archive_dir = archive_dir
+        elif self.base_dir.name == "development_tools" or str(self.base_dir).endswith(
             os.sep + "development_tools"
         ):
             self.archive_dir = self.base_dir / "reports" / "archive"
@@ -692,7 +696,20 @@ def create_output_file(
         # Ensure base_dir is a Path object before converting to string
         if isinstance(base_dir, str):
             base_dir = Path(base_dir)
-        rotator = FileRotator(base_dir=str(base_dir))
+        from development_tools.config import get_report_archive_dir, get_status_report_paths
+
+        archive_dir = None
+        if project_root is not None:
+            status_paths = {
+                path.resolve()
+                for dev_tools_only in (False, True)
+                for path in get_status_report_paths(
+                    project_root, dev_tools_only=dev_tools_only
+                ).values()
+            }
+            if file_path_obj.resolve() in status_paths:
+                archive_dir = get_report_archive_dir(project_root)
+        rotator = FileRotator(base_dir=str(base_dir), archive_dir=archive_dir)
         rotated_path = rotator.rotate_file(str(file_path), max_versions)
         # Ensure rotated_path is converted back to Path
         file_path = (

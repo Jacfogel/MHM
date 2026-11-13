@@ -605,6 +605,10 @@ Markers may sit immediately above decorators or inside the function/class body. 
 
 **Audit summary paths**. Use `status.status_files` for full-repo reports and `status.dev_tools_status_files` for tools-only reports. Each accepts `ai_status`, `ai_priorities`, and `consolidated_report` overrides. The audit and cached status command share these destinations, and report links resolve from the directory containing the report.
 
+**Custom audit status and backup reports**. Set `status.scoped_report_dir` to place each custom audit's `SCOPED_AUDIT_STATUS.md` under its own scope subdirectory. Set `backup_reports.inventory`, `backup_reports.retention`, and `backup_reports.health` to override the corresponding JSON destinations. AI Priorities links to the configured backup health report. Relative paths resolve under the project root.
+
+**Host policy and artifact directories**. MHM's tracked configuration and deprecation inventory live in [development_docs/devtools](../development_docs/devtools/). The local config at `development_tools/config/development_tools_config.json` takes precedence. A different host can provide its own file with `--config-path`. Set `paths.report_logs_dir`, `paths.report_archive_dir`, or `paths.tool_timings_dir` to move logs, rotated status reports, or scoped timings. Cache cleanup uses the configured aggregate and timing files for the selected scope. Explicit logging environment overrides take precedence.
+
 **Audit JSON path**. Use `quick_audit.results_file` for the aggregate JSON read by Quick Status and the freshness checker. Paths under a `reports` directory keep the `reports/scopes/<scope>/` layout. For paths elsewhere, full-repo audits keep the configured file and other scopes write to `scopes/<scope>/` beside it.
 
 **Verification**: `python development_tools/imports/analyze_dev_tools_import_boundaries.py` or `python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/test_import_boundary_policy.py`. See [PLANS.md](../development_docs/PLANS.md#64-ai-development-tools), section 6.4. "AI development tools" for the extraction roadmap.

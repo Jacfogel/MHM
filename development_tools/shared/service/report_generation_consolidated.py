@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from development_tools.config import (
+    get_report_archive_dir,
     get_coverage_report_path,
     get_legacy_report_path,
     get_status_report_paths,
@@ -2946,9 +2947,14 @@ class ConsolidatedReportDocumentMixin:
             href = self._markdown_href_from_dev_tools_report(coverage_report, source=report_path)
             lines.append(f"- Test coverage report: [TEST_COVERAGE_REPORT.md]({href})")
 
-        archive_dir = self.project_root / "development_tools" / "reports" / "archive"
+        archive_dir = get_report_archive_dir(self.project_root)
         if archive_dir.exists():
-            lines.append("- Historical audit data: development_tools/reports/archive")
+            archive_path = (
+                archive_dir.relative_to(self.project_root)
+                if archive_dir.is_relative_to(self.project_root)
+                else archive_dir
+            )
+            lines.append(f"- Historical audit data: {archive_path.as_posix()}")
 
         lines.append("")
 

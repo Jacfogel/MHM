@@ -284,6 +284,38 @@ def test_copied_devtools_cli_audit_quick_succeeds_on_external_project(tmp_path):
     assert "run_mhm.py" not in (proc.stdout + proc.stderr)
 
 @pytest.mark.unit
+def test_custom_audit_writes_status_under_host_configured_directory(tmp_path):
+    destination = _copy_development_tools_tree(tmp_path, with_host_package=True)
+    config_path = destination / "config" / "development_tools_config.json"
+    host_config = json.loads(config_path.read_text(encoding="utf-8"))
+    host_config["status"] = {"scoped_report_dir": "artifacts/scoped audits"}
+    host_config["paths"]["report_logs_dir"] = "artifacts/logs"
+    config_path.write_text(json.dumps(host_config), encoding="utf-8")
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(destination / "run_development_tools.py"),
+            "--project-root",
+            str(tmp_path),
+            "audit",
+            "--audit-scope",
+            "extapp",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    report_path = "artifacts/scoped audits/scope_extapp/SCOPED_AUDIT_STATUS.md"
+    report = (tmp_path / report_path).read_text(encoding="utf-8")
+    assert f"> **File**: `{report_path}`" in report
+    assert (tmp_path / "artifacts/logs/ai_dev_tools.log").is_file()
+
+
+@pytest.mark.unit
 def test_coverage_report_uses_host_paths(tmp_path):
     """The wrapper and report subprocess use the same host configuration."""
     config_path = tmp_path / "host-config.json"

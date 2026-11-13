@@ -7,6 +7,7 @@ Checked-in JSON: ``development_tools/config/tool_cache_inventory.json``.
 
 from __future__ import annotations
 
+from development_tools.config import get_backup_report_path
 from development_tools.shared.audit_tiers import get_expected_tools_for_tier
 from development_tools.shared.tool_metadata import CACHE_AWARE_TOOLS, get_script_registry
 
@@ -168,7 +169,10 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "tool": tool_name,
             "strategy": "no_persistent_tool_json_cache",
             "implementation": "development_tools/shared/service/commands.py (backup health command)",
-            "artifact_glob": "development_tools/reports/jsons/backup_health_report.json; development_tools/**/jsons/scopes/*/reports/*.json",
+            "artifact_glob": (
+                f"{get_backup_report_path('health')}; "
+                "development_tools/**/jsons/scopes/*/reports/*.json"
+            ),
             "invalidation": "N/A — live backup checks; JSON overwrites each run",
         }
     return {

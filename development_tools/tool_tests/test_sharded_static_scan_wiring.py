@@ -31,7 +31,7 @@ def test_static_analysis_defaults_enable_sharding() -> None:
         repo_root / "development_tools" / "config" / "development_tools_config.json"
     )
     if not host_cfg.exists():
-        host_cfg = host_cfg.with_name("development_tools_config.json.example")
+        host_cfg = repo_root / "development_docs/devtools/development_tools_config.json"
     assert dt_config.load_external_config(str(host_cfg)) is True
     project_cfg = dt_config.get_static_analysis_config()
     assert len(project_cfg.get("ruff_path_shards") or []) >= 1

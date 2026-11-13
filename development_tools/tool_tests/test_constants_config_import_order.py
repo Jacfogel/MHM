@@ -18,7 +18,7 @@ import pytest
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _LIVE_CONFIG = _PROJECT_ROOT / "development_tools" / "config" / "development_tools_config.json"
 _EXAMPLE_CONFIG = (
-    _PROJECT_ROOT / "development_tools" / "config" / "development_tools_config.json.example"
+    _PROJECT_ROOT / "development_docs" / "devtools" / "development_tools_config.json"
 )
 
 

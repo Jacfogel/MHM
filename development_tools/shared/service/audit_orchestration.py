@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from development_tools.config import (
+    get_scoped_audit_report_path,
     STATUS,
     get_coverage_json_dir,
     get_coverage_report_path,
@@ -539,12 +540,9 @@ class AuditOrchestrationMixin:
                 # Custom --audit-scope MVP: do not overwrite AI_* / DEV_TOOLS_* reports.
                 if custom_audit_scope:
                     scoped_status = self._generate_scoped_audit_status_snippet()
-                    scoped_rel = (
-                        f"development_tools/reports/scopes/{audit_scope_slug}/"
-                        "SCOPED_AUDIT_STATUS.md"
-                    )
+                    scoped_path = get_scoped_audit_report_path(str(audit_scope_slug))
                     ai_status_file = create_output_file(
-                        scoped_rel, scoped_status, project_root=self.project_root
+                        scoped_path, scoped_status, project_root=self.project_root
                     )
                     ai_priorities_file = ai_status_file
                     consolidated_file = ai_status_file
@@ -735,11 +733,9 @@ class AuditOrchestrationMixin:
         scope_slug = getattr(self, "audit_scope_slug", None) or "?"
         tools_run = sorted(getattr(self, "_tools_run_in_current_tier", set()) or [])
         skipped = list(getattr(self, "_audit_scope_skipped_tools", []) or [])
-        rel_file = (
-            f"development_tools/reports/scopes/{scope_slug}/SCOPED_AUDIT_STATUS.md"
-        )
+        report_path = get_scoped_audit_report_path(scope_slug).as_posix()
         lines = [
-            f"> **File**: `{rel_file}`",
+            f"> **File**: `{report_path}`",
             f"> **Purpose**: MVP scoped-audit status for `{scope_path}` (does not replace AI_*).",
             "> **Audience**: AI collaborators and developers reviewing scoped audits",
             "",

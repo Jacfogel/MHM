@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from development_tools.config import (
+    get_backup_report_path,
     get_coverage_report_path,
     get_legacy_report_path,
     get_status_report_paths,
@@ -812,7 +813,9 @@ class AIPrioritiesDocumentMixin:
                 "Address Ruff findings": consolidated_report_link,
                 "Address Pyright findings": consolidated_report_link,
                 "Investigate and correct test failures/errors": "stdout files in development_tools/tests/logs",
-                "Investigate backup health failures": "development_tools/reports/jsons/backup_health_report.json",
+                "Investigate backup health failures": report_link(
+                    self.project_root / get_backup_report_path("health")
+                ),
                 "Consolidate documentation files": self._scoped_tool_result_path(
                     "docs", "analyze_documentation"
                 ),

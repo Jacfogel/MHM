@@ -37,10 +37,14 @@ try:
 except ImportError:
     from development_tools import config
 
+from development_tools.shared.audit_storage_scope import (
+    scoped_analysis_detailed_path,
+    scoped_tool_timings_path,
+)
 from development_tools.shared.logging import get_dev_tools_logger
 
-# Ensure external config is loaded
-config.load_external_config()
+if __name__ == "__main__":
+    config.load_external_config()
 
 logger = get_dev_tools_logger("development_tools")
 
@@ -220,6 +224,10 @@ class ProjectCleanup:
         for cache_file in dev_tools_dir.glob("**/jsons/scopes/dev_tools/**/*"):
             if cache_file.is_file():
                 artifacts.append(cache_file)
+        artifacts.extend((
+            scoped_analysis_detailed_path(self.project_root, audit_scope="dev_tools"),
+            scoped_tool_timings_path(self.project_root, audit_scope="dev_tools"),
+        ))
         reports_scoped_dev = dev_tools_dir / "reports" / "scopes" / "dev_tools"
         if reports_scoped_dev.is_dir():
             for scoped_report in reports_scoped_dev.rglob("*"):
@@ -288,6 +296,10 @@ class ProjectCleanup:
         for cache_file in dev_tools_dir.glob("**/jsons/scopes/dev_tools/**/*"):
             if cache_file.is_file():
                 artifacts.append(cache_file)
+        artifacts.extend((
+            scoped_analysis_detailed_path(self.project_root, audit_scope="dev_tools"),
+            scoped_tool_timings_path(self.project_root, audit_scope="dev_tools"),
+        ))
         reports_scoped_dev = dev_tools_dir / "reports" / "scopes" / "dev_tools"
         if reports_scoped_dev.is_dir():
             for scoped_report in reports_scoped_dev.rglob("*"):
@@ -299,6 +311,10 @@ class ProjectCleanup:
         for cache_file in dev_tools_dir.glob("**/jsons/scopes/full/**/*"):
             if cache_file.is_file():
                 artifacts.append(cache_file)
+        artifacts.extend((
+            scoped_analysis_detailed_path(self.project_root, audit_scope="full"),
+            scoped_tool_timings_path(self.project_root, audit_scope="full"),
+        ))
         reports_scoped_full = dev_tools_dir / "reports" / "scopes" / "full"
         if reports_scoped_full.is_dir():
             for scoped_report in reports_scoped_full.rglob("*"):
@@ -306,7 +322,7 @@ class ProjectCleanup:
                     artifacts.append(scoped_report)
 
         # Rotated markdown snapshots (AI_STATUS / AI_PRIORITIES / CONSOLIDATED) from prior runs.
-        reports_archive = dev_tools_dir / "reports" / "archive"
+        reports_archive = config.get_report_archive_dir(self.project_root)
         if reports_archive.is_dir():
             for archived in reports_archive.rglob("*"):
                 if archived.is_file():

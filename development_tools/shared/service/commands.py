@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import cast
 
 from development_tools.config import (
+    get_backup_report_path,
     get_coverage_json_dir,
     get_coverage_report_path,
     get_legacy_report_path,
@@ -1645,7 +1646,7 @@ class CommandsMixin:
             }
             json_path = write_json_report(
                 self.project_root,
-                "development_tools/reports/jsons/backup_inventory.json",
+                get_backup_report_path("inventory"),
                 inventory_payload,
                 rotate=False,
             )
@@ -1680,7 +1681,7 @@ class CommandsMixin:
             }
             json_path = write_json_report(
                 self.project_root,
-                "development_tools/reports/jsons/backup_retention_report.json",
+                get_backup_report_path("retention"),
                 payload,
                 rotate=False,
             )
@@ -1887,7 +1888,7 @@ class CommandsMixin:
                 }
                 json_path = write_json_report(
                     self.project_root,
-                    "development_tools/reports/jsons/backup_health_report.json",
+                    get_backup_report_path("health"),
                     payload,
                     rotate=False,
                 )
@@ -2048,7 +2049,7 @@ class CommandsMixin:
             }
             json_path = write_json_report(
                 self.project_root,
-                "development_tools/reports/jsons/backup_health_report.json",
+                get_backup_report_path("health"),
                 payload,
                 rotate=False,
             )

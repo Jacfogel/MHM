@@ -58,13 +58,7 @@ def _normalize_path(path: Path, root: Path) -> str:
 
 
 def _load_inventory(project_root: Path) -> tuple[list[dict[str, Any]], dict[str, str]]:
-    legacy_config = config.get_external_value("legacy_cleanup", {})
-    configured = "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
-    if isinstance(legacy_config, dict):
-        configured = legacy_config.get("deprecation_inventory_file", configured)
-    inventory_path = Path(str(configured))
-    if not inventory_path.is_absolute():
-        inventory_path = project_root / inventory_path
+    inventory_path = config.get_deprecation_inventory_path(project_root)
     try:
         data = json.loads(inventory_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):

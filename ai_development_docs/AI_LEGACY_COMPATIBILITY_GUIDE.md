@@ -26,7 +26,7 @@ python development_tools/legacy/fix_legacy_references.py --verify "LegacyItemNam
 python development_tools/run_development_tools.py legacy
 ```
 
-**Canonical inventory:** `development_tools/config/jsons/DEPRECATION_INVENTORY.json` is the required source of truth for deprecated/removed/to-retire terms and sweep patterns.
+**Canonical inventory:** `development_docs/devtools/DEPRECATION_INVENTORY.json` is the required source of truth for deprecated/removed/to-retire terms and sweep patterns.
 
 For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), use section 2. "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite) and section 3. "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs).
 
@@ -43,9 +43,9 @@ Use this guide only after you understand the general documentation and developme
 - Mark code with a clear `# LEGACY COMPATIBILITY:` header.
 - Log usage when the legacy path is exercised.
 - Add, or update, a removal plan in the relevant docs or changelog.
-- Register legacy scan regex categories in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` under `legacy_scan_patterns` (optional per-category override in `development_tools_config.json` under `legacy_cleanup.legacy_patterns`). Use **narrow** regexes only; the former `user_data_v1_runtime_adapters` category was removed (2026-05-01) because `.get("timestamp")`/`.get("body")` and similar patterns matched normal v2/email/dev-tools code.
+- Register legacy scan regex categories in `development_docs/devtools/DEPRECATION_INVENTORY.json` under `legacy_scan_patterns` (optional per-category override in `development_tools_config.json` under `legacy_cleanup.legacy_patterns`). Use **narrow** regexes only; the former `user_data_v1_runtime_adapters` category was removed (2026-05-01) because `.get("timestamp")`/`.get("body")` and similar patterns matched normal v2/email/dev-tools code.
 - Add specific detection patterns to `development_tools/legacy/fix_legacy_references.py` (no broad patterns like `"legacy"`).
-- Add or update an entry in `development_tools/config/jsons/DEPRECATION_INVENTORY.json` with status `active_bridge` or `deprecated_in_use`.
+- Add or update an entry in `development_docs/devtools/DEPRECATION_INVENTORY.json` with status `active_bridge` or `deprecated_in_use`.
 
 **When preparing to remove legacy code:**
 
@@ -93,7 +93,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
    - Run the standard test suite (see section 4. "Running Automated Tests" in [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md#4-running-automated-tests)).
    - Start the service and confirm normal behavior.
    - Update changelogs or relevant docs to record the removal.
-   - Update `development_tools/config/jsons/DEPRECATION_INVENTORY.json` (change status to `removed` or `retire_candidate`, and keep search terms current).
+   - Update `development_docs/devtools/DEPRECATION_INVENTORY.json` (change status to `removed` or `retire_candidate`, and keep search terms current).
 
 ## 3. Checklist
 
@@ -107,7 +107,7 @@ Before you delete a legacy item:
 - [ ] The standard test suite passes after your changes.
 - [ ] The service starts and runs without errors.
 - [ ] Relevant documentation and changelogs mention the removal where appropriate.
-- [ ] `development_tools/config/jsons/DEPRECATION_INVENTORY.json` is updated for this item.
+- [ ] `development_docs/devtools/DEPRECATION_INVENTORY.json` is updated for this item.
 
 ## 4. Tools
 

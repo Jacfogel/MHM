@@ -27,7 +27,7 @@
 | Testing roadmap | [TEST_PLAN.md](TEST_PLAN.md) |
 | Task-system roadmap | [TASKS_PLAN.md](TASKS_PLAN.md) |
 | Notebook roadmap | [NOTES_PLAN.md](NOTES_PLAN.md) |
-| AI/dev-tools roadmap | Extraction [Section 6.4](#64-ai-development-tools); archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
+| AI/dev-tools roadmap | Archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
 | Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
 | Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
 | Current audit status | [AI_STATUS.md](../development_tools/AI_STATUS.md) |
@@ -61,7 +61,6 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Notebook system | **MONITORING** | Low | [NOTES_PLAN.md](NOTES_PLAN.md) | Shipped baseline; optional live visual checks when UI changes; extensions deferred |
 | Task system | **MONITORING** | Low | [TASKS_PLAN.md](TASKS_PLAN.md) | Shipped capabilities; optional live validation; future extensions await selection |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Complete-suite Windows reliability, log isolation, coverage growth |
-| AI development tools | **ACTIVE** | Medium | This file Section 6.4 + [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md#86-import-boundary-portability) Section 8.6 | Logical split (host adapters + import boundary); later sibling-repo extract |
 | Deterministic mood and energy rules | **MONITORING** | Low | This file Section 5.3 | Observe health-derived pressure transitions; additional timer awaits usage evidence |
 | Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
@@ -180,26 +179,6 @@ These plans should not be duplicated in detail here.
 - Test artifact/log isolation.
 - No-parallel marker reduction only when stability is preserved.
 - Coverage growth in high-value domains.
-
----
-
-### 6.4 AI development tools
-
-**Status**: **ACTIVE**  
-**Priority**: Medium  
-**Started**: 2026-09-13  
-**Destination**: separate git repo after the in-repo guest package is honest.
-
-**Deferred scope**: Remaining V6 item **B-016** (`--audit-scope` beyond Tier 2) stays parked; do not reopen Radon/pydeps/pre-commit without a new plan.
-
-**Still in this repo before a sibling-repo cut**:
-
-- Keep MHM-only policy (paired docs, deprecation inventory, backup paths) in host config, not scanner defaults.
-- Migrate the remaining report paths to host config. The function registry, module dependency, coverage, legacy reference, and audit summary reports already share configured paths between their generators and readers. Audit summaries and aggregate JSON have separate paths for full-repo and tools-only runs.
-- Optional: `requirements-devtools.txt` or `pip install -e .[devtools]` (installable extra).
-- Then pin a sibling repo (submodule/subtree). Do not publish a pip package until a second consumer exists.
-
-**Triage**: generated [`AI_PRIORITIES.md`](../development_tools/AI_PRIORITIES.md) and [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md#86-import-boundary-portability) Section 8.6. V6 history: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
 ---
 
@@ -337,6 +316,14 @@ This remains a long-term idea from the broader project vision, not a current MHM
 
 ---
 
+### 8.5.1 Development tools extensions
+
+**Status**: **DEFERRED**
+
+Extending custom audit scopes beyond Tier 2 and revisiting Radon, pydeps, or pre-commit require a separate plan. Package distribution awaits a second consumer. See the [archived V6 roadmap](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
+
+---
+
 ### 8.6 AI quality and response-time work
 
 **Status**: **DEFERRED**
@@ -369,4 +356,3 @@ Use this checklist when reviewing or updating this plan; reset it for each revie
 - [ ] Remove fully completed items and completion-history lists; keep implementation history in changelogs.
 - [ ] Confirm each remaining item's status, priority, scope, and acceptance or revisit criteria are accurate.
 - [ ] Confirm links and section references resolve, related plan summaries agree, and current metrics come from generated reports.
-- [ ] Confirm child-plan ownership and index statuses match, and the AI development-tools pointer identifies the current roadmap and archived history.

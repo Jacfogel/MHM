@@ -111,5 +111,10 @@ def scoped_tool_timings_path(
     audit_scope: str | object = AUDIT_SCOPE_USE_CONTEXT,
 ) -> Path:
     scope = effective_storage_scope(audit_scope)  # type: ignore[arg-type]
-    base = Path(project_root).resolve() / "development_tools" / "reports"
-    return base / "scopes" / scope / "jsons" / "tool_timings.json"
+    from development_tools.config import get_external_value
+
+    root = Path(project_root).resolve()
+    base = root / get_external_value(
+        "paths.tool_timings_dir", "development_tools/reports/scopes"
+    )
+    return base / scope / "jsons" / "tool_timings.json"

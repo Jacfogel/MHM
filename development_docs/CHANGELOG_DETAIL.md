@@ -32,6 +32,10 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Configurable scoped audit and backup reports
+
+- **Feature**: Added host configuration for custom audit status and backup inventory, retention, and health report paths. The scoped status header, backup health priority link, and cache inventory use the configured paths. Moved the tracked MHM policy and deprecation inventory under `development_docs/devtools/`. Logging, status report rotation, audit timings, and cache cleanup now read their destinations from host configuration. Published the tooling source to the private [development-tools repository](https://github.com/Jacfogel/development-tools/commit/9a7dd97c1dae2b3496295d2b55e31bc65c74de9e) and pinned that commit as the MHM subtree baseline.
+
 ### 2026-11-12 - Host-configured audit and legacy reporting
 
 - Quick Status, consolidated reports, and the freshness checker use the host-configured aggregate audit JSON path. Tools-only and path-scoped audits write separate files even when that path is outside the usual reports directory.

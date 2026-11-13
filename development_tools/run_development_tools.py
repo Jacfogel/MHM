@@ -28,10 +28,26 @@ if os.getenv("MHM_TESTING") != "1":
 # Integration tests subprocess this entrypoint; inherited PYTEST_CURRENT_TEST would
 # make create_output_file treat the CLI as an in-test write and block real status files.
 os.environ.pop("PYTEST_CURRENT_TEST", None)
-# Keep dev-tools file logs under development_tools/reports/logs (matches core
-# logger layout during MHM_DEV_TOOLS_RUN; avoids cluttering project logs/).
-_reports_logs = project_root / "development_tools" / "reports" / "logs"
-os.environ.setdefault("DEV_TOOLS_LOGS_DIR", str(_reports_logs.resolve()))
+# CLI configuration must be loaded before importing modules that initialize logging.
+if __name__ == "__main__":
+    from development_tools.config import load_external_config
+
+    bootstrap_parser = argparse.ArgumentParser(add_help=False)
+    bootstrap_parser.add_argument("--project-root")
+    bootstrap_parser.add_argument("--config-path")
+    bootstrap_args, _ = bootstrap_parser.parse_known_args()
+    if bootstrap_args.project_root:
+        selected_root = Path(bootstrap_args.project_root).resolve()
+        os.environ["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(selected_root)
+        selected_config = selected_root / "development_tools/config/development_tools_config.json"
+    else:
+        selected_config = None
+    config_path = bootstrap_args.config_path or os.getenv("DEVTOOLS_REPORT_CONFIG")
+    if config_path is None and selected_config is not None and selected_config.is_file():
+        config_path = str(selected_config)
+    load_external_config(config_path)
+    if config_path:
+        os.environ["DEVTOOLS_REPORT_CONFIG"] = str(Path(config_path).resolve())
 
 # Now we can import development_tools as a package
 try:

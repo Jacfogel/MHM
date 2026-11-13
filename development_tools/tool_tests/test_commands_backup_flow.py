@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -35,7 +36,12 @@ def test_run_backup_inventory_success_writes_json(tmp_path: Path, monkeypatch: p
     )
     monkeypatch.setattr(commands_module, "load_backup_policy", lambda: policy)
 
-    service = AIToolsService(project_root=str(tmp_path))
+    config_path = tmp_path / "host-config.json"
+    config_path.write_text(
+        json.dumps({"backup_reports": {"inventory": "artifacts/inventory.json"}}),
+        encoding="utf-8",
+    )
+    service = AIToolsService(project_root=str(tmp_path), config_path=str(config_path))
     result = service.run_backup_inventory()
 
     assert result["success"] is True
@@ -44,7 +50,7 @@ def test_run_backup_inventory_success_writes_json(tmp_path: Path, monkeypatch: p
     assert data.get("inventory") is not None
     json_path = Path(result["report_paths"]["json"])
     assert json_path.exists()
-    assert json_path.name == "backup_inventory.json"
+    assert json_path == tmp_path / "artifacts" / "inventory.json"
 
 
 @pytest.mark.unit

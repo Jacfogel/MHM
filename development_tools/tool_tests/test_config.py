@@ -311,8 +311,8 @@ class TestConfigHelperFunctions:
         assert config.get_file_patterns_config() == dict(config.FILE_PATTERNS)
 
     @pytest.mark.unit
-    def test_dev_tools_config_example_matches_live_top_level_keys(self):
-        """development_tools_config.json.example documents the same categories as live."""
+    def test_dev_tools_local_config_keys_are_supported_by_host_baseline(self):
+        """Local overrides can omit sections supplied by portable defaults."""
         import json
 
         root = Path(__file__).resolve().parent.parent.parent
@@ -321,11 +321,11 @@ class TestConfigHelperFunctions:
             pytest.skip("development_tools_config.json is gitignored and not available on CI")
         live = json.loads(live_path.read_text(encoding="utf-8"))
         ex = json.loads(
-            (root / "development_tools" / "config" / "development_tools_config.json.example").read_text(
+            (root / "development_docs" / "devtools" / "development_tools_config.json").read_text(
                 encoding="utf-8"
             )
         )
-        assert set(live) == set(ex) - {"_comment"}
+        assert set(live) <= set(ex) - {"_comment"}
 
     @pytest.mark.unit
     def test_get_static_analysis_config_honors_external_overrides(self):

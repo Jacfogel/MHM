@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-12 - Configurable scoped audit and backup reports **COMPLETED**
+
+- Custom audit status and backup command reports now use host-configured destinations.
+- Scoped status headers, backup health priority links, and cache inventory use the same paths as report writers.
+- MHM's tracked policy and deprecation inventory moved to `development_docs/devtools/`. Host configuration also controls log, archive, and timing destinations.
+- Published and pinned the private development-tools subtree at `9a7dd97c`.
+
 ### 2026-11-12 - Host-configured audit and legacy reporting **COMPLETED**
 
 - Audit summaries and aggregate JSON use host-configured paths and keep full-repo and scoped outputs separate. Quick Status, report links, and freshness checks follow those paths.

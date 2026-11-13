@@ -47,10 +47,9 @@ if str(project_root) not in sys.path:
 
 # Ensure dev-tools logger routing is active even when this module is invoked directly.
 os.environ.setdefault("MHM_DEV_TOOLS_RUN", "1")
-os.environ.setdefault(
-    "DEV_TOOLS_LOGS_DIR",
-    str(project_root / "development_tools" / "reports" / "logs"),
-)
+from development_tools.config import load_external_config
+
+load_external_config()
 
 from development_tools.shared.logging import get_dev_tools_logger
 import contextlib

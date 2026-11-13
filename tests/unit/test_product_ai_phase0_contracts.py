@@ -27,7 +27,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.ai]
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AI_PACKAGE_ROOT = REPO_ROOT / "ai"
 DEPRECATION_INVENTORY = (
-    REPO_ROOT / "development_tools" / "config" / "jsons" / "DEPRECATION_INVENTORY.json"
+    REPO_ROOT / "development_docs" / "devtools" / "DEPRECATION_INVENTORY.json"
 )
 
 # Product-AI orchestration must not write user JSON directly; handlers own persistence.
