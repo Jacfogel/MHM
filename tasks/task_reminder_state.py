@@ -42,9 +42,6 @@ def schedule_deferred_task_reminder(user_id: str, task_id: str, until: datetime)
     ):
         return True
     logger.warning(
-        "Could not schedule deferred reminder for task %s (user %s) at %s",
-        task_id,
-        user_id,
-        until,
+        f"Could not schedule deferred reminder for task {task_id} (user {user_id}) at {until}"
     )
     return False
