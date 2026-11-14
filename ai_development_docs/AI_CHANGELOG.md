@@ -31,6 +31,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-13 - Development-tools documentation and parallel audit test **COMPLETED**
+
+- Fixed stale guide references, the missing README file address, and 32 links to the relocated deprecation inventory. Documentation checks reported zero issues.
+- Isolated the custom-audit subprocess's logging settings from the parallel runner. All 13 portability tests passed with two workers.
+
 ### 2026-11-12 - Configurable scoped audit and backup reports **COMPLETED**
 
 - Custom audit status and backup command reports now use host-configured destinations.
@@ -122,12 +127,6 @@ Guidelines:
 - Instrumentation validation: five focused checks pass serially and with two workers, real offscreen Qt invalid-wrapper/atexit probe passes, clean/crash workflow guard probes pass, targeted Ruff and Tier 2 audit pass.
 - Reproduced the no-print policy failure and moved the three measurement files to component INFO logging; 25 focused checks, targeted Ruff, and Tier 2 audit pass.
 - Native diagnostics place the separate worker crash after successful session finish, inside PySide6/Qt application destruction during interpreter exit. Originating object/test remains unknown; Linux replay details and remaining full-suite validation are tracked in TEST_PLAN 2.8. No crash fix or full-suite pass is claimed.
-
-### 2026-11-06 - Finish TODO health, memory, and documentation work
-- Added independently persisted message/chat health preferences and desktop controls; authenticated health identity is saved only after verification. Connect failure cannot enable an account; first sync now follows enablement.
-- Added sync page counts, complete non-sleep pagination with 1,000-record pages (sleep cap 25), and a validated 7-90-day historical baseline window, default 14, excluding future/target dates and retaining sparse-history safeguards.
-- Bounded context/session retention. The isolated state workload retained about 2.1 MB after two batches versus 41.3 MB before, then about 47 KB after explicit expiry; this excludes live providers and test-worker/OS pressure. Finished reference/guide/recovery refreshes; detailed evidence is in the paired changelog.
-- Validation: 115 focused rerun checks, targeted Ruff, and standard Tier 2 audit pass. All five standalone TODO items are implemented and removed; test reliability remains in TEST_PLAN. Full run was incomplete: 2,980 passes, 1 failure, 2 errors, 27 skips; development-tools parallel phase passed 1,694. Worker/xdist and serial configuration issues remain in TEST_PLAN 2.8. No live service or delivery was run.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

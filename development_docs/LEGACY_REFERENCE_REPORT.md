@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/LEGACY_REFERENCE_REPORT.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-12 18:06:27
+> **Last Generated**: 2026-11-13 20:03:19
 > **Source**: `python development_tools/legacy/generate_legacy_reference_report.py` - Legacy Reference Report Generator
 **Total Files with Issues**: 0
 **Legacy Compatibility Markers Detected**: 0
@@ -15,7 +15,7 @@
 3. Only after migration is verified, remove legacy markers/comments/docs evidence and rerun `python development_tools/run_development_tools.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Deprecation Inventory
-- Inventory file: `development_tools/config/jsons/DEPRECATION_INVENTORY.json`
+- Inventory file: `development_docs/devtools/DEPRECATION_INVENTORY.json`
 - Active/candidate entries: 1
 - Removed entries: 66
 - Active search terms: 0

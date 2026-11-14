@@ -284,7 +284,11 @@ def test_copied_devtools_cli_audit_quick_succeeds_on_external_project(tmp_path):
     assert "run_mhm.py" not in (proc.stdout + proc.stderr)
 
 @pytest.mark.unit
-def test_custom_audit_writes_status_under_host_configured_directory(tmp_path):
+def test_custom_audit_writes_status_under_host_configured_directory(tmp_path, monkeypatch):
+    # Exercise production logging while keeping the subprocess confined to tmp_path.
+    monkeypatch.setenv("MHM_TESTING", "0")
+    monkeypatch.delenv("DEV_TOOLS_LOGS_DIR", raising=False)
+    monkeypatch.delenv("LOG_AI_DEV_TOOLS_FILE", raising=False)
     destination = _copy_development_tools_tree(tmp_path, with_host_package=True)
     config_path = destination / "config" / "development_tools_config.json"
     host_config = json.loads(config_path.read_text(encoding="utf-8"))
