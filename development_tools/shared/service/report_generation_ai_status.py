@@ -1,4 +1,4 @@
-"""AI_STATUS.md document builder mixin.
+"""STATUS_BRIEF.md document builder mixin.
 
 Extracted from ReportGenerationMixin (V6 B-015). Methods remain mixin methods so
 they share AIToolsService helpers via MRO; no legacy shim / dual API.
@@ -114,7 +114,7 @@ class AIStatusDocumentMixin:
         )
         if self._is_dev_tools_scoped_report():
             lines.append(
-                "> **Role**: Dev-tools tree health only (`development_tools/` scan); not a full-repo snapshot. Prefer AI_STATUS.md after `audit` without `--dev-tools-only` for product-wide signals."
+                "> **Role**: Dev-tools tree health only (`development_tools/` scan); not a full-repo snapshot. Prefer STATUS_BRIEF.md after `audit` without `--dev-tools-only` for product-wide signals."
             )
             lines.append(
                 "> **Scope**: Analyzers used `get_scan_directories() -> ['development_tools']` for this audit."
@@ -1759,7 +1759,7 @@ class AIStatusDocumentMixin:
             lines.append(
                 "- **Scope note**: Import/coupling metrics below are for the "
                 "`development_tools/` scan root only. Product-wide dependency signals "
-                "are in `AI_STATUS.md` from a default-scope audit."
+                "are in `STATUS_BRIEF.md` from a default-scope audit."
             )
         dependency_patterns_details = (
             dependency_patterns_data.get("details", {})
@@ -1832,7 +1832,7 @@ class AIStatusDocumentMixin:
                     if f:
                         lines.append(f"  - {f}")
             lines.append(
-                "- **Action**: Refactor to remove all `core.*` imports; use `development_tools.shared.logging` for dev-tools logs; see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
+                "- **Action**: Refactor to remove all `core.*` imports; use `development_tools.shared.logging` for dev-tools logs; see README.md §8.5"
             )
         elif import_violations == 0:
             lines.append("- **Status**: CLEAN (no boundary violations detected)")
@@ -2265,7 +2265,7 @@ class AIStatusDocumentMixin:
         if self._is_dev_tools_scoped_report():
             lines.append(
                 "- `python development_tools/run_development_tools.py audit --full` - "
-                "Regenerate full-repo `AI_STATUS.md` / product hygiene metrics (does not refresh coverage)"
+                "Regenerate full-repo `STATUS_BRIEF.md` / product hygiene metrics (does not refresh coverage)"
             )
             lines.append(
                 "- `python development_tools/run_development_tools.py audit --full --dev-tools-only` - "

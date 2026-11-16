@@ -42,7 +42,7 @@ Test locations (must not change without updating this file and [TESTING_GUIDE.md
 - `tests/communication/` - communication subsystem tests.
 - `tests/notebook/` - notebook subsystem tests.
 - `tests/ai/` - AI-focused pytest tests and the dedicated AI functionality suite.
-- `development_tools/tool_tests/` - infrastructure tests for development tools (config, CLI, exclusions, core analysis tools). Run with `-c development_tools/pytest.ini` (host `pytest.ini` ignores this directory).
+- The tools development branch owns infrastructure tests for configuration, the CLI, and analysis tools.
 - `tests/test_helpers/` - test utilities and support (not test categories). Contains `test_utilities/` (factories: TestUserFactory, TestDataFactory, env helpers) and `test_support/` (conftest plugins, standalone helpers like wait_until). Import from `tests.test_helpers.test_utilities` or `tests.test_helpers.test_support` (or `tests.test_helpers` for convenience).
 - `tests/conftest.py` - fixtures, hooks, and global configuration (root). Plugin modules live under `tests/test_helpers/test_support/` (conftest_env, conftest_mocks, conftest_cleanup, conftest_logging, conftest_user_data, conftest_hooks) and are loaded via `pytest_plugins`. Logging implementation in `tests/test_helpers/test_support/conftest_logging_impl.py`; cleanup in `tests/test_helpers/test_support/conftest_cleanup_impl.py`.
 
@@ -58,13 +58,13 @@ When adding a test:
 - Pure logic -> `tests/unit/`.
 - Multi-module or service flows -> `tests/integration/` or `tests/behavior/`.
 - UI dialogs or widgets -> `tests/ui/`.
-- Development tools or infrastructure -> `development_tools/tool_tests/`.
+- Development tools or infrastructure -> the tools development branch.
   - CLI routing tests stay lightweight by mocking `AIToolsService` (no subprocesses).
   - Permission/error scenarios are simulated via monkeypatching so results are identical on Windows/Linux.
 
-**Note:** Core analysis tools (`development_tools/docs/analyze_documentation_sync.py`, `development_tools/functions/generate_function_registry.py`, `development_tools/imports/generate_module_dependencies.py`, `development_tools/legacy/fix_legacy_references.py`, `development_tools/tests/run_test_coverage.py`) have comprehensive test coverage (55+ tests) using a synthetic fixture project at `tests/fixtures/development_tools_demo/`. The cleanup tool listed above targets legacy references.
+The development-tools repository owns the synthetic demo project used to test the analysis, documentation, and coverage tools. The cleanup tool listed above targets legacy references.
 
-For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](../tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
+For detailed guidance on development tools testing, see [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 
 For detailed definitions and examples, see section 2. "Test Layout and Types" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#2-test-layout-and-types).
 
@@ -163,7 +163,7 @@ Preferred commands (via `run_tests.py`):
   `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
   `tests/core/`, `tests/communication/`, and `tests/notebook/`.
 
-- Run full `tests/` tree (includes `development_tools/tool_tests/` and other test dirs):
+- Run the host test tree. If the tools development suite is installed, `--full` also runs it separately:
 
   ```bash
   python run_tests.py --mode all --full
@@ -238,7 +238,7 @@ Parallel execution:
 
 - Expected default: tests run in parallel using `pytest-xdist` with `--dist=loadscope` (fixture-heavy modules stay on one worker).
 - Auto worker count: up to 6 workers (`cpu_count // 2`, minimum 2).
-- Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py` with the **quick** profile (`not e2e` and `not slow`), not `run_tests.py`. It runs the full `tests/` tree (including `development_tools/tool_tests/`), caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged (profile-aware cache).
+- Tier 3 audit (`audit --full`) uses `development_tools/tests/run_test_suite.py` with the **quick** profile (`not e2e` and `not slow`), not `run_tests.py`. It runs the host `tests/` tree, adds an isolated invocation if the tools development suite is installed, caps workers at 4 while ruff/pyright/legacy tools run concurrently, and may reuse domain-cache results when source domains are unchanged (profile-aware cache).
 - **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). Scheduled in `.github/workflows/nightly-tests.yml`. POSIX pytest-timeout uses `signal` so hung tests abort at 300s; Windows keeps `thread`.
 - **Website browser suite**: The `no_parallel` pytest bridge runs every `website/*.test.mjs` file under Node.js, so the default runner, Tier 3/full audit, and nightly suite all enforce the same browser tests.
 - The separate `coverage` command runs pytest again with coverage collection; that is additional time beyond Tier 3 test-suite execution.

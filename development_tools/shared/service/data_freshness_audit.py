@@ -8,7 +8,7 @@ WHAT IT DOES:
 1. Checks all JSON cache files for references to known deleted files
 2. Performs static analysis to find code patterns that might process file paths
    without existence checks (these are warnings, not necessarily bugs)
-3. Automatically checks generated reports (CONSOLIDATED_REPORT.md, AI_STATUS.md, etc.)
+3. Automatically checks generated reports (CONSOLIDATED_REPORT.md, STATUS_BRIEF.md, etc.)
    for references to deleted files
 
 WHAT THE RESULTS MEAN:
@@ -275,7 +275,7 @@ if __name__ == '__main__':
     print("=" * 70)
     print("\nWHAT THIS AUDIT DOES:")
     print("  1. Checks JSON cache files for references to deleted files")
-    print("  2. Checks generated reports (CONSOLIDATED_REPORT.md, AI_STATUS.md, etc.)")
+    print("  2. Checks generated reports (CONSOLIDATED_REPORT.md, STATUS_BRIEF.md, etc.)")
     print("  3. Performs static code analysis (warnings only, many are false positives)")
     print("\nSummary:")
     print(f"  - Cache files checked: {results['summary']['cache_files_checked']}")

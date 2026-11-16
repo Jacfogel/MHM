@@ -544,8 +544,8 @@
       "development_docs/LEGACY_REFERENCE_REPORT.md",
       "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
       "development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
-      "development_tools/AI_PRIORITIES.md",
-      "development_tools/AI_STATUS.md",
+      "development_tools/PRIORITIES_BRIEF.md",
+      "development_tools/STATUS_BRIEF.md",
       "development_tools/CONSOLIDATED_REPORT.md",
       "development_tools/reports/analysis_detailed_results.json",
       "ui/generated/*"
@@ -590,8 +590,7 @@
       "tests/TESTING_GUIDE.md": "ai_development_docs/AI_TESTING_GUIDE.md",
       "core/ERROR_HANDLING_GUIDE.md": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
       "development_docs/BACKUP_GUIDE.md": "ai_development_docs/AI_BACKUP_GUIDE.md",
-      "development_docs/CHANGELOG_DETAIL.md": "ai_development_docs/AI_CHANGELOG.md",
-      "development_tools/DEVELOPMENT_TOOLS_GUIDE.md": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md"
+      "development_docs/CHANGELOG_DETAIL.md": "ai_development_docs/AI_CHANGELOG.md"
     },
     "local_module_prefixes": [
       "ai",
@@ -1141,8 +1140,8 @@
   "status": {
     "scoped_report_dir": "development_tools/reports/scopes",
     "status_files": {
-      "ai_status": "development_tools/AI_STATUS.md",
-      "ai_priorities": "development_tools/AI_PRIORITIES.md",
+      "ai_status": "development_tools/STATUS_BRIEF.md",
+      "ai_priorities": "development_tools/PRIORITIES_BRIEF.md",
       "consolidated_report": "development_tools/CONSOLIDATED_REPORT.md"
     },
     "dev_tools_status_files": {

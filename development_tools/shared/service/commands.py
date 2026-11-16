@@ -2460,7 +2460,7 @@ class CommandsMixin:
             "*.md",
             "development_docs/**/*.md",
             "ai_development_docs/**/*.md",
-            "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+            "development_tools/README.md",
         ]
         generated_docs = [
             str(get_coverage_report_path(self.project_root)),

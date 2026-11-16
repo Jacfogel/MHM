@@ -4,7 +4,7 @@
 """
 Consolidated Report Generator
 
-Generates AI_STATUS.md, AI_PRIORITIES.md, and CONSOLIDATED_REPORT.md
+Generates STATUS_BRIEF.md, PRIORITIES_BRIEF.md, and CONSOLIDATED_REPORT.md
 in the development_tools root directory.
 
 This module provides a simple interface to generate all consolidated reports
@@ -36,7 +36,7 @@ def generate_consolidated_reports(
     project_root: str | None = None, config_path: str | None = None
 ) -> dict:
     """
-    Generate all consolidated reports (AI_STATUS.md, AI_PRIORITIES.md, CONSOLIDATED_REPORT.md).
+    Generate all consolidated reports (STATUS_BRIEF.md, PRIORITIES_BRIEF.md, CONSOLIDATED_REPORT.md).
 
     Args:
         project_root: Optional project root directory
@@ -62,11 +62,11 @@ def generate_consolidated_reports(
 
     # Generate AI Status document
     ai_status = service._generate_ai_status_document()
-    ai_status_file = write_report("development_tools/AI_STATUS.md", ai_status)
+    ai_status_file = write_report("development_tools/STATUS_BRIEF.md", ai_status)
 
     # Generate AI Priorities document
     ai_priorities = service._generate_ai_priorities_document()
-    ai_priorities_file = write_report("development_tools/AI_PRIORITIES.md", ai_priorities)
+    ai_priorities_file = write_report("development_tools/PRIORITIES_BRIEF.md", ai_priorities)
 
     # Generate consolidated report
     consolidated_report = service._generate_consolidated_report()
@@ -76,8 +76,8 @@ def generate_consolidated_reports(
     )
 
     logger.info("Generated consolidated reports:")
-    logger.info(f"  - AI_STATUS.md: {ai_status_file}")
-    logger.info(f"  - AI_PRIORITIES.md: {ai_priorities_file}")
+    logger.info(f"  - STATUS_BRIEF.md: {ai_status_file}")
+    logger.info(f"  - PRIORITIES_BRIEF.md: {ai_priorities_file}")
     logger.info(f"  - CONSOLIDATED_REPORT.md: {consolidated_file}")
 
     return {
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Generate consolidated reports (AI_STATUS.md, AI_PRIORITIES.md, CONSOLIDATED_REPORT.md)"
+        description="Generate consolidated reports (STATUS_BRIEF.md, PRIORITIES_BRIEF.md, CONSOLIDATED_REPORT.md)"
     )
     parser.add_argument(
         "--project-root",

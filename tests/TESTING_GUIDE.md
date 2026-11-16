@@ -102,26 +102,9 @@ Tests are organized by real-world features and workflows to encourage integratio
 - Verify signals/slots, validation behavior, and critical UI flows.
 - Avoid brittle pixel-perfect assertions; focus on behavior.
 
-**Development tools tests (`development_tools/tool_tests/`)**
+**Development tools tests**
 
-- Test development tools and infrastructure components.
-- Include sanity tests for configuration, exclusions, constants, and CLI runners.
-- Integration coverage relies on **mocked CLI smoke tests** (no subprocesses) so the suite stays fast while still exercising `run_development_tools` routing.
-- Error-scenario tests simulate `PermissionError`/`OSError` via monkeypatching instead of modifying real filesystem ACLs-keeps results identical on Windows and Linux.
-- **Core analysis tools** have comprehensive test coverage (55+ tests):
-  - `development_tools/docs/analyze_documentation_sync.py` - 12 tests for doc pairing validation
-  - `development_tools/functions/generate_function_registry.py` - 12 tests for function extraction and registry generation
-  - `development_tools/imports/generate_module_dependencies.py` - 11 tests for dependency graph generation
-  - `development_tools/legacy/fix_legacy_references.py` - 10 tests for legacy reference pattern detection and cleanup
-  - `development_tools/tests/run_test_coverage.py` - 10 tests for coverage regeneration and reporting
-- Tests use a synthetic fixture project at `tests/fixtures/development_tools_demo/` for isolated testing.
-- For detailed guidance on development tools testing, see [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
-- Examples:
-  - Configuration validation.
-  - File exclusion patterns.
-  - CLI command execution.
-  - AST parsing and code analysis.
-  - Documentation synchronization checks.
+The tools development branch owns its test suite, configuration, and synthetic fixtures. See the [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 
 ### 2.3. Where to put new tests
 
@@ -130,7 +113,7 @@ When adding a new test:
 - If it exercises **pure logic** in one module, put it in `tests/unit/`.
 - If it involves **multiple modules** or services, use `tests/integration/` or `tests/behavior/` depending on scope.
 - If it tests **dialogs, widgets, or UI flows**, put it in `tests/ui/`.
-- If it tests **development tools** (configuration, CLI runners, tooling), put it in `development_tools/tool_tests/`.
+- If it tests **development tools** (configuration, CLI runners, tooling), add it in the tools repository's development branch.
 
 If you are unsure, err toward **integration or behavior tests**. Isolated unit tests are useful, but they should support a real-behavior-first strategy instead of replacing it.
 
@@ -331,17 +314,10 @@ Common commands:
   `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`,
   `tests/core/`, `tests/communication/`, and `tests/notebook/`.
 
-- Run core suites plus `development_tools/tool_tests/` in **two phases** (core, then development_tools; same as audit --full; excludes e.g. `tests/ai/`):
+- Run the host suite. In a tools development checkout, `--full` also runs the tools suite as a separate phase.
 
   ```bash
   python run_tests.py --full
-  ```
-
-- Run only development tools tests (`development_tools/tool_tests/`):
-
-  ```bash
-  python run_tests.py --mode development_tools
-  python -m pytest -c development_tools/pytest.ini --rootdir=. --confcutdir=development_tools/tool_tests development_tools/tool_tests/
   ```
 
 - Run only unit tests:
@@ -411,7 +387,7 @@ Common commands:
 Typical options:
 
 - `--mode unit` / `--mode integration` / (any future modes).
-- `--full` (with `--mode all`, runs core then development_tools as two phases, like audit --full; excludes `tests/ai/` etc.).
+- `--full` (with `--mode all`, also runs tools tests if the development checkout is present).
 - `--no-parallel` (force serial execution).
 - `--workers N` (explicit worker count).
 - `--coverage` (enable coverage collection).
@@ -529,7 +505,7 @@ Guidelines:
 
 Development-tools Tier 3 audits use `development_tools/tests/run_test_suite.py` with the same parallel/serial split. Differences from `run_tests.py`:
 
-- **Scope**: Tier 3 runs the host `tests/` tree and `development_tools/tool_tests/` as **two pytest invocations** (tools tests use `development_tools/pytest.ini` so they do not load host `tests/conftest.py`), using the **quick** profile (`not e2e` and `not slow`). Default `run_tests.py` excludes development-tools tests unless you pass `--full`.
+- **Scope**: Tier 3 runs the host `tests/` tree using the **quick** profile (`not e2e and not slow`). When the development suite is installed, it uses an isolated pytest invocation for that suite.
 - **Nightly full suite**: `python development_tools/run_development_tools.py nightly-test-suite` runs the **full** profile (includes slow tests). GitHub Actions runs this daily via `.github/workflows/nightly-tests.yml`. POSIX runs use pytest-timeout's `signal` method so a hung test aborts at 300s instead of dumping stacks and sitting until the 60-minute phase budget. Windows keeps the `thread` method.
 - **Website browser suite**: `tests/integration/test_browser_javascript_suite.py` runs every `website/*.test.mjs` file through Node.js in the serial phase. This makes browser-test failures fail both `run_tests.py` and Tier 3/full-audit runs.
 - **Contention**: During `audit --full`, pytest runs concurrently with ruff, pyright, bandit, pip-audit, and legacy analysis. The Tier 3 runner caps workers at 4 to leave CPU headroom.
@@ -649,7 +625,7 @@ When you add a top-level product package `foo/`:
 5. Register the `foo` marker when marker registration is configured (`pytest.ini` or `[tool.pytest.ini_options]`).
 6. Mark tests with `@pytest.mark.<category>` + `@pytest.mark.foo`.
 
-Policy tests in `development_tools/tool_tests/test_domain_mapper_product_packages.py` validate alignment between on-disk packages, `domain_mapper`, and coverage config.
+Policy tests in the [tools domain mapper tests](https://github.com/Jacfogel/development-tools/blob/development/tool_tests/test_domain_mapper_product_packages.py) validate alignment between on-disk packages, `domain_mapper`, and coverage config.
 
 #### 6.2.6. Enforcement
 
@@ -777,32 +753,7 @@ Only `core/time_utilities.py` may directly call the clock/format/parse APIs. JSO
 
 ### 6.6. End-to-end (E2E) tests
 
-End-to-end tests marked with `@pytest.mark.e2e` run real audits with actual tool execution (no mocks). These tests are:
-
-- **Slow**: Tier 3 E2E tests can take ~9-10 minutes due to coverage generation.
-- **Excluded by default**: The `e2e` marker is excluded from regular test runs via `pytest.ini` configuration.
-- **For verification**: Use these tests to verify actual audit tier execution before releases or when investigating issues.
-
-**Running E2E tests**:
-
-```bash
-# Run all E2E tests
-python -m pytest -c development_tools/pytest.ini -m e2e development_tools/tool_tests/test_audit_tier_e2e_verification.py
-
-# Run specific E2E test
-python -m pytest -c development_tools/pytest.ini -m e2e development_tools/tool_tests/test_audit_tier_e2e_verification.py::TestAuditTierE2E::test_tier1_e2e
-
-# Run all tests including E2E (override default exclusion)
-python -m pytest -c development_tools/pytest.ini -m "" development_tools/tool_tests/
-```
-
-**When to use E2E tests**:
-
-- Before releases to verify audit tiers work with real codebase analysis.
-- When investigating audit tier issues that don't appear in orchestration tests.
-- To verify actual tool output and correctness.
-
-**Note**: E2E tests require the codebase to be in a valid state and may modify test directories. They are separate from the fast orchestration tests in `development_tools/tool_tests/test_audit_tier_comprehensive.py` which verify control flow and structure using mocks.
+End-to-end checks for the audit tiers live in the [tools development testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 
 ---
 
@@ -938,25 +889,7 @@ Run the live suite when:
 
 ### 8.5. Development tools testing
 
-For development tools testing (analysis tools, CLI runners, infrastructure), use:
-
-- [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
-  - Section 1. "Quick Start".
-  - Section 4. "Test Fixtures and Isolation".
-  - Section 5. "Critical Safety Rules".
-  - Section 6. "Portability Considerations".
-
-Run development tools tests when:
-
-- Modifying development tools behavior (analysis, reporting, CLI routing).
-- Adding or changing tool functionality.
-- Investigating issues with the development tools infrastructure.
-
-Run development tools tests when:
-
-- Modifying development tools behavior (analysis, reporting, CLI routing).
-- Adding or changing tool functionality.
-- Investigating issues with the development tools infrastructure.
+Use the [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md) for tools changes. MHM CI checks the MHM configuration and runs product tests against the published tooling.
 
 ### 8.6. Relationship to this guide
 

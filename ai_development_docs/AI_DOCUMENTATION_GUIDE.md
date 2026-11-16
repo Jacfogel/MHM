@@ -239,10 +239,10 @@ Treat generated files as reports; do not treat them as editable docs.
 ### 6.4. Automation commands for generated docs
 
 Use `development_tools/run_development_tools.py` for doc-related automation.
-Do not invent command semantics; defer to [DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/DEVELOPMENT_TOOLS_GUIDE.md).
+Do not invent command semantics; defer to [README.md](../development_tools/README.md).
 
 ## 7. Resources
 
 - Cursor rules: `.cursor/rules/`
 - Required AI guardrails: [AI_SESSION_STARTER.md](AI_SESSION_STARTER.md)
-- Tools docs: [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)
+- Tools docs: [README.md](../development_tools/README.md)

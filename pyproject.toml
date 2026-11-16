@@ -14,7 +14,7 @@ dependencies = [
   "certifi>=2026.10.19",
   "cryptography>=50.0.0",
   "discord.py>=2.3.0",
-  "dnspython>=2.9.0",
+  "dnspython>=2.9.2",
   "google-auth>=2.29.0",
   "google-auth-oauthlib>=1.2.0",
   "idna>=3.15",
@@ -58,6 +58,9 @@ dev = [
   "ruff>=0.1.0",
   "vulture>=2.11",
 ]
+
+[tool.development-tools]
+config-path = "development_docs/devtools/development_tools_config.json"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -119,8 +122,6 @@ exclude = [
   "tests/data/**",
   "tests/temp",
   "tests/temp/**",
-  "tests/fixtures",
-  "tests/fixtures/**",
   ".git",
   ".pytest_cache",
   ".coverage",
@@ -135,7 +136,6 @@ exclude_dirs = [
   "development_tools/tests",
   "archive",
   "scripts/testing",
-  "tests/fixtures",
   ".venv",
   "venv",
   "build",

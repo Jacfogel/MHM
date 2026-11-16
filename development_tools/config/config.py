@@ -14,6 +14,7 @@ from pathlib import Path
 import copy
 import json
 import os
+import tomllib
 import warnings
 from typing import Any
 
@@ -22,13 +23,25 @@ _external_config: dict[str, Any] | None = None
 _config_file_path: Path | None = None
 
 
+def _get_declared_config_path(project_root: Path) -> Path | None:
+    """Resolve the project's optional development-tools config declaration."""
+    try:
+        with (project_root / "pyproject.toml").open("rb") as file:
+            tools = tomllib.load(file).get("tool")
+    except (OSError, tomllib.TOMLDecodeError):
+        return None
+    settings = tools.get("development-tools") if isinstance(tools, dict) else None
+    path = settings.get("config-path") if isinstance(settings, dict) else None
+    return project_root / path if isinstance(path, str) and path.strip() else None
+
+
 def load_external_config(config_path: str | None = None) -> bool:
     """
     Load configuration from an external JSON file.
 
     Args:
-        config_path: Path to config file (JSON format). If None, looks for
-                     'development_tools/config/development_tools_config.json'.
+        config_path: Path to a JSON config. Defaults to the environment override,
+                     local config, project declaration, then example config.
 
     Returns:
         True if config was loaded successfully, False otherwise.
@@ -50,24 +63,16 @@ def load_external_config(config_path: str | None = None) -> bool:
             / "development_tools_config.json"
         )
 
-    if not config_file.exists():
-        if config_path is not None:
-            _external_config = None
-            _config_file_path = None
-            return False
-        root = project_root
-        host_file = root / "development_docs/devtools/development_tools_config.json"
-        example_file = root / "development_tools/config/development_tools_config.json.example"
-        if host_file.is_file():
-            config_file = host_file
-        elif example_file.is_file():
-            config_file = example_file
-        elif _external_config is not None:
-            return True
-        else:
-            _external_config = None
-            _config_file_path = None
-            return False
+        if config_path is None and not config_file.exists():
+            declared_file = _get_declared_config_path(project_root)
+            if declared_file is not None:
+                config_file = declared_file
+            else:
+                example_file = config_file.with_suffix(".json.example")
+                if example_file.is_file():
+                    config_file = example_file
+                elif _external_config is not None:
+                    return True
 
     if not config_file.exists():
         _external_config = None
@@ -734,11 +739,7 @@ def get_deprecation_inventory_path(project_root: Path) -> Path:
     """Resolve the inventory shared by the legacy scanner and report."""
     default = "development_tools/config/jsons/DEPRECATION_INVENTORY.json"
     configured = _get_external_value("legacy_cleanup.deprecation_inventory_file", default)
-    inventory = project_root / configured
-    host_inventory = project_root / "development_docs/devtools/DEPRECATION_INVENTORY.json"
-    if configured == default and not inventory.exists() and host_inventory.is_file():
-        return host_inventory
-    return inventory
+    return project_root / configured
 
 
 SUITE_PROFILES: dict[str, dict[str, Any]] = {
@@ -1600,8 +1601,8 @@ STATUS = {
         "consolidated_report": "development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md",
     },
     "status_files": {
-        "ai_status": "development_tools/AI_STATUS.md",
-        "ai_priorities": "development_tools/AI_PRIORITIES.md",
+        "ai_status": "development_tools/STATUS_BRIEF.md",
+        "ai_priorities": "development_tools/PRIORITIES_BRIEF.md",
         "consolidated_report": "development_tools/CONSOLIDATED_REPORT.md",
     },
 }

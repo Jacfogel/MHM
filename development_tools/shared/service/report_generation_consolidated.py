@@ -2573,7 +2573,7 @@ class ConsolidatedReportDocumentMixin:
                         if isinstance(v, dict) and v.get("file"):
                             lines.append(f"  - {v['file']}: {v.get('module', '')}")
                 lines.append(
-                    "- **Action**: Remove all core.* imports; use development_tools.shared.logging; see DEVELOPMENT_TOOLS_GUIDE.md §8.5"
+                    "- **Action**: Remove all core.* imports; use development_tools.shared.logging; see README.md §8.5"
                 )
             elif ib_violations == 0:
                 lines.append("- **Status**: CLEAN (no boundary violations detected)")

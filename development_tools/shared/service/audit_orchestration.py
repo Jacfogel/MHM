@@ -743,8 +743,8 @@ class AuditOrchestrationMixin:
             "",
             f"> **Scope path**: `{scope_path}`",
             f"> **Storage slug**: `{scope_slug}`",
-            "> **Note**: Does not overwrite `development_tools/AI_STATUS.md` / "
-            "`development_tools/AI_PRIORITIES.md` / `development_tools/CONSOLIDATED_REPORT.md`.",
+            "> **Note**: Does not overwrite `development_tools/STATUS_BRIEF.md` / "
+            "`development_tools/PRIORITIES_BRIEF.md` / `development_tools/CONSOLIDATED_REPORT.md`.",
             "",
             "## Tools run",
         ]

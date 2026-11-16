@@ -144,9 +144,9 @@
 - **Development Tools Classification**: passed (reason=pytest_passed) | return_hex=0x00000000
 
 ## Reference Files
-- Full-repo status (not produced by this run): [AI_STATUS.md](AI_STATUS.md)
+- Full-repo status (not produced by this run): [STATUS_BRIEF.md](STATUS_BRIEF.md)
 - Scoped priorities from this run: [DEV_TOOLS_PRIORITIES.md](DEV_TOOLS_PRIORITIES.md)
-- Full-repo priorities: [AI_PRIORITIES.md](AI_PRIORITIES.md)
+- Full-repo priorities: [PRIORITIES_BRIEF.md](PRIORITIES_BRIEF.md)
 - Detailed JSON results: `analysis_detailed_results.json`
 - Legacy reference report: [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md)
 - Test coverage report: [TEST_COVERAGE_REPORT.md](../development_docs/TEST_COVERAGE_REPORT.md)

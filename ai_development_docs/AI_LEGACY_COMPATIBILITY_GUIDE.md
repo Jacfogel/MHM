@@ -7,7 +7,7 @@
 
 > For detailed explanations, rationale, and examples, see:
 > - Section 4.5 "Automated tools" in DOCUMENTATION_GUIDE.md
-> - Section 3 "Audit Modes and Outputs" and section 4 "Tool Catalog and Tiering" in AI_DEVELOPMENT_TOOLS_GUIDE.md
+> - Section 3 "Audit Modes and Outputs" and section 4 "Tool Catalog and Tiering" in README.md
 
 ## Quick Reference
 
@@ -28,7 +28,7 @@ python development_tools/run_development_tools.py legacy
 
 **Canonical inventory:** `development_docs/devtools/DEPRECATION_INVENTORY.json` is the required source of truth for deprecated/removed/to-retire terms and sweep patterns.
 
-For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), use section 2. "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite) and section 3. "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs).
+For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), use section 2. "Running the Tool Suite" in [README.md](../development_tools/README.md#2-running-the-tool-suite) and section 3. "Audit Modes and Outputs" in [README.md](../development_tools/README.md#3-audit-modes-and-outputs).
 
 ## 1. Standards
 
@@ -111,7 +111,7 @@ Before you delete a legacy item:
 
 ## 4. Tools
 
-These tools underlie this guide. For detailed behavior and additional commands, see section 2. "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite), section 3. "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs), and section 4. "Tool Catalog and Tiering" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#4-tool-catalog-and-tiering).
+These tools underlie this guide. For detailed behavior and additional commands, see section 2. "Running the Tool Suite" in [README.md](../development_tools/README.md#2-running-the-tool-suite), section 3. "Audit Modes and Outputs" in [README.md](../development_tools/README.md#3-audit-modes-and-outputs), and section 4. "Tool Catalog and Tiering" in [README.md](../development_tools/README.md#4-tool-catalog-and-tiering).
 
 - `development_tools/legacy/fix_legacy_references.py`:
   - `--scan`: scan for all legacy patterns.

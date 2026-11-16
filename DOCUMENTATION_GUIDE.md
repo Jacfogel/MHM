@@ -58,7 +58,7 @@ safely.
     -   Testing: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md),
         [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md),
         and
-        [DEVELOPMENT_TOOLS_TESTING_GUIDE.md](tests/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)  
+        [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
     -   Error handling:
         [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and
         [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)  
@@ -175,8 +175,8 @@ Examples (non-exhaustive):
 -   [DIRECTORY_TREE.md](development_docs/DIRECTORY_TREE.md)
 -   [AI_FUNCTION_REGISTRY.md](ai_development_docs/AI_FUNCTION_REGISTRY.md)
 -   [AI_MODULE_DEPENDENCIES.md](ai_development_docs/AI_MODULE_DEPENDENCIES.md)
--   [AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md)
--   [AI_STATUS.md](development_tools/AI_STATUS.md)
+-   [PRIORITIES_BRIEF.md](development_tools/PRIORITIES_BRIEF.md)
+-   [STATUS_BRIEF.md](development_tools/STATUS_BRIEF.md)
 -   [CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md)
 
 For generation details and maintenance rules, see section 6, "Generated
@@ -546,8 +546,6 @@ The list below is a human-readable summary; `doc-sync` validates it matches conf
     ai_development_docs/AI_BACKUP_GUIDE.md
 -   development_docs/CHANGELOG_DETAIL.md and
     ai_development_docs/AI_CHANGELOG.md
--   development_tools/DEVELOPMENT_TOOLS_GUIDE.md and
-    development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md
 
 The same list is kept in `development_tools_config.json` under `constants.paired_docs` (runtime canonical source). Keep this section and the config in sync; `doc-sync` reports paired-docs list drift if they differ.
 
@@ -619,7 +617,7 @@ Additional tools such as audit, quick-status, test-coverage, and
 validate-work live in development_tools/run_development_tools.py and may
 output supporting reports used by documentation.
 
-For detailed tool behavior, see DEVELOPMENT_TOOLS_GUIDE.md.
+For detailed tool behavior, see the [Development Tools README](development_tools/README.md).
 
 ## 5. Maintenance Guidelines
 
@@ -714,8 +712,8 @@ Examples of generated Markdown files include:
 -   development_docs/DIRECTORY_TREE.md
 -   ai_development_docs/AI_FUNCTION_REGISTRY.md
 -   ai_development_docs/AI_MODULE_DEPENDENCIES.md
--   development_tools/AI_STATUS.md
--   development_tools/AI_PRIORITIES.md
+-   development_tools/STATUS_BRIEF.md
+-   development_tools/PRIORITIES_BRIEF.md
 -   development_tools/CONSOLIDATED_REPORT.md
 
 #### 6.1.2. JSON files (.json)
@@ -770,8 +768,7 @@ Typical commands include:
 
 The definitive list of commands and semantics lives in:
 
--   DEVELOPMENT_TOOLS_GUIDE.md
--   AI_DEVELOPMENT_TOOLS_GUIDE.md
+-   [Development Tools README](development_tools/README.md)
 
 Command handlers live in development_tools/shared/service/commands.py.
 Do not duplicate command semantics here.
@@ -786,5 +783,4 @@ Useful supporting materials and locations:
     performing code changes.
 -   CHANGELOG_DETAIL.md and AI_CHANGELOG.md: Detailed and condensed
     histories of changes.
--   AI_DEVELOPMENT_TOOLS_GUIDE.md and DEVELOPMENT_TOOLS_GUIDE.md:
-    Documentation on analysis, audit, and sync tools.
+-   [Development Tools README](development_tools/README.md): Documentation on analysis, audit, and sync tools.

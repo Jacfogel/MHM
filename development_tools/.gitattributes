@@ -1,0 +1,3 @@
+/tool_tests export-ignore
+/tests/development_tools export-ignore
+/pytest.ini export-ignore

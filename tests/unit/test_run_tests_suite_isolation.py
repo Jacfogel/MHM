@@ -16,6 +16,7 @@ def test_tools_serial_and_parallel_commands_use_tools_configuration(
 ):
     calls = []
     monkeypatch.chdir(tmp_path)
+    (tmp_path / "development_tools/tool_tests").mkdir(parents=True)
     monkeypatch.setattr(
         rt.sys,
         "argv",

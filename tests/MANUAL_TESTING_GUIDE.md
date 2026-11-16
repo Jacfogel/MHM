@@ -228,6 +228,31 @@ Treat [MANUAL_DISCORD_TEST_GUIDE.md](MANUAL_DISCORD_TEST_GUIDE.md) as the author
 
 ---
 
+### 6.4. Focused task and notebook regression tests
+
+Run the selections relevant to the change. For Discord-specific automated checks and optional live visual checks, see the [Discord testing guide](MANUAL_DISCORD_TEST_GUIDE.md#6-task-flows-and-notebook-pagination).
+
+Task commands, recurrence, and reminder follow-ups:
+
+```powershell
+python -m pytest tests/behavior/test_task_handler_behavior.py tests/behavior/test_command_discovery_help.py tests/unit/test_command_parser_rule_based_patterns_expansion.py -q
+python -m pytest tests/unit/test_recurring_tasks.py tests/unit/test_task_service.py tests/unit/test_task_short_ids.py -q
+python -m pytest tests/behavior/test_task_reminder_followup_behavior.py tests/integration/test_task_reminder_integration.py -q
+python -m pytest tests/communication/test_task_list_ui.py -q
+```
+
+Notebook handlers, pagination, persistence, and validation:
+
+```powershell
+python -m pytest tests/behavior/test_notebook_handler_behavior.py tests/unit/test_notebook_handler_edge_cases.py tests/unit/test_notebook_handler_pagination_formatting.py tests/unit/test_notebook_list_v2_round_trip.py tests/unit/test_notebook_service.py tests/unit/test_notebook_validation.py -q
+```
+
+Before a larger notebook or command-parser merge, run `python run_tests.py --mode development` and `python development_tools/run_development_tools.py audit --quick`. Use `python development_tools/run_development_tools.py audit --full` when the change touches command routing, shared core helpers, or persistence. See the [project validation gates](../development_docs/TEST_PLAN.md#4-validation-gates) for broader changes.
+
+On Windows, async website-route tests can stall in `socket.socketpair()` before the test body if local loopback access is restricted.
+
+---
+
 ## 7. AI Behavior Manual Tests
 
 This section describes when to involve AI-specific testing and how it ties into automation.

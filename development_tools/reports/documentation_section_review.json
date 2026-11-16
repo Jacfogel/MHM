@@ -288,7 +288,7 @@
       {
         "source": "DEVELOPMENT_WORKFLOW.md",
         "line": 192,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "2-running-the-tool-suite",
         "heading": "2. Running the Tool Suite",
         "candidate_headings": [
@@ -423,7 +423,7 @@
       {
         "source": "HOW_TO_RUN.md",
         "line": 166,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "3-audit-modes-and-outputs",
         "heading": "3. Audit Modes and Outputs",
         "candidate_headings": [
@@ -434,7 +434,7 @@
       {
         "source": "HOW_TO_RUN.md",
         "line": 183,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
         "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
         "candidate_headings": [
@@ -445,7 +445,7 @@
       {
         "source": "HOW_TO_RUN.md",
         "line": 212,
-        "destination": "development_tools/AI_STATUS.md",
+        "destination": "development_tools/STATUS_BRIEF.md",
         "anchor": "",
         "heading": null,
         "candidate_headings": [],
@@ -454,7 +454,7 @@
       {
         "source": "HOW_TO_RUN.md",
         "line": 212,
-        "destination": "development_tools/AI_PRIORITIES.md",
+        "destination": "development_tools/PRIORITIES_BRIEF.md",
         "anchor": "",
         "heading": null,
         "candidate_headings": [],
@@ -1470,7 +1470,7 @@
       {
         "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
         "line": 31,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "2-running-the-tool-suite",
         "heading": "2. Running the Tool Suite",
         "candidate_headings": [
@@ -1481,7 +1481,7 @@
       {
         "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
         "line": 31,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "3-audit-modes-and-outputs",
         "heading": "3. Audit Modes and Outputs",
         "candidate_headings": [
@@ -1536,7 +1536,7 @@
       {
         "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
         "line": 114,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "2-running-the-tool-suite",
         "heading": "2. Running the Tool Suite",
         "candidate_headings": [
@@ -1547,7 +1547,7 @@
       {
         "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
         "line": 114,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "3-audit-modes-and-outputs",
         "heading": "3. Audit Modes and Outputs",
         "candidate_headings": [
@@ -1558,7 +1558,7 @@
       {
         "source": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
         "line": 114,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "4-tool-catalog-and-tiering",
         "heading": "4. Tool Catalog and Tiering",
         "candidate_headings": [
@@ -1743,7 +1743,7 @@
       {
         "source": "ai_development_docs/AI_SESSION_STARTER.md",
         "line": 67,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "2-running-the-tool-suite",
         "heading": "2. Running the Tool Suite",
         "candidate_headings": [
@@ -1754,7 +1754,7 @@
       {
         "source": "ai_development_docs/AI_SESSION_STARTER.md",
         "line": 68,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "3-audit-modes-and-outputs",
         "heading": "3. Audit Modes and Outputs",
         "candidate_headings": [
@@ -1765,7 +1765,7 @@
       {
         "source": "ai_development_docs/AI_SESSION_STARTER.md",
         "line": 69,
-        "destination": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "3-audit-modes-and-outputs",
         "heading": "3. Audit Modes and Outputs",
         "candidate_headings": [
@@ -2401,7 +2401,7 @@
       {
         "source": "development_docs/PLANS.md",
         "line": 36,
-        "destination": "development_tools/AI_PRIORITIES.md",
+        "destination": "development_tools/PRIORITIES_BRIEF.md",
         "anchor": "",
         "heading": null,
         "candidate_headings": [],
@@ -2410,7 +2410,7 @@
       {
         "source": "development_docs/PLANS.md",
         "line": 70,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "86-import-boundary-portability",
         "heading": "8.6. Import boundary (portability)",
         "candidate_headings": [],
@@ -2437,7 +2437,7 @@
       {
         "source": "development_docs/PLANS.md",
         "line": 73,
-        "destination": "development_tools/AI_PRIORITIES.md",
+        "destination": "development_tools/PRIORITIES_BRIEF.md",
         "anchor": "",
         "heading": null,
         "candidate_headings": [],
@@ -2464,7 +2464,7 @@
       {
         "source": "development_docs/PLANS.md",
         "line": 337,
-        "destination": "development_tools/AI_PRIORITIES.md",
+        "destination": "development_tools/PRIORITIES_BRIEF.md",
         "anchor": "",
         "heading": null,
         "candidate_headings": [],
@@ -2473,7 +2473,7 @@
       {
         "source": "development_docs/PLANS.md",
         "line": 337,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "86-import-boundary-portability",
         "heading": "8.6. Import boundary (portability)",
         "candidate_headings": [
@@ -2504,9 +2504,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 54,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "23-command-summary",
         "heading": "2.3. Command Summary",
         "candidate_headings": [
@@ -2515,9 +2515,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 69,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "2-running-the-tool-suite",
         "heading": "2. Running the Tool Suite",
         "candidate_headings": [
@@ -2526,7 +2526,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 170,
         "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
         "anchor": "10-standard-audit-recipe",
@@ -2537,7 +2537,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 254,
         "destination": "development_tools/LIST_OF_LISTS.md",
         "anchor": "",
@@ -2546,9 +2546,9 @@
         "status": "unanchored_section_reference"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 274,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "6-generated-file-metadata-standards",
         "heading": "6. Generated File Metadata Standards",
         "candidate_headings": [
@@ -2557,9 +2557,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 290,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "7-output-storage-standards",
         "heading": "7. Output Storage Standards",
         "candidate_headings": [
@@ -2568,9 +2568,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 304,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "8-exclusion-rules",
         "heading": "8. Exclusion Rules",
         "candidate_headings": [
@@ -2579,7 +2579,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 312,
         "destination": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
         "anchor": "1-standards",
@@ -2588,18 +2588,18 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 312,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "9-directory-taxonomy-and-configuration-surface-phase-1",
         "heading": "9. Directory taxonomy and configuration surface (Phase 1)",
         "candidate_headings": [],
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 315,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "9-directory-taxonomy-and-configuration-surface-phase-1",
         "heading": "9. Directory taxonomy and configuration surface (Phase 1)",
         "candidate_headings": [
@@ -2608,9 +2608,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 323,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
         "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
         "candidate_headings": [
@@ -2619,9 +2619,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 325,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
         "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
         "candidate_headings": [
@@ -2630,9 +2630,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 325,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
         "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
         "candidate_headings": [
@@ -2641,9 +2641,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 327,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
         "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
         "candidate_headings": [
@@ -2652,18 +2652,18 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 329,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
         "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
         "candidate_headings": [],
         "status": "resolved"
       },
       {
-        "source": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 343,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "101-gap-analysis-alignment-v6-b-013---closed-2026-07-28",
         "heading": "10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)",
         "candidate_headings": [
@@ -2672,9 +2672,9 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 20,
-        "destination": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "destination": "development_tools/README.md",
         "anchor": "10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit",
         "heading": "10. External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)",
         "candidate_headings": [
@@ -2683,7 +2683,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 258,
         "destination": "HOW_TO_RUN.md",
         "anchor": "516-completion-log-lines-issues",
@@ -2694,7 +2694,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 265,
         "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
         "anchor": "10-standard-audit-recipe",
@@ -2703,7 +2703,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 369,
         "destination": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
         "anchor": "10-standard-audit-recipe",
@@ -2714,16 +2714,16 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 423,
-        "destination": "development_tools/AI_PRIORITIES.md",
+        "destination": "development_tools/PRIORITIES_BRIEF.md",
         "anchor": "",
         "heading": null,
         "candidate_headings": [],
         "status": "unanchored_section_reference"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 423,
         "destination": "development_docs/PLANS.md",
         "anchor": "64-ai-development-tools",
@@ -2732,7 +2732,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 498,
         "destination": "DOCUMENTATION_GUIDE.md",
         "anchor": "31-metadata-for-md-documentation-files",
@@ -2743,7 +2743,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 600,
         "destination": "development_docs/PLANS.md",
         "anchor": "64-ai-development-tools",
@@ -2752,7 +2752,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 639,
         "destination": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
         "anchor": "1-standards",
@@ -2761,7 +2761,7 @@
         "status": "resolved"
       },
       {
-        "source": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md",
+        "source": "development_tools/README.md",
         "line": 720,
         "destination": "TODO.md",
         "anchor": "",

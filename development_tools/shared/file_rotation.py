@@ -214,7 +214,7 @@ def create_output_file(
             file_name,
             project_root,
         )
-    status_files = ["AI_STATUS.md", "AI_PRIORITIES.md", "CONSOLIDATED_REPORT.md"]
+    status_files = ["STATUS_BRIEF.md", "PRIORITIES_BRIEF.md", "CONSOLIDATED_REPORT.md"]
     # Static documentation files that should only be generated via 'docs' command, not during audits
     static_docs_files = [
         "DIRECTORY_TREE.md",

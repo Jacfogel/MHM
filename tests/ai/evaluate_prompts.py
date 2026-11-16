@@ -1,6 +1,6 @@
 """Opt-in live evaluation using synthetic requests, without users or actions.
 
-Run: python -m tests.ai.evaluate_prompts --live --output development_tools/reports/ai_prompt_evaluation.json
+Run: python -m tests.ai.evaluate_prompts --live --output tests/ai/results/ai_prompt_evaluation.json
 Only --live sends requests. No fallback is counted as a model success.
 """
 

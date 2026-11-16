@@ -1,4 +1,4 @@
-"""AI_PRIORITIES.md document builder mixin.
+"""PRIORITIES_BRIEF.md document builder mixin.
 
 Extracted from ReportGenerationMixin (V6 B-015). Methods remain mixin methods so
 they share AIToolsService helpers via MRO; no legacy shim / dual API.
@@ -119,7 +119,7 @@ class AIPrioritiesDocumentMixin:
         )
         if self._is_dev_tools_scoped_report():
             lines.append(
-                "> **Role**: Ranked queue for dev-tools work only; domain/product priorities may be stale or absent vs `AI_PRIORITIES.md`."
+                "> **Role**: Ranked queue for dev-tools work only; domain/product priorities may be stale or absent vs `PRIORITIES_BRIEF.md`."
             )
             lines.append(
                 "> **Scope**: Metrics derive from a `development_tools/` scan when `--dev-tools-only` was used."
@@ -735,29 +735,29 @@ class AIPrioritiesDocumentMixin:
             normalized_tier = max(1, min(4, tier))
 
             guidance_defaults: dict[str, str] = {
-                "Stabilize documentation drift": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (doc-sync), ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+                "Stabilize documentation drift": "development_tools/README.md (doc-sync), ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
                 "Add docstrings to missing functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Update function registry": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Add error handling to missing functions": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
                 "Modernize error handling (Phase 1 + Phase 2)": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
                 "Raise coverage for domains below target": "ai_development_docs/AI_TESTING_GUIDE.md",
-                "Raise development tools coverage": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
-                "Reduce dependency pattern risk": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (CONSOLIDATED_REPORT), ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Fix development tools import boundary violations": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (section 8.5)",
+                "Raise development tools coverage": "development_tools/README.md, ai_development_docs/AI_TESTING_GUIDE.md",
+                "Reduce dependency pattern risk": "development_tools/README.md (CONSOLIDATED_REPORT), ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Fix development tools import boundary violations": "development_tools/README.md (section 8.5)",
                 "Remove legacy compatibility code (after full call-site migration)": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
-                "Update tools to use centralized config": "development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md",
+                "Update tools to use centralized config": "development_tools/README.md",
                 "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Add pytest category markers to tests": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md",
-                "Add pytest domain-attribution markers to tests": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md, development_docs/TEST_PLAN.md (§4.4)",
-                "Review orphaned pytest worker processes (Windows)": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
-                "Investigate possible duplicate functions/methods": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Clean up unused/uncalled functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Consider splitting large modules": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Refactor high-complexity functions": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Investigate and correct test failures/errors": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md",
+                "Add pytest category markers to tests": "development_tools/README.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md",
+                "Add pytest domain-attribution markers to tests": "development_tools/README.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md, development_docs/TEST_PLAN.md (§4.4)",
+                "Review orphaned pytest worker processes (Windows)": "development_tools/README.md, ai_development_docs/AI_TESTING_GUIDE.md",
+                "Investigate possible duplicate functions/methods": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Clean up unused/uncalled functions": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Consider splitting large modules": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Refactor high-complexity functions": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Investigate and correct test failures/errors": "development_tools/README.md, ai_development_docs/AI_TESTING_GUIDE.md",
                 "Investigate backup health failures": "ai_development_docs/AI_BACKUP_GUIDE.md",
-                "Consolidate documentation files": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Review documentation overlaps": "development_tools/DEVELOPMENT_TOOLS_GUIDE.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Consolidate documentation files": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                "Review documentation overlaps": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
                 "Triage documentation example-marker hints": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md (section 3.6)",
             }
             details_defaults: dict[str, str] = {
@@ -1380,7 +1380,7 @@ class AIPrioritiesDocumentMixin:
                 if dev_pct < 60 or low_dev_modules_below_target:
                     dev_bullets: list[str] = []
                     dev_bullets.append(
-                        "Review for Guidance: development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md"
+                        "Review for Guidance: development_tools/README.md and ai_development_docs/AI_TESTING_GUIDE.md"
                     )
                     if low_dev_modules_below_target:
                         highlights = [
@@ -1626,7 +1626,7 @@ class AIPrioritiesDocumentMixin:
                     ]
                     vulture_bullets.insert(
                         0,
-                        "Review for guidance: development_tools/DEVELOPMENT_TOOLS_GUIDE.md (Section 10.1)",
+                        "Review for guidance: development_tools/README.md (Section 10.1)",
                     )
                     add_priority(
                         tier=4,
@@ -1769,7 +1769,7 @@ class AIPrioritiesDocumentMixin:
         import_violations = to_int(import_boundary_summary.get("total_issues"))
         if import_violations is not None and import_violations > 0:
             import_bullets: list[str] = [
-                "Review for policy: development_tools/DEVELOPMENT_TOOLS_GUIDE.md §8.5 Import boundary",
+                "Review for policy: development_tools/README.md §8.5 Import boundary",
                 "Action: Remove core.* imports from development_tools. Use development_tools.shared.logging for logging. Replace core.time_utilities with development_tools/shared/time_helpers; core.error_handling with try/except or dev-tools wrapper; core.backup_manager with optional/lazy import.",
                 "Verify: Run `python development_tools/imports/analyze_dev_tools_import_boundaries.py` after fixes.",
             ]

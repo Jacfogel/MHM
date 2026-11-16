@@ -494,7 +494,7 @@ _TOOLS: dict[str, ToolInfo] = {
         path="development_tools/reports/generate_consolidated_report.py",
         tier="supporting",
         trust="stable",
-        description="Generates AI_STATUS.md, AI_PRIORITIES.md, and CONSOLIDATED_REPORT.md.",
+        description="Generates STATUS_BRIEF.md, PRIORITIES_BRIEF.md, and CONSOLIDATED_REPORT.md.",
     ),
 }
 

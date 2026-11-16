@@ -163,9 +163,9 @@ If you run the development tools full audit on this or another PC:
 
 - **Dependencies**: `python -m pip install -e ".[dev,ui]"` installs the application, desktop UI, and audit tools, including `pytest-cov`.
 - **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
-- **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (pytest suite without coverage + reports). Coverage is separate: `python development_tools/run_development_tools.py coverage`. See section 3. "Audit Modes and Outputs" in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs) for audit behavior.
+- **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (pytest suite without coverage + reports). Coverage is separate: `python development_tools/run_development_tools.py coverage`. See section 3. "Audit Modes and Outputs" in [README.md](development_tools/README.md#3-audit-modes-and-outputs) for audit behavior.
 
-- **Coverage freshness**: Run `python development_tools/run_development_tools.py coverage` when you need updated `coverage.json`, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. `audit --full` does **not** regenerate coverage. For scoped status files only, use `audit --full --dev-tools-only` (still does not refresh coverage).
+- **Coverage freshness**: Run `python development_tools/run_development_tools.py coverage` when you need updated `coverage.json`, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. `audit --full` does **not** regenerate coverage. With the tools development suite installed, use `audit --full --dev-tools-only` (still does not refresh coverage).
 
 #### 5.1.1. Choosing an audit tier (time vs coverage)
 
@@ -178,9 +178,9 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 | Full evidence including quick tests (Tier 3; excludes slow; no coverage) | `python development_tools/run_development_tools.py audit --full` |
 | Refresh coverage metrics / TEST_COVERAGE_REPORT | `python development_tools/run_development_tools.py coverage` |
 | Nightly full test suite (includes slow tests) | `python development_tools/run_development_tools.py nightly-test-suite` |
-| Tier 3 but only dev-tools tests + scoped DEV_TOOLS_* reports (no coverage) | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
+| Tools development checkout only: Tier 3 tools tests and scoped reports | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
 | Subtree Tier 2 MVP (`--audit-scope`; no AI_* overwrite) | `python development_tools/run_development_tools.py audit --audit-scope communication/` |
-| Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [DEVELOPMENT_TOOLS_GUIDE.md](development_tools/DEVELOPMENT_TOOLS_GUIDE.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit)) |
+| Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [README.md](development_tools/README.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit)) |
 
 **Deferred (not default)**: Moving Bandit or pip-audit into Tier 1 (`audit --quick`) would make quick audits slower without addressing the main cost (pytest / coverage when run); see [archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 5.4 - 4.1.
 
@@ -209,7 +209,7 @@ Ruff, Pyright, and Bandit use **per-shard fragment caches** on disk (see [`devel
 
 #### 5.1.6. Completion log lines (`issues=`)
 
-Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/ai_dev_tools.log`](development_tools/reports/logs/ai_dev_tools.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/AI_STATUS.md](development_tools/AI_STATUS.md), [development_tools/AI_PRIORITIES.md](development_tools/AI_PRIORITIES.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
+Lines like `Completed analyze_functions: PASS issues=493` in [`development_tools/reports/logs/ai_dev_tools.log`](development_tools/reports/logs/ai_dev_tools.log) mean the tool **finished successfully** (`PASS`); **`issues=`** is the tool's **`total_issues`** summary field (often a **metric total**, not "493 test failures"). Use [development_tools/STATUS_BRIEF.md](development_tools/STATUS_BRIEF.md), [development_tools/PRIORITIES_BRIEF.md](development_tools/PRIORITIES_BRIEF.md), and [development_tools/CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md) for actionable next steps. Per-tool semantics: [archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 3.21.
 
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (.venv) in your terminal prompt**, you're using the virtual environment correctly

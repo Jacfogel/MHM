@@ -284,7 +284,7 @@ Recurring task completion SHALL create or expose the next task instance accordin
 
 ## 4. Out of scope
 
-- Asking why a reminder was skipped, or auto-creating a notebook blocker note (see [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md#33-revisit-skip-integration-only-if-the-product-value-is-clear) Section 3.3).
+- Asking why a reminder was skipped, or auto-creating a notebook blocker note (see [Notebook system](../development_docs/PLANS.md#62-notebook-system)).
 - Changing the task due date as a way to postpone work (that remains a normal due-date update).
 - Exact text of task reminder messages generated outside the Discord view.
 - Task CRUD validation rules beyond reminder-specific behavior.

@@ -3041,12 +3041,12 @@ def main():
             "development_tools",
         ],
         default="all",
-        help="Test execution mode (default: all). Use development_tools for development_tools/tool_tests/ only.",
+        help="Test execution mode (default: all). The development_tools mode requires the tools development checkout.",
     )
     parser.add_argument(
         "--full",
         action="store_true",
-        help="For --mode all, also run development_tools as a second phase (like audit --full).",
+        help="For --mode all, also run the development-tools test suite when it is installed.",
     )
     parser.add_argument(
         "--no-parallel",
@@ -3421,15 +3421,16 @@ def main():
         description = "Slow Tests Only"
 
     elif args.mode == "development_tools":
-        # Development tools infrastructure tests only
         selected_test_paths = ["development_tools/tool_tests/"]
+        if not Path(selected_test_paths[0]).is_dir():
+            print("The tools suite is in the development branch of Jacfogel/development-tools.")
+            return 2
         cmd = _with_tools_pytest_isolation(cmd)
         cmd.extend(selected_test_paths)
         description = "Development Tools Tests"
 
     elif args.mode == "all":
-        # Plain "all" intentionally excludes development_tools; --full adds it as a second phase.
-        if args.full:
+        if args.full and Path("development_tools/tool_tests").is_dir():
             _product_paths = [
                 "tests/unit/",
                 "tests/integration/",

@@ -146,12 +146,6 @@ archive/
 tests/data/
 tests/logs/
 tests/ai/results/
-tests/fixtures/development_tools_demo/development_tools
-# Exclude generated files in test fixtures (these are created during test runs)
-tests/fixtures/development_tools_demo/development_docs
-tests/fixtures/development_tools_demo/AI_STATUS.md
-tests/fixtures/development_tools_demo/AI_PRIORITIES.md
-tests/fixtures/development_tools_demo/consolidated_report.txt
 tests/test_helpers/fixtures/
 tmp_test_data/
 pyright-report.json

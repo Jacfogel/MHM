@@ -4,8 +4,8 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for unresolved active, monitoring, planned, and deferred MHM work
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-11-15
-> **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
+> **Last Updated**: 2026-11-16
+> **Child plan**: [TEST_PLAN.md](TEST_PLAN.md)\
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
 ---
@@ -25,13 +25,13 @@
 |------|-----------------|
 | Standalone tasks | [TODO.md](../TODO.md) |
 | Testing roadmap | [TEST_PLAN.md](TEST_PLAN.md) |
-| Task-system roadmap | [TASKS_PLAN.md](TASKS_PLAN.md) |
-| Notebook roadmap | [NOTES_PLAN.md](NOTES_PLAN.md) |
-| AI/dev-tools roadmap | Archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
+| Task-system roadmap | [Task system](#61-task-system) |
+| Notebook roadmap | [Notebook system](#62-notebook-system) |
+| AI/dev-tools roadmap | Archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) |
 | Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
 | Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
-| Current audit status | [AI_STATUS.md](../development_tools/AI_STATUS.md) |
-| Generated priority queue | [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) |
+| Current audit status | [STATUS_BRIEF.md](../development_tools/STATUS_BRIEF.md) |
+| Generated priority queue | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) |
 | Detailed session history | [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) |
 | Architecture/data model references | [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) and [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) |
 
@@ -58,36 +58,17 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 |------|--------|----------|--------------------|---------------|
 | Flow/check-in scheduled-send stability | **MONITORING** | Low | This file + spec | Live Discord validation, retry/cooldown observation, log review |
 | Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
-| Notebook system | **MONITORING** | Low | [NOTES_PLAN.md](NOTES_PLAN.md) | Shipped baseline; optional live visual checks when UI changes; extensions deferred |
-| Task system | **MONITORING** | Low | [TASKS_PLAN.md](TASKS_PLAN.md) | Shipped capabilities; optional live validation; future extensions await selection |
-| Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Complete-suite Windows reliability, log isolation, coverage growth |
+| Notebook system | **MONITORING** | Low | [Notebook system](#62-notebook-system) | Optional Discord visual checks when rendering or help changes |
+| Task system | **MONITORING** | Low | [Task system](#61-task-system) | Focused validation when Discord UI or parsing changes |
+| Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Full-suite reliability, test isolation, and coverage growth |
 | Deterministic mood and energy rules | **MONITORING** | Low | This file Section 5.3 | Observe health-derived pressure transitions; additional timer awaits usage evidence |
-| Appropriate coupling reductions | **ACTIVE** | Medium | This file Section 5.0.2 + [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) | Fix inverted edges only; leave legitimate hubs alone |
+| Appropriate coupling reductions | **MONITORING** | Medium | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) | Revisit when triage confirms a wrong-layer dependency or a private API dependency causes maintenance problems (2026-11-16) |
 | SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 
 ---
 
 ## 5. Active Top-Level Plans
-
-### 5.0.2 Appropriate coupling reductions
-
-**Status**: **ACTIVE**  
-**Priority**: Medium  
-**Started**: 2026-08-11  
-**Audit signal**: [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) item "Reduce dependency pattern risk"
-
-**Triage rubric**: High-coupling audit flag = unique local fan-out **> 10**, excluding package `__init__.py` re-export hubs. Legitimate composition hubs (orchestrator, chatbot, interaction_manager, `core.service`) keep their fan-out. Fix only **inappropriate** edges (wrong direction, private-API reach, domain -> composition-root locators).
-
-**Later candidates** (not automatic refactors): storage -> feature-domain managers; duplicated multi-domain reads in `ai/context`; optional delivery ownership for AI personalized send only if ownership pressure appears; optional hub vs inappropriate-edge classification in the analyzer.
-
-**Additional deferred cleanup candidates**:
-
-- Consider direct imports from `storage/user_data_index.py` for high-traffic `update_user_index` callers only if ownership or dependency pressure justifies the change; do not reopen the completed facade split.
-- `ai/context/phraser.py` still has the test helper `append_checkin_summary(parts, user_id)` loading rows by user ID. Consider moving those tests to envelope-based inputs only if this helper causes duplication or maintenance pressure; production chat already uses envelope wrappers.
-
-
----
 
 ### 5.1 Flow/check-in scheduled-send stability
 
@@ -143,42 +124,29 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 ---
 
-## 6. Child Plans
+## 6. Task and notebook roadmaps
 
-These plans should not be duplicated in detail here.
+### 6.1 Task system
 
-### 6.1 Notebook system
+**Status**: **MONITORING** | **Priority**: Low | **Reviewed**: 2026-11-16
 
-**Status**: **MONITORING**
-**Priority**: Low
-**Detailed plan**: [NOTES_PLAN.md](NOTES_PLAN.md)
+Keep task workflows easy to use from a phone, with Discord as the primary interface. When UI or parsing changes, validate the picker and details, creation follow-ups, parsed titles and dates, template modals, and create-hub buttons as applicable. Keep task behavior in task or shared modules and reuse the shared tag and ID helpers. The [2026-11-15 validation](CHANGELOG_DETAIL.md#2026-11-15---task-dependency-relationships) covered task, browser, and authenticated website-route tests. Live Discord and website rendering remain unverified. See the [testing guide](../tests/MANUAL_TESTING_GUIDE.md#64-focused-task-and-notebook-regression-tests).
 
-**Current focus**: Optional visual checks when Discord rendering/help changes. Bulk organization, database search, and events remain deferred in the child plan.
+- **File and image attachments (deferred, medium)** require a storage, retention, and Discord upload design. **Batch archive (deferred, low/medium)** depends on introducing task archiving.
+- **Context-aware reminders (deferred)** include location- and calendar-linked reminders. Revisit once foundational task usage is stronger and coordinate with the [mood and energy rules](#53-deterministic-mood-and-energy-rules).
+- **Task suggestions (deferred)** include pattern-based suggestions, ordering, and conflict detection. Select a concrete use case first. **Advanced views and analytics (deferred)** include calendar and Kanban views, additional focus views, completion trends, recurring-task streaks, and overdue priority escalation. Revisit once Discord task creation is reliable.
+- **Data portability (deferred)** includes export/import, cloud sync, cross-device access, and task-specific backup checks. Coordinate with the storage and user-data roadmap.
 
----
+### 6.2 Notebook system
 
-### 6.2 Task system
+**Status**: **MONITORING** | **Priority**: Low | **Reviewed**: 2026-11-16
 
-**Status**: **MONITORING**
-**Priority**: Low
-**Detailed plan**: [TASKS_PLAN.md](TASKS_PLAN.md)
+Prioritize everyday capture and retrieval in Discord and on the website. When Discord rendering or help changes, optionally check Show More styling, expired buttons, and discovery through `help notebook` and `examples notebook`. The [2026-11-10 validation](CHANGELOG_DETAIL.md#2026-11-10---clarify-recovery-messages-and-verify-backup-and-notebook-behavior) covered 150 automated notebook tests. See the [testing guide](../tests/MANUAL_TESTING_GUIDE.md#64-focused-task-and-notebook-regression-tests).
 
-**Current focus**: Optional live checks after UI/parser changes. Attachments and batch extensions await a selected product slice; detailed scope belongs in the child plan.
-
----
-
-### 6.3 Test program
-
-**Status**: **ACTIVE**  
-**Priority**: High  
-**Detailed plan**: [TEST_PLAN.md](TEST_PLAN.md)
-
-**Current focus**:
-
-- Full-audit reliability.
-- Test artifact/log isolation.
-- No-parallel marker reduction only when stability is preserved.
-- Coverage growth in high-value domains.
+- **Search (deferred, low)**. Keep substring search with JSON storage. Revisit if searches slow down on real data, ranking or fuzzy matching matters, tasks and notebook need unified search, or storage moves to SQLite. **Shared organization (deferred, low/medium)**. Extract filters or grouping only when behavior is duplicated across features. Reuse existing tag and pagination helpers.
+- **Skip-to-notebook (deferred, low)**. For repeated reminder skips, consider asking "Capture why?" or creating a task-linked note tagged `blocker`. Decide whether to ask or capture automatically, whether Tasks, Notebook, or a shared reflection/check-in flow owns it, and how to avoid adding friction to reminders.
+- **Edit review (deferred, low)**. Define preview before saving, confirmation, cancellation, and timeout for multi-message edits. The existing replace and append sessions leave this review step open.
+- **Events (deferred)**. Consider `Entry(kind="event")` for simple notebook-style events. Use a separate feature for scheduling, recurrence, reminders, attendees, or calendar sync, reusing tags, search, and pagination where practical.
 
 ---
 
@@ -313,14 +281,6 @@ Testing details belong in [TEST_PLAN.md](TEST_PLAN.md).
 **Priority**: None currently
 
 This remains a long-term idea from the broader project vision, not a current MHM implementation plan.
-
----
-
-### 8.5.1 Development tools extensions
-
-**Status**: **DEFERRED**
-
-Extending custom audit scopes beyond Tier 2 and revisiting Radon, pydeps, or pre-commit require a separate plan. Package distribution awaits a second consumer. See the [archived V6 roadmap](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md).
 
 ---
 

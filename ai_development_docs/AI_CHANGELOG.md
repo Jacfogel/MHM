@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-16 - Development tools release split and audit cleanup **COMPLETED**
+
+- The private tools repo now has development and published branches. The development branch owns self-checks, tests, fixtures, and the testing guide. MHM uses the published runtime, one tools README, and the renamed `STATUS_BRIEF.md` and `PRIORITIES_BRIEF.md` reports.
+- Run `python development_tools/run_development_tools.py audit`. The shared CLI selects MHM's config via `pyproject.toml`. Removed the root launcher and MHM-specific loader fallbacks. CLI, environment, and local config overrides still work.
+- Consolidated task and notebook roadmaps into PLANS.md and moved their regression commands to the testing guide. Moved prompt evaluation snapshots to `tests/ai/prompt_reports/`. All 30 prompt regression tests passed.
+- Fixed nightly logging, registry and docstring gaps, Pyright, README checks, and the runner-isolation tests. Upgraded `dnspython` to 2.9.2. Fresh pip-audit and documentation sync were clean, and the saved Tier 3 product tracks reported zero failures or errors.
+
 ### 2026-11-15 - Task dependencies **COMPLETED**
 
 - Tasks persist `blocked_by` and inverse `blocks` relationships, reject self/missing/circular edges, and become ready automatically as prerequisites are completed or deleted.
@@ -111,11 +118,6 @@ Guidelines:
 - Added product AST boundary guards for time APIs, stream JSON storage, and core/UI imports; documented exact exceptions and scanner limits. Five health time calls now use canonical helpers; 33 policy and 62 existing health/time checks pass, plus Ruff/marker/diff checks. Completed roadmap items moved to maintenance; no full audit or live reload for this follow-up.
 - Fixed boundary-test links in both testing guides and clarified prose for path scanning; narrowed AST node types to remove the Pyright warning without suppression. All 15 core/UI checks pass; follow-up uses doc-sync/Pyright only.
 - Health follow-up: transition tests reproduced future-dated signals affecting pressure; fallback now excludes future dates. Health cooldown evaluation moves to monitoring; an extra timer awaits live evidence of intraday oscillation and must respect immediate opt-out. User's clear full audit is recorded separately from complete-suite/live gates; no agent full audit.
-
-### 2026-11-07 - Audit and standardize development planning documents **COMPLETED**
-- Removed completed planning items, corrected stale statuses/behavior, and preserved unfinished work found inside completed summaries. Windows suite reliability and live validation remain open; audit scope is explicit.
-- Standardized all four plans' role sections, shared maintenance rules, and review checklists; repaired affected guide/spec links. Rules protect unfinished work before removing completed sections.
-- Plan links/fragments and diff checks pass; no tests or live-service checks rerun in this chat. Retained existing generated report updates and fast-forwarded local main to include ten nightly-fix commits.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

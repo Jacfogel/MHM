@@ -478,7 +478,7 @@ Behavior is automated. Optional live check: buttons still look right in the real
 
 ### 6.4. Sign-off
 
-Behavior coverage for this guide is in pytest. Remaining optional visual checks are tracked in [TASKS_PLAN.md](../development_docs/TASKS_PLAN.md#monitoring) under Monitoring and [NOTES_PLAN.md](../development_docs/NOTES_PLAN.md#2-monitoring-and-deferred-extensions) under Monitoring and Deferred Extensions. Optional live Discord is visual/tone only.
+Behavior coverage for this guide is in pytest. See the [task](../development_docs/PLANS.md#61-task-system) and [notebook](../development_docs/PLANS.md#62-notebook-system) roadmaps for optional live checks in the Discord client.
 
 Record any live failures with the exact message sent, what the bot replied, and whether buttons appeared.
 

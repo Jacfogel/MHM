@@ -262,7 +262,7 @@ This guide covers both how the systems work and how to restore from backups.
 ### 4.1. Location
 
 - **Code**: `development_tools/shared/file_rotation.py`, `development_tools/shared/output_storage.py`
-- **Status Files**: `development_tools/AI_STATUS.md`, `AI_PRIORITIES.md`, `CONSOLIDATED_REPORT.md`
+- **Status Files**: `development_tools/STATUS_BRIEF.md`, `PRIORITIES_BRIEF.md`, `CONSOLIDATED_REPORT.md`
 - **Tool Results**: `development_tools/{domain}/jsons/{tool}_results.json`
 - **Archives**: `development_tools/reports/archive/` or `{domain}/jsons/archive/`
 
@@ -311,7 +311,7 @@ This guide covers both how the systems work and how to restore from backups.
 2. **Restore status files:**
    ```powershell
    # Copy archived status file
-   Copy-Item -Path "development_tools\reports\archive\AI_STATUS_2025-12-15_120000_0001.md" -Destination "development_tools\AI_STATUS.md"
+   Copy-Item -Path "development_tools\reports\archive\AI_STATUS_2025-12-15_120000_0001.md" -Destination "development_tools\STATUS_BRIEF.md"
    ```
 
 3. **Restore tool results:**

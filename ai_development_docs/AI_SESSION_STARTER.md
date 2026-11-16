@@ -28,10 +28,10 @@ When you attach to MHM, do this first:
    - For documentation changes, use [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md), especially:
      - Section 4 "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist)
      - Section 6 "Generated Documentation Standards" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#6-generated-documentation-standards)
-   - **For development tools, audits, or reports**: When the user's task touches dev tools, audits, coverage, or analysis, route to [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) as the primary reference. This includes:
+   - **For development tools, audits, or reports**: When the user's task touches dev tools, audits, coverage, or analysis, route to [README.md](../development_tools/README.md) as the primary reference. This includes:
      - Running audits or status checks
      - Understanding tool tiers and trust levels
-     - Working with generated reports (AI_STATUS.md, AI_PRIORITIES.md, CONSOLIDATED_REPORT.md)
+     - Working with generated reports (STATUS_BRIEF.md, PRIORITIES_BRIEF.md, CONSOLIDATED_REPORT.md)
      - Using commands like `audit`, `audit --strict`, `status`, `doc-sync`, `docs`, `legacy`, `coverage`
 
 3. **Stay within scope**  
@@ -63,16 +63,16 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
 - **Error handling** - [AI_ERROR_HANDLING_GUIDE.md](AI_ERROR_HANDLING_GUIDE.md)  
   - For how to use `MHMError` and structure error handling.
 
-- **Development tooling** - [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md)  
-  - Section 2 "Running the Tool Suite" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#2-running-the-tool-suite) - `development_tools/run_development_tools.py` commands.
-  - Section 3 "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs) - when to use `audit` vs `audit --full`.
-  - Section 3 "Audit Modes and Outputs" in [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md#3-audit-modes-and-outputs) - where reports and status files live.
+- **Development tooling** - [README.md](../development_tools/README.md)
+  - Section 2 "Running the Tool Suite" in [README.md](../development_tools/README.md#2-running-the-tool-suite) - `development_tools/run_development_tools.py` commands.
+  - Section 3 "Audit Modes and Outputs" in [README.md](../development_tools/README.md#3-audit-modes-and-outputs) - when to use `audit` vs `audit --full`.
+  - Section 3 "Audit Modes and Outputs" in [README.md](../development_tools/README.md#3-audit-modes-and-outputs) - where reports and status files live.
   - Check `development_tools/shared/standard_exclusions.py` (and config) before running tools so `.ruff_cache`, `mhm.egg-info`, `scripts`, `tests/ai/results`, and `tests/coverage_html` stay skipped.
 
 - **Legacy compatibility** - [AI_LEGACY_COMPATIBILITY_GUIDE.md](AI_LEGACY_COMPATIBILITY_GUIDE.md)  
   - Legacy compatibility code is high risk and must remain temporary bridge code only; use this guide for required add/keep/remove sequencing.  
   - Quick reference for using `development_tools/legacy/fix_legacy_references.py` and the `legacy` command.  
-  - Tightly coupled with [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) and the legacy reports described there.
+  - Tightly coupled with [README.md](../development_tools/README.md) and the legacy reports described there.
 
 - **User-data storage** - `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py`
   - Persistence implementation ownership lives in `storage.*`; `core` keeps package-level facade exports only.
@@ -97,8 +97,8 @@ Follow these high-level rules whenever you propose or describe changes:
 4. **Tie changes to tests and tools**  
   - When you propose code changes, also point to where tests should be added or updated (see [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md)).  
    - Where appropriate, suggest re-running:
-     - `python development_tools/run_development_tools.py audit`  
-     - `python development_tools/run_development_tools.py status`  
+     - `python development_tools/run_development_tools.py audit`
+     - `python development_tools/run_development_tools.py status`
      - `python development_tools/run_development_tools.py legacy` (for legacy-related work).
 
 ## 4. Typical Tasks and Where to Look
@@ -116,7 +116,7 @@ Use this as a routing table for common request types.
 ### 4.2. "Help me refactor or clean up code"
 
 - Start with [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first), especially section 1. "Safety First" and section 3. "Development Process" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#3-development-process).
-- Use [AI_DEVELOPMENT_TOOLS_GUIDE.md](../development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md) for commands to run audits and checks.  
+- Use [README.md](../development_tools/README.md) for commands to run audits and checks.
 - For legacy-related refactors, also use [AI_LEGACY_COMPATIBILITY_GUIDE.md](AI_LEGACY_COMPATIBILITY_GUIDE.md) and the legacy tools described there.
 
 ### 4.3. "Help me understand the system"
@@ -132,7 +132,7 @@ Use this as a routing table for common request types.
 
 #### 1.1. Documentation appears incomplete
 1. Run `python development_tools/run_development_tools.py audit` to refresh metrics.
-2. Review [AI_STATUS.md](../development_tools/AI_STATUS.md) and [AI_PRIORITIES.md](../development_tools/AI_PRIORITIES.md) to highlight specific gaps.
+2. Review [STATUS_BRIEF.md](../development_tools/STATUS_BRIEF.md) and [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) to highlight specific gaps.
 3. Draft a remediation plan and confirm next steps with the user before editing docs.
 
 #### 1.2. Code change introduced failures

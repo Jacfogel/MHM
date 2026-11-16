@@ -83,7 +83,7 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         help=(
             "B-016 MVP: audit a relative project subtree (e.g. communication/). "
             "Mutually exclusive with --dev-tools-only. Runs scan-dir-aware Tier 2 tools only; "
-            "does not overwrite AI_STATUS.md."
+            "does not overwrite STATUS_BRIEF.md."
         ),
     )
 

@@ -30,24 +30,20 @@ if os.getenv("MHM_TESTING") != "1":
 os.environ.pop("PYTEST_CURRENT_TEST", None)
 # CLI configuration must be loaded before importing modules that initialize logging.
 if __name__ == "__main__":
-    from development_tools.config import load_external_config
+    from development_tools.config import get_loaded_config_file_path, load_external_config
 
     bootstrap_parser = argparse.ArgumentParser(add_help=False)
     bootstrap_parser.add_argument("--project-root")
     bootstrap_parser.add_argument("--config-path")
     bootstrap_args, _ = bootstrap_parser.parse_known_args()
-    if bootstrap_args.project_root:
-        selected_root = Path(bootstrap_args.project_root).resolve()
-        os.environ["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(selected_root)
-        selected_config = selected_root / "development_tools/config/development_tools_config.json"
-    else:
-        selected_config = None
-    config_path = bootstrap_args.config_path or os.getenv("DEVTOOLS_REPORT_CONFIG")
-    if config_path is None and selected_config is not None and selected_config.is_file():
-        config_path = str(selected_config)
-    load_external_config(config_path)
-    if config_path:
-        os.environ["DEVTOOLS_REPORT_CONFIG"] = str(Path(config_path).resolve())
+    selected_root = Path(
+        bootstrap_args.project_root or os.getenv("DEVTOOLS_REPORT_PROJECT_ROOT") or project_root
+    ).resolve()
+    os.environ["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(selected_root)
+    load_external_config(bootstrap_args.config_path)
+    selected_config = get_loaded_config_file_path()
+    if selected_config is not None:
+        os.environ["DEVTOOLS_REPORT_CONFIG"] = str(selected_config.resolve())
 
 # Now we can import development_tools as a package
 try:
@@ -277,7 +273,7 @@ def _preflight_handle_stale_audit_locks(project_root: Path) -> tuple[bool, int]:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Development tools command-line interface. Shorthand: use run_dev_tools.py instead of run_development_tools.py",
+        description="Development tools command-line interface.",
         add_help=True,
     )
     parser.add_argument("command", nargs="?", help="Command to execute")
@@ -294,7 +290,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--config-path",
         type=str,
         default=None,
-        help="Path to config file (default: use built-in config)",
+        help="Override the project configuration file",
     )
     parser.add_argument(
         "--clear-cache",
@@ -325,16 +321,9 @@ def _print_available_commands() -> None:
             )
         print()
 
-    print(
-        "Use `python development_tools/run_development_tools.py <command> --help` for command-specific options."
-    )
-    print(
-        "Use `python development_tools/run_development_tools.py help` for comprehensive help."
-    )
-    print()
-    print(
-        "Note: You can use the shorter alias `run_dev_tools.py` instead of `run_development_tools.py`"
-    )
+    script = "development_tools/run_development_tools.py"
+    print(f"Run `python {script} audit --quick` for a quick project check.")
+    print(f"Run `python {script} <command> --help` for command-specific options.")
 
 
 def main(argv=None) -> int:
@@ -360,6 +349,9 @@ def main(argv=None) -> int:
 
     project_root = known_args.project_root
     config_path = known_args.config_path
+    if invoked_from_cli:
+        project_root = project_root or os.getenv("DEVTOOLS_REPORT_PROJECT_ROOT")
+        config_path = config_path or os.getenv("DEVTOOLS_REPORT_CONFIG")
     clear_cache = known_args.clear_cache
     global_dev_tools_only = getattr(known_args, "dev_tools_only", False)
     command_name = known_args.command
@@ -404,7 +396,7 @@ def main(argv=None) -> int:
         full_parser.print_help()
         print()
         _print_available_commands()
-        return 1
+        return 0 if not remaining_args or remaining_args == ["--help"] or remaining_args == ["-h"] else 2
 
     commands = COMMAND_REGISTRY
 

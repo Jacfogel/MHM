@@ -67,7 +67,7 @@ def _iter_test_python_files():
     for root in (TESTS_ROOT, TOOLS_TESTS_ROOT):
         for path in root.rglob("*.py"):
             normalized = path.as_posix()
-            if "/tests/data/" in normalized or "/tests/fixtures/" in normalized:
+            if "/tests/data/" in normalized:
                 continue
             if path.name == "__init__.py":
                 continue
@@ -389,7 +389,9 @@ def test_pytest_tests_have_required_domain_marker():
     from development_tools import config
     from development_tools.tests.analyze_test_markers import TestMarkerAnalyzer
 
-    config.load_external_config()
+    assert config.load_external_config(
+        str(PROJECT_ROOT / "development_docs/devtools/development_tools_config.json")
+    )
     analyzer = TestMarkerAnalyzer(project_root=PROJECT_ROOT)
     if not analyzer.domain_markers:
         pytest.skip("test_markers.domain_markers is empty; domain policy not configured")

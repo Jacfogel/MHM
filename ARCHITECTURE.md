@@ -34,7 +34,7 @@ This section describes the top-level directories. It should match the actual pro
 - `development_tools/`  
   AI tools runner and commands (for example `doc-sync`, `config`, `coverage`). These automate
   documentation checks, configuration reports, and similar meta-tasks. See section 2. Commands
-  and Usage in [AI_DEVELOPMENT_TOOLS_GUIDE.md](development_tools/AI_DEVELOPMENT_TOOLS_GUIDE.md).
+  and Usage in [README.md](development_tools/README.md).
 
 - `communication/`  
   Channel orchestration and message flows. This is where Discord, email, and any future channels

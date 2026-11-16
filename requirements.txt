@@ -7,7 +7,7 @@ python-dotenv>=1.2.2  # For environment variable management; CVE-2026-28684 / GH
 pytz>=2023.3  # For timezone handling (used in scheduler.py)
 tzlocal>=5.3.1  # For detecting system timezone in account creation
 psutil>=5.9.0  # For process management in UI application
-dnspython>=2.9.0  # For DNS resolution with alternative servers
+dnspython>=2.9.2  # For DNS resolution with alternative servers
 PyNaCl>=1.6.2  # For Discord webhook signature verification (ed25519); pip-audit floor
 
 # Shared security floors (direct and transitive dependencies)
