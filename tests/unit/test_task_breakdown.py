@@ -290,6 +290,163 @@ class TestTaskBreakdown:
         }
         assert steps[0].get("due", {}).get("date") == parents[0].get("due", {}).get("date")
 
+    def test_repeated_steps_keep_metadata_and_remap_dependencies(self, test_data_dir):
+        user_id = _fresh_user_id("breakdown_repeat_metadata")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        from tasks import (
+            complete_task,
+            create_task,
+            load_active_tasks,
+            save_active_tasks,
+            set_task_dependencies,
+            update_task,
+        )
+
+        parent_id = create_task(
+            user_id,
+            title="Prepare weekly report",
+            due_date="2026-09-20",
+            recurrence_pattern="weekly",
+        )
+        add_task_subtasks(user_id, parent_id, ["Collect metrics", "Write summary"])
+        active = load_active_tasks(user_id)
+        first = next(task for task in active if task.get("title") == "Collect metrics")
+        second = next(task for task in active if task.get("title") == "Write summary")
+        assert update_task(
+            user_id,
+            first["id"],
+            {
+                "description": "Use the operations dashboard.",
+                "category": "work",
+                "links": [{"url": "https://example.com/metrics", "label": "dashboard"}],
+                "quick_reminders": ["1-2hour"],
+            },
+        )
+        active = load_active_tasks(user_id)
+        first = next(task for task in active if task.get("id") == first["id"])
+        first["source"] = {"system": "mhm", "channel": "discord", "actor": "user"}
+        first["linked_item_ids"] = ["note-1"]
+        first["metadata"] = {"view": "weekly"}
+        assert save_active_tasks(user_id, active)
+        assert set_task_dependencies(user_id, second["id"], [first["id"]])
+
+        assert complete_task(user_id, parent_id)
+        repeated = load_active_tasks(user_id)
+        new_parent = next(task for task in repeated if not task.get("parent_id"))
+        new_first = next(task for task in repeated if task.get("title") == "Collect metrics")
+        new_second = next(task for task in repeated if task.get("title") == "Write summary")
+
+        assert new_first["parent_id"] == new_parent["id"]
+        assert new_first["description"] == "Use the operations dashboard."
+        assert new_first["category"] == "work"
+        assert new_first["links"] == [
+            {"url": "https://example.com/metrics", "label": "dashboard"}
+        ]
+        assert any(
+            reminder.get("kind") == "quick"
+            and reminder.get("value") == "1-2hour"
+            for reminder in new_first["reminders"]
+        )
+        assert new_first["source"]["channel"] == "discord"
+        assert new_first["linked_item_ids"] == ["note-1"]
+        assert new_first["metadata"] == {"view": "weekly"}
+        assert new_second["blocked_by"] == [new_first["id"]]
+        assert new_first["blocks"] == [new_second["id"]]
+
+    def test_restoring_recurring_parent_rewinds_generated_occurrence(self, test_data_dir):
+        user_id = _fresh_user_id("breakdown_repeat_restore")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        from tasks import complete_task, create_task, load_active_tasks, restore_task
+
+        parent_id = create_task(
+            user_id,
+            title="Clean the kitchen",
+            due_date="2026-09-20",
+            recurrence_pattern="weekly",
+        )
+        add_task_subtasks(user_id, parent_id, ["Wipe the counter"])
+        assert complete_task(user_id, parent_id)
+        generated = next(task for task in load_active_tasks(user_id) if not task.get("parent_id"))
+        assert generated["id"] != parent_id
+
+        assert restore_task(user_id, parent_id, restore_steps=True)
+        active = load_active_tasks(user_id)
+        assert {task["title"] for task in active} == {
+            "Clean the kitchen",
+            "Wipe the counter",
+        }
+        assert next(task for task in active if not task.get("parent_id"))["id"] == parent_id
+        assert all(task["id"] != generated["id"] for task in active)
+
+    def test_restore_rejects_rewind_after_next_occurrence_is_completed(self, test_data_dir):
+        user_id = _fresh_user_id("breakdown_repeat_progressed")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        from tasks import complete_task, create_task, load_active_tasks, restore_task
+
+        original_id = create_task(
+            user_id,
+            title="Weekly review",
+            due_date="2026-09-20",
+            recurrence_pattern="weekly",
+        )
+        assert complete_task(user_id, original_id)
+        next_id = next(task["id"] for task in load_active_tasks(user_id))
+        assert complete_task(user_id, next_id)
+
+        assert restore_task(user_id, original_id) is False
+        assert len(load_active_tasks(user_id)) == 1
+
+    def test_restore_rejects_child_until_parent_is_active(self, test_data_dir):
+        user_id = _fresh_user_id("breakdown_child_restore")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        from tasks import (
+            complete_task,
+            create_task,
+            load_completed_tasks,
+            restore_task,
+        )
+
+        parent_id = create_task(user_id, title="Call the dentist")
+        add_task_subtasks(user_id, parent_id, ["Find the phone number"])
+        assert complete_task(user_id, parent_id)
+        child = next(
+            task for task in load_completed_tasks(user_id) if task.get("parent_id") == parent_id
+        )
+
+        assert restore_task(user_id, child["id"]) is False
+        assert restore_task(user_id, parent_id) is True
+        assert restore_task(user_id, child["id"]) is True
+
+    def test_subtasks_cannot_repeat_independently(self, test_data_dir):
+        user_id = _fresh_user_id("breakdown_child_recurrence")
+        assert TestUserFactory.create_basic_user(
+            user_id, enable_tasks=True, test_data_dir=test_data_dir
+        )
+        from tasks import create_task, load_active_tasks, update_task
+
+        parent_id = create_task(user_id, title="Clean the kitchen")
+        assert create_task(
+            user_id,
+            title="Wipe the counter",
+            parent_id=parent_id,
+            recurrence_pattern="weekly",
+        ) is None
+        add_task_subtasks(user_id, parent_id, ["Wipe the counter"])
+        child = next(
+            task for task in load_active_tasks(user_id) if task.get("parent_id") == parent_id
+        )
+        assert update_task(
+            user_id, child["id"], {"recurrence_pattern": "weekly"}
+        ) is False
+
     def test_reminder_names_the_open_step(self, test_data_dir):
         user_id = _fresh_user_id("breakdown_reminder")
         assert TestUserFactory.create_basic_user(

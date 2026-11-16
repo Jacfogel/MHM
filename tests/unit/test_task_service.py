@@ -184,3 +184,19 @@ def test_task_service_append_task_description_empty_note_returns_false():
     from tasks import task_service
 
     assert task_service.append_task_description("u1", "task-1", "   ") is False
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
+def test_task_service_dependency_validation_reports_transitive_cycle():
+    from tasks import task_service
+
+    tasks = [
+        {"id": "first", "short_id": "tfirst", "blocked_by": []},
+        {"id": "second", "short_id": "tsecond", "blocked_by": ["first"]},
+        {"id": "third", "short_id": "tthird", "blocked_by": ["second"]},
+    ]
+    with patch("tasks.task_service.load_active_tasks", return_value=tasks):
+        reason = task_service.validate_task_dependencies("u1", "first", ["third"])
+
+    assert reason == "That dependency would create a circular task relationship"

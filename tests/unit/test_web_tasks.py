@@ -55,7 +55,7 @@ async def task_gateway(monkeypatch):
 
     def create(user_id, **values):
         task_number = len(active) + len(completed) + 1
-        task = {"id": f"task-{task_number}", "short_id": f"t{task_number}", "title": values["title"], "description": values.get("description", ""), "priority": values.get("priority", "medium"), "status": "active", "due": {"date": values.get("due_date"), "time": values.get("due_time")}, "recurrence": {"pattern": values.get("recurrence_pattern"), "interval": values.get("recurrence_interval", 1), "repeat_after_completion": values.get("repeat_after_completion", True)}, "completion": {"completed": False, "completed_at": None, "notes": ""}, "tags": values.get("tags", []), "parent_id": values.get("parent_id"), "reminders": [{"kind": "scheduled", "period": period} for period in values.get("reminder_periods", [])] + [{"kind": "quick", "value": value} for value in values.get("quick_reminders", [])]}
+        task = {"id": f"task-{task_number}", "short_id": f"t{task_number}", "title": values["title"], "description": values.get("description", ""), "priority": values.get("priority", "medium"), "status": "active", "due": {"date": values.get("due_date"), "time": values.get("due_time")}, "recurrence": {"pattern": values.get("recurrence_pattern"), "interval": values.get("recurrence_interval", 1), "repeat_after_completion": values.get("repeat_after_completion", True)}, "completion": {"completed": False, "completed_at": None, "notes": ""}, "tags": values.get("tags", []), "parent_id": values.get("parent_id"), "blocked_by": [], "blocks": [], "reminders": [{"kind": "scheduled", "period": period} for period in values.get("reminder_periods", [])] + [{"kind": "quick", "value": value} for value in values.get("quick_reminders", [])]}
         active.append(task)
         return task["id"]
 
@@ -174,6 +174,9 @@ async def test_task_crud_lifecycle_and_validation(task_gateway):
     assert task["reminders"][0]["period"]["start_time"] == "09:00"
     assert task["reminders"][1] == {"kind": "quick", "value": "1-2hour"}
     assert task["recurrence"] == {"pattern": "weekly", "interval": 2, "repeat_after_completion": False, "next_due_date": None}
+    assert task["blocked_by"] == []
+    assert task["blocks"] == []
+    assert task["is_blocked"] is False
     task_list = await (await client.get("/api/tasks")).json()
     assert task_list["due_soon_count"] == 1
     assert task_list["tags"] == ["existing", "health", "morning"]
@@ -257,6 +260,48 @@ async def test_task_routes_require_authentication_and_reject_unknown_fields(task
     client, _, _ = task_gateway
     assert (await client.post("/api/tasks", json={"title": "A", "unexpected": True}, headers={"Origin": ORIGIN})).status == 400
     assert (await client.get("/api/tasks?status=unknown")).status == 400
+
+
+async def test_task_dependency_route_rejects_missing_self_and_circular_edges(task_gateway):
+    client, _, _ = task_gateway
+    first_response = await client.post(
+        "/api/tasks", json={"title": "First"}, headers={"Origin": ORIGIN}
+    )
+    second_response = await client.post(
+        "/api/tasks", json={"title": "Second"}, headers={"Origin": ORIGIN}
+    )
+    first = (await first_response.json())["task"]
+    second = (await second_response.json())["task"]
+
+    missing = await client.patch(
+        f"/api/tasks/{second['id']}",
+        json={"blocked_by": ["missing"]},
+        headers={"Origin": ORIGIN},
+    )
+    assert missing.status == 400
+
+    self_reference = await client.patch(
+        f"/api/tasks/{first['id']}",
+        json={"blocked_by": [first["id"]]},
+        headers={"Origin": ORIGIN},
+    )
+    assert self_reference.status == 400
+
+    accepted = await client.patch(
+        f"/api/tasks/{second['id']}",
+        json={"blocked_by": [first["id"]]},
+        headers={"Origin": ORIGIN},
+    )
+    assert accepted.status == 200
+    assert (await accepted.json())["task"]["is_blocked"] is True
+
+    circular = await client.patch(
+        f"/api/tasks/{first['id']}",
+        json={"blocked_by": [second["id"]]},
+        headers={"Origin": ORIGIN},
+    )
+    assert circular.status == 409
+    assert "circular" in (await circular.json())["error"].casefold()
 
 
 async def test_task_mutation_failures_explain_state_and_recovery(
@@ -520,6 +565,56 @@ async def test_breakdown_adds_subtasks_and_keeps_the_original_title(task_gateway
         headers={"Origin": ORIGIN},
     )
     assert nested.status == 400
+    recurring_step = await client.patch(
+        f"/api/tasks/{children[0]['id']}",
+        json={"recurrence_pattern": "weekly"},
+        headers={"Origin": ORIGIN},
+    )
+    assert recurring_step.status == 400
+    assert "cannot repeat separately" in (await recurring_step.json())["error"]
+
+
+async def test_completed_step_requires_active_parent_before_restore(task_gateway):
+    client, active, completed = task_gateway
+    parent = {
+        "id": "parent-restore",
+        "short_id": "tparent",
+        "title": "Parent",
+        "status": "completed",
+        "completion": {"completed": True, "completed_at": "2026-09-20 10:00:00"},
+        "parent_id": None,
+        "due": {},
+        "recurrence": {},
+        "reminders": [],
+        "tags": [],
+    }
+    child = {
+        **parent,
+        "id": "child-restore",
+        "short_id": "tchild",
+        "title": "Child",
+        "parent_id": parent["id"],
+    }
+    completed.extend([parent, child])
+
+    blocked = await client.post(
+        f"/api/tasks/{child['id']}/restore",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+    assert blocked.status == 409
+    assert "parent task" in (await blocked.json())["error"]
+
+    completed.remove(parent)
+    parent["status"] = "active"
+    parent["completion"] = {"completed": False, "completed_at": None}
+    active.append(parent)
+    restored = await client.post(
+        f"/api/tasks/{child['id']}/restore",
+        json={},
+        headers={"Origin": ORIGIN},
+    )
+    assert restored.status == 200
 
 
 async def test_home_focus_endpoint_uses_shared_backend_policy(task_gateway, monkeypatch):

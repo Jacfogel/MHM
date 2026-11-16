@@ -955,6 +955,11 @@ class TaskManagementHandler(InteractionHandler):
             tags = task.get("tags", [])
             tags_info = f" [tags: {', '.join(tags)}]" if tags else ""
 
+            blocked_by = task.get("blocked_by") or []
+            blocked_info = (
+                f" ⛔ BLOCKED ({len(blocked_by)} unfinished)" if blocked_by else ""
+            )
+
             # Add description preview if present
             description = task.get("description", "")
             desc_info = (
@@ -964,7 +969,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
             task_list.append(
-                f"{i}. {emoji} {task['title']}{due_info}{recurrence_info}{tags_info}{desc_info}"
+                f"{i}. {emoji} {task['title']}{blocked_info}{due_info}{recurrence_info}{tags_info}{desc_info}"
             )
 
         return task_list
@@ -1506,6 +1511,14 @@ class TaskManagementHandler(InteractionHandler):
                 True,
             )
         task_id = _task_identifier(task)
+        parent_id = str(task.get("parent_id") or "").strip()
+        if parent_id and not any(
+            str(item.get("id") or "").strip() == parent_id
+            for item in (_task_service().load_active_tasks(user_id) or [])
+        ):
+            return InteractionResponse(
+                "Restore the parent task before restoring this smaller step.", True
+            )
         parent_key = str(task.get("id") or "").strip()
         steps = [
             item

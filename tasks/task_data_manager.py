@@ -27,6 +27,12 @@ from tasks.task_data_handlers import (
     save_task_lists,
 )
 from tasks.task_validation import is_valid_task_title, is_valid_priority, validate_update_field
+from tasks.task_dependencies import (
+    apply_dependencies,
+    clear_dependencies,
+    rebuild_inverse_relationships,
+    remove_dependency_references,
+)
 from core.ids import generate_short_id
 
 logger = get_component_logger("main")
@@ -100,6 +106,12 @@ def _task_recurrence(task: dict[str, Any]) -> dict[str, Any]:
     return {}
 
 
+@handle_errors("resolving previous task occurrence", default_return="")
+def _task_previous_occurrence_id(task: dict[str, Any]) -> str:
+    """Return the task ID that generated this recurring occurrence."""
+    return str(_task_recurrence(task).get("previous_occurrence_id") or "").strip()
+
+
 @handle_errors("creating new task", default_return=None)
 def create_task(
     user_id: str,
@@ -117,6 +129,11 @@ def create_task(
     category: str = "",
     links: list | None = None,
     parent_id: str | None = None,
+    source: dict[str, Any] | None = None,
+    linked_item_ids: list[str] | None = None,
+    metadata: dict[str, Any] | None = None,
+    recurrence_series_id: str | None = None,
+    previous_occurrence_id: str | None = None,
 ) -> str | None:
     """Create a new task for a user."""
     if not user_id or not isinstance(user_id, str):
@@ -159,6 +176,22 @@ def create_task(
         logger.error(f"Invalid parent_id type: {type(parent_id)}")
         return None
     cleaned_parent_id = str(parent_id or "").strip() or None
+    if cleaned_parent_id and recurrence_pattern:
+        logger.warning(
+            "Recurring subtasks are not supported",
+            user_id=user_id,
+            parent_id=cleaned_parent_id,
+        )
+        return None
+    if source is not None and not isinstance(source, dict):
+        logger.error("Invalid task source type", source_type=type(source).__name__)
+        return None
+    if linked_item_ids is not None and not isinstance(linked_item_ids, list):
+        logger.error("Invalid linked_item_ids type")
+        return None
+    if metadata is not None and not isinstance(metadata, dict):
+        logger.error("Invalid task metadata type", metadata_type=type(metadata).__name__)
+        return None
 
     from core.tags import ensure_tags_initialized
     from tasks.task_tag_helpers import sanitize_task_tags
@@ -192,6 +225,11 @@ def create_task(
         "priority": priority,
         "completion": {"completed": False, "completed_at": None, "notes": ""},
         "parent_id": cleaned_parent_id,
+        "blocked_by": [],
+        "blocks": [],
+        "source": source or {"system": "mhm", "channel": "", "actor": ""},
+        "linked_item_ids": linked_item_ids or [],
+        "metadata": metadata or {},
     }
     if reminders:
         task["reminders"] = reminders
@@ -201,6 +239,9 @@ def create_task(
             "interval": recurrence_interval,
             "repeat_after_completion": repeat_after_completion,
             "next_due_date": due_date,
+            "series_id": str(recurrence_series_id or task_id),
+            "previous_occurrence_id": str(previous_occurrence_id or "").strip()
+            or None,
         }
 
     tasks = load_active_tasks(user_id)
@@ -224,6 +265,27 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
     for task in tasks:
         if _task_matches_identifier(task, task_id):
             canonical_task_id = _task_id(task)
+            old_blocked_by = list(task.get("blocked_by") or [])
+            if (
+                str(task.get("parent_id") or "").strip()
+                and updates.get("recurrence_pattern")
+            ):
+                logger.warning(
+                    "Recurring subtask update rejected",
+                    user_id=user_id,
+                    task_id=canonical_task_id,
+                )
+                return False
+            if "blocked_by" in updates:
+                applied, reason = apply_dependencies(tasks, task, updates["blocked_by"])
+                if not applied:
+                    logger.warning(
+                        "Task dependency update rejected",
+                        user_id=user_id,
+                        task_id=canonical_task_id,
+                        reason=reason,
+                    )
+                    return False
             if "quick_reminders" in updates or "due_date" in updates:
                 resulting_due_date = updates.get("due_date", _task_due_date(task))
                 resulting_quick = updates.get(
@@ -245,6 +307,11 @@ def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
                         logger.warning(f"Task {task_id}: {reason}")
                     continue
                 old_value = task.get(field, "None")
+                if field == "blocked_by":
+                    updated_fields.append(
+                        f"blocked_by: {old_blocked_by} -> {task.get('blocked_by', [])}"
+                    )
+                    continue
                 if field == "due_date":
                     task.setdefault("due", {})["date"] = value
                     if "reminder_deferrals" not in updates:
@@ -368,6 +435,10 @@ def complete_task(
         finished["completion"] = completion
         newly_completed.append(finished)
 
+    completed_ids = {_task_id(task).strip() for task in newly_completed}
+    remove_dependency_references(updated_active_tasks, completed_ids)
+    clear_dependencies(newly_completed)
+
     completed_tasks = load_completed_tasks(user_id)
     completed_tasks.extend(newly_completed)
     if not save_task_lists(user_id, updated_active_tasks, completed_tasks):
@@ -412,6 +483,55 @@ def restore_task(user_id: str, task_id: str, restore_steps: bool = False) -> boo
         return False
     task_to_restore = matched[-1]
     parent_key = _task_id(task_to_restore).strip()
+    active_tasks = load_active_tasks(user_id)
+    restored_parent_id = str(task_to_restore.get("parent_id") or "").strip()
+    if restored_parent_id and not any(
+        _task_id(task).strip() == restored_parent_id for task in active_tasks
+    ):
+        logger.warning(
+            "Cannot restore a subtask while its parent is completed",
+            user_id=user_id,
+            task_id=parent_key,
+            parent_id=restored_parent_id,
+        )
+        return False
+
+    completed_next = [
+        task
+        for task in completed_tasks
+        if _task_previous_occurrence_id(task) == parent_key
+    ]
+    if completed_next:
+        logger.warning(
+            "Cannot rewind a recurring task after its next occurrence was completed",
+            user_id=user_id,
+            task_id=parent_key,
+        )
+        return False
+    active_next = [
+        task for task in active_tasks if _task_previous_occurrence_id(task) == parent_key
+    ]
+    rewind_parent_ids = {_task_id(task).strip() for task in active_next}
+    rewound = [
+        task
+        for task in active_tasks + completed_tasks
+        if _task_id(task).strip() in rewind_parent_ids
+        or str(task.get("parent_id") or "").strip() in rewind_parent_ids
+    ]
+    if rewind_parent_ids:
+        active_tasks = [
+            task
+            for task in active_tasks
+            if _task_id(task).strip() not in rewind_parent_ids
+            and str(task.get("parent_id") or "").strip() not in rewind_parent_ids
+        ]
+        completed_tasks = [
+            task
+            for task in completed_tasks
+            if _task_id(task).strip() not in rewind_parent_ids
+            and str(task.get("parent_id") or "").strip() not in rewind_parent_ids
+        ]
+
     restoring = [task_to_restore]
     if (
         restore_steps
@@ -435,11 +555,13 @@ def restore_task(user_id: str, task_id: str, restore_steps: bool = False) -> boo
         copy["status"] = "active"
         copy["completion"] = {"completed": False, "completed_at": None, "notes": ""}
         prepared.append(copy)
-    active_tasks = load_active_tasks(user_id)
     active_tasks.extend(prepared)
+    rebuild_inverse_relationships(active_tasks)
     if not save_task_lists(user_id, active_tasks, updated_completed_tasks):
         logger.error(f"Failed to save task restoration for user {user_id}")
         return False
+    for task in rewound:
+        cleanup_task_reminders(user_id, _task_id(task).strip())
     for original, copy in zip(restoring, prepared, strict=True):
         restored_id = _task_id(copy).strip() or task_id
         logger.info(f"Restored task {restored_id} for user {user_id}")
@@ -485,6 +607,8 @@ def delete_task(user_id: str, task_id: str) -> bool:
         for task in active_tasks + completed_tasks
         if _is_task_or_direct_child(task, removed, parent_key)
     ]
+    deleted_ids = {_task_id(task).strip() for task in deleted}
+    remove_dependency_references(remaining_active, deleted_ids)
     if not save_task_lists(user_id, remaining_active, remaining_completed):
         logger.error(f"Failed to save task deletion for user {user_id}")
         return False
@@ -674,20 +798,65 @@ def _copy_subtasks_to_next_occurrence(
         seen.add(key)
         templates.append(task)
     templates.sort(key=lambda task: str(task.get("created_at") or ""))
-    saved = 0
+    old_to_new: dict[str, str] = {old_id: new_id}
     for task in templates:
         tags = task.get("tags") if isinstance(task.get("tags"), list) else []
+        linked_item_ids = (
+            task.get("linked_item_ids")
+            if isinstance(task.get("linked_item_ids"), list)
+            else []
+        )
+        reminder_periods = _task_reminder_periods(task)
+        quick_reminders = [
+            reminder.get("value")
+            for reminder in task.get("reminders", [])
+            if isinstance(reminder, dict)
+            and reminder.get("kind") == "quick"
+            and reminder.get("value")
+        ]
         created_id = create_task(
             user_id,
             title=str(task.get("title") or ""),
+            description=str(task.get("description") or ""),
             due_date=due_date,
             due_time=due_time,
             priority=str(task.get("priority") or "medium"),
             tags=tags,
+            category=str(task.get("category") or ""),
+            links=task.get("links") if isinstance(task.get("links"), list) else [],
+            reminder_periods=reminder_periods,
+            quick_reminders=quick_reminders,
             parent_id=new_id,
+            source=task.get("source") if isinstance(task.get("source"), dict) else None,
+            linked_item_ids=linked_item_ids,
+            metadata=task.get("metadata") if isinstance(task.get("metadata"), dict) else None,
         )
         if created_id:
-            saved += 1
+            old_to_new[_task_id(task)] = created_id
+
+    active_ids = {_task_id(task) for task in load_active_tasks(user_id)}
+    by_old_id = {_task_id(task): task for task in templates}
+    for old_task_id, created_id in old_to_new.items():
+        if old_task_id == old_id:
+            continue
+        template = by_old_id.get(old_task_id)
+        if template is None:
+            continue
+        remapped: list[str] = []
+        for dependency_id in template.get("blocked_by", []):
+            mapped_id = old_to_new.get(str(dependency_id), str(dependency_id))
+            if mapped_id in active_ids and mapped_id not in remapped:
+                remapped.append(mapped_id)
+        if remapped and not update_task(
+            user_id, created_id, {"blocked_by": remapped}
+        ):
+            logger.warning(
+                "Could not copy subtask dependencies to recurring occurrence",
+                user_id=user_id,
+                task_id=created_id,
+            )
+
+    saved = len(old_to_new) - 1
     if saved:
         logger.info(
             f"Copied {saved} subtask(s) from {old_id} onto next occurrence {new_id}"
@@ -700,6 +869,13 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str,
     """Create the next instance of a recurring task when the current one is completed."""
     if not user_id or not completed_task:
         logger.error("User ID and completed task are required for creating next recurring task")
+        return False
+    if str(completed_task.get("parent_id") or "").strip():
+        logger.warning(
+            "Skipped recurrence generation for a subtask",
+            user_id=user_id,
+            task_id=_task_id(completed_task),
+        )
         return False
     recurrence = _task_recurrence(completed_task)
     recurrence_pattern = recurrence.get("pattern")
@@ -743,7 +919,14 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: dict[str,
             "interval": recurrence_interval,
             "repeat_after_completion": repeat_after_completion,
             "next_due_date": next_due_date_str,
+            "series_id": recurrence.get("series_id") or _task_id(completed_task),
+            "previous_occurrence_id": _task_id(completed_task),
         },
+        "source": completed_task.get("source")
+        or {"system": "mhm", "channel": "", "actor": ""},
+        "linked_item_ids": completed_task.get("linked_item_ids") or [],
+        "metadata": completed_task.get("metadata") or {},
+        "links": completed_task.get("links") or [],
     }
     reminder_periods = _task_reminder_periods(completed_task)
     if reminder_periods:

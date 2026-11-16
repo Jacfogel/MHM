@@ -86,6 +86,10 @@ def validate_update_field(field: str, value: Any) -> tuple[bool, str | None]:
             return False, "Reminder deferral history is too long"
         if len(normalize_reminder_deferrals(value)) != len(value):
             return False, "Reminder deferral history contains an invalid record"
+    if field == "blocked_by" and (
+        not isinstance(value, list) or any(not isinstance(item, str) for item in value)
+    ):
+        return False, "Dependencies must be a list of task IDs"
     return True, None
 
 

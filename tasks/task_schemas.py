@@ -54,6 +54,7 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "reminder_snooze_until",
     "reminder_deferrals",
     "links",
+    "blocked_by",
 )
 
 TASKS_V2_FILENAME = "tasks.json"
@@ -159,6 +160,18 @@ class RecurrenceModel(BaseModel):
     interval: int = 1
     repeat_after_completion: bool = True
     next_due_date: str | None = None
+    series_id: str | None = None
+    previous_occurrence_id: str | None = None
+
+    @field_validator("series_id", "previous_occurrence_id")
+    @classmethod
+    def validate_recurrence_task_id(cls, value: str | None) -> str | None:
+        """Keep a recurrence lineage task ID, or clear an empty value."""
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise v2_schema_validation_error("recurrence lineage must use task IDs")
+        return value.strip() or None
 
     @field_validator("next_due_date")
     @classmethod
@@ -184,6 +197,25 @@ class TaskV2Model(BaseItemModel):
     )
     links: list[TaskLinkModel] = Field(default_factory=list)
     parent_id: str | None = None
+    blocked_by: list[str] = Field(default_factory=list)
+    blocks: list[str] = Field(default_factory=list)
+
+    @field_validator("blocked_by", "blocks", mode="before")
+    @classmethod
+    def normalize_dependency_ids(cls, value: Any) -> list[str]:
+        """Store unique, non-empty canonical task IDs."""
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise v2_schema_validation_error("task dependencies must be a list")
+        normalized: list[str] = []
+        for item in value:
+            if not isinstance(item, str):
+                raise v2_schema_validation_error("task dependency IDs must be strings")
+            item = item.strip()
+            if item and item not in normalized:
+                normalized.append(item)
+        return normalized
 
     @field_validator("parent_id")
     @classmethod
@@ -240,6 +272,8 @@ class TaskV2Model(BaseItemModel):
     def validate_completion_status(self) -> TaskV2Model:
         if self.status == "completed" and not self.completion.completed:
             raise v2_schema_validation_error("completed tasks must set completion.completed")
+        if self.id in self.blocked_by or self.id in self.blocks:
+            raise v2_schema_validation_error("a task cannot depend on itself")
         return self
 
 

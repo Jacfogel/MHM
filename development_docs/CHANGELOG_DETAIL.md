@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-15 - Task dependency relationships
+
+- **Feature**: Added persisted `blocked_by` and inverse `blocks` relationships for active tasks. The website task editor selects prerequisites, while website and Discord task lists show when a task is blocked. Completing or deleting prerequisites removes satisfied edges automatically without hiding the dependent task.
+- **Safety and validation**: Dependency updates resolve canonical or short task IDs, reject missing and self references, and prevent direct or transitive cycles before saving. Focused tests cover persistence, edge replacement, circular rejection, partial/full unblocking, deletion cleanup, API serialization, and browser rendering.
+- **Recurring subtask lifecycle**: Added recurrence lineage so restoring a completed occurrence rewinds its generated next task family without leaving duplicates; restoration is rejected after that next occurrence has completed. A completed child now requires its parent to be active before restoration. Subtasks cannot repeat independently in storage, website routes, or the browser editor. Repeated steps retain descriptions, category, tags, links, reminders, source, linked item IDs, metadata, and dependencies remapped to the new family.
+- **Roadmap and verification**: Removed the completed dependency section from `TASKS_PLAN.md` and documented the canonical fields and recurrence lifecycle in `USER_DATA_MODEL.md`. The 507-test task plan selection, 20 browser task tests, and 14 authenticated website-route tests passed. Targeted Ruff and Pyright checks passed, documentation sync reported zero issues, and the error-handling scan remained at 100%. The route suite required normal Windows loopback access, and no live website or Discord rendering check was performed.
+
 ### 2026-11-13 - Development-tools documentation and parallel audit test
 
 - **Documentation** - Replaced stale extraction-plan references in the development-tools guide, added the README file address, and updated 32 changelog links to the relocated deprecation inventory.

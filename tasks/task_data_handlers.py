@@ -337,6 +337,8 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
             "interval": recurrence.get("interval") or 1,
             "repeat_after_completion": recurrence.get("repeat_after_completion", True),
             "next_due_date": recurrence.get("next_due_date"),
+            "series_id": recurrence.get("series_id"),
+            "previous_occurrence_id": recurrence.get("previous_occurrence_id"),
         },
         "completion": {
             "completed": completed,
@@ -356,6 +358,8 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
         "reminder_deferrals": task.get("reminder_deferrals") or [],
         "links": task.get("links") or [],
         "parent_id": str(task.get("parent_id") or "").strip() or None,
+        "blocked_by": task.get("blocked_by") or [],
+        "blocks": task.get("blocks") or [],
     }
     return TaskV2Model.model_validate(v2_task).model_dump(mode="json")
 
@@ -393,6 +397,8 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "reminder_deferrals": task.get("reminder_deferrals") or [],
         "links": task.get("links") or [],
         "parent_id": task.get("parent_id") or None,
+        "blocked_by": task.get("blocked_by") or [],
+        "blocks": task.get("blocks") or [],
     }
     return runtime
 

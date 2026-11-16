@@ -115,6 +115,15 @@ function findByText(root, text) {
   return null;
 }
 
+function findById(root, id) {
+  if (root.id === id) return root;
+  for (const child of root.childNodes) {
+    const found = findById(child, id);
+    if (found) return found;
+  }
+  return null;
+}
+
 async function settle() {
   await new Promise(resolve => setImmediate(resolve));
   await new Promise(resolve => setImmediate(resolve));
@@ -222,6 +231,15 @@ test('task list renders due details, tags, and the due-soon summary', async () =
   assert.match(allText(screen.nodes.get('task-list').childNodes[0]), /Pack lunch Use the blue container Due 2026-10-07 at 08:00 medium Tags: home/);
 });
 
+test('task list identifies tasks blocked by unfinished prerequisites', async () => {
+  const blocked = task({ blocked_by: ['task-a', 'task-b'], is_blocked: true });
+  const screen = await tasksPage(async request => (
+    request.path === '/api/task-templates' ? Response.json({ templates: [] }) : Response.json(taskResult([blocked]))
+  ));
+
+  assert.match(allText(screen.nodes.get('task-list').childNodes[0]), /Blocked by 2 unfinished tasks/);
+});
+
 test('creating a recurring task sends normalized fields and reloads the list', async () => {
   let created = false;
   const screen = await tasksPage(async request => {
@@ -302,9 +320,49 @@ test('editing a task sends changes and recovers cleanly from a failed request', 
   const edit = screen.requests.find(request => request.method === 'PATCH');
   assert.equal(edit.path, '/api/tasks/task-1');
   assert.equal(edit.body.title, 'Pack breakfast');
+  assert.deepEqual(edit.body.blocked_by, []);
   assert.equal(findByText(form, 'Save changes').disabled, false);
   assert.equal(screen.nodes.get('tasks-status').textContent, 'Edit conflict.');
   assert.equal(dialog.open, true);
+});
+
+test('task editor preserves selected prerequisites', async () => {
+  const prerequisite = task({ id: 'task-a', title: 'Choose paint', blocked_by: [] });
+  const dependent = task({ id: 'task-b', title: 'Paint room', blocked_by: ['task-a'], is_blocked: true });
+  const screen = await tasksPage(async request => {
+    if (request.path === '/api/task-templates') return Response.json({ templates: [] });
+    if (request.method === 'PATCH') return Response.json({ task: dependent });
+    return Response.json(taskResult([prerequisite, dependent]));
+  });
+
+  findByText(screen.nodes.get('task-list').childNodes[1], 'Edit').listeners.click();
+  const dialog = screen.body.childNodes[0];
+  const form = dialog.childNodes.find(child => child.tagName === 'FORM');
+  await form.listeners.submit({ preventDefault() {} });
+
+  const edit = screen.requests.find(request => request.method === 'PATCH');
+  assert.deepEqual(edit.body.blocked_by, ['task-a']);
+});
+
+test('subtask editor keeps recurrence attached to the parent', async () => {
+  const parent = task({ id: 'task-parent', title: 'Clean kitchen' });
+  const child = task({ id: 'task-child', title: 'Wipe counter', parent_id: parent.id });
+  const screen = await tasksPage(async request => {
+    if (request.path === '/api/task-templates') return Response.json({ templates: [] });
+    if (request.method === 'PATCH') return Response.json({ task: child });
+    return Response.json(taskResult([parent, child]));
+  });
+
+  findByText(screen.nodes.get('task-list').childNodes[1], 'Edit').listeners.click();
+  const dialog = screen.body.childNodes[0];
+  const recurrence = findById(dialog, 'edit-recurrence');
+  const form = dialog.childNodes.find(item => item.tagName === 'FORM');
+
+  assert.equal(recurrence.disabled, true);
+  assert.match(allText(dialog), /Smaller steps repeat with their parent task/);
+  await form.listeners.submit({ preventDefault() {} });
+  const edit = screen.requests.find(request => request.method === 'PATCH');
+  assert.equal(edit.body.recurrence_pattern, null);
 });
 
 test('a stale completed-task response cannot replace the active view', async () => {

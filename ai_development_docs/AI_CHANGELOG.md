@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-15 - Task dependencies **COMPLETED**
+
+- Tasks persist `blocked_by` and inverse `blocks` relationships, reject self/missing/circular edges, and become ready automatically as prerequisites are completed or deleted.
+- Website task editing manages prerequisites; website and Discord lists expose blocked state. Focused Python, browser, route, and Ruff checks pass; live rendering remains unverified.
+- Recurring parents carry complete step templates and remapped dependencies into the next occurrence. Uncomplete rewinds the generated next family, progressed series are protected, completed children require an active parent, and subtasks cannot repeat independently.
+
 ### 2026-11-13 - Development-tools documentation and parallel audit test **COMPLETED**
 
 - Fixed stale guide references, the missing README file address, and 32 links to the relocated deprecation inventory. Documentation checks reported zero issues.
@@ -110,23 +116,6 @@ Guidelines:
 - Removed completed planning items, corrected stale statuses/behavior, and preserved unfinished work found inside completed summaries. Windows suite reliability and live validation remain open; audit scope is explicit.
 - Standardized all four plans' role sections, shared maintenance rules, and review checklists; repaired affected guide/spec links. Rules protect unfinished work before removing completed sections.
 - Plan links/fragments and diff checks pass; no tests or live-service checks rerun in this chat. Retained existing generated report updates and fast-forwarded local main to include ten nightly-fix commits.
-
-### 2026-11-07 - Resolve OAuthlib and pyasn1 advisory findings
-- Fixed all five reproduced pip-audit findings by raising both manifests and the local environment to oauthlib 4.0.1 / pyasn1 0.6.5. Fresh scan: zero known vulnerabilities; pip check passes.
-- All 72 focused Google Health auth/client checks plus real ASN.1/Google-auth/offline OAuth smoke checks pass. Canonical security cache refreshed and Tier 2 audit/report regeneration passes. Changes are local; no full-suite rerun or push yet.
-
-### 2026-11-06 - Investigate nightly run 160
-- 2026-11-07: full fixed-environment Linux run `42404010183` passed without native cores. Removed temporary Qt inventories, associated tests, probe script, and comparison workflow/input; kept dependency/lifecycle fixes, lightweight history, stall traces, and native-core failure detection. Updated guides/plan/removal inventory. All 33 focused two-worker checks, Ruff, and Tier 2 audit pass; cleanup edits remain local.
-- 2026-11-07 remediation: both dependency manifests now exclude PySide6 6.12.0. Linux/Python 3.11 dry resolution selects matched 6.11.3 packages; the isolated comparison now includes 6.11.3 plus good/bad controls. Full fixed-environment Linux validation remains pending.
-- 2026-11-07 source isolation: GitHub Qt-only probe `42403486795` on Python 3.11.18 shows PySide6/Shiboken 6.12.0 loses one None reference per tested void Qt call (-1/-32/-128), versus zero for 6.11.2 and both Python controls. No MHM, pytest, QApplication, or background threads involved. This confirms the native binding defect behind the ongoing none_dealloc abort. Probe/workflow commit `863dd57a` is pushed; dependency remediation and full-suite validation remain pending.
-- 2026-11-07: scoped cleanup now covers simple widget behavior/check-in helper tests. Their 20 passing checks initially retained 850 valid wrappers; final teardown leaves only QApplication. Explicitly dispose the intentionally rejected second QVBoxLayout in a finally block. Earlier combined two-worker validation passed 29 checks; final serial rerun, Ruff, and Tier 2 audit pass. Latest changes are local; the Linux none_dealloc shutdown abort is not yet resolved.
-- Cleaned the two remaining widget modules identified in run `42323059729` (which passed tests but aborted in CPython none_dealloc at shutdown). Their 55 local checks pass before/after; live wrappers fell from 1,419 to QApplication/QCommonStyle. Native deletion now precedes Python GC, and lifecycle assertions verify destruction. All 64 combined two-worker checks, Ruff, and Tier 2 audit pass; full Linux crash validation remains open and new edits are local.
-- Reviewed six more retained UI modules and applied scoped widget teardown. Their 126 serial checks pass before/after; live wrappers fell from 14,153 to QApplication plus QCommonStyle, with no test dialogs/widgets left. Combined two-worker validation passes 154 parallel-capable checks; the five no-parallel cases passed serially. Task CRUD now asserts actual destruction. Ruff/Tier 2 audit pass; full Linux crash validation remains pending and changes are local.
-- Confirmed missing DeferredDelete delivery in user-profile coverage fixtures: 28 passing tests retained 27 dialogs/17,115 valid wrappers. Scoped teardown now leaves only QApplication live; 31 serial and 33 two-worker checks pass, plus Ruff/Tier 2 audit. Other UI modules and Linux crash validation remain open; cleanup changes are local.
-- GitHub rerun passed 6,451 tests with 8 skips but repeated the Qt atexit crash. Added weakly tracked QObject validity/ownership and first-observation inventories at test/shutdown boundaries, plus a workflow failure gate for native core dumps. Linux validation of the new instrumentation remains pending; the crash remains open.
-- Instrumentation validation: five focused checks pass serially and with two workers, real offscreen Qt invalid-wrapper/atexit probe passes, clean/crash workflow guard probes pass, targeted Ruff and Tier 2 audit pass.
-- Reproduced the no-print policy failure and moved the three measurement files to component INFO logging; 25 focused checks, targeted Ruff, and Tier 2 audit pass.
-- Native diagnostics place the separate worker crash after successful session finish, inside PySide6/Qt application destruction during interpreter exit. Originating object/test remains unknown; Linux replay details and remaining full-suite validation are tracked in TEST_PLAN 2.8. No crash fix or full-suite pass is claimed.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

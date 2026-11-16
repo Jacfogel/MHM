@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for unresolved active, monitoring, planned, and deferred MHM work
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-11-12
+> **Last Updated**: 2026-11-15
 > **Children**: [TEST_PLAN.md](TEST_PLAN.md), [TASKS_PLAN.md](TASKS_PLAN.md), [NOTES_PLAN.md](NOTES_PLAN.md)  
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -163,7 +163,7 @@ These plans should not be duplicated in detail here.
 **Priority**: Low
 **Detailed plan**: [TASKS_PLAN.md](TASKS_PLAN.md)
 
-**Current focus**: Optional live checks after UI/parser changes. Attachments, dependencies, and batch extensions await a selected product slice; detailed scope belongs in the child plan.
+**Current focus**: Optional live checks after UI/parser changes. Attachments and batch extensions await a selected product slice; detailed scope belongs in the child plan.
 
 ---
 

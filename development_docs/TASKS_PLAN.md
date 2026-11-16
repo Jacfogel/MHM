@@ -4,14 +4,14 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Current roadmap for task-system usability, Discord task creation, follow-up flows, and advanced task features  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2026-11-07
+> **Last Updated**: 2026-11-15
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
 ## Role of This File
 
 - **Purpose**: Own the task-system roadmap for creating, updating, and following up on tasks.
-- **Scope**: Track unresolved task work, optional live validation, and future extensions such as attachments, dependencies, batch operations, and advanced views.
+- **Scope**: Track unresolved task work, optional live validation, and future extensions such as attachments, batch operations, and advanced views.
 - **Priorities**: Keep task use easy from a phone, with Discord as the primary task interface; select broader extensions when product needs justify them.
 - **Related sources**: Use [PLANS.md](PLANS.md) for the planning index, task help/code/tests for current behavior, and [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) for history. Coordinate shared work with [NOTES_PLAN.md](NOTES_PLAN.md); follow the [maintenance rules](#maintenance-rules).
 
@@ -22,7 +22,7 @@
 
 When Discord UI or parsing changes, optionally check task picker/details, creation follow-ups, parsed due dates/titles, template modals, and create-hub buttons. Use [`test_task_list_ui.py`](../tests/communication/test_task_list_ui.py) and the [manual Discord guide](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for the relevant validation paths.
 
-**Current evidence (2026-11-07)**: All 20 task-list UI tests pass, including picker/details, follow-up delegation, account checks, and button callbacks. Windows async setup required local loopback access; the restricted run timed out in `socket.socketpair()` before reaching an async test body. Live rendering and the other optional flows above remain unverified by this focused file.
+**Current evidence (2026-11-15)**: The 507-test task-plan selection passes, including recurrence, subtask family completion/deletion/restore, recurrence rewind, reminder follow-ups, and dependency remapping. All 20 browser task tests and 14 authenticated website-route tests pass. Windows async setup required normal local loopback access; restricted runs can stall in `socket.socketpair()` before reaching an async test body. Live Discord and website rendering remain unverified.
 
 ## Deferred Attachments
 
@@ -33,20 +33,7 @@ File/image attachments require a selected storage, retention, and Discord upload
 
 ## Future Extensions
 
-### 1. Task dependencies / blocked-by relationships
-
-**Status**: PLANNED
-**Priority**: Medium
-
-**Implement later**:
-- [ ] Add `blocked_by` and `blocks` relationships.
-- [ ] Show blocked status in task lists.
-- [ ] Automatically unblock when prerequisite tasks are completed.
-- [ ] Add tests for circular dependency prevention.
-
----
-
-### 2. Batch task operations
+### 1. Batch task operations
 
 **Status**: DEFERRED (extensions only; reviewed 2026-11-07)
 **Priority**: Low/Medium
@@ -133,4 +120,4 @@ Use this checklist when reviewing or updating this plan; reset it for each revie
 - [ ] Remove fully completed items and completion-history lists; keep implementation history in changelogs.
 - [ ] Confirm each remaining item's status, priority, scope, and acceptance or revisit criteria are accurate.
 - [ ] Confirm links and section references resolve, related plan summaries agree, and current metrics come from generated reports.
-- [ ] Confirm attachment, dependency, batch, and other deferred extensions still reflect product needs and their dependencies.
+- [ ] Confirm attachment, batch, and other deferred extensions still reflect product needs and their dependencies.

@@ -2,7 +2,7 @@
 
 > **File**: `development_docs/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-12 01:18:14
+> **Last Generated**: 2026-11-16 00:07:48
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -309,12 +309,17 @@ C:.
 |   |   TEST_COVERAGE_REPORT.md
 |   |   TEST_PLAN.md
 |   |
-|   \---changelog_history
-|           CHANGELOG_DETAIL_2025_08.md
-|           CHANGELOG_DETAIL_2025_09.md
-|           CHANGELOG_DETAIL_2025_10.md
-|           CHANGELOG_DETAIL_2025_11.md
-|           CHANGELOG_DETAIL_2025_12.md
+|   +---changelog_history
+|   |       CHANGELOG_DETAIL_2025_08.md
+|   |       CHANGELOG_DETAIL_2025_09.md
+|   |       CHANGELOG_DETAIL_2025_10.md
+|   |       CHANGELOG_DETAIL_2025_11.md
+|   |       CHANGELOG_DETAIL_2025_12.md
+|   |
+|   \---devtools
+|           DEPRECATION_INVENTORY.json
+|           development_tools_config.json
+|           README.md
 |
 +---development_tools
 |   |   AI_DEVELOPMENT_TOOLS_GUIDE.md
@@ -327,6 +332,7 @@ C:.
 |   |   DEV_TOOLS_STATUS.md
 |   |   LIST_OF_LISTS.md
 |   |   pytest.ini
+|   |   README.md
 |   |   run_development_tools.py
 |   |   run_dev_tools.py
 |   |   __init__.py
@@ -754,6 +760,7 @@ C:.
 |   |   task_breakdown.py
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
+|   |   task_dependencies.py
 |   |   task_effort.py
 |   |   task_focus.py
 |   |   task_link_helpers.py
@@ -1169,6 +1176,7 @@ C:.
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
 |   |   |   test_task_breakdown.py
+|   |   |   test_task_dependencies.py
 |   |   |   test_task_detail_display.py
 |   |   |   test_task_edit_dialog_time_combos.py
 |   |   |   test_task_effort.py

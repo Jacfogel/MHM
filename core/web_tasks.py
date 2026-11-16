@@ -75,6 +75,13 @@ class WebTaskRoutes:
             "tags": task.get("tags") if isinstance(task.get("tags"), list) else [],
             "reminder_snooze_until": task.get("reminder_snooze_until") or None,
             "parent_id": task.get("parent_id") or None,
+            "blocked_by": task.get("blocked_by")
+            if isinstance(task.get("blocked_by"), list)
+            else [],
+            "blocks": task.get("blocks")
+            if isinstance(task.get("blocks"), list)
+            else [],
+            "is_blocked": bool(task.get("blocked_by")),
             "created_at": task.get("created_at"),
             "updated_at": task.get("updated_at"),
         }
@@ -400,7 +407,7 @@ class WebTaskRoutes:
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def _restore_task(self, request, uid, task_id):
         """Restore one completed task, optionally with its smaller steps."""
-        from tasks.task_service import restore_task
+        from tasks.task_service import load_active_tasks, restore_task
 
         data = await self.gateway.body(request)
         if set(data) - {"restore_steps"} or (
@@ -413,6 +420,14 @@ class WebTaskRoutes:
         if current_task.get("status") != "completed":
             raise web.HTTPConflict(
                 text="That task is already active. Refresh your task list."
+            )
+        parent_id = str(current_task.get("parent_id") or "").strip()
+        if parent_id and not any(
+            str(task.get("id") or "").strip() == parent_id
+            for task in await asyncio.to_thread(load_active_tasks, uid)
+        ):
+            raise web.HTTPConflict(
+                text="Restore the parent task before restoring this smaller step."
             )
         if not await asyncio.to_thread(
             restore_task, uid, task_id, data.get("restore_steps") is True
@@ -589,7 +604,7 @@ class WebTaskRoutes:
         """Apply a partial update to one active task."""
         from core.time_utilities import parse_date_only, parse_time_only_minute
         from tasks.task_schemas import VALID_PRIORITIES
-        from tasks.task_service import update_task
+        from tasks.task_service import update_task, validate_task_dependencies
 
         data = await self.gateway.body(request)
         allowed = {
@@ -604,6 +619,7 @@ class WebTaskRoutes:
             "tags",
             "reminder_periods",
             "quick_reminders",
+            "blocked_by",
         }
         if not data or set(data) - allowed:
             raise web.HTTPBadRequest(text="Please submit supported task changes.")
@@ -625,6 +641,21 @@ class WebTaskRoutes:
             from tasks.task_tag_helpers import sanitize_task_tags
 
             data["tags"] = sanitize_task_tags(data["tags"])
+        if "blocked_by" in data and (
+            not isinstance(data["blocked_by"], list)
+            or any(not isinstance(item, str) for item in data["blocked_by"])
+        ):
+            raise web.HTTPBadRequest(
+                text="Task dependencies must be a list of task IDs."
+            )
+        if "blocked_by" in data:
+            dependency_error = await asyncio.to_thread(
+                validate_task_dependencies, uid, task_id, data["blocked_by"]
+            )
+            if dependency_error:
+                if "circular" in dependency_error.casefold():
+                    raise web.HTTPConflict(text=dependency_error)
+                raise web.HTTPBadRequest(text=dependency_error)
         if "reminder_periods" in data:
             data["reminder_periods"] = self._clean_reminder_periods(
                 data["reminder_periods"]
@@ -648,6 +679,13 @@ class WebTaskRoutes:
                     "That task is no longer active, so these changes were not saved. "
                     "Refresh your task list."
                 )
+            )
+        if (
+            str(current_task.get("parent_id") or "").strip()
+            and data.get("recurrence_pattern")
+        ):
+            raise web.HTTPBadRequest(
+                text="A smaller step cannot repeat separately from its parent task."
             )
         resulting_due_date = data.get(
             "due_date", (current_task.get("due") or {}).get("date")
@@ -814,13 +852,31 @@ class WebTaskRoutes:
                 default_return=1,
             )
             def family_rank(task_id: str) -> int:
-                """Finish steps before the task they belong to."""
+                """Restore parents first; otherwise mutate steps before parents."""
                 task = known.get(task_id)
                 parent_id = str((task or {}).get("parent_id") or "")
+                if action == "restore":
+                    return 1 if parent_id and parent_id in selected else 0
                 return 0 if parent_id and parent_id in selected else 1
 
             ordered = sorted(task_ids, key=family_rank)
-            return [task_id for task_id in ordered if operation(uid, task_id)]
+            changed = []
+            restored_with_steps: set[str] = set()
+            for selected_id in ordered:
+                task = known.get(selected_id) or {}
+                parent_id = str(task.get("parent_id") or "")
+                if (
+                    action == "restore"
+                    and restore_steps
+                    and parent_id in restored_with_steps
+                ):
+                    changed.append(selected_id)
+                    continue
+                if operation(uid, selected_id):
+                    changed.append(selected_id)
+                    if action == "restore" and restore_steps and not parent_id:
+                        restored_with_steps.add(selected_id)
+            return changed
 
         self.gateway.throttle(("tasks-bulk", uid), 20, 60)
         changed = await asyncio.to_thread(apply_actions)
