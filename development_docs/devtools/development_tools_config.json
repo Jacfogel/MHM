@@ -190,7 +190,7 @@
   },
   "coverage": {
     "json_dir": "development_tools/tests/jsons",
-    "detail_report_path": "development_docs/TEST_COVERAGE_REPORT.md",
+    "detail_report_path": "development_tools/reports/TEST_COVERAGE_REPORT.md",
     "main_workers": null,
     "dev_tools_workers": null,
     "main_workers_when_concurrent": 6,
@@ -409,7 +409,7 @@
     }
   },
   "legacy_cleanup": {
-    "detail_report_path": "development_docs/LEGACY_REFERENCE_REPORT.md",
+    "detail_report_path": "development_tools/reports/LEGACY_REFERENCE_REPORT.md",
     "deprecation_inventory_file": "development_docs/devtools/DEPRECATION_INVENTORY.json",
     "_comment_required_pattern_keys": "Project-specific guard: pattern keys here must remain present in `DEPRECATION_INVENTORY.json` `legacy_scan_patterns` (or be re-added via `legacy_patterns`). `fix_legacy_references` warns once per missing key to flag inventory drift. Default is empty so the generic dev_tools tool stays portable; projects opt in by listing keys here.",
     "required_pattern_keys": [],
@@ -539,10 +539,10 @@
     "generated_files": [
       "ai_development_docs/AI_FUNCTION_REGISTRY.md",
       "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
-      "development_docs/DIRECTORY_TREE.md",
-      "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-      "development_docs/LEGACY_REFERENCE_REPORT.md",
-      "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+      "development_tools/reports/DIRECTORY_TREE.md",
+      "development_tools/reports/FUNCTION_REGISTRY_DETAIL.md",
+      "development_tools/reports/LEGACY_REFERENCE_REPORT.md",
+      "development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md",
       "development_docs/TEST_COVERAGE_EXPANSION_PLAN.md",
       "development_tools/PRIORITIES_BRIEF.md",
       "development_tools/STATUS_BRIEF.md",
@@ -1140,13 +1140,13 @@
   "status": {
     "scoped_report_dir": "development_tools/reports/scopes",
     "status_files": {
-      "ai_status": "development_tools/STATUS_BRIEF.md",
-      "ai_priorities": "development_tools/PRIORITIES_BRIEF.md",
+      "status_brief": "development_tools/STATUS_BRIEF.md",
+      "priorities_brief": "development_tools/PRIORITIES_BRIEF.md",
       "consolidated_report": "development_tools/CONSOLIDATED_REPORT.md"
     },
     "dev_tools_status_files": {
-      "ai_status": "development_tools/DEV_TOOLS_STATUS.md",
-      "ai_priorities": "development_tools/DEV_TOOLS_PRIORITIES.md",
+      "status_brief": "development_tools/DEV_TOOLS_STATUS.md",
+      "priorities_brief": "development_tools/DEV_TOOLS_PRIORITIES.md",
       "consolidated_report": "development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md"
     }
   },

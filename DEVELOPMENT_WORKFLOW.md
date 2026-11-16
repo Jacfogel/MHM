@@ -387,7 +387,7 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Coverage refresh**: Run `python development_tools/run_development_tools.py coverage` separately when coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md` need refresh. Coverage runs are intentionally less frequent than Tier 3 audits.
 
-- **Dev-tools-only full audit**: With the tools development suite installed, run `python development_tools/run_development_tools.py audit --full --dev-tools-only` to refresh `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` for the development-tools scope. Coverage is still refreshed only by the explicit `coverage` command.
+- **Maintainer checks**: Run the tools' own audit and tests from the development checkout. See the [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 
 - **Documentation work**:
   - Run `python development_tools/run_development_tools.py doc-sync` to check documentation pairing and path drift.
@@ -395,4 +395,4 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
 
-Note: Tier 1 and Tier 2 always write the standard status trio (`development_tools/STATUS_BRIEF.md`, `development_tools/PRIORITIES_BRIEF.md`, `development_tools/CONSOLIDATED_REPORT.md`) plus shared caches. Tier 3 does the same **except** when you pass `--dev-tools-only`, in which case the runner writes `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` instead so scoped metrics are not mixed with full-repo snapshots. Each tier encompasses all functionality of lighter tiers for tools in scope (Tier 2 includes all Tier 1 tools; Tier 3 includes all Tier 1 & 2 tools).
+Note: Tier 1 and Tier 2 always write the standard status trio (`development_tools/STATUS_BRIEF.md`, `development_tools/PRIORITIES_BRIEF.md`, `development_tools/CONSOLIDATED_REPORT.md`) plus shared caches. Tier 3 writes the same reports. Each tier encompasses all functionality of lighter tiers for tools in scope (Tier 2 includes all Tier 1 tools; Tier 3 includes all Tier 1 & 2 tools).

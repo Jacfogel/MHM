@@ -175,9 +175,9 @@ Examples (non-exhaustive):
 -   [DIRECTORY_TREE.md](development_docs/DIRECTORY_TREE.md)
 -   [AI_FUNCTION_REGISTRY.md](ai_development_docs/AI_FUNCTION_REGISTRY.md)
 -   [AI_MODULE_DEPENDENCIES.md](ai_development_docs/AI_MODULE_DEPENDENCIES.md)
--   [PRIORITIES_BRIEF.md](development_tools/PRIORITIES_BRIEF.md)
--   [STATUS_BRIEF.md](development_tools/STATUS_BRIEF.md)
--   [CONSOLIDATED_REPORT.md](development_tools/CONSOLIDATED_REPORT.md)
+-   [Priorities Brief](development_tools/PRIORITIES_BRIEF.md)
+-   [Status Brief](development_tools/STATUS_BRIEF.md)
+-   [Consolidated Report](development_tools/CONSOLIDATED_REPORT.md)
 
 For generation details and maintenance rules, see section 6, "Generated
 Documentation Standards".

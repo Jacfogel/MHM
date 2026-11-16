@@ -28,7 +28,7 @@
 | Task-system roadmap | [Task system](#61-task-system) |
 | Notebook roadmap | [Notebook system](#62-notebook-system) |
 | AI/dev-tools roadmap | Archived [V6](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md); live triage [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) |
-| Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
+| Dev-tools list/config canonical sources | [LIST_OF_LISTS.md](https://github.com/Jacfogel/development-tools/blob/2d511ffc1780a8c923ef1296bf016e5585a81942/LIST_OF_LISTS.md) (arrays, mappings, enumerated sets - not planning ownership) |
 | Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
 | Current audit status | [STATUS_BRIEF.md](../development_tools/STATUS_BRIEF.md) |
 | Generated priority queue | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) |

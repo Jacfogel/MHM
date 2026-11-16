@@ -12,7 +12,7 @@ Exclusion patterns are loaded from external config file
 if available, otherwise fall back to generic defaults. This makes the module portable
 across different projects.
 
-Import-boundary policy (approved `core.*` inside development_tools): see
+Published scans exclude the development_tools directory.
 `README.md` section 8.5 (paired AI guide section 8).
 
 Usage:
@@ -136,7 +136,7 @@ def _load_base_exclusions() -> list[str]:
     """
     exclusions_config = _get_exclusions_config_safe()
     if not exclusions_config:
-        return _DEFAULT_BASE_EXCLUSIONS.copy()
+        return [*_DEFAULT_BASE_EXCLUSIONS, "development_tools"]
 
     if "base_exclusions" in exclusions_config:
         result = list(exclusions_config["base_exclusions"])
@@ -152,7 +152,7 @@ def _load_base_exclusions() -> list[str]:
         removal_set = frozenset(str(p) for p in removals)
         result = [p for p in result if p not in removal_set]
 
-    return result
+    return [*result, "development_tools"]
 
 
 # Universal exclusions - loaded with merge strategy
@@ -304,6 +304,9 @@ def should_exclude_file(
     # Convert Path object to string if needed
     file_path_str = str(file_path)
     normalized_path = file_path_str.replace("\\", "/")
+
+    if "development_tools" in normalized_path.lower().split("/"):
+        return True
 
     # Test fixtures are never documentation targets (even when test_config.json omits them).
     if normalized_path == "tests/fixtures" or normalized_path.startswith(

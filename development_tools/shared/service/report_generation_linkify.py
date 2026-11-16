@@ -1,4 +1,4 @@
-"""Linkify repo-relative paths in AI_PRIORITIES review bullets (extracted from ReportGenerationMixin)."""
+"""Linkify repo-relative paths in PRIORITIES_BRIEF review bullets (extracted from ReportGenerationMixin)."""
 
 from __future__ import annotations
 

@@ -133,7 +133,7 @@ Behavior spec files are registered in [`development_tools/config/development_too
 - `constants.fix_version_sync_directories` - `specs/` root for version-sync directory scans.
 - `path_drift.ignored_path_patterns` - heading fragments that are not file paths (for example "Behavior specifications", "Manual test checklist").
 
-When you add a new spec file, append its path to `fix_version_sync.docs` and document it in section 6 of this guide. See [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md#4-documentation-lists), section 4. "Documentation lists"
+When you add a new spec file, append its path to `fix_version_sync.docs` and document it in section 6 of this guide. See [LIST_OF_LISTS.md](https://github.com/Jacfogel/development-tools/blob/2d511ffc1780a8c923ef1296bf016e5585a81942/LIST_OF_LISTS.md#4-documentation-lists), section 4. "Documentation lists"
 
 ---
 

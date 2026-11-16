@@ -19,14 +19,14 @@ _NON_AUDIT_REASON_OVERRIDES: dict[str, str] = {
 }
 
 _REPORT_HINT_OVERRIDES: dict[str, list[str]] = {
-    "analyze_system_signals": ["AI_STATUS System Signals", "CONSOLIDATED_REPORT"],
-    "analyze_test_markers": ["AI_STATUS Test Markers"],
-    "verify_process_cleanup": ["AI_STATUS Pytest process cleanup"],
-    "run_test_suite": ["AI_STATUS Tier 3 Tests", "CONSOLIDATED_REPORT"],
-    "run_test_coverage": ["AI_STATUS Test Coverage", "TEST_COVERAGE_REPORT", "coverage.json"],
-    "generate_dev_tools_coverage": ["AI_STATUS Development Tools Coverage", "coverage_dev_tools.json"],
-    "generate_test_coverage_report": ["development_docs/TEST_COVERAGE_REPORT.md"],
-    "generate_legacy_reference_report": ["development_docs/LEGACY_REFERENCE_REPORT.md"],
+    "analyze_system_signals": ["STATUS_BRIEF System Signals", "CONSOLIDATED_REPORT"],
+    "analyze_test_markers": ["STATUS_BRIEF Test Markers"],
+    "verify_process_cleanup": ["STATUS_BRIEF Pytest process cleanup"],
+    "run_test_suite": ["STATUS_BRIEF Tier 3 Tests", "CONSOLIDATED_REPORT"],
+    "run_test_coverage": ["STATUS_BRIEF Test Coverage", "TEST_COVERAGE_REPORT", "coverage.json"],
+    "generate_dev_tools_coverage": ["STATUS_BRIEF Development Tools Coverage", "coverage_dev_tools.json"],
+    "generate_test_coverage_report": ["development_tools/reports/TEST_COVERAGE_REPORT.md"],
+    "generate_legacy_reference_report": ["development_tools/reports/LEGACY_REFERENCE_REPORT.md"],
 }
 
 
@@ -45,7 +45,7 @@ def _default_report_surface_hints(tool_name: str, domain: str | None) -> list[st
     if domain:
         hints.append(f"jsons/{domain}")
     if domain == "static_checks":
-        hints.insert(0, "AI_STATUS Static Analysis")
+        hints.insert(0, "STATUS_BRIEF Static Analysis")
     elif tool_name.startswith("analyze_") and domain in {"reports", "docs"}:
         hints.insert(0, "CONSOLIDATED_REPORT")
     if tool_name in {
@@ -56,9 +56,9 @@ def _default_report_surface_hints(tool_name: str, domain: str | None) -> list[st
         "analyze_function_registry",
         "analyze_documentation",
     }:
-        hints.append("AI_PRIORITIES")
+        hints.append("PRIORITIES_BRIEF")
     if tool_name == "analyze_facade_shims":
-        hints.extend(["AI_STATUS", "CONSOLIDATED_REPORT"])
+        hints.extend(["STATUS_BRIEF", "CONSOLIDATED_REPORT"])
     return hints or ["jsons or generated markdown"]
 
 

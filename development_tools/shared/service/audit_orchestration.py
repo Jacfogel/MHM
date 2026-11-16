@@ -277,6 +277,10 @@ class AuditOrchestrationMixin:
         """Run audit workflow with three-tier structure."""
         global _AUDIT_IN_PROGRESS_GLOBAL, _AUDIT_LOCK_FILE
 
+        if self.dev_tools_only_mode:
+            logger.error("Development-tools audits are available on the development branch")
+            return False
+
         lock_states = evaluate_lock_set(self._get_audit_related_lock_paths())
         cleanup_targets = [
             entry["path"]
@@ -541,13 +545,13 @@ class AuditOrchestrationMixin:
                 if custom_audit_scope:
                     scoped_status = self._generate_scoped_audit_status_snippet()
                     scoped_path = get_scoped_audit_report_path(str(audit_scope_slug))
-                    ai_status_file = create_output_file(
+                    status_brief_file = create_output_file(
                         scoped_path, scoped_status, project_root=self.project_root
                     )
-                    ai_priorities_file = ai_status_file
-                    consolidated_file = ai_status_file
-                    print(f"  * Scoped audit status: {ai_status_file}")
-                    logger.info("* Scoped audit status: %s", ai_status_file)
+                    priorities_brief_file = status_brief_file
+                    consolidated_file = status_brief_file
+                    print(f"  * Scoped audit status: {status_brief_file}")
+                    logger.info("* Scoped audit status: %s", status_brief_file)
                 else:
                     # Generate status documents
                     report_paths = get_status_report_paths(
@@ -555,39 +559,39 @@ class AuditOrchestrationMixin:
                     )
 
                     try:
-                        ai_status = self._generate_ai_status_document()
+                        status_brief = self._generate_status_brief_document()
                     except Exception as e:
-                        if os.getenv("MHM_TESTING") == "1":
+                        if os.getenv("DEVTOOLS_TESTING") == "1":
                             logger.debug(
-                                "Error generating AI_STATUS document: %s", e, exc_info=True
+                                "Error generating STATUS_BRIEF document: %s", e, exc_info=True
                             )
                         else:
-                            logger.warning("Error generating AI_STATUS document: %s", e)
-                        ai_status = "# AI Status\n\nError generating status document."
-                    ai_status_file = create_output_file(report_paths["ai_status"], ai_status, project_root=self.project_root)
+                            logger.warning("Error generating STATUS_BRIEF document: %s", e)
+                        status_brief = "# Status Brief\n\nError generating status document."
+                    status_brief_file = create_output_file(report_paths["status_brief"], status_brief, project_root=self.project_root)
                     
                     try:
-                        ai_priorities = self._generate_ai_priorities_document()
+                        priorities_brief = self._generate_priorities_brief_document()
                     except Exception as e:
                         import traceback
-                        if os.getenv("MHM_TESTING") == "1":
+                        if os.getenv("DEVTOOLS_TESTING") == "1":
                             logger.debug(
-                                "Error generating AI_PRIORITIES document: %s\n%s",
+                                "Error generating PRIORITIES_BRIEF document: %s\n%s",
                                 e,
                                 traceback.format_exc(),
                             )
                         else:
-                            logger.warning("Error generating AI_PRIORITIES document: %s", e)
+                            logger.warning("Error generating PRIORITIES_BRIEF document: %s", e)
                             logger.debug(
-                                "AI_PRIORITIES traceback:\n%s", traceback.format_exc()
+                                "PRIORITIES_BRIEF traceback:\n%s", traceback.format_exc()
                             )
-                        ai_priorities = "# AI Priorities\n\nError generating priorities document."
-                    ai_priorities_file = create_output_file(report_paths["ai_priorities"], ai_priorities, project_root=self.project_root)
+                        priorities_brief = "# Priorities Brief\n\nError generating priorities document."
+                    priorities_brief_file = create_output_file(report_paths["priorities_brief"], priorities_brief, project_root=self.project_root)
                     
                     try:
                         consolidated_report = self._generate_consolidated_report()
                     except Exception as e:
-                        if os.getenv("MHM_TESTING") == "1":
+                        if os.getenv("DEVTOOLS_TESTING") == "1":
                             logger.debug(
                                 "Error generating consolidated report: %s", e, exc_info=True
                             )
@@ -656,18 +660,18 @@ class AuditOrchestrationMixin:
                     # Already printed scoped status path above.
                     pass
                 elif getattr(self, "dev_tools_only_mode", False):
-                    print(f"  * Dev Tools Status: {ai_status_file}")
-                    print(f"  * Dev Tools Priorities: {ai_priorities_file}")
+                    print(f"  * Dev Tools Status: {status_brief_file}")
+                    print(f"  * Dev Tools Priorities: {priorities_brief_file}")
                     print(f"  * Dev Tools Consolidated Report: {consolidated_file}")
-                    logger.info(f"* Dev Tools Status: {ai_status_file}")
-                    logger.info(f"* Dev Tools Priorities: {ai_priorities_file}")
+                    logger.info(f"* Dev Tools Status: {status_brief_file}")
+                    logger.info(f"* Dev Tools Priorities: {priorities_brief_file}")
                     logger.info(f"* Dev Tools Consolidated Report: {consolidated_file}")
                 else:
-                    print(f"  * AI Status: {ai_status_file}")
-                    print(f"  * AI Priorities: {ai_priorities_file}")
+                    print(f"  * Status Brief: {status_brief_file}")
+                    print(f"  * Priorities Brief: {priorities_brief_file}")
                     print(f"  * Consolidated Report: {consolidated_file}")
-                    logger.info(f"* AI Status: {ai_status_file}")
-                    logger.info(f"* AI Priorities: {ai_priorities_file}")
+                    logger.info(f"* Status Brief: {status_brief_file}")
+                    logger.info(f"* Priorities Brief: {priorities_brief_file}")
                     logger.info(f"* Consolidated Report: {consolidated_file}")
             else:
                 if strict and tier >= 3 and tier3_state in {"test_failures", "crashed", "infra_cleanup_error"}:
@@ -728,7 +732,7 @@ class AuditOrchestrationMixin:
         return success
 
     def _generate_scoped_audit_status_snippet(self) -> str:
-        """Minimal status markdown for --audit-scope MVP (does not replace AI_STATUS)."""
+        """Minimal status markdown for --audit-scope MVP (does not replace STATUS_BRIEF)."""
         scope_path = getattr(self, "audit_scope_path", None) or "?"
         scope_slug = getattr(self, "audit_scope_slug", None) or "?"
         tools_run = sorted(getattr(self, "_tools_run_in_current_tier", set()) or [])

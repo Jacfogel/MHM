@@ -10,7 +10,7 @@
 
 - Keep unfinished work here; record completed work in the changelogs and remove it from this list.
 - Give each task a scope, concrete next steps, completion criteria, effort, and created date. Dates below identify when a task was first recorded where known; otherwise they identify this clarification.
-- Keep testing work in [TEST_PLAN.md](development_docs/TEST_PLAN.md), current development-tool triage in [PRIORITIES_BRIEF.md](development_tools/PRIORITIES_BRIEF.md), and multi-stage product work in [PLANS.md](development_docs/PLANS.md).
+- Keep testing work in [TEST_PLAN.md](development_docs/TEST_PLAN.md), current development-tool triage in [Priorities Brief](development_tools/PRIORITIES_BRIEF.md), and multi-stage product work in [PLANS.md](development_docs/PLANS.md).
 - Prompt tuning, NLP expansion, response-quality work, and live AI tone review remain deferred until separately selected. Billing, budgets, and price tracking belong to the provider, not MHM.
 - Follow the deprecation inventory and [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md) for legacy cleanup. Archived plans are historical references, not additional active task lists.
 

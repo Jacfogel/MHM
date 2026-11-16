@@ -493,7 +493,7 @@ def create_output_file(
             )
 
         # Check if we're in a test environment (should not write to real project)
-        if os.environ.get("MHM_TESTING") == "1" or os.environ.get(
+        if os.environ.get("DEVTOOLS_TESTING") == "1" or os.environ.get(
             "PYTEST_CURRENT_TEST"
         ):
             from development_tools.shared.logging import get_dev_tools_logger
@@ -523,7 +523,7 @@ def create_output_file(
         # Check if we're in a test environment and writing to real project
         if (
             os.environ.get("PYTEST_CURRENT_TEST")
-            or os.environ.get("MHM_TESTING") == "1"
+            or os.environ.get("DEVTOOLS_TESTING") == "1"
         ):
             # Determine the actual path we'll be writing to
             write_path = None

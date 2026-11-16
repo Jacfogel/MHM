@@ -26,7 +26,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Static Analysis",
+        "STATUS_BRIEF Static Analysis",
         "jsons/static_checks"
       ]
     },
@@ -48,15 +48,6 @@
         "jsons/imports"
       ]
     },
-    "analyze_dev_tools_import_boundaries": {
-      "in_tier1_quick": true,
-      "in_tier2_standard_expanded": true,
-      "in_tier3_full_repo_audit": true,
-      "in_tier3_dev_tools_only_audit": true,
-      "report_surface_hints": [
-        "jsons/imports"
-      ]
-    },
     "analyze_documentation": {
       "in_tier1_quick": true,
       "in_tier2_standard_expanded": true,
@@ -65,7 +56,7 @@
       "report_surface_hints": [
         "CONSOLIDATED_REPORT",
         "jsons/docs",
-        "AI_PRIORITIES"
+        "PRIORITIES_BRIEF"
       ]
     },
     "analyze_documentation_sync": {
@@ -85,7 +76,7 @@
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions",
-        "AI_PRIORITIES"
+        "PRIORITIES_BRIEF"
       ]
     },
     "analyze_error_handling": {
@@ -104,8 +95,8 @@
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions",
-        "AI_PRIORITIES",
-        "AI_STATUS",
+        "PRIORITIES_BRIEF",
+        "STATUS_BRIEF",
         "CONSOLIDATED_REPORT"
       ]
     },
@@ -125,7 +116,7 @@
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions",
-        "AI_PRIORITIES"
+        "PRIORITIES_BRIEF"
       ]
     },
     "analyze_functions": {
@@ -171,7 +162,7 @@
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/functions",
-        "AI_PRIORITIES"
+        "PRIORITIES_BRIEF"
       ]
     },
     "analyze_package_exports": {
@@ -189,7 +180,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Static Analysis",
+        "STATUS_BRIEF Static Analysis",
         "jsons/static_checks"
       ]
     },
@@ -199,7 +190,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Static Analysis",
+        "STATUS_BRIEF Static Analysis",
         "jsons/static_checks"
       ]
     },
@@ -209,7 +200,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Static Analysis",
+        "STATUS_BRIEF Static Analysis",
         "jsons/static_checks"
       ]
     },
@@ -219,7 +210,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS System Signals",
+        "STATUS_BRIEF System Signals",
         "CONSOLIDATED_REPORT"
       ]
     },
@@ -229,7 +220,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Test Markers"
+        "STATUS_BRIEF Test Markers"
       ]
     },
     "analyze_unused_functions": {
@@ -247,7 +238,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Static Analysis",
+        "STATUS_BRIEF Static Analysis",
         "jsons/static_checks"
       ]
     },
@@ -258,7 +249,7 @@
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
         "jsons/reports",
-        "AI_PRIORITIES"
+        "PRIORITIES_BRIEF"
       ]
     },
     "generate_legacy_reference_report": {
@@ -267,7 +258,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": false,
       "report_surface_hints": [
-        "development_docs/LEGACY_REFERENCE_REPORT.md"
+        "development_tools/reports/LEGACY_REFERENCE_REPORT.md"
       ]
     },
     "quick_status": {
@@ -285,7 +276,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Tier 3 Tests",
+        "STATUS_BRIEF Tier 3 Tests",
         "CONSOLIDATED_REPORT"
       ]
     },
@@ -295,7 +286,7 @@
       "in_tier3_full_repo_audit": true,
       "in_tier3_dev_tools_only_audit": true,
       "report_surface_hints": [
-        "AI_STATUS Pytest process cleanup"
+        "STATUS_BRIEF Pytest process cleanup"
       ]
     }
   },

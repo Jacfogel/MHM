@@ -110,7 +110,7 @@ def _normalize_pyright_shard_rel_paths(project_root: Path, shard: Any) -> list[s
             p.relative_to(project_root.resolve())
         except ValueError:
             continue
-        if p.exists():
+        if p.exists() and not p.is_relative_to((project_root / "development_tools").resolve()):
             out.append(s)
     return out
 
@@ -347,6 +347,16 @@ def run_pyright(project_root: Path) -> dict[str, Any]:
             cache_dirty = False
 
     if payload is None:
+        host_paths = sorted(
+            path.name
+            for path in project_root.iterdir()
+            if not path.name.startswith(".")
+            and not path.resolve().is_relative_to((project_root / "development_tools").resolve())
+            and (path.is_dir() or path.suffix in {".py", ".pyi"})
+        )
+        if not host_paths:
+            return _build_unavailable_result("No host sources found for Pyright.")
+        args.extend(host_paths)
         mono_id = "__monolithic__"
         full_sig = compute_full_repo_py_source_signature(project_root)
         mono_cached: dict[str, Any] | None = None

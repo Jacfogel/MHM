@@ -96,6 +96,8 @@ def resolve_audit_scope(
         raise AuditScopeError(
             f"audit scope path escapes project root: {raw_path!r}"
         ) from exc
+    if target.is_relative_to((root / "development_tools").resolve()):
+        raise AuditScopeError("select a host-project directory outside development_tools")
     if not target.exists():
         raise AuditScopeError(f"audit scope path does not exist: {rel}")
     if not target.is_dir():

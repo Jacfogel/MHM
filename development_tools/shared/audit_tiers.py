@@ -41,7 +41,6 @@ TIER1_TOOL_NAMES = [
     "analyze_documentation",
     "analyze_config",
     "analyze_ai_work",
-    "analyze_dev_tools_import_boundaries",
     "quick_status",
 ]
 
@@ -95,7 +94,6 @@ TIER1_GROUP_MAP: _Tier1GroupMap = {
         "analyze_documentation",
         "analyze_config",
         "analyze_ai_work",
-        "analyze_dev_tools_import_boundaries",
     ],
     "dependent": [],
 }
@@ -248,8 +246,6 @@ def _get_runnable(service: Any, tool_name: str) -> Callable[[], Any]:
         return service.run_test_suite
     if tool_name == "run_test_coverage":
         return service.run_coverage_regeneration
-    if tool_name == "generate_dev_tools_coverage":
-        return service.run_dev_tools_coverage
     # Default: service.run_<tool_name> (e.g. run_analyze_functions)
     method_name = "run_" + tool_name
     method = getattr(service, method_name, None)

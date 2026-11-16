@@ -165,7 +165,7 @@ If you run the development tools full audit on this or another PC:
 - **First run**: The backup health check reports "no backups" (skipped) until you create backups via the app; that is normal on a fresh install and does not fail the audit.
 - **Commands**: `python development_tools/run_development_tools.py audit --full` runs the full Tier 3 audit (pytest suite without coverage + reports). Coverage is separate: `python development_tools/run_development_tools.py coverage`. See section 3. "Audit Modes and Outputs" in [README.md](development_tools/README.md#3-audit-modes-and-outputs) for audit behavior.
 
-- **Coverage freshness**: Run `python development_tools/run_development_tools.py coverage` when you need updated `coverage.json`, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`. `audit --full` does **not** regenerate coverage. With the tools development suite installed, use `audit --full --dev-tools-only` (still does not refresh coverage).
+- **Coverage freshness**: Run `python development_tools/run_development_tools.py coverage` when you need updated `coverage.json`, marker analysis, and the detailed coverage report. `audit --full` does **not** regenerate coverage.
 
 #### 5.1.1. Choosing an audit tier (time vs coverage)
 
@@ -178,7 +178,6 @@ Pick the **smallest** command that answers your question; full Tier 3 can exceed
 | Full evidence including quick tests (Tier 3; excludes slow; no coverage) | `python development_tools/run_development_tools.py audit --full` |
 | Refresh coverage metrics / TEST_COVERAGE_REPORT | `python development_tools/run_development_tools.py coverage` |
 | Nightly full test suite (includes slow tests) | `python development_tools/run_development_tools.py nightly-test-suite` |
-| Tools development checkout only: Tier 3 tools tests and scoped reports | `python development_tools/run_development_tools.py audit --full --dev-tools-only` |
 | Subtree Tier 2 MVP (`--audit-scope`; no AI_* overwrite) | `python development_tools/run_development_tools.py audit --audit-scope communication/` |
 | Skip pip-audit subprocess (offline / CI) | Set `DEV_TOOLS_PIP_AUDIT_SKIP` (see section 10. "External tools evaluation (Bandit, pip-audit, Vulture, Radon, pre-commit)" in [README.md](development_tools/README.md#10-external-tools-evaluation-bandit-pip-audit-vulture-radon-pre-commit)) |
 
@@ -193,8 +192,8 @@ After a full Tier 3 run, see `development_tools/reports/scopes/full/jsons/tool_t
 Domain and test-file caching for coverage is **on** by default (`run_test_coverage` / the `coverage` command). To measure cache benefit on your machine, compare wall time with and without `--no-domain-cache` after a warm cache (PowerShell):
 
 ```powershell
-Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel --no-domain-cache }
-Measure-Command { python development_tools/tests/run_test_coverage.py --dev-tools-only --no-parallel }
+Measure-Command { python development_tools/tests/run_test_coverage.py --no-parallel --no-domain-cache }
+Measure-Command { python development_tools/tests/run_test_coverage.py --no-parallel }
 ```
 
 The first command is a **cold** run (no domain/test-file cache). The second omits `--no-domain-cache` so it can reuse caches from the first run on an **unchanged** tree; it should be faster when caches hit. `--no-domain-cache` forces tests to rerun; it is **not** more accurate. An interrupted or partial run can still look like 10-30% coverage. Use `python development_tools/tests/run_test_coverage.py` (not the `coverage` wrapper) for a real refresh; stray Ctrl+C is ignored until **5 taps within 2 seconds**. Do not audit immediately after a collapsed coverage printout.

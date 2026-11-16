@@ -146,9 +146,12 @@ class QuickStatus:
             "ai_development_docs/AI_CHANGELOG.md",
             "development_docs/CHANGELOG_DETAIL.md",
             "TODO.md",
-            "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-            "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
         ]
+        report_paths = (
+            self.config.get_analyze_function_registry_config(self.project_root)["registry_path"],
+            self.config.get_analyze_module_dependencies_config(self.project_root)["dependency_doc_path"],
+        )
+        key_docs.extend(Path(path).relative_to(self.project_root).as_posix() for path in report_paths)
         for doc_file in key_docs:
             full_path = self.project_root / doc_file
             docs["key_files"][doc_file] = "OK" if full_path.exists() else "MISSING"

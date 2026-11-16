@@ -118,7 +118,7 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "tool": tool_name,
             "strategy": "downstream_of_coverage_json",
             "implementation": "development_tools/tests/generate_test_coverage_report.py",
-            "artifact_glob": "development_tools/tests/jsons/coverage.json; development_docs/TEST_COVERAGE_REPORT.md",
+            "artifact_glob": "development_tools/tests/jsons/coverage.json; development_tools/reports/TEST_COVERAGE_REPORT.md",
             "invalidation": "Regenerates when upstream coverage data is refreshed",
         }
     if tool_name == "generate_legacy_reference_report":
@@ -126,7 +126,7 @@ def _cache_entry(tool_name: str, domain: str) -> dict[str, str]:
             "tool": tool_name,
             "strategy": "downstream_of_analyze_legacy_references",
             "implementation": "development_tools/legacy/generate_legacy_reference_report.py",
-            "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json; development_docs/LEGACY_REFERENCE_REPORT.md",
+            "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json; development_tools/reports/LEGACY_REFERENCE_REPORT.md",
             "invalidation": "Regenerates from analyze_legacy_references JSON",
         }
     if tool_name == "verify_process_cleanup":

@@ -425,7 +425,7 @@ class ConsolidatedReportDocumentMixin:
                         "candidate orphan worker process(es); see **Pytest process cleanup (Windows)** below."
                     )
 
-        # Use error_details for consistent metric sourcing (same as AI_STATUS/AI_PRIORITIES)
+        # Use error_details for consistent metric sourcing (same as STATUS_BRIEF/PRIORITIES_BRIEF)
         error_cov = error_details.get("analyze_error_handling") or error_details.get(
             "error_handling_coverage"
         )
@@ -1293,13 +1293,12 @@ class ConsolidatedReportDocumentMixin:
         lines.append("## Test Coverage")
 
         skip_main_tracks_cr = bool(getattr(self, "_tier3_skipped_main_tracks", False))
-        skip_dev_track_cr = bool(getattr(self, "_tier3_skipped_dev_track", False))
 
         if skip_main_tracks_cr:
             lines.append(
                 "- **Overall Coverage**: **Skipped** - this scoped audit does not refresh coverage. "
                 "Run `python development_tools/run_development_tools.py coverage` for updated "
-                "product coverage and `development_docs/TEST_COVERAGE_REPORT.md`."
+                "product coverage and `development_tools/reports/TEST_COVERAGE_REPORT.md`."
             )
         elif coverage_summary and isinstance(coverage_summary, dict):
             overall = coverage_summary.get("overall") or {}
@@ -1345,39 +1344,10 @@ class ConsolidatedReportDocumentMixin:
                         f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md]({href})"
                     )
 
+
         if skip_main_tracks_cr or (
             coverage_summary and isinstance(coverage_summary, dict)
         ):
-            dev_tools_insights = self._get_dev_tools_coverage_insights()
-            if skip_dev_track_cr:
-                lines.append(
-                    "- **Development Tools Coverage**: Separate `--dev-tools-only` refresh not run in this "
-                    "full-repo Tier 3 pass. Overall coverage above already includes "
-                    "`development_tools`; run `audit --full --dev-tools-only` only to refresh "
-                    "DEV_TOOLS reports and the dedicated scoped track."
-                )
-            elif (
-                dev_tools_insights and dev_tools_insights.get("overall_pct") is not None
-            ):
-                dev_pct = dev_tools_insights["overall_pct"]
-                dev_statements = dev_tools_insights.get("statements")
-                dev_covered = dev_tools_insights.get("covered")
-                summary_line = (
-                    f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
-                )
-                if dev_statements is not None and dev_covered is not None:
-                    summary_line += f" ({dev_covered} of {dev_statements} statements)"
-                lines.append(summary_line)
-                low_modules = dev_tools_insights.get("low_modules") or []
-                if low_modules:
-                    dev_descriptions = [
-                        f"{Path(item['path']).name} ({percent_text(item.get('coverage'), 1)}, missing {item.get('missed')} lines)"
-                        for item in low_modules[:5]
-                    ]
-                    lines.append(
-                        f"    - **Modules with Lowest Coverage**: {', '.join(dev_descriptions)}"
-                    )
-
             test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
             cat_n, dom_n, missing_list, missing_domain_list = (
                 self._test_marker_gap_metrics(
@@ -2551,35 +2521,6 @@ class ConsolidatedReportDocumentMixin:
                     "- **Status**: CLEAN (no circular dependencies or high coupling detected)"
                 )
 
-        # Import Boundary (development_tools portability)
-        import_boundary_data = self._load_tool_data(
-            "analyze_dev_tools_import_boundaries", "imports"
-        )
-        if import_boundary_data and isinstance(import_boundary_data, dict):
-            ib_summary = import_boundary_data.get("summary", {}) or {}
-            ib_violations = to_int(ib_summary.get("total_issues"))
-            ib_files = to_int(ib_summary.get("files_affected"))
-            lines.append("")
-            lines.append("## Import Boundary")
-            if ib_violations is not None and ib_violations > 0:
-                lines.append(
-                    f"- **Violations**: {ib_violations} non-approved core import(s) across {ib_files or 0} file(s)"
-                )
-                ib_details = import_boundary_data.get("details", {}) or {}
-                ib_violations_list = ib_details.get("violations", []) or []
-                if ib_violations_list:
-                    top_violations = ib_violations_list[:5]
-                    for v in top_violations[:3]:
-                        if isinstance(v, dict) and v.get("file"):
-                            lines.append(f"  - {v['file']}: {v.get('module', '')}")
-                lines.append(
-                    "- **Action**: Remove all core.* imports; use development_tools.shared.logging; see README.md §8.5"
-                )
-            elif ib_violations == 0:
-                lines.append("- **Status**: CLEAN (no boundary violations detected)")
-            else:
-                lines.append("- **Status**: Data unavailable (run `audit` to scan)")
-
         # Validation Status
         lines.append("## Validation Status")
 
@@ -2911,12 +2852,12 @@ class ConsolidatedReportDocumentMixin:
             if self._is_dev_tools_scoped_report()
             else report_paths
         )
-        status_file = full_paths["ai_status"]
-        priorities_file = full_paths["ai_priorities"]
+        status_file = full_paths["status_brief"]
+        priorities_file = full_paths["priorities_brief"]
         status_href = self._markdown_href_from_dev_tools_report(status_file, source=report_path)
         priorities_href = self._markdown_href_from_dev_tools_report(priorities_file, source=report_path)
         if self._is_dev_tools_scoped_report():
-            scoped_priorities = report_paths["ai_priorities"]
+            scoped_priorities = report_paths["priorities_brief"]
             scoped_href = self._markdown_href_from_dev_tools_report(scoped_priorities, source=report_path)
             lines.append(
                 f"- Full-repo status (not produced by this run): [{status_file.name}]({status_href})"
@@ -2926,8 +2867,8 @@ class ConsolidatedReportDocumentMixin:
             )
             lines.append(f"- Full-repo priorities: [{priorities_file.name}]({priorities_href})")
         else:
-            lines.append(f"- Latest AI status: [{status_file.name}]({status_href})")
-            lines.append(f"- Current AI priorities: [{priorities_file.name}]({priorities_href})")
+            lines.append(f"- Latest Status Brief: [{status_file.name}]({status_href})")
+            lines.append(f"- Current Priorities Brief: [{priorities_file.name}]({priorities_href})")
         results_path = self._get_results_file_path()
         if results_path.is_relative_to(self.project_root):
             results_path = results_path.relative_to(self.project_root)

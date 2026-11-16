@@ -176,7 +176,10 @@ class LegacyReferenceReportGenerator:
         generated_at = now_timestamp_full()
         report_lines.append("# Legacy Reference Cleanup Report")
         report_lines.append("")
-        report_path = output_file or config.get_legacy_report_path(self.project_root)
+        report_path = (
+            config.get_generated_report_path(self.project_root, "LEGACY_REFERENCE_REPORT.md", output_file)
+            if output_file else config.get_legacy_report_path(self.project_root)
+        )
         if report_path.is_relative_to(self.project_root):
             report_path = report_path.relative_to(self.project_root)
         report_lines.append(f"> **File**: `{report_path.as_posix()}`")
@@ -350,7 +353,9 @@ class LegacyReferenceReportGenerator:
         if output_file is None:
             output_file = config.get_legacy_report_path(self.project_root)
         else:
-            output_file = Path(output_file)
+            output_file = config.get_generated_report_path(
+                self.project_root, "LEGACY_REFERENCE_REPORT.md", output_file
+            )
 
         # Avoid cross-worker file contention in xdist tests by isolating report filenames.
         xdist_worker = os.getenv("PYTEST_XDIST_WORKER")

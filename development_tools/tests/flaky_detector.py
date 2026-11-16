@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from development_tools.shared.logging import get_dev_tools_logger
+from development_tools.tests.pytest_isolation import is_tools_test_path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -169,6 +170,9 @@ def run_detector(
     include_e2e: bool,
     timeout_seconds: int,
 ) -> dict[str, Any]:
+    test_paths = [path for path in test_paths if not is_tools_test_path(path)]
+    if not test_paths:
+        raise ValueError("Select tests in the host project.")
     failures: dict[str, list[int]] = defaultdict(list)
     run_records: list[dict[str, Any]] = []
     saved_failures, start_run, saved_total = _load_progress(progress_file)
@@ -186,6 +190,7 @@ def run_detector(
             sys.executable,
             "-m",
             "pytest",
+            "--ignore=development_tools",
             *test_paths,
             "-n",
             str(workers),

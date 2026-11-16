@@ -50,6 +50,7 @@ exclude = [
   "coverage_html",
   "data",
   "desktop.ini",
+  "development_tools",
   "env",
   "env.example",
   "htmlcov",

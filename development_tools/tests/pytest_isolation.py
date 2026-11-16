@@ -2,7 +2,7 @@
 
 Host suites keep their own pytest.ini. Tools tests must be invoked with
 ``tools_suite_pytest_args()`` so ``confcutdir`` stops at the tools test
-directory and MHM autouse fixtures never load.
+directory and host autouse fixtures never load.
 """
 
 from __future__ import annotations
@@ -28,7 +28,9 @@ def migrate_tools_test_root(path: str) -> str:
 
 def is_tools_test_path(path: str, tools_roots: list[str] | None = None) -> bool:
     """True when *path* is a tools-test root or a file under one."""
-    rel = normalize_rel(path)
+    rel = normalize_rel(path.split("::", 1)[0])
+    if "development_tools" in rel.lower().split("/"):
+        return True
     for root in tools_roots or DEFAULT_TOOLS_TEST_PATHS:
         root_n = normalize_rel(root)
         if rel == root_n or rel.startswith(f"{root_n}/"):

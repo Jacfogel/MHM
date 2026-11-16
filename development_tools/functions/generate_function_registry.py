@@ -142,9 +142,10 @@ except ImportError:
 
 
 def _registry_paths() -> tuple[Path, Path]:
+    root = Path(config.get_project_root()).resolve()
     detail = Path(config.get_analyze_function_registry_config()["registry_path"])
-    summary = Path(config.get_paths_config()["ai_docs_dir"]) / "AI_FUNCTION_REGISTRY.md"
-    return detail, summary
+    summary = config.get_generated_report_path(root, "FUNCTION_REGISTRY_BRIEF.md")
+    return detail.relative_to(root), summary.relative_to(root)
 
 
 def generate_function_registry_content(actual_functions: dict[str, dict]) -> str:
@@ -333,8 +334,8 @@ def generate_file_section(file_path: str, data: dict) -> str:
     return content
 
 
-def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> str:
-    """Generate AI-optimized function registry content focusing on patterns and decision trees."""
+def generate_function_registry_brief_content(actual_functions: dict[str, dict]) -> str:
+    """Generate a function registry brief focusing on patterns and decision trees."""
 
     # Calculate statistics
     total_files = len(actual_functions)
@@ -477,14 +478,14 @@ def generate_ai_function_registry_content(actual_functions: dict[str, dict]) -> 
     detail_link = markdown_file_link(
         detail_path, summary_path, Path(config.get_project_root())
     )
-    content = f"""# AI Function Registry - Key Patterns & Decision Trees
+    content = f"""# Function Registry Brief - Key Patterns & Decision Trees
 
 > **File**: `{summary_path.as_posix()}`
 > **Generated**: This file is auto-generated. Do not edit manually.
 > **Last Generated**: {now_timestamp_full()}
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
-> **Audience**: AI Collaborators  
-> **Purpose**: Essential function patterns and decision trees for AI context  
+> **Purpose**: Essential function patterns and decision trees
+
 > **Style**: Pattern-focused, decision-tree driven, actionable
 
 ## [*] **Current Status**
@@ -1222,21 +1223,21 @@ def generate_communication_patterns_section(
 
 
 def update_function_registry():
-    """Update FUNCTION_REGISTRY_DETAIL.md and AI_FUNCTION_REGISTRY.md with current codebase analysis."""
+    """Update FUNCTION_REGISTRY_DETAIL.md and FUNCTION_REGISTRY_BRIEF.md with current codebase analysis."""
     logger.debug("[SCAN] Scanning all Python files...")
     actual_functions = scan_all_python_files()
 
     logger.info("[GEN] Generating FUNCTION_REGISTRY_DETAIL.md content...")
     detail_content = generate_function_registry_content(actual_functions)
 
-    logger.info("[GEN] Generating AI_FUNCTION_REGISTRY.md content...")
-    ai_content = generate_ai_function_registry_content(actual_functions)
+    logger.info("[GEN] Generating FUNCTION_REGISTRY_BRIEF.md content...")
+    brief_content = generate_function_registry_brief_content(actual_functions)
 
     # Write DETAIL file with rotation
     from development_tools.shared.file_rotation import create_output_file
 
     project_root = Path(config.get_project_root()).resolve()
-    detail_path, ai_path = _registry_paths()
+    detail_path, brief_path = _registry_paths()
     create_output_file(
         str(detail_path),
         detail_content,
@@ -1245,10 +1246,10 @@ def update_function_registry():
         project_root=project_root,
     )
 
-    # Write AI file with rotation
+    # Write brief with rotation
     create_output_file(
-        str(ai_path),
-        ai_content,
+        str(brief_path),
+        brief_content,
         rotate=True,
         max_versions=7,
         project_root=project_root,
@@ -1307,7 +1308,7 @@ def update_function_registry():
         f"   {detail_path.as_posix()} - Complete detailed registry"
     )
     logger.info(
-        f"   {ai_path.as_posix()} - Concise AI-focused registry"
+        f"   {brief_path.as_posix()} - Concise registry"
     )
     logger.info("[STATS] Statistics:")
     logger.info(f"   Files scanned: {total_files}")
@@ -1320,7 +1321,7 @@ def update_function_registry():
     logger.info(f"   Template-generated: {template_items}")
     logger.info(f"   Coverage: {coverage_percentage:.1f}%")
     logger.info(f"   Detail file: {detail_path}")
-    logger.info(f"   AI file: {ai_path}")
+    logger.info(f"   Brief file: {brief_path}")
 
     # Template breakdown
     if template_items > 0:

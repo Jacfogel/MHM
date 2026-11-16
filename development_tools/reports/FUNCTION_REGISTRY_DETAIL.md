@@ -1,8 +1,8 @@
 # Function Registry - MHM Project
 
-> **File**: `development_docs/FUNCTION_REGISTRY_DETAIL.md`
+> **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 00:06:54
+> **Last Generated**: 2026-11-16 13:26:43
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  

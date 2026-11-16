@@ -52,14 +52,9 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         "--include-tests", action="store_true", help="Include test files in analysis."
     )
     parser.add_argument(
-        "--include-dev-tools",
-        action="store_true",
-        help="Include development_tools in analysis.",
-    )
-    parser.add_argument(
         "--include-all",
         action="store_true",
-        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+        help="Include test files (alias for --include-tests).",
     )
     parser.add_argument(
         "--overlap",
@@ -72,17 +67,12 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
         help="For Tier 3, return non-zero when tests fail, crash, or process cleanup fails.",
     )
     parser.add_argument(
-        "--dev-tools-only",
-        action="store_true",
-        help="Run audit with development_tools as scan root; output DEV_TOOLS_STATUS.md, DEV_TOOLS_PRIORITIES.md, DEV_TOOLS_CONSOLIDATED_REPORT.md.",
-    )
-    parser.add_argument(
         "--audit-scope",
         metavar="PATH",
         default=None,
         help=(
             "B-016 MVP: audit a relative project subtree (e.g. communication/). "
-            "Mutually exclusive with --dev-tools-only. Runs scan-dir-aware Tier 2 tools only; "
+            "Runs scan-dir-aware Tier 2 tools only and "
             "does not overwrite STATUS_BRIEF.md."
         ),
     )
@@ -100,22 +90,9 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     # Set exclusion configuration
     service.set_exclusion_config(
         include_tests=ns.include_tests or ns.include_all,
-        include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
 
-    # Dev-tools-only mode: scan development_tools only, output to DEV_TOOLS_* files.
-    # OR with run_development_tools.py global `--dev-tools-only` (set on service before this runs).
-    service.dev_tools_only_mode = bool(
-        getattr(ns, "dev_tools_only", False)
-        or getattr(service, "dev_tools_only_mode", False)
-    )
-
-    audit_scope_raw = getattr(ns, "audit_scope", None)
-    if audit_scope_raw and service.dev_tools_only_mode:
-        print(
-            "ERROR: --audit-scope and --dev-tools-only are mutually exclusive."
-        )
-        return 2
+    audit_scope_raw = ns.audit_scope
     if audit_scope_raw:
         from development_tools.shared.audit_scope import (
             AuditScopeError,
@@ -129,7 +106,6 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
             return 2
         service.audit_scope_path = rel
         service.audit_scope_slug = slug
-        service.dev_tools_only_mode = False
     else:
         service.audit_scope_path = None
         service.audit_scope_slug = None
@@ -428,14 +404,9 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
         "--include-tests", action="store_true", help="Include test files in analysis."
     )
     parser.add_argument(
-        "--include-dev-tools",
-        action="store_true",
-        help="Include development_tools in analysis.",
-    )
-    parser.add_argument(
         "--include-all",
         action="store_true",
-        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+        help="Include test files (alias for --include-tests).",
     )
     parser.add_argument(
         "--consider-body-similarity",
@@ -468,7 +439,6 @@ def _duplicate_functions_command(service: "AIToolsService", argv: Sequence[str])
 
     service.set_exclusion_config(
         include_tests=ns.include_tests or ns.include_all,
-        include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
 
     result = service.run_analyze_duplicate_functions(
@@ -488,14 +458,9 @@ def _facade_shims_command(service: "AIToolsService", argv: Sequence[str]) -> int
         "--include-tests", action="store_true", help="Include test files in analysis."
     )
     parser.add_argument(
-        "--include-dev-tools",
-        action="store_true",
-        help="Include development_tools in analysis.",
-    )
-    parser.add_argument(
         "--include-all",
         action="store_true",
-        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+        help="Include test files (alias for --include-tests).",
     )
     parser.add_argument(
         "--include-low-signal",
@@ -510,7 +475,6 @@ def _facade_shims_command(service: "AIToolsService", argv: Sequence[str]) -> int
     ns = parser.parse_args(list(argv))
     service.set_exclusion_config(
         include_tests=ns.include_tests or ns.include_all,
-        include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
     result = service.run_analyze_facade_shims(
         include_low_signal=ns.include_low_signal
@@ -526,14 +490,9 @@ def _unused_functions_command(service: "AIToolsService", argv: Sequence[str]) ->
         "--include-tests", action="store_true", help="Include test files in analysis."
     )
     parser.add_argument(
-        "--include-dev-tools",
-        action="store_true",
-        help="Include development_tools in analysis.",
-    )
-    parser.add_argument(
         "--include-all",
         action="store_true",
-        help="Include tests and dev tools (equivalent to --include-tests --include-dev-tools).",
+        help="Include test files (alias for --include-tests).",
     )
     parser.add_argument(
         "--private-only",
@@ -556,7 +515,6 @@ def _unused_functions_command(service: "AIToolsService", argv: Sequence[str]) ->
 
     service.set_exclusion_config(
         include_tests=ns.include_tests or ns.include_all,
-        include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
 
     result = service.run_analyze_unused_functions(
@@ -578,14 +536,9 @@ def _module_refactor_candidates_command(service: "AIToolsService", argv: Sequenc
         "--include-tests", action="store_true", help="Include test files in analysis."
     )
     parser.add_argument(
-        "--include-dev-tools",
-        action="store_true",
-        help="Include development_tools in analysis.",
-    )
-    parser.add_argument(
         "--include-all",
         action="store_true",
-        help="Include tests and dev tools.",
+        help="Include test files (alias for --include-tests).",
     )
     parser.add_argument("--json", action="store_true", help="Output JSON to stdout.")
 
@@ -597,12 +550,10 @@ def _module_refactor_candidates_command(service: "AIToolsService", argv: Sequenc
 
     service.set_exclusion_config(
         include_tests=ns.include_tests or ns.include_all,
-        include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
 
     result = service.run_analyze_module_refactor_candidates(
         include_tests=ns.include_tests or ns.include_all,
-        include_dev_tools=ns.include_dev_tools or ns.include_all,
     )
     success = result.get("success", False) if isinstance(result, dict) else bool(result)
     if ns.json and isinstance(result, dict) and "data" in result:

@@ -21,17 +21,17 @@ logger = get_dev_tools_logger("development_tools")
 from .audit_orchestration import _is_audit_in_progress
 
 
-class AIStatusDocumentMixin:
-    """Mixin providing `_generate_ai_status_document`."""
+class StatusBriefDocumentMixin:
+    """Mixin providing `_generate_status_brief_document`."""
 
-    def _generate_ai_status_document(self) -> str:
+    def _generate_status_brief_document(self) -> str:
         """Generate AI-optimized status document."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
         report_paths = get_status_report_paths(
             self.project_root, dev_tools_only=self._is_dev_tools_scoped_report()
         )
-        report_path = report_paths["ai_status"]
+        report_path = report_paths["status_brief"]
         status_target = report_path.name
         if audit_tier:
             logger.info(
@@ -52,11 +52,11 @@ class AIStatusDocumentMixin:
         if audit_in_progress and not is_legitimate_end_write:
             if not instance_flag:
                 logger.debug(
-                    "_generate_ai_status_document() called from NEW instance during audit! This should only happen at the end."
+                    "_generate_status_brief_document() called from NEW instance during audit! This should only happen at the end."
                 )
             else:
                 logger.debug(
-                    "_generate_ai_status_document() called during audit! This should only happen at the end."
+                    "_generate_status_brief_document() called during audit! This should only happen at the end."
                 )
             import traceback
 
@@ -66,7 +66,7 @@ class AIStatusDocumentMixin:
         if self._is_dev_tools_scoped_report():
             lines.append("# Development Tools Status - Scoped Snapshot")
         else:
-            lines.append("# AI Status - Current Codebase State")
+            lines.append("# Status Brief - Current Codebase State")
         lines.append("")
         display_path = (
             report_path.relative_to(self.project_root)
@@ -87,7 +87,7 @@ class AIStatusDocumentMixin:
             and self.current_audit_tier is None
         ):
             logger.warning(
-                "_generate_ai_status_document() called during audit but current_audit_tier is None!"
+                "_generate_status_brief_document() called during audit but current_audit_tier is None!"
             )
 
         if self.current_audit_tier == 1:
@@ -201,9 +201,6 @@ class AIStatusDocumentMixin:
         )
         dependency_patterns_data = self._load_tool_data(
             "analyze_dependency_patterns", "imports"
-        )
-        import_boundary_data = self._load_tool_data(
-            "analyze_dev_tools_import_boundaries", "imports"
         )
         backup_health_data = self._load_tool_data(
             "analyze_backup_health", "reports", log_source=False
@@ -1163,7 +1160,7 @@ class AIStatusDocumentMixin:
             lines.append(
                 f"- **Example markers (advisory)**: {em_hint_n} hint(s) — path-like lines in "
                 "Example sections without a marker within ±5 lines (see AI_DOCUMENTATION_GUIDE §3.6); "
-                "details in doc-sync JSON / AI_PRIORITIES when triaging"
+                "details in doc-sync JSON / PRIORITIES_BRIEF when triaging"
             )
         else:
             lines.append(
@@ -1499,7 +1496,6 @@ class AIStatusDocumentMixin:
 
         dev_tools_insights = self._get_dev_tools_coverage_insights()
         skip_main_tracks = bool(getattr(self, "_tier3_skipped_main_tracks", False))
-        skip_dev_track = bool(getattr(self, "_tier3_skipped_dev_track", False))
 
         if skip_main_tracks and self._is_dev_tools_scoped_report():
             lines.append(
@@ -1535,7 +1531,7 @@ class AIStatusDocumentMixin:
         elif skip_main_tracks:
             lines.append(
                 "- **Overall Coverage**: **Skipped** — this pass used **`audit --full --dev-tools-only`**, "
-                "so full-repo pytest/coverage did not run and `development_docs/TEST_COVERAGE_REPORT.md` "
+                "so full-repo pytest/coverage did not run and `development_tools/reports/TEST_COVERAGE_REPORT.md` "
                 "was not rebuilt. For updated overall %, run "
                 "`python development_tools/run_development_tools.py audit --full` (omit `--dev-tools-only`)."
             )
@@ -1562,8 +1558,6 @@ class AIStatusDocumentMixin:
                 lines.append(
                     f"    - **Coverage Scope**: Primary domains (`{domains}`); "
                     "`ui`, `tasks`, `notebook` excluded (minimal test coverage). "
-                    "`development_tools/` appears with other domains in "
-                    "`development_docs/TEST_COVERAGE_REPORT.md` when the full detailed report is refreshed."
                 )
             else:
                 lines.append(
@@ -1579,51 +1573,11 @@ class AIStatusDocumentMixin:
                     f"    - **Detailed Report**: [TEST_COVERAGE_REPORT.md]({href})"
                 )
 
-            if skip_dev_track:
-                lines.append(
-                    "- **Development Tools Coverage**: Separate `--dev-tools-only` refresh not run in this "
-                    "full-repo Tier 3 pass. The overall coverage line above already includes "
-                    "`development_tools`; run "
-                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only` "
-                    "only when you need refreshed DEV_TOOLS_* artifacts and the dedicated scoped track."
-                )
-            elif (
-                dev_tools_insights and dev_tools_insights.get("overall_pct") is not None
-            ):
-                dev_pct = dev_tools_insights["overall_pct"]
-                dev_statements = dev_tools_insights.get("statements")
-                dev_covered = dev_tools_insights.get("covered")
-                summary_line = (
-                    f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
-                )
-                if dev_statements is not None and dev_covered is not None:
-                    summary_line += f" ({dev_covered} of {dev_statements} statements)"
-                lines.append(summary_line)
         else:
             if not skip_main_tracks:
                 lines.append(
                     "- Coverage data unavailable; run `audit --full` to regenerate metrics"
                 )
-            if skip_dev_track:
-                lines.append(
-                    "- **Development Tools Coverage**: Separate `--dev-tools-only` refresh not run in this "
-                    "full-repo Tier 3 pass. The overall coverage line above already includes "
-                    "`development_tools`; run "
-                    "`python development_tools/run_development_tools.py audit --full --dev-tools-only` "
-                    "only when you need refreshed DEV_TOOLS_* artifacts and the dedicated scoped track."
-                )
-            elif (
-                dev_tools_insights and dev_tools_insights.get("overall_pct") is not None
-            ):
-                dev_pct = dev_tools_insights["overall_pct"]
-                dev_statements = dev_tools_insights.get("statements")
-                dev_covered = dev_tools_insights.get("covered")
-                summary_line = (
-                    f"- **Development Tools Coverage**: {percent_text(dev_pct, 1)}"
-                )
-                if dev_statements is not None and dev_covered is not None:
-                    summary_line += f" ({dev_covered} of {dev_statements} statements)"
-                lines.append(summary_line)
 
         # Test markers (category = suite; domain = product areas in domain_mapper)
         test_markers_data = self._load_tool_data("analyze_test_markers", "tests")
@@ -1812,36 +1766,6 @@ class AIStatusDocumentMixin:
             )
 
         lines.append("")
-        lines.append("## Import Boundary")
-        import_boundary_summary = (
-            import_boundary_data.get("summary", {})
-            if isinstance(import_boundary_data, dict)
-            else {}
-        )
-        import_violations = to_int(import_boundary_summary.get("total_issues"))
-        import_files = to_int(import_boundary_summary.get("files_affected"))
-        if import_violations is not None and import_violations > 0:
-            lines.append(
-                f"- **Violations**: {import_violations} non-approved core import(s) across {import_files or 0} file(s)"
-            )
-            details_obj = import_boundary_data.get("details", {}) or {}
-            violations_list = details_obj.get("violations", []) or []
-            if violations_list:
-                top_files = list({v.get("file", "") for v in violations_list[:5]})
-                for f in top_files[:3]:
-                    if f:
-                        lines.append(f"  - {f}")
-            lines.append(
-                "- **Action**: Refactor to remove all `core.*` imports; use `development_tools.shared.logging` for dev-tools logs; see README.md §8.5"
-            )
-        elif import_violations == 0:
-            lines.append("- **Status**: CLEAN (no boundary violations detected)")
-        else:
-            lines.append(
-                "- **Status**: Data unavailable (run `audit` to scan import boundaries)"
-            )
-
-        lines.append("")
         lines.append("## Legacy References")
 
         legacy_summary = legacy_summary or legacy_data or {}
@@ -1958,7 +1882,7 @@ class AIStatusDocumentMixin:
         prio_ref = (
             "DEV_TOOLS_PRIORITIES"
             if self._is_dev_tools_scoped_report()
-            else "AI_PRIORITIES"
+            else "PRIORITIES_BRIEF"
         )
         if refactor_count > 0:
             lines.append(
@@ -2273,7 +2197,7 @@ class AIStatusDocumentMixin:
             )
             lines.append(
                 "- `python development_tools/run_development_tools.py coverage` - "
-                "Refresh `coverage.json` / `development_docs/TEST_COVERAGE_REPORT.md` / marker analysis"
+                "Refresh `coverage.json` / `development_tools/reports/TEST_COVERAGE_REPORT.md` / marker analysis"
             )
             lines.append(
                 "- `python development_tools/run_development_tools.py status` - Read-only; "

@@ -366,19 +366,6 @@ class CommandsMixin:
                 return state
         return None
 
-    def _extract_cached_dev_tools_state(self, cached_result: dict | None) -> str | None:
-        """Extract cached dev-tools test outcome state when present."""
-        if not isinstance(cached_result, dict):
-            return None
-        details = cached_result.get("details")
-        if not isinstance(details, dict):
-            return None
-        dev_tools = details.get("dev_tools_test_outcome")
-        if isinstance(dev_tools, dict):
-            state = self._extract_track_classification(dev_tools)
-            if isinstance(state, str) and state:
-                return state
-        return None
 
     def _extract_track_classification(self, track: dict) -> str:
         """Return canonical per-track classification label."""
@@ -638,288 +625,6 @@ class CommandsMixin:
             logger.error(f"Version sync failed: {result['error']}")
             return False
     
-    def run_dev_tools_coverage(self) -> dict:
-        """Run coverage analysis specifically for development_tools directory.
-
-        Storage / cache tool name is ``generate_dev_tools_coverage`` (see tool_metadata._TOOLS).
-        """
-        logger.debug("Generating dev tools coverage (development_tools/tests)...")
-        dev_tools_coverage_file = get_coverage_json_dir(self.project_root) / "coverage_dev_tools.json"
-        dev_tools_patterns = [
-            "development_tools/**/*.py",
-            "development_tools/tool_tests/**/*.py",
-        ]
-        if self._is_coverage_file_fresh(
-            dev_tools_coverage_file,
-            dev_tools_patterns,
-            tool_names=["run_test_coverage"],
-            config_paths=[
-                "development_tools/tests/coverage_dev_tools.ini",
-                "development_tools/config/development_tools_config.json",
-                "development_tools_config.json",
-            ],
-        ):
-            cached_data = self._load_cached_result_if_available("generate_dev_tools_coverage", "tests")
-            cached_state = self._extract_cached_dev_tools_state(cached_data)
-            if self._is_failure_state(cached_state):
-                logger.info(
-                    "Skipping precheck cache reuse for dev tools coverage because cached test outcome state is "
-                    + str(cached_state)
-                )
-                cached_data = None
-            cache_metadata = {
-                "cache_mode": "cache_only",
-                "invalidation_reason": "Precheck: dev tools/test sources unchanged since coverage_dev_tools.json",
-                "source": "orchestration_precheck",
-            }
-            if not hasattr(self, "_tool_cache_metadata"):
-                self._tool_cache_metadata = {}
-            self._tool_cache_metadata["generate_dev_tools_coverage"] = cache_metadata
-            if cached_data:
-                existing_tier3 = (
-                    self.tier3_test_outcome
-                    if isinstance(getattr(self, "tier3_test_outcome", None), dict)
-                    else {}
-                )
-                merged_tier3 = dict(existing_tier3)
-                merged_tier3["development_tools"] = {
-                    "state": "skipped",
-                    "classification": "skipped",
-                    "classification_reason": "cache_reuse_precheck",
-                    "actionable_context": "Development-tools coverage execution skipped because cache is fresh.",
-                    "log_file": None,
-                    "return_code_hex": None,
-                    "return_code": None,
-                    "passed_count": 0,
-                    "failed_count": 0,
-                    "error_count": 0,
-                    "skipped_count": 0,
-                    "failed_node_ids": [],
-                    "from_cache": True,
-                }
-                self.tier3_test_outcome = merged_tier3
-                logger.info(
-                    "Skipping dev tools coverage run - cached dev tools coverage is up to date"
-                )
-                normalized_cached = self._to_standard_dev_tools_coverage_result(cached_data)
-                normalized_cached.setdefault("_cache_metadata", {}).update(cache_metadata)
-                return {"success": True, "data": normalized_cached, "cache_metadata": cache_metadata}
-
-        # Use separate lock file for dev tools coverage to avoid conflicts when running in parallel with main coverage
-        # Both lock files are checked by _is_audit_in_progress(), so this is safe
-        coverage_lock_file = self._get_coverage_lock_file_path() if hasattr(self, '_get_coverage_lock_file_path') else (self.project_root / 'development_tools' / '.coverage_in_progress.lock')
-        # Use a separate lock file for dev tools to avoid file conflicts when running in parallel
-        coverage_lock_file = coverage_lock_file.parent / '.coverage_dev_tools_in_progress.lock'
-        try:
-            if not write_lock_metadata(
-                coverage_lock_file, lock_type="coverage_dev_tools"
-            ):
-                raise RuntimeError(
-                    "write_lock_metadata returned False for dev-tools coverage lock"
-                )
-        except Exception as e:
-            logger.warning(f"Failed to create coverage lock file: {e}")
-        
-        try:
-            dev_tools_output_file = (
-                self.project_root
-                / "development_tools"
-                / "tests"
-                / "jsons"
-                / "run_test_coverage_dev_tools_results.json"
-            )
-            coverage_args = [
-                "run_test_coverage",
-                "--dev-tools-only",
-                "--output-file",
-                str(dev_tools_output_file),
-            ]
-            dev_workers = self._resolve_coverage_workers("dev_tools")
-            if dev_workers:
-                coverage_args.extend(["--workers", dev_workers])
-                logger.info(
-                    f"Dev tools coverage worker cap: {dev_workers} (concurrent={bool(getattr(self, '_tier3_coverage_concurrent', False))})"
-                )
-            result = self.run_script(*coverage_args, timeout=720)
-            output_text = "\n".join(
-                [result.get("output", "") or "", result.get("error", "") or ""]
-            )
-            interrupted = self._is_interrupt_signature(
-                output_text, result.get("returncode")
-            )
-            initial_dev_tools_state = "unknown"
-            if result.get("returncode") not in (None, 0):
-                initial_dev_tools_state = "failed"
-            dev_tools_outcome = {
-                "state": initial_dev_tools_state,
-                "classification": (
-                    "failed" if initial_dev_tools_state == "failed" else "unknown"
-                ),
-                "classification_reason": (
-                    "dev_tools_nonzero_exit_no_structured_outcome"
-                    if initial_dev_tools_state == "failed"
-                    else "dev_tools_outcome_pending_parse"
-                ),
-                "actionable_context": "Inspect dev-tools pytest stdout log for details.",
-                "log_file": None,
-                "return_code_hex": None,
-                "return_code": result.get("returncode"),
-                "passed_count": 0,
-                "failed_count": 0,
-                "error_count": 0,
-                "skipped_count": 0,
-                "failed_node_ids": [],
-            }
-            if interrupted:
-                self._internal_interrupt_detected = True
-                dev_tools_outcome["classification"] = "crashed"
-                dev_tools_outcome["classification_reason"] = "subprocess_keyboard_interrupt"
-                dev_tools_outcome["actionable_context"] = (
-                    "Coverage subprocess reported KeyboardInterrupt/SIGINT. "
-                    "Check terminal/host signal events and pytest logs."
-                )
-                logger.error(
-                    "Detected interrupt signature while running dev-tools coverage subprocess "
-                    f"(returncode={result.get('returncode')})."
-                )
-            if dev_tools_output_file.exists():
-                try:
-                    with open(dev_tools_output_file, encoding="utf-8") as f:
-                        dev_tools_payload = json.load(f)
-                    if isinstance(dev_tools_payload, dict):
-                        details = dev_tools_payload.get("details")
-                        parsed_outcome = {}
-                        if isinstance(details, dict):
-                            parsed_outcome = details.get("dev_tools_test_outcome", {})
-                        if isinstance(parsed_outcome, dict):
-                            dev_tools_outcome = {
-                                "state": parsed_outcome.get("state", "unknown"),
-                                "classification": parsed_outcome.get(
-                                    "classification",
-                                    parsed_outcome.get("state", "unknown"),
-                                ),
-                                "classification_reason": parsed_outcome.get(
-                                    "classification_reason", "unknown"
-                                ),
-                                "actionable_context": parsed_outcome.get(
-                                    "actionable_context",
-                                    "Inspect dev-tools pytest stdout log for details.",
-                                ),
-                                "log_file": parsed_outcome.get("log_file"),
-                                "return_code_hex": parsed_outcome.get("return_code_hex"),
-                                "return_code": parsed_outcome.get("return_code"),
-                                "passed_count": parsed_outcome.get("passed_count", 0),
-                                "failed_count": parsed_outcome.get("failed_count", 0),
-                                "error_count": parsed_outcome.get("error_count", 0),
-                                "skipped_count": parsed_outcome.get("skipped_count", 0),
-                                "failed_node_ids": parsed_outcome.get(
-                                    "failed_node_ids", []
-                                ),
-                            }
-                except Exception as parse_error:
-                    logger.debug(
-                        f"Failed to parse dev tools structured coverage output: {parse_error}"
-                    )
-            cache_metadata = self._build_coverage_metadata(
-                output_text, source="run_test_coverage --dev-tools-only"
-            )
-            if cache_metadata.get("cache_mode") == "unknown":
-                cache_metadata["cache_mode"] = "cold_scan"
-                if cache_metadata.get("invalidation_reason") in (None, "", "unknown"):
-                    cache_metadata["invalidation_reason"] = (
-                        "Coverage command executed (stdout mode markers unavailable)"
-                    )
-            if not hasattr(self, "_tool_cache_metadata"):
-                self._tool_cache_metadata = {}
-            self._tool_cache_metadata["generate_dev_tools_coverage"] = cache_metadata
-            existing_tier3 = (
-                self.tier3_test_outcome
-                if isinstance(getattr(self, "tier3_test_outcome", None), dict)
-                else {}
-            )
-            merged_tier3 = dict(existing_tier3)
-            merged_tier3["development_tools"] = dev_tools_outcome
-            self.tier3_test_outcome = merged_tier3
-            # Check if coverage was collected, not just if pytest succeeded
-            # pytest can exit with non-zero code if tests fail, but coverage may still be collected
-            coverage_collected = False
-            
-            # First check if coverage file exists (most reliable indicator)
-            if dev_tools_coverage_file.exists():
-                coverage_collected = True
-            
-            # Also check output for coverage indicators
-            if result.get('output'):
-                output = result['output']
-                if 'TOTAL' in output or 'coverage' in output.lower() or 'Cover' in output:
-                    coverage_collected = True
-            
-            # If script failed but coverage file exists, we still succeeded
-            if coverage_collected:
-                self._load_dev_tools_coverage()
-                if hasattr(self, 'dev_tools_coverage_results') and isinstance(self.dev_tools_coverage_results, dict):
-                    normalized = self._to_standard_dev_tools_coverage_result(self.dev_tools_coverage_results)
-                    normalized.setdefault("_cache_metadata", {})
-                    normalized["_cache_metadata"].update(cache_metadata)
-                    normalized.setdefault("details", {})
-                    if isinstance(normalized.get("details"), dict):
-                        normalized["details"]["dev_tools_test_outcome"] = dev_tools_outcome
-                    self.dev_tools_coverage_results = normalized
-                # Save results to standardized storage
-                if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
-                    try:
-                        save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)
-                    except Exception as e:
-                        logger.warning(f"Failed to save generate_dev_tools_coverage result: {e}")
-                return {
-                    'success': True,
-                    'data': self.dev_tools_coverage_results,
-                    'cache_metadata': cache_metadata,
-                }
-            else:
-                # Even if script failed, check one more time if coverage file was created
-                # (it might have been created before the script failed)
-                if dev_tools_coverage_file.exists():
-                    logger.info("Coverage file found despite script failure - loading coverage data")
-                    self._load_dev_tools_coverage()
-                    if hasattr(self, 'dev_tools_coverage_results') and self.dev_tools_coverage_results:
-                        normalized = self._to_standard_dev_tools_coverage_result(self.dev_tools_coverage_results)
-                        normalized.setdefault("_cache_metadata", {})
-                        normalized["_cache_metadata"].update(cache_metadata)
-                        normalized.setdefault("details", {})
-                        if isinstance(normalized.get("details"), dict):
-                            normalized["details"]["dev_tools_test_outcome"] = dev_tools_outcome
-                        self.dev_tools_coverage_results = normalized
-                        try:
-                            save_tool_result('generate_dev_tools_coverage', 'tests', self.dev_tools_coverage_results, project_root=self.project_root)
-                        except Exception as e:
-                            logger.warning(f"Failed to save generate_dev_tools_coverage result: {e}")
-                        return {
-                            'success': True,
-                            'data': self.dev_tools_coverage_results,
-                            'cache_metadata': cache_metadata,
-                        }
-                
-                # No coverage collected
-                error_msg = result.get('error', 'Unknown error')
-                if result.get('output'):
-                    error_msg = f"{error_msg}\nOutput: {result['output'][:500]}"
-                logger.warning(f"Dev tools coverage failed: {error_msg}")
-                return {
-                    'success': False,
-                    'error': error_msg,
-                    'cache_metadata': cache_metadata,
-                }
-        finally:
-            if coverage_lock_file.exists():
-                try:
-                    coverage_lock_file.unlink()
-                except Exception as e:
-                    logger.warning(f"Failed to remove coverage lock file: {e}")
-            if 'dev_tools_output_file' in locals() and dev_tools_output_file.exists():
-                with contextlib.suppress(OSError):
-                    dev_tools_output_file.unlink()
-    
     def run_status(self, skip_status_files: bool = False):
         """Generate status snapshot (cached data, no audit)"""
         logger.info("Generating status snapshot...")
@@ -931,30 +636,30 @@ class CommandsMixin:
             )
 
             try:
-                ai_status = self._generate_ai_status_document()
+                status_brief = self._generate_status_brief_document()
                 from ..file_rotation import create_output_file
-                ai_status_file = create_output_file(report_paths["ai_status"], ai_status, project_root=self.project_root)
-                logger.info(f"Generated: {ai_status_file}")
+                status_brief_file = create_output_file(report_paths["status_brief"], status_brief, project_root=self.project_root)
+                logger.info(f"Generated: {status_brief_file}")
             except Exception as e:
-                if os.getenv("MHM_TESTING") == "1":
+                if os.getenv("DEVTOOLS_TESTING") == "1":
                     logger.debug(
-                        "Error generating AI_STATUS document: %s", e, exc_info=True
+                        "Error generating STATUS_BRIEF document: %s", e, exc_info=True
                     )
                 else:
-                    logger.warning("Error generating AI_STATUS document: %s", e)
+                    logger.warning("Error generating STATUS_BRIEF document: %s", e)
             
             try:
-                ai_priorities = self._generate_ai_priorities_document()
+                priorities_brief = self._generate_priorities_brief_document()
                 from ..file_rotation import create_output_file
-                ai_priorities_file = create_output_file(report_paths["ai_priorities"], ai_priorities, project_root=self.project_root)
-                logger.info(f"Generated: {ai_priorities_file}")
+                priorities_brief_file = create_output_file(report_paths["priorities_brief"], priorities_brief, project_root=self.project_root)
+                logger.info(f"Generated: {priorities_brief_file}")
             except Exception as e:
-                if os.getenv("MHM_TESTING") == "1":
+                if os.getenv("DEVTOOLS_TESTING") == "1":
                     logger.debug(
-                        "Error generating AI_PRIORITIES document: %s", e, exc_info=True
+                        "Error generating PRIORITIES_BRIEF document: %s", e, exc_info=True
                     )
                 else:
-                    logger.warning("Error generating AI_PRIORITIES document: %s", e)
+                    logger.warning("Error generating PRIORITIES_BRIEF document: %s", e)
             
             try:
                 consolidated_report = self._generate_consolidated_report()
@@ -962,7 +667,7 @@ class CommandsMixin:
                 consolidated_file = create_output_file(report_paths["consolidated_report"], consolidated_report, project_root=self.project_root)
                 logger.info(f"Generated: {consolidated_file}")
             except Exception as e:
-                if os.getenv("MHM_TESTING") == "1":
+                if os.getenv("DEVTOOLS_TESTING") == "1":
                     logger.debug(
                         "Error generating consolidated report: %s", e, exc_info=True
                     )
@@ -978,7 +683,7 @@ class CommandsMixin:
         logger.info("=" * 50)
         success = self._run_doc_sync_check()
         if success:
-            # Persist aggregate JSON for AI_PRIORITIES / tooling (same payload as audit path).
+            # Persist aggregate JSON for PRIORITIES_BRIEF / tooling (same payload as audit path).
             self._persist_documentation_sync_aggregate_json()
             logger.info("Documentation sync check completed!")
         else:
@@ -1537,25 +1242,6 @@ class CommandsMixin:
                         }
                         save_tool_result('analyze_test_coverage', 'tests', standard_format, project_root=self.project_root)
                         logger.debug(f"Saved analyze_test_coverage results to standardized storage (coverage: {overall_coverage}%)")
-                        try:
-                            self._load_dev_tools_coverage()
-                            if hasattr(self, "dev_tools_coverage_results") and isinstance(
-                                self.dev_tools_coverage_results, dict
-                            ):
-                                dt_norm = self._to_standard_dev_tools_coverage_result(
-                                    self.dev_tools_coverage_results
-                                )
-                                save_tool_result(
-                                    "generate_dev_tools_coverage",
-                                    "tests",
-                                    dt_norm,
-                                    project_root=self.project_root,
-                                )
-                        except Exception as dt_save_err:
-                            logger.debug(
-                                "Optional generate_dev_tools_coverage save after unified run failed: %s",
-                                dt_save_err,
-                            )
                     else:
                         logger.warning("No coverage data available to save - _load_coverage_summary() returned None (coverage.json may not exist or be empty)")
                 except Exception as save_error:

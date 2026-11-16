@@ -300,7 +300,7 @@ Error handling is tested in multiple ways:
   - **Phase 1 and Phase 2 Analysis**: The tool now includes specialized auditing for quality improvements:
     - **Phase 1**: Identifies functions with basic try-except blocks that should use `@handle_errors` decorator, prioritized by entry points and operation types
     - **Phase 2**: Audits generic exception raises (ValueError, Exception, KeyError, TypeError) that should be replaced with specific `MHMError` subclasses
-    - Results are integrated into [STATUS_BRIEF.md](../development_tools/STATUS_BRIEF.md), [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md), and `development_tools/CONSOLIDATED_REPORT.md` for tracking progress on the Error Handling Quality Improvement Plan
+    - Results are integrated into [Status Brief](../development_tools/STATUS_BRIEF.md), [Priorities Brief](../development_tools/PRIORITIES_BRIEF.md), and `development_tools/CONSOLIDATED_REPORT.md` for tracking progress on the Error Handling Quality Improvement Plan
 
 - **Excluding functions from the audit**  
   When a function intentionally has no or minimal error handling (for example pure default-data factories called only from a decorated caller, or a small try/except that must not return a default), add a comment so the analyzer skips it:  

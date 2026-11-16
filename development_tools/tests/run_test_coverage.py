@@ -35,7 +35,6 @@ from typing import Any
 
 from development_tools.shared.time_helpers import (
     now_timestamp_full,
-    now_timestamp_filename,
 )
 
 # Add project root to path for core module imports
@@ -46,7 +45,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Ensure dev-tools logger routing is active even when this module is invoked directly.
-os.environ.setdefault("MHM_DEV_TOOLS_RUN", "1")
+os.environ.setdefault("DEVTOOLS_RUN", "1")
 from development_tools.config import load_external_config
 
 load_external_config()
@@ -54,10 +53,6 @@ load_external_config()
 from development_tools.shared.logging import get_dev_tools_logger
 import contextlib
 
-from development_tools.tests.coverage_json_helpers import (
-    coverage_path_to_rel_posix as _coverage_path_to_rel_posix,
-    recompute_coverage_totals_from_files as _recompute_coverage_totals_from_files,
-)
 from development_tools.tests.coverage_outcome_classification import (
     build_cache_only_coverage_outcome as _build_cache_only_coverage_outcome_fn,
     build_track_outcome as _build_track_outcome_fn,
@@ -71,8 +66,6 @@ from development_tools.tests.coverage_outcome_classification import (
     strip_xdist_args as _strip_xdist_args_fn,
 )
 from development_tools.tests.coverage_pytest_argv import (
-    build_dev_tools_coverage_pytest_cmd as _build_dev_tools_coverage_pytest_cmd,
-    build_isolated_tools_coverage_pytest_cmd as _build_isolated_tools_coverage_pytest_cmd,
     build_main_coverage_pytest_cmd as _build_main_coverage_pytest_cmd,
     build_no_parallel_coverage_pytest_cmd as _build_no_parallel_coverage_pytest_cmd,
     build_no_parallel_test_args as _build_no_parallel_test_args_fn,
@@ -92,13 +85,6 @@ from development_tools.tests.coverage_shard_merge import (
     should_merge_coverage_snapshots as _should_merge_coverage_snapshots_fn,
     wait_for_parallel_coverage_artifacts as _wait_for_parallel_coverage_artifacts_fn,
 )
-from development_tools.tests.coverage_domain_cache import (
-    check_dev_tools_changed as _check_dev_tools_changed_fn,
-    get_config_mtime as _get_config_mtime_fn,
-    get_dev_tools_source_mtimes as _get_dev_tools_source_mtimes_fn,
-    get_dev_tools_test_mtimes as _get_dev_tools_test_mtimes_fn,
-)
-
 # Import config module (absolute import for portability)
 try:
     from development_tools import config
@@ -261,20 +247,6 @@ class CoverageMetricsRegenerator:
             "archive", "development_tools/reports/archive/coverage_artifacts"
         )
 
-        # Dev tools specific coverage paths
-        self.dev_tools_coverage_config_path: Path = (
-            self.project_root / "development_tools" / "tests" / "coverage_dev_tools.ini"
-        )
-        self.dev_tools_coverage_data_file: Path = (
-            self.project_root / "development_tools" / "tests" / ".coverage_dev_tools"
-        )
-        jsons_dir = config.get_coverage_json_dir(self.project_root)
-        jsons_dir.mkdir(parents=True, exist_ok=True)
-        self.dev_tools_coverage_json: Path = jsons_dir / "coverage_dev_tools.json"
-        self.dev_tools_coverage_html_dir: Path | None = (
-            None  # Disabled - no longer generating dev tools HTML
-        )
-
         self.pytest_stdout_log: Path | None = None
         self.pytest_stderr_log: Path | None = None
         self.archived_directories: list[dict[str, str]] = []
@@ -321,7 +293,6 @@ class CoverageMetricsRegenerator:
         self.use_domain_cache = use_domain_cache
         self.test_file_cache = None
         self.domain_mapper = None
-        self.dev_tools_cache = None
         if self.use_domain_cache:
             try:
                 from development_tools.tests.test_file_coverage_cache import (
@@ -341,22 +312,6 @@ class CoverageMetricsRegenerator:
                 self.use_domain_cache = False
                 self.test_file_cache = None
                 self.domain_mapper = None
-
-        if self.use_domain_cache:
-            try:
-                from development_tools.tests.dev_tools_coverage_cache import (
-                    DevToolsCoverageCache,
-                )
-
-                self.dev_tools_cache = DevToolsCoverageCache(self.project_root)
-                if logger:
-                    logger.debug("Dev tools coverage caching enabled")
-            except ImportError as e:
-                if logger:
-                    logger.warning(
-                        f"Failed to import dev tools coverage cache: {e}. Dev tools caching disabled."
-                    )
-                self.dev_tools_cache = None
 
         # Initialize analyzer and report generator
         # Try to import if not already available (handles cases where imports failed at module level)
@@ -451,8 +406,8 @@ class CoverageMetricsRegenerator:
         test_tmp_root.mkdir(parents=True, exist_ok=True)
         # Force pytest subprocesses into pure test mode (not dev-tools mode),
         # so logger path expectations in test suites remain deterministic.
-        env["MHM_DEV_TOOLS_RUN"] = "0"
-        env["MHM_TESTING"] = "1"
+        env["DEVTOOLS_RUN"] = "0"
+        env["DEVTOOLS_TESTING"] = "1"
         env["TEST_CONSOLIDATED_LOGGING"] = "1"
         env["TEST_VERBOSE_LOGS"] = "0"
         env["TEST_LOGS_DIR"] = str(test_logs_root)
@@ -1141,7 +1096,7 @@ class CoverageMetricsRegenerator:
 
             # Parallel: exclude no_parallel/e2e (serial track later); omit JSON until combine.
             # Serial: write JSON directly. Matches run_tests.py marker exclusions.
-            # Development-tools tests are removed here and run later with their pytest.ini.
+            # Keep maintainer tests out of host coverage.
             path_split = _partition_coverage_pytest_paths(
                 test_filter_args,
                 default_test_path=self.test_directory,
@@ -1152,14 +1107,6 @@ class CoverageMetricsRegenerator:
             host_filter_args = (
                 [] if path_split.use_host_default else list(path_split.host_paths)
             )
-            tools_paths = list(path_split.tools_paths)
-            tools_return_code = None
-            tools_test_results: dict[str, Any] = {}
-            if tools_paths and logger:
-                logger.info(
-                    "Development-tools tests will run separately with "
-                    f"development_tools/pytest.ini ({len(tools_paths)} path(s))"
-                )
             cmd = _build_main_coverage_pytest_cmd(
                 executable=sys.executable,
                 parallel=self.parallel,
@@ -2006,31 +1953,6 @@ class CoverageMetricsRegenerator:
             }
             no_parallel_return_code = None
             no_parallel_output = ""
-            if tools_paths:
-                tools_run = self._run_isolated_tools_coverage(
-                    tools_paths=tools_paths,
-                    cov_args=cov_args,
-                    pytest_timeout=pytest_timeout,
-                )
-                tools_return_code = tools_run.get("return_code")
-                tools_test_results = (
-                    tools_run.get("results")
-                    if isinstance(tools_run.get("results"), dict)
-                    else {}
-                )
-                if tools_return_code not in (None, 0):
-                    no_parallel_return_code = self._fold_tools_pytest_failure(
-                        no_parallel_test_results,
-                        no_parallel_return_code,
-                        tools_return_code,
-                        tools_test_results,
-                    )
-                    if logger:
-                        logger.error(
-                            "Development-tools coverage pytest failed "
-                            f"(exit code {tools_return_code}). "
-                            f"See {tools_run.get('log_file')}"
-                        )
             if self.parallel and pytest_ran:
                 if logger:
                     logger.debug(
@@ -2235,13 +2157,6 @@ class CoverageMetricsRegenerator:
                 no_parallel_test_results = self._parse_pytest_test_results(
                     no_parallel_output
                 )
-                if tools_return_code not in (None, 0):
-                    no_parallel_return_code = self._fold_tools_pytest_failure(
-                        no_parallel_test_results,
-                        no_parallel_return_code,
-                        tools_return_code,
-                        tools_test_results,
-                    )
                 no_parallel_zero_tests_exit = (
                     no_parallel_result.returncode == 5
                     and not no_parallel_test_results.get("total_tests", 0)
@@ -2444,7 +2359,6 @@ class CoverageMetricsRegenerator:
                         if self.parallel and pytest_ran:
                             no_parallel_ok = bool(
                                 no_parallel_result.returncode == 0
-                                and tools_return_code in (None, 0)
                                 and no_parallel_test_results.get("total_tests", 0) > 0
                             )
                             no_parallel_coverage_present = bool(
@@ -2587,21 +2501,18 @@ class CoverageMetricsRegenerator:
                         and _project_root_parallel.stat().st_size > 0
                     )
                 )
-                tools_coverage_present = bool(self._tools_coverage_artifact_paths())
                 if not (
                     parallel_exists
                     or no_parallel_exists
                     or parallel_shard_files
                     or _has_coverage_fallback
-                    or tools_coverage_present
                 ):
                     if logger:
                         logger.warning(
                             "Skipping coverage combine: no coverage artifacts found "
                             f"(coverage_dir={coverage_dir}, parallel_exists={parallel_exists}, "
                             f"no_parallel_exists={no_parallel_exists}, shards={len(parallel_shard_files)}, "
-                            f"fallback={_has_coverage_fallback}, "
-                            f"tools_coverage_present={tools_coverage_present}). "
+                            f"fallback={_has_coverage_fallback}). "
                             "Check that COVERAGE_FILE/COVERAGE_DATA_DIR are set for pytest."
                         )
                         if parallel_shard_files:
@@ -2726,13 +2637,6 @@ class CoverageMetricsRegenerator:
                                 )
                                 log_fn(
                                     f"No_parallel coverage file not found: {no_parallel_coverage_file}"
-                                )
-
-                        for tools_dest in self._copy_tools_coverage_for_combine(coverage_dir):
-                            files_to_combine.append(tools_dest)
-                            if logger:
-                                logger.debug(
-                                    f"Included development-tools coverage file {tools_dest.name}"
                                 )
 
                         # Copy .coverage_parallel.<suffix> shards to .coverage.<suffix> so coverage combine
@@ -3502,9 +3406,6 @@ class CoverageMetricsRegenerator:
                                     f"Error regenerating coverage JSON: {json_error}"
                                 )
 
-            if tools_paths and not (self.parallel and pytest_ran):
-                self._combine_tools_coverage_for_serial(coverage_output)
-
             try:
                 if self.report_generator:
                     # Check if we have merged coverage data that should be preserved
@@ -3698,498 +3599,6 @@ class CoverageMetricsRegenerator:
                 },
             }
 
-    def _get_dev_tools_source_mtimes(self) -> dict[str, float]:
-        """Get current modification times for Python files in development_tools."""
-        return _get_dev_tools_source_mtimes_fn(self.project_root)
-
-    def _get_dev_tools_test_mtimes(self) -> dict[str, float]:
-        """Get current mtimes for development_tools test files."""
-        return _get_dev_tools_test_mtimes_fn(self.project_root)
-
-    def _get_config_mtime(self) -> float | None:
-        """Get current development_tools_config.json mtime if available."""
-        return _get_config_mtime_fn(self.project_root)
-
-    def _check_dev_tools_changed(self) -> bool:
-        """Check if development_tools source/tests/config invalidate the cache."""
-        return _check_dev_tools_changed_fn(
-            use_domain_cache=self.use_domain_cache,
-            dev_tools_cache=self.dev_tools_cache,
-            project_root=self.project_root,
-            log=logger,
-        )
-
-    def run_dev_tools_coverage(self) -> dict[str, dict[str, Any]]:
-        """Run pytest coverage analysis specifically for development_tools directory."""
-        if logger:
-            logger.debug("Running pytest coverage analysis for development_tools...")
-        self._cleanup_stray_pytest_cache_temp_dirs()
-
-        # Dev tools coverage caching: check if dev tools have changed
-        dev_tools_changed = True
-        cached_coverage_json = None
-
-        if self.use_domain_cache and self.dev_tools_cache:
-            dev_tools_changed = self._check_dev_tools_changed()
-
-            if not dev_tools_changed:
-                # Load cached coverage data
-                cached_coverage_json = self.dev_tools_cache.get_cached_coverage()
-                if cached_coverage_json:
-                    if logger:
-                        logger.info(
-                            "Dev tools unchanged - using cached coverage data (skipping test execution)"
-                        )
-                else:
-                    # Cache exists but no coverage data - need to run tests
-                    dev_tools_changed = True
-            else:
-                if logger:
-                    logger.info(
-                        "Dev tools source files changed - will run tests and update cache"
-                    )
-
-        try:
-            coverage_output = self.dev_tools_coverage_json
-            coverage_output.parent.mkdir(parents=True, exist_ok=True)
-
-            # Skip test execution if using cached data
-            if not dev_tools_changed and cached_coverage_json:
-                # Save cached JSON to coverage_output so analyzer can load it
-                try:
-                    with open(coverage_output, "w", encoding="utf-8") as f:
-                        json.dump(cached_coverage_json, f, indent=2)
-                    if logger:
-                        logger.info("Loaded cached dev tools coverage data")
-                except Exception as e:
-                    if logger:
-                        logger.warning(f"Failed to save cached coverage JSON: {e}")
-                    # Fall through to run tests
-                    dev_tools_changed = True
-
-            if not dev_tools_changed and cached_coverage_json:
-                # Use cached data
-                if self.analyzer:
-                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
-                    overall_coverage = self.analyzer.extract_overall_from_json(
-                        coverage_output
-                    )
-                else:
-                    # Fallback: extract from cached JSON structure
-                    coverage_data = {}
-                    for file_path, file_data in cached_coverage_json.get(
-                        "files", {}
-                    ).items():
-                        summary = file_data.get("summary", {})
-                        coverage_data[file_path] = {
-                            "statements": summary.get("num_statements", 0),
-                            "covered": summary.get("covered_lines", 0),
-                            "missed": summary.get("missing_lines", 0),
-                            "coverage": summary.get("percent_covered", 0.0),
-                        }
-                    overall_coverage = {
-                        "overall_coverage": cached_coverage_json["totals"].get(
-                            "percent_covered", 0.0
-                        ),
-                        "total_statements": cached_coverage_json["totals"].get(
-                            "num_statements", 0
-                        ),
-                        "total_missed": cached_coverage_json["totals"].get(
-                            "missing_lines", 0
-                        ),
-                    }
-
-                return {
-                    "modules": coverage_data,
-                    "overall": overall_coverage,
-                    "coverage_collected": True,
-                    "from_cache": True,
-                    "dev_tools_test_outcome": {
-                        "state": "skipped",
-                        "return_code": None,
-                        "passed_count": 0,
-                        "failed_count": 0,
-                        "error_count": 0,
-                        "skipped_count": 0,
-                        "failed_node_ids": [],
-                        "from_cache": True,
-                    },
-                    "coverage_outcome": self._build_cache_only_coverage_outcome(
-                        coverage_collected=True
-                    ),
-                }
-
-            # Coverage only for development_tools directory
-            # Note: coverage_output path is relative to project_root, so we need to make it absolute
-            coverage_output_abs = coverage_output.resolve()
-            dev_cov_config = (
-                self.dev_tools_coverage_config_path
-                if self.dev_tools_coverage_config_path.exists()
-                else self.coverage_config_path
-            )
-            # Create timestamp for log file
-            from datetime import datetime
-
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-            # Respect parallel mode for dev-tools coverage (aligns with main coverage workers).
-            cmd = _build_dev_tools_coverage_pytest_cmd(
-                executable=sys.executable,
-                parallel=self.parallel,
-                num_workers=str(self.num_workers),
-                coverage_json_output=coverage_output_abs,
-                coverage_config_path=dev_cov_config,
-                maxfail=10,
-                test_path="development_tools/tool_tests/",
-            )
-            if self.parallel and logger:
-                logger.info(
-                    f"Using parallel execution for dev tools coverage with {self.num_workers} workers (loadscope distribution)"
-                )
-
-            if logger:
-                logger.debug(
-                    f"Running dev tools coverage command: {' '.join(cmd[:5])} ..."
-                )
-
-            env = os.environ.copy()
-            env = self._configure_test_logging_env(env)
-            # Ensure PATH includes Python executable's directory for Windows DLL resolution
-            env = self._ensure_python_path_in_env(env)
-            # Set COVERAGE_FILE to absolute path to ensure files are created in the correct location
-            env["COVERAGE_FILE"] = str(self.dev_tools_coverage_data_file.resolve())
-            if dev_cov_config and dev_cov_config.exists():
-                env["COVERAGE_RCFILE"] = str(dev_cov_config.resolve())
-            # Use unique cache/basetemp directories per run to avoid cross-run collisions.
-            pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths(
-                "dev_tools"
-            )
-            env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
-            # Force pytest cache provider to use writable temp cache directory.
-            cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
-            # Keep tmpdir fixtures isolated from tests/data/tmp cleanup logic.
-            cmd.append(f"--basetemp={pytest_temp_base}")
-
-            # Set up stdout logging for dev tools coverage (similar to main coverage)
-            # Rotate old log files before creating new ones (keep 1 current + 7 archived = 8 total)
-            self._rotate_log_files("pytest_dev_tools_stdout", max_versions=8)
-
-            # Create timestamp for log file
-            timestamp = now_timestamp_filename()
-            dev_tools_stdout_log = (
-                self.coverage_logs_dir / f"pytest_dev_tools_stdout_{timestamp}.log"
-            )
-            dev_tools_stdout_log.parent.mkdir(parents=True, exist_ok=True)
-
-            # Run pytest and capture output to both stdout and log file
-            try:
-                result = self._run_pytest_wait(
-                    cmd,
-                    timeout=900,  # 15 minutes timeout
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,  # Merge stderr into stdout
-                    text=True,
-                    cwd=self.project_root,
-                    env=env,
-                )
-                # Ensure stdout is not None
-                if result.stdout is None:
-                    result.stdout = ""
-                if result.stderr is None:
-                    result.stderr = ""
-                # Write to log file
-                with open(
-                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
-                ) as log_file:
-                    log_file.write(result.stdout)
-                    if result.stderr and result.stderr != result.stdout:
-                        log_file.write("\n\n=== STDERR ===\n")
-                        log_file.write(result.stderr)
-            except KeyboardInterrupt:
-                interrupt_msg = (
-                    "KeyboardInterrupt while waiting for dev-tools coverage pytest subprocess "
-                    "(SIGINT/control event)."
-                )
-                if logger:
-                    logger.warning(interrupt_msg)
-                with open(
-                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
-                ) as log_file:
-                    log_file.write(interrupt_msg + "\n")
-
-                result = subprocess.CompletedProcess(
-                    cmd,
-                    returncode=130,
-                    stdout=interrupt_msg + "\n",
-                    stderr=interrupt_msg,
-                )
-            except subprocess.TimeoutExpired:
-                if logger:
-                    logger.error("Dev tools coverage pytest timed out after 15 minutes")
-                with open(
-                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
-                ) as log_file:
-                    log_file.write("ERROR: pytest timed out after 15 minutes\n")
-
-                # Create a fake result object for error handling
-                class FakeResult:
-                    returncode = 1
-                    stdout = "ERROR: pytest timed out after 15 minutes\n"
-                    stderr = ""
-
-                result = FakeResult()
-            except Exception as e:
-                if logger:
-                    logger.error(
-                        f"Error running dev tools coverage pytest: {e}", exc_info=True
-                    )
-                with open(
-                    dev_tools_stdout_log, "w", encoding="utf-8", errors="replace"
-                ) as log_file:
-                    log_file.write(f"ERROR: Exception running pytest: {e}\n")
-
-                # Create a fake result object for error handling
-                class FakeResultException:
-                    returncode = 1
-                    stdout = f"ERROR: Exception running pytest: {e}\n"
-                    stderr = ""
-
-                result = FakeResultException()
-
-            if self._is_interrupt_return_code(getattr(result, "returncode", None)):
-                if logger:
-                    logger.warning(
-                        "Dev tools coverage pytest subprocess terminated with interrupt signature "
-                        f"(returncode={result.returncode}, hex={self._format_return_code_hex(result.returncode) or 'n/a'})."
-                    )
-
-            if logger:
-                log_size = (
-                    dev_tools_stdout_log.stat().st_size
-                    if dev_tools_stdout_log.exists()
-                    else 0
-                )
-                logger.info(
-                    f"Saved dev tools pytest output to {dev_tools_stdout_log} ({log_size} bytes)"
-                )
-
-            # Record dev tools run status (even if coverage is missing)
-            if self.use_domain_cache and self.dev_tools_cache:
-                try:
-                    self.dev_tools_cache.update_run_status(
-                        last_run_ok=bool(result.returncode == 0),
-                        last_exit_code=result.returncode,
-                    )
-                except Exception as e:
-                    if logger:
-                        logger.debug(f"Failed to record dev tools run status: {e}")
-
-            # Parse coverage results (even if pytest exited with non-zero code, coverage may still be available)
-            if self.analyzer:
-                coverage_data = self.analyzer.parse_coverage_output(result.stdout)
-            else:
-                coverage_data = {}
-            if not coverage_data and coverage_output.exists():
-                if self.analyzer:
-                    coverage_data = self.analyzer.load_coverage_json(coverage_output)
-
-                    # Add timestamp metadata to coverage_dev_tools.json
-                    try:
-                        with open(coverage_output, encoding="utf-8") as f:
-                            dev_tools_coverage_json = json.load(f)
-                        timestamp_str = now_timestamp_full()
-                        timestamp_iso = datetime.now().isoformat()
-                        dev_tools_coverage_json["_metadata"] = {
-                            "generated_by": "pytest-cov --cov-report=json - Development Tools (dev_tools)",
-                            "last_generated": timestamp_str,
-                            "timestamp": timestamp_iso,
-                            "note": "This file is auto-generated. Do not edit manually.",
-                        }
-                        with open(coverage_output, "w", encoding="utf-8") as f:
-                            json.dump(dev_tools_coverage_json, f, indent=2)
-                    except Exception as e:
-                        if logger:
-                            logger.debug(
-                                f"Failed to add metadata to coverage_dev_tools.json: {e}"
-                            )
-
-                    # Rotate coverage_dev_tools.json after loading
-                    if coverage_output.exists():
-                        from development_tools.shared.file_rotation import FileRotator
-
-                        rotator = FileRotator(base_dir=str(coverage_output.parent))
-                        rotator.rotate_file(str(coverage_output), max_versions=5)
-
-            if self.analyzer:
-                overall_coverage = self.analyzer.extract_overall_coverage(result.stdout)
-            else:
-                overall_coverage = {}
-            if (
-                not overall_coverage.get("overall_coverage")
-                and coverage_output.exists()
-            ) and self.analyzer:
-                overall_coverage = self.analyzer.extract_overall_from_json(
-                    coverage_output
-                )
-
-            # Log status after attempting to extract coverage
-            if result.returncode != 0:
-                if logger:
-                    # If we successfully extracted coverage, this is just test failures (not a coverage problem)
-                    if overall_coverage.get("overall_coverage") or coverage_data:
-                        logger.info(
-                            f"Dev tools coverage pytest completed with exit code {result.returncode} (some tests failed, but coverage data was successfully collected: {overall_coverage.get('overall_coverage', 'N/A')}%)"
-                        )
-                    else:
-                        logger.warning(
-                            f"Dev tools coverage pytest exited with code {result.returncode} and no coverage data could be extracted"
-                        )
-                        if result.stderr:
-                            logger.warning(f"Pytest stderr: {result.stderr[:500]}")
-                        if result.stdout:
-                            # Log more of stdout to see what happened
-                            logger.warning(
-                                f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}"
-                            )
-
-            # If still no coverage data, check if the file was created
-            if (
-                not overall_coverage.get("overall_coverage")
-                and not coverage_output.exists()
-            ) and logger:
-                logger.warning(f"Coverage JSON file not created at {coverage_output}")
-                logger.info(f"Pytest return code: {result.returncode}")
-                if result.stdout:
-                    # Look for coverage summary in stdout
-                    if "TOTAL" in result.stdout:
-                        logger.info(
-                            "Coverage data found in stdout but JSON not created"
-                        )
-                    # Log more of stdout to diagnose the issue
-                    logger.warning(
-                        f"Pytest stdout (last 1000 chars): {result.stdout[-1000:]}"
-                    )
-                    # Also log first part to see if there are early errors
-                    if len(result.stdout) > 1000:
-                        logger.warning(
-                            f"Pytest stdout (first 500 chars): {result.stdout[:500]}"
-                        )
-                if result.stderr:
-                    logger.warning(f"Pytest stderr: {result.stderr[:500]}")
-
-            # Cache dev tools coverage if we ran tests
-            if (
-                self.use_domain_cache
-                and self.dev_tools_cache
-                and coverage_output.exists()
-                and dev_tools_changed
-                and result.returncode == 0
-                and bool(coverage_data)
-            ):
-                # Load fresh coverage JSON
-                try:
-                    with open(coverage_output, encoding="utf-8") as f:
-                        fresh_coverage_json = json.load(f)
-                    source_mtimes = self._get_dev_tools_source_mtimes()
-                    test_mtimes = self._get_dev_tools_test_mtimes()
-                    config_mtime = self._get_config_mtime()
-                    self.dev_tools_cache.update_cache(
-                        fresh_coverage_json,
-                        source_mtimes,
-                        test_mtimes=test_mtimes,
-                        config_mtime=config_mtime,
-                        last_run_ok=bool(result.returncode == 0),
-                        last_exit_code=result.returncode,
-                    )
-                    if logger:
-                        logger.debug("Cached dev tools coverage data")
-                except Exception as e:
-                    if logger:
-                        logger.warning(f"Failed to cache dev tools coverage: {e}")
-
-            # Clean up temporary coverage data files after generating report
-            self._cleanup_coverage_data_files()
-            # Also clean up any process-specific files that may have been created
-            self._cleanup_process_specific_coverage_files()
-
-            if logger:
-                if overall_coverage.get("overall_coverage"):
-                    logger.info(
-                        f"Dev tools coverage: {overall_coverage.get('overall_coverage', 0):.1f}%"
-                    )
-                else:
-                    logger.warning("Dev tools coverage data not available")
-
-            parsed_dev_tools_results = self._parse_pytest_test_results(
-                result.stdout if hasattr(result, "stdout") and result.stdout else ""
-            )
-            if logger:
-                logger.info(
-                    "Dev tools tests completed: "
-                    f"{parsed_dev_tools_results.get('passed_count', 0)} passed, "
-                    f"{parsed_dev_tools_results.get('failed_count', 0)} failed, "
-                    f"{parsed_dev_tools_results.get('skipped_count', 0)} skipped"
-                )
-                dev_tools_failed_nodes = list(
-                    parsed_dev_tools_results.get("failed_tests", [])
-                )
-                dev_tools_failed_nodes.extend(
-                    parsed_dev_tools_results.get("error_tests", [])
-                )
-                if dev_tools_failed_nodes:
-                    logger.warning("Dev tools failed/error tests:")
-                    for node in dev_tools_failed_nodes[:10]:
-                        logger.warning(f"  - {node}")
-                    if len(dev_tools_failed_nodes) > 10:
-                        logger.warning(
-                            f"  ... and {len(dev_tools_failed_nodes) - 10} more (see log for full list)"
-                        )
-            dev_tools_test_outcome = self._build_track_outcome(
-                return_code=(
-                    result.returncode if hasattr(result, "returncode") else None
-                ),
-                parsed_results=(
-                    parsed_dev_tools_results
-                    if isinstance(parsed_dev_tools_results, dict)
-                    else {}
-                ),
-                output="\n".join(
-                    [
-                        (
-                            result.stdout
-                            if hasattr(result, "stdout") and result.stdout
-                            else ""
-                        ),
-                        (
-                            result.stderr
-                            if hasattr(result, "stderr") and result.stderr
-                            else ""
-                        ),
-                    ]
-                ),
-            )
-
-            return {
-                "modules": coverage_data,
-                "overall": overall_coverage,
-                "coverage_collected": bool(coverage_data) or coverage_output.exists(),
-                "output_file": str(coverage_output),
-                "html_dir": None,  # HTML reports disabled
-                "from_cache": (
-                    not dev_tools_changed
-                    if self.use_domain_cache and self.dev_tools_cache
-                    else False
-                ),
-                "dev_tools_test_outcome": dev_tools_test_outcome,
-            }
-
-        except Exception as e:
-            if logger:
-                logger.error(f"Error running dev tools coverage analysis: {e}")
-            else:
-                print(f"Error running dev tools coverage analysis: {e}")
-            return {}
-
     def _cleanup_process_specific_coverage_files(
         self, coverage_dir: Path | None = None
     ) -> None:
@@ -4243,29 +3652,6 @@ class CoverageMetricsRegenerator:
             logger.debug(
                 f"Cleaned up {cleanup_count} process-specific coverage file(s)"
             )
-
-    def _cleanup_coverage_data_files(self) -> None:
-        """Clean up temporary .coverage_dev_tools.* files after coverage analysis."""
-        tests_dir = self.project_root / "development_tools" / "tests"
-
-        cleanup_count = 0
-
-        # Clean up files in tests directory (current location)
-        # Include process-specific files (e.g., .coverage_dev_tools.DESKTOP-*.X.*)
-        if tests_dir.exists():
-            # Clean up all .coverage_dev_tools.* files (including process-specific ones)
-            for coverage_file in tests_dir.glob(".coverage_dev_tools*"):
-                try:
-                    # Skip directories
-                    if coverage_file.is_file():
-                        coverage_file.unlink()
-                        cleanup_count += 1
-                except Exception as exc:
-                    if logger:
-                        logger.warning(f"Failed to clean up {coverage_file}: {exc}")
-
-        if cleanup_count > 0 and logger:
-            logger.info(f"Cleaned up {cleanup_count} temporary coverage data file(s)")
 
     def _cleanup_stray_pytest_cache_temp_dirs(self) -> None:
         """Best-effort cleanup for stray pytest cache temp directories."""
@@ -4629,61 +4015,6 @@ class CoverageMetricsRegenerator:
             "failed_node_ids": [],
         }
 
-    def _write_dev_tools_coverage_json_from_main(
-        self, main_coverage_path: Path
-    ) -> None:
-        """Write coverage_dev_tools.json as a subset of unified main coverage.json."""
-        root = self.project_root.resolve()
-        try:
-            if not main_coverage_path.is_file():
-                return
-            with main_coverage_path.open("r", encoding="utf-8") as handle:
-                data = json.load(handle)
-        except (OSError, json.JSONDecodeError) as exc:
-            if logger:
-                logger.warning(
-                    f"Skipping dev-tools coverage subset: cannot read main coverage ({exc})"
-                )
-            return
-        if not isinstance(data, dict):
-            return
-        files = data.get("files")
-        if not isinstance(files, dict):
-            return
-        out_files: dict[str, Any] = {}
-        for path_key, payload in files.items():
-            if not isinstance(payload, dict):
-                continue
-            rel = _coverage_path_to_rel_posix(str(path_key), root)
-            if rel is None:
-                continue
-            if rel == "development_tools" or rel.startswith("development_tools/"):
-                out_files[str(path_key)] = payload
-        totals = _recompute_coverage_totals_from_files(out_files)
-        subset = dict(data)
-        subset["files"] = out_files
-        subset["totals"] = totals
-        meta = subset.get("_metadata")
-        if isinstance(meta, dict):
-            meta = dict(meta)
-            meta["dev_tools_subset_from"] = "unified_main_coverage.json"
-            subset["_metadata"] = meta
-        out_path = (
-            config.get_coverage_json_dir(root) / "coverage_dev_tools.json"
-        )
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            with out_path.open("w", encoding="utf-8") as handle:
-                json.dump(subset, handle, indent=2)
-            if logger:
-                pct = float(totals.get("percent_covered", 0.0) or 0.0)
-                logger.info(
-                    f"Wrote dev-tools coverage subset to {out_path} ({pct:.1f}% of dev-tools statements)"
-                )
-        except OSError as exc:
-            if logger:
-                logger.warning(f"Failed to write {out_path}: {exc}")
-
     def _build_track_outcome(
         self,
         return_code: int | None,
@@ -4896,346 +4227,52 @@ class CoverageMetricsRegenerator:
 
         return datetime.now().strftime("%Y-%m-%d")
 
-    def _fold_tools_pytest_failure(
-        self,
-        no_parallel_test_results: dict[str, Any],
-        no_parallel_return_code: int | None,
-        tools_return_code: int | None,
-        tools_test_results: dict[str, Any],
-    ) -> int | None:
-        """Record an isolated development-tools pytest failure on the serial track."""
-        tool_errors = list(tools_test_results.get("error_tests") or [])
-        tool_errors.extend(tools_test_results.get("failed_tests") or [])
-        if not tool_errors:
-            tool_errors = ["development_tools/tool_tests"]
-        existing = list(no_parallel_test_results.get("error_tests") or [])
-        for node_id in tool_errors:
-            if node_id not in existing:
-                existing.append(node_id)
-        no_parallel_test_results["error_tests"] = existing
-        no_parallel_test_results["error_count"] = len(existing)
-        if no_parallel_return_code in (None, 0):
-            return tools_return_code
-        return no_parallel_return_code
-
-    def _tools_coverage_artifact_paths(self) -> list[Path]:
-        """Return non-empty ``.coverage_devtools*`` files from the coverage directory."""
-        coverage_dir = self.coverage_data_file.parent
-        found: list[Path] = []
-        if not coverage_dir.exists():
-            return found
-        for src in sorted(coverage_dir.glob(".coverage_devtools*")):
-            try:
-                if src.is_file() and src.stat().st_size > 0:
-                    found.append(src)
-            except OSError:
-                continue
-        return found
-
-    def _copy_tools_coverage_for_combine(self, coverage_dir: Path) -> list[Path]:
-        """Copy tools coverage data to ``.coverage.devtools*`` names for ``coverage combine``."""
-        copied: list[Path] = []
-        for src in self._tools_coverage_artifact_paths():
-            suffix = src.name.removeprefix(".coverage_devtools")
-            dest = coverage_dir / f".coverage.devtools{suffix}"
-            try:
-                if src.resolve() != dest.resolve():
-                    shutil.copy2(src, dest)
-                copied.append(dest)
-            except OSError as exc:
-                if logger:
-                    logger.warning(
-                        f"Failed to copy development-tools coverage file {src.name}: {exc}"
-                    )
-        return copied
-
-    def _combine_tools_coverage_for_serial(self, coverage_output: Path) -> None:
-        """Merge an isolated tools coverage file into the serial host coverage data."""
-        artifacts = self._tools_coverage_artifact_paths()
-        if not artifacts:
-            return
-        coverage_dir = self.coverage_data_file.parent
-        sources: list[Path] = []
-        host_data = self.coverage_data_file
-        try:
-            if host_data.exists() and host_data.stat().st_size > 0:
-                host_copy = coverage_dir / ".coverage.host"
-                shutil.copy2(host_data, host_copy)
-                sources.append(host_copy)
-        except OSError as exc:
-            if logger:
-                logger.warning(f"Failed to stage host coverage for tools merge: {exc}")
-        sources.extend(self._copy_tools_coverage_for_combine(coverage_dir))
-        if not sources:
-            return
-        combine_env = os.environ.copy()
-        combine_env["COVERAGE_FILE"] = str(self.coverage_data_file.resolve())
-        if self.coverage_config_path.exists():
-            combine_env["COVERAGE_RCFILE"] = str(self.coverage_config_path.resolve())
-        combine_cmd = [
-            sys.executable,
-            "-m",
-            "coverage",
-            "combine",
-            "--data-file",
-            str(self.coverage_data_file.resolve()),
-        ]
-        try:
-            combine_result = subprocess.run(
-                combine_cmd,
-                capture_output=True,
-                text=True,
-                cwd=coverage_dir,
-                env=combine_env,
-                timeout=60,
-            )
-            if combine_result.returncode != 0 and logger:
-                logger.warning(
-                    "Serial development-tools coverage combine exited with "
-                    f"{combine_result.returncode}: {combine_result.stderr.strip()}"
-                )
-                return
-            json_cmd = [
-                sys.executable,
-                "-m",
-                "coverage",
-                "json",
-                "-o",
-                str(coverage_output),
-                "--data-file",
-                str(self.coverage_data_file.resolve()),
-            ]
-            json_result = subprocess.run(
-                json_cmd,
-                capture_output=True,
-                text=True,
-                cwd=self.project_root,
-                env=combine_env,
-                timeout=60,
-            )
-            if json_result.returncode != 0 and logger:
-                logger.warning(
-                    "Serial development-tools coverage json exited with "
-                    f"{json_result.returncode}: {json_result.stderr.strip()}"
-                )
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            if logger:
-                logger.warning(
-                    f"Failed to merge development-tools coverage into the serial run: {exc}"
-                )
-
-    def _run_isolated_tools_coverage(
-        self,
-        *,
-        tools_paths: list[str],
-        cov_args: list[str],
-        pytest_timeout: int,
-    ) -> dict[str, Any]:
-        """Run development-tools tests with development_tools/pytest.ini."""
-        empty_results = {
-            "passed_count": 0,
-            "failed_count": 0,
-            "error_count": 0,
-            "skipped_count": 0,
-            "test_summary": "",
-            "failed_tests": [],
-            "error_tests": [],
-            "total_tests": 0,
-        }
-        if not tools_paths:
-            return {
-                "return_code": None,
-                "output": "",
-                "results": empty_results,
-                "log_file": None,
-            }
-        coverage_dir = self.coverage_data_file.parent
-        coverage_dir.mkdir(parents=True, exist_ok=True)
-        for stale_name in (".coverage_devtools*", ".coverage.devtools*"):
-            for stale in coverage_dir.glob(stale_name):
-                try:
-                    if stale.is_file():
-                        stale.unlink()
-                except OSError as exc:
-                    if logger:
-                        logger.warning(
-                            f"Failed to remove stale coverage file {stale.name}: {exc}"
-                        )
-        tools_coverage_file = coverage_dir / ".coverage_devtools"
-        cmd = _build_isolated_tools_coverage_pytest_cmd(
-            executable=sys.executable,
-            parallel=self.parallel,
-            num_workers=str(self.num_workers),
-            cov_args=cov_args,
-            coverage_config_path=self.coverage_config_path,
-            maxfail=self.maxfail,
-            tools_paths=tools_paths,
-        )
-        env = os.environ.copy()
-        env = self._configure_test_logging_env(env)
-        env = self._ensure_python_path_in_env(env)
-        env["COVERAGE_DATA_DIR"] = str(coverage_dir)
-        env["COVERAGE_FILE"] = str(tools_coverage_file.resolve())
-        if self.coverage_config_path.exists():
-            env["COVERAGE_RCFILE"] = str(self.coverage_config_path.resolve())
-        pytest_temp_base, pytest_cache_dir = self._create_pytest_temp_paths("devtools")
-        env["PYTEST_CACHE_DIR"] = str(pytest_cache_dir)
-        cmd.extend(["-o", f"cache_dir={pytest_cache_dir}"])
-        cmd.append(f"--basetemp={pytest_temp_base}")
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self._rotate_log_files("pytest_devtools_stdout", max_versions=8)
-        tools_stdout_log = (
-            self.coverage_logs_dir / f"pytest_devtools_stdout_{timestamp}.log"
-        )
-        tools_stdout_log.parent.mkdir(parents=True, exist_ok=True)
-        if logger:
-            logger.info(
-                "Running development-tools coverage pytest with "
-                "development_tools/pytest.ini"
-            )
-        try:
-            with open(tools_stdout_log, "w", encoding="utf-8", buffering=1) as stdout_file:
-                result = self._run_pytest_wait(
-                    cmd,
-                    timeout=pytest_timeout,
-                    stdout=stdout_file,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    cwd=self.project_root,
-                    env=env,
-                )
-            output = tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
-            result.stdout = output
-            result.stderr = ""
-        except KeyboardInterrupt:
-            output = (
-                tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
-                if tools_stdout_log.exists()
-                else ""
-            )
-            result = subprocess.CompletedProcess(
-                cmd,
-                returncode=130,
-                stdout=output,
-                stderr="KeyboardInterrupt while waiting for development-tools pytest.",
-            )
-        except subprocess.TimeoutExpired:
-            output = (
-                tools_stdout_log.read_text(encoding="utf-8", errors="ignore")
-                if tools_stdout_log.exists()
-                else ""
-            )
-            result = subprocess.CompletedProcess(
-                cmd,
-                returncode=1,
-                stdout=output,
-                stderr=(
-                    "Development-tools pytest timed out after "
-                    f"{pytest_timeout // 60} minutes"
-                ),
-            )
-        if logger:
-            logger.info(
-                f"Saved development-tools pytest output to {tools_stdout_log}"
-            )
-        parsed = self._parse_pytest_test_results(result.stdout or "")
-        return {
-            "return_code": result.returncode,
-            "output": result.stdout or "",
-            "results": parsed if isinstance(parsed, dict) else empty_results,
-            "log_file": tools_stdout_log,
-        }
-
-    def run(self, dev_tools_only: bool = False) -> dict[str, Any]:
+    def run(self) -> dict[str, Any]:
         """Run coverage collection, ignoring stray SIGINT until 5 Ctrl+C in 2s."""
         from development_tools.shared.audit_signal_state import ignore_spurious_sigint
 
         with ignore_spurious_sigint(action_name="coverage"):
-            return self._run_with_sigint_ignored(dev_tools_only)
+            return self._run_with_sigint_ignored()
 
-    def _run_with_sigint_ignored(self, dev_tools_only: bool = False) -> dict[str, Any]:
+    def _run_with_sigint_ignored(self) -> dict[str, Any]:
         """Run the coverage metrics regeneration."""
-        if dev_tools_only:
-            # Run dev tools coverage analysis only
-            coverage_results = self.run_dev_tools_coverage()
+        logger.debug("Generating test coverage...")
 
-            if not coverage_results:
-                error_msg = "Failed to get dev tools coverage data - run_dev_tools_coverage returned empty result"
-                logger.error(error_msg)
-                print(f"ERROR: {error_msg}", file=sys.stderr)
-                sys.exit(1)
+        # Run coverage analysis
+        coverage_results = self.run_coverage_analysis()
 
-            # Check if coverage was actually collected
-            if not coverage_results.get("coverage_collected", False):
-                error_msg = "Dev tools coverage analysis completed but no coverage data was collected - tests may not have run"
-                logger.error(error_msg)
-                # Print to stdout so run_script() can capture it
-                print(f"ERROR: {error_msg}")
-                # Still return the results dict so caller can check coverage_collected flag
-                # Exit with non-zero code to indicate failure
-                sys.exit(1)
-
-            # Generate summary for dev tools
-            if self.report_generator:
-                coverage_summary = self.report_generator.generate_coverage_summary(
-                    coverage_results.get("modules", {}),
-                    coverage_results.get("overall", {}),
-                )
-            else:
-                # Fallback to old method if report generator not available
-                coverage_summary = self._generate_coverage_summary_fallback(
-                    coverage_results.get("modules", {}),
-                    coverage_results.get("overall", {}),
-                )
-
-            # Print summary (headers removed - added by consolidated report)
-            print(coverage_summary)
-
-            return coverage_results
-        else:
-            logger.debug("Generating test coverage...")
-
-            # Run coverage analysis
-            coverage_results = self.run_coverage_analysis()
-
-            if not coverage_results:
-                logger.error(
-                    "Failed to get coverage data - run_coverage_analysis returned empty result"
-                )
-                return {}
-
-            # Check if coverage was actually collected (not just using stale data)
-            if not coverage_results.get("coverage_collected", False):
-                logger.error(
-                    "Coverage analysis completed but no coverage data was collected - tests may not have run"
-                )
-                if coverage_results.get("error"):
-                    logger.error(
-                        f"Error from coverage analysis: {coverage_results.get('error')}"
-                    )
-                return {}
-
-            main_cov = (
-                config.get_coverage_json_dir(self.project_root) / "coverage.json"
+        if not coverage_results:
+            logger.error(
+                "Failed to get coverage data - run_coverage_analysis returned empty result"
             )
-            if main_cov.exists():
-                self._write_dev_tools_coverage_json_from_main(main_cov)
+            return {}
 
-            # Generate summary
-            if self.report_generator:
-                coverage_summary = self.report_generator.generate_coverage_summary(
-                    coverage_results["modules"], coverage_results["overall"]
+        # Check if coverage was actually collected (not just using stale data)
+        if not coverage_results.get("coverage_collected", False):
+            logger.error(
+                "Coverage analysis completed but no coverage data was collected - tests may not have run"
+            )
+            if coverage_results.get("error"):
+                logger.error(
+                    f"Error from coverage analysis: {coverage_results.get('error')}"
                 )
-            else:
-                # Fallback to old method if report generator not available
-                coverage_summary = self._generate_coverage_summary_fallback(
-                    coverage_results["modules"], coverage_results["overall"]
-                )
+            return {}
 
-            # Print summary (headers removed - added by consolidated report)
-            print(coverage_summary)
+        # Generate summary
+        if self.report_generator:
+            coverage_summary = self.report_generator.generate_coverage_summary(
+                coverage_results["modules"], coverage_results["overall"]
+            )
+        else:
+            # Fallback to old method if report generator not available
+            coverage_summary = self._generate_coverage_summary_fallback(
+                coverage_results["modules"], coverage_results["overall"]
+            )
 
-            return coverage_results
+        # Print summary (headers removed - added by consolidated report)
+        print(coverage_summary)
+
+        return coverage_results
 
 
 def main():
@@ -5257,14 +4294,9 @@ def main():
         help="Number of parallel workers (default: 'auto' to let pytest-xdist decide, or specify a number)",
     )
     parser.add_argument(
-        "--dev-tools-only",
-        action="store_true",
-        help="Run coverage analysis only for development_tools directory (separate evaluation)",
-    )
-    parser.add_argument(
         "--no-domain-cache",
         action="store_true",
-        help="Disable test-file and dev tools coverage caching (runs all tests regardless of domain changes). Caching is enabled by default. Incomplete runs still merge with the last good coverage.json so a collapsed snapshot is not published.",
+        help="Disable test-file coverage caching (runs all tests regardless of domain changes). Caching is enabled by default. Incomplete runs still merge with the last good coverage.json so a collapsed snapshot is not published.",
     )
 
     args = parser.parse_args()
@@ -5290,7 +4322,7 @@ def _run_coverage_cli(args: argparse.Namespace) -> None:
         num_workers=args.workers if parallel_enabled else None,
         use_domain_cache=not args.no_domain_cache,
     )
-    results = regenerator.run(dev_tools_only=args.dev_tools_only)
+    results = regenerator.run()
 
     # Treat missing/invalid coverage results as command failure.
     # This ensures orchestration gets a non-zero exit and can classify Tier 3 correctly.
@@ -5298,29 +4330,11 @@ def _run_coverage_cli(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     if args.output_file and results:
-        # Save detailed results to JSON file
-        output_payload = results
-        if args.dev_tools_only and isinstance(results, dict):
-            # Emit standard format payload for dev-tools coverage output files.
-            overall = (
-                results.get("overall", {})
-                if isinstance(results.get("overall"), dict)
-                else {}
-            )
-            total_missed = int(overall.get("total_missed", 0) or 0)
-            output_payload = {
-                "summary": {
-                    "total_issues": total_missed,
-                    "files_affected": 0,
-                },
-                "details": results,
-            }
-
         output_path = Path(args.output_file)
         with open(output_path, "w", encoding="utf-8") as f:
             import json
 
-            json.dump(output_payload, f, indent=2)
+            json.dump(results, f, indent=2)
         print(f"\nDetailed coverage data saved to: {output_path}")
 
 

@@ -435,7 +435,7 @@ def check_current_exports(package_name: str) -> set[str]:
 
 def parse_function_registry() -> dict[str, set[str]]:
     """Parse FUNCTION_REGISTRY_DETAIL.md to find documented public functions."""
-    registry_file = project_root / "development_docs" / "FUNCTION_REGISTRY_DETAIL.md"
+    registry_file = Path(config.get_analyze_function_registry_config(project_root)["registry_path"])
 
     if not registry_file.exists():
         return {}

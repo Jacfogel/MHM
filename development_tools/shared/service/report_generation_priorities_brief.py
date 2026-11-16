@@ -29,8 +29,8 @@ from .report_generation_linkify import (
 
 
 
-class AIPrioritiesDocumentMixin:
-    """Mixin providing `_generate_ai_priorities_document`."""
+class PrioritiesBriefDocumentMixin:
+    """Mixin providing `_generate_priorities_brief_document`."""
 
     def _coverage_report_display_path(self) -> str:
         path = get_coverage_report_path(self.project_root)
@@ -38,14 +38,14 @@ class AIPrioritiesDocumentMixin:
             path = path.relative_to(self.project_root)
         return path.as_posix()
 
-    def _generate_ai_priorities_document(self) -> str:
+    def _generate_priorities_brief_document(self) -> str:
         """Generate AI-optimized priorities document with immediate next steps."""
         # Log data source context
         audit_tier = getattr(self, "current_audit_tier", None)
         report_paths = get_status_report_paths(
             self.project_root, dev_tools_only=self._is_dev_tools_scoped_report()
         )
-        report_path = report_paths["ai_priorities"]
+        report_path = report_paths["priorities_brief"]
         priorities_target = report_path.name
         if audit_tier:
             logger.info(
@@ -66,11 +66,11 @@ class AIPrioritiesDocumentMixin:
         if audit_in_progress and not is_legitimate_end_write:
             if not instance_flag:
                 logger.debug(
-                    "_generate_ai_priorities_document() called from NEW instance during audit! This should only happen at the end."
+                    "_generate_priorities_brief_document() called from NEW instance during audit! This should only happen at the end."
                 )
             else:
                 logger.debug(
-                    "_generate_ai_priorities_document() called during audit! This should only happen at the end."
+                    "_generate_priorities_brief_document() called during audit! This should only happen at the end."
                 )
             import traceback
 
@@ -80,7 +80,7 @@ class AIPrioritiesDocumentMixin:
         if self._is_dev_tools_scoped_report():
             lines.append("# Development Tools Priorities - Immediate Next Steps")
         else:
-            lines.append("# AI Priorities - Immediate Next Steps")
+            lines.append("# Priorities Brief - Immediate Next Steps")
         lines.append("")
         display_path = (
             report_path.relative_to(self.project_root)
@@ -201,9 +201,6 @@ class AIPrioritiesDocumentMixin:
         )
         dependency_patterns_data = self._load_tool_data(
             "analyze_dependency_patterns", "imports"
-        )
-        import_boundary_data = self._load_tool_data(
-            "analyze_dev_tools_import_boundaries", "imports"
         )
         duplicate_functions_data = self._load_tool_data(
             "analyze_duplicate_functions", "functions"
@@ -743,7 +740,6 @@ class AIPrioritiesDocumentMixin:
                 "Raise coverage for domains below target": "ai_development_docs/AI_TESTING_GUIDE.md",
                 "Raise development tools coverage": "development_tools/README.md, ai_development_docs/AI_TESTING_GUIDE.md",
                 "Reduce dependency pattern risk": "development_tools/README.md (CONSOLIDATED_REPORT), ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Fix development tools import boundary violations": "development_tools/README.md (section 8.5)",
                 "Remove legacy compatibility code (after full call-site migration)": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
                 "Update tools to use centralized config": "development_tools/README.md",
                 "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
@@ -767,7 +763,7 @@ class AIPrioritiesDocumentMixin:
                 "Add docstrings to missing functions": self._scoped_tool_result_path(
                     "functions", "analyze_functions"
                 ),
-                "Update function registry": "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+                "Update function registry": "development_tools/reports/FUNCTION_REGISTRY_DETAIL.md",
                 "Add error handling to missing functions": self._scoped_tool_result_path(
                     "error_handling", "analyze_error_handling"
                 ),
@@ -779,9 +775,6 @@ class AIPrioritiesDocumentMixin:
                     "tests", "generate_dev_tools_coverage"
                 ),
                 "Reduce dependency pattern risk": consolidated_report_link,
-                "Fix development tools import boundary violations": self._scoped_tool_result_path(
-                    "imports", "analyze_dev_tools_import_boundaries"
-                ),
                 "Remove legacy compatibility code (after full call-site migration)": f"{legacy_report_link} (exact locations)",
                 "Update tools to use centralized config": self._scoped_tool_result_path(
                     "ai_work", "analyze_ai_work"
@@ -1759,26 +1752,6 @@ class AIPrioritiesDocumentMixin:
                     ),
                     bullets=dep_bullets,
                 )
-
-        # Import boundary priority (development_tools portability)
-        import_boundary_summary = (
-            import_boundary_data.get("summary", {})
-            if isinstance(import_boundary_data, dict)
-            else {}
-        )
-        import_violations = to_int(import_boundary_summary.get("total_issues"))
-        if import_violations is not None and import_violations > 0:
-            import_bullets: list[str] = [
-                "Review for policy: development_tools/README.md §8.5 Import boundary",
-                "Action: Remove core.* imports from development_tools. Use development_tools.shared.logging for logging. Replace core.time_utilities with development_tools/shared/time_helpers; core.error_handling with try/except or dev-tools wrapper; core.backup_manager with optional/lazy import.",
-                "Verify: Run `python development_tools/imports/analyze_dev_tools_import_boundaries.py` after fixes.",
-            ]
-            add_priority(
-                tier=2,
-                title="Fix development tools import boundary violations",
-                reason=f"{import_violations} non-approved core import(s) in development_tools/** (portability risk).",
-                bullets=import_bullets,
-            )
 
         # Legacy references priority
         if legacy_files and legacy_files > 0:

@@ -1,12 +1,11 @@
-# AI Module Dependencies - Key Relationships & Patterns
+# Module Dependencies Brief - Key Relationships & Patterns
 
-> **File**: `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
+> **File**: `development_tools/reports/MODULE_DEPENDENCIES_BRIEF.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 00:07:41
+> **Last Generated**: 2026-11-16 13:27:10
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
-> **Audience**: AI collaborators
-> **Purpose**: Essential module relationships and dependency patterns for AI context
+> **Purpose**: Essential module relationships and dependency patterns
 > **Style**: Pattern-focused, relationship-driven, actionable
 
 ## Current Status
@@ -156,4 +155,4 @@ External libraries provide channel and UI support.
 - `ui/` - User interface (depends on core, limited communication dependencies)
 - `user/` - User context (depends on core)
 
-> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md)**
+> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](MODULE_DEPENDENCIES_DETAIL.md)**

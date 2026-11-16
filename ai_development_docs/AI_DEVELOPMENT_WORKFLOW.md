@@ -110,7 +110,7 @@ When documenting:
 
 - Decide which docs to update using [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md).
 - Keep H2 headings aligned across doc pairs as described in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist), section 4. "Documentation Synchronization Checklist".
-- When touching config or list-like structures, consult [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) for canonical sources and consolidation principles.
+- When touching config or list-like structures, consult [the tools configuration guide](https://github.com/Jacfogel/development-tools/blob/2d511ffc1780a8c923ef1296bf016e5585a81942/LIST_OF_LISTS.md) for canonical sources and consolidation principles.
 ## 4. Testing Strategy
 
 - Always propose tests when suggesting code changes.
@@ -249,7 +249,7 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Coverage refresh**: Run `python development_tools/run_development_tools.py coverage` separately when coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md` need refresh. Coverage runs are intentionally less frequent than Tier 3 audits.
 
-- **Dev-tools-only full audit**: With the tools development suite installed, run `python development_tools/run_development_tools.py audit --full --dev-tools-only` to refresh `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` for the development-tools scope. Coverage is still refreshed only by the explicit `coverage` command.
+- **Maintainer checks**: Run the tools' own audit and tests from the development checkout. See the [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
 
 - **Documentation work**: 
   - Run `python development_tools/run_development_tools.py doc-sync` to check documentation pairing and path drift.
@@ -257,6 +257,6 @@ When to run AI development tools for codebase analysis and health checks:
 
 - **Quick status snapshot**: Run `python development_tools/run_development_tools.py status` to view cached summaries from the most recent audit (rerun `audit` if cache is stale).
 
-**Note**: Standard audits write `development_tools/STATUS_BRIEF.md`, `development_tools/PRIORITIES_BRIEF.md`, and `development_tools/CONSOLIDATED_REPORT.md`. With `--dev-tools-only`, Tier 3 writes `development_tools/DEV_TOOLS_STATUS.md`, `development_tools/DEV_TOOLS_PRIORITIES.md`, and `development_tools/DEV_TOOLS_CONSOLIDATED_REPORT.md` instead so scoped runs do not overwrite full-repo status files. See paired [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#10-standard-audit-recipe) section 10 for the human-facing recipe.
+**Note**: Standard audits write `development_tools/STATUS_BRIEF.md`, `development_tools/PRIORITIES_BRIEF.md`, and `development_tools/CONSOLIDATED_REPORT.md`. See paired [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#10-standard-audit-recipe) section 10 for the human-facing recipe.
 
 For detailed tool usage and output locations, see [README.md](../development_tools/README.md).

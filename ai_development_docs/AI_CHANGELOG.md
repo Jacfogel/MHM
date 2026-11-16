@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-16 - Published tools update and report links **COMPLETED**
+
+- Updated MHM's tools to published revision `74e5284`. MHM keeps its host configuration, and published scans exclude the tools directory.
+- Regenerated the registry, dependencies, and directory tree under `development_tools/reports/`. The dependency check passed after reading the new report.
+- Repaired links to removed tools files. All 43 logger tests passed, and `doc-sync` reported zero issues and zero Markdown link hints.
+
 ### 2026-11-16 - Development tools release split and audit cleanup **COMPLETED**
 
 - The private tools repo now has development and published branches. The development branch owns self-checks, tests, fixtures, and the testing guide. MHM uses the published runtime, one tools README, and the renamed `STATUS_BRIEF.md` and `PRIORITIES_BRIEF.md` reports.
@@ -110,14 +116,6 @@ Guidelines:
 - Preserved drafts on failed saves, made check-in retries idempotent, and hardened account verification and notebook list numbering.
 - Notebook queries distinguish unreadable or invalid files from empty collections and preserve the original files.
 - Focused tests and lint passed. The user reported a clean full audit at the earlier task/notebook checkpoint.
-
-### 2026-11-07 - Strengthen test runner isolation and policy boundaries **COMPLETED**
-- Both serial runner paths now use the tools pytest configuration/conftest boundary; regression tests cover standalone tools and full-suite modes.
-- Focused validation: 15 tests passed and marker analysis passed. The real one-worker tools run reached 72 passes before memory exceeded 98%; stopped it and the concurrent audit. Complete-suite/audit validation remains open in TEST_PLAN.md.
-- Monitoring follow-up: closed domain-marker monitoring after analyzer/policy validation, retaining routine maintenance. Notebook/help (23) and task-list UI (20) tests pass; Windows async tests needed local loopback access. Production log sizes stayed unchanged. Live checks remain open; only the user runs full audits.
-- Added product AST boundary guards for time APIs, stream JSON storage, and core/UI imports; documented exact exceptions and scanner limits. Five health time calls now use canonical helpers; 33 policy and 62 existing health/time checks pass, plus Ruff/marker/diff checks. Completed roadmap items moved to maintenance; no full audit or live reload for this follow-up.
-- Fixed boundary-test links in both testing guides and clarified prose for path scanning; narrowed AST node types to remove the Pyright warning without suppression. All 15 core/UI checks pass; follow-up uses doc-sync/Pyright only.
-- Health follow-up: transition tests reproduced future-dated signals affecting pressure; fallback now excludes future dates. Health cooldown evaluation moves to monitoring; an extra timer awaits live evidence of intraday oscillation and must respect immediate opt-out. User's clear full audit is recorded separately from complete-suite/live gates; no agent full audit.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

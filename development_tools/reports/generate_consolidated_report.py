@@ -60,13 +60,13 @@ def generate_consolidated_reports(
                 raise
             return create_output_file(path, content)
 
-    # Generate AI Status document
-    ai_status = service._generate_ai_status_document()
-    ai_status_file = write_report("development_tools/STATUS_BRIEF.md", ai_status)
+    # Generate Status Brief document
+    status_brief = service._generate_status_brief_document()
+    status_brief_file = write_report("development_tools/STATUS_BRIEF.md", status_brief)
 
-    # Generate AI Priorities document
-    ai_priorities = service._generate_ai_priorities_document()
-    ai_priorities_file = write_report("development_tools/PRIORITIES_BRIEF.md", ai_priorities)
+    # Generate Priorities Brief document
+    priorities_brief = service._generate_priorities_brief_document()
+    priorities_brief_file = write_report("development_tools/PRIORITIES_BRIEF.md", priorities_brief)
 
     # Generate consolidated report
     consolidated_report = service._generate_consolidated_report()
@@ -76,13 +76,13 @@ def generate_consolidated_reports(
     )
 
     logger.info("Generated consolidated reports:")
-    logger.info(f"  - STATUS_BRIEF.md: {ai_status_file}")
-    logger.info(f"  - PRIORITIES_BRIEF.md: {ai_priorities_file}")
+    logger.info(f"  - STATUS_BRIEF.md: {status_brief_file}")
+    logger.info(f"  - PRIORITIES_BRIEF.md: {priorities_brief_file}")
     logger.info(f"  - CONSOLIDATED_REPORT.md: {consolidated_file}")
 
     return {
-        "ai_status": str(ai_status_file),
-        "ai_priorities": str(ai_priorities_file),
+        "status_brief": str(status_brief_file),
+        "priorities_brief": str(priorities_brief_file),
         "consolidated_report": str(consolidated_file),
     }
 

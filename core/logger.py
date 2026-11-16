@@ -29,7 +29,7 @@ def _is_testing_environment():
 @handle_errors("checking dev tools run", default_return=False)
 def _is_dev_tools_run():
     """True when entry point or env indicates development tools (audit, scripts, etc.)."""
-    if os.getenv("MHM_DEV_TOOLS_RUN") == "1":
+    if os.getenv("DEVTOOLS_RUN") == "1":
         return True
     argv_str = " ".join(getattr(sys, "argv", []))
     return "development_tools" in argv_str or "run_dev_tools" in argv_str
@@ -104,10 +104,10 @@ def apply_test_context_formatter_to_all_loggers():
 def _get_log_paths_for_environment():
     """Get appropriate log paths based on the current environment."""
     # In test mode, always use test-specific log roots. This prevents
-    # cross-test env leakage (e.g., MHM_DEV_TOOLS_RUN=1) from breaking
+    # cross-test env leakage (e.g., DEVTOOLS_RUN=1) from breaking
     # tests that assert logs are under per-test directories.
     testing = _is_testing_environment()
-    if testing or os.getenv("MHM_DEV_TOOLS_RUN") == "1":
+    if testing or os.getenv("DEVTOOLS_RUN") == "1":
         if testing:
             base_dir = Path(os.getenv("LOGS_DIR", "tests/logs"))
         else:
@@ -235,7 +235,7 @@ class ComponentLogger:
         # Preserve warnings/errors for diagnostics, but suppress routine INFO chatter
         # from runtime components (e.g., communication_manager state-load logs).
         if (
-            os.getenv("MHM_DEV_TOOLS_RUN") == "1"
+            os.getenv("DEVTOOLS_RUN") == "1"
             and _is_dev_tools_run()
             and not _is_testing_environment()
             and component_name not in {"development_tools", "file_ops"}

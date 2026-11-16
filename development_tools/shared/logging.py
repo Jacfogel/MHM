@@ -39,10 +39,10 @@ def _is_testing() -> bool:
     """
     True when dev-tools loggers should stay quiet (dummy / test log dirs).
 
-    ``MHM_TESTING=0`` forces production file logging even under pytest (used by
-    ``test_shared_logging``). ``MHM_TESTING=1`` from tests/conftest keeps audit logs clean.
+    ``DEVTOOLS_TESTING=0`` forces production file logging even under pytest (used by
+    ``test_shared_logging``). ``DEVTOOLS_TESTING=1`` from tests/conftest keeps audit logs clean.
     """
-    flag = os.getenv("MHM_TESTING")
+    flag = os.getenv("DEVTOOLS_TESTING")
     if flag == "0":
         return False
     if flag == "1":
@@ -296,7 +296,7 @@ def get_dev_tools_logger(component_name: str) -> DevToolsLogger | _DummyDevTools
     """
     Return a logger for development_tools code.
 
-    When MHM_TESTING=1 and TEST_VERBOSE_LOGS is not 1 or 2, returns a no-op
+    When DEVTOOLS_TESTING=1 and TEST_VERBOSE_LOGS is not 1 or 2, returns a no-op
     logger (matching prior get_component_logger test behavior).
 
     Otherwise attaches a shared file handler under the ``devtools`` hierarchy

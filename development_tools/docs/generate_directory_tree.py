@@ -137,10 +137,6 @@ class DirectoryTreeGenerator:
         else:
             self.project_root = Path(config.get_project_root()).resolve()
 
-        # Get paths config for output directories
-        paths_config = config.get_paths_config()
-        self.docs_dir = paths_config.get("development_docs_dir", "development_docs")
-
     def _get_git_visible_paths(self) -> tuple[set[str], set[str]] | None:
         """Return Git-visible files and their parent directories.
 
@@ -206,9 +202,10 @@ class DirectoryTreeGenerator:
         Returns:
             Path to the generated file
         """
-        # Use provided output_file or default from config
-        if output_file is None:
-            output_file = f"{self.docs_dir}/DIRECTORY_TREE.md"
+        output_path = config.get_generated_report_path(
+            self.project_root, "DIRECTORY_TREE.md", output_file
+        )
+        output_file = output_path.relative_to(self.project_root).as_posix()
 
         git_visible_paths = self._get_git_visible_paths()
         visible_files: set[str] | None = None
@@ -335,7 +332,6 @@ class DirectoryTreeGenerator:
         # during audits or tests (when writing to real project, not test directories)
         from development_tools.shared.file_rotation import create_output_file
 
-        output_path = self.project_root / output_file
         output_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             create_output_file(
@@ -366,7 +362,7 @@ def main():
     parser.add_argument(
         "--output",
         default=None,
-        help="Output file path (default: development_docs/DIRECTORY_TREE.md)",
+        help="Output file path (default: development_tools/reports/DIRECTORY_TREE.md)",
     )
 
     args = parser.parse_args()

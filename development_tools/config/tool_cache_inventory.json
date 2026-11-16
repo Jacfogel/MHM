@@ -167,7 +167,7 @@
       "tool": "generate_legacy_reference_report",
       "strategy": "downstream_of_analyze_legacy_references",
       "implementation": "development_tools/legacy/generate_legacy_reference_report.py",
-      "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json; development_docs/LEGACY_REFERENCE_REPORT.md",
+      "artifact_glob": "development_tools/**/jsons/scopes/*/legacy/*.json; development_tools/reports/LEGACY_REFERENCE_REPORT.md",
       "invalidation": "Regenerates from analyze_legacy_references JSON"
     },
     {

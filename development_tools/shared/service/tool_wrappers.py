@@ -129,7 +129,7 @@ class ToolWrappersMixin:
             }
         cmd = [sys.executable, str(script_path)] + list(args)
         env = os.environ.copy()
-        env["MHM_DEV_TOOLS_RUN"] = "1"
+        env["DEVTOOLS_RUN"] = "1"
         if script_name in {
             "generate_function_registry",
             "quick_status",
@@ -792,28 +792,6 @@ class ToolWrappersMixin:
             logger.warning(f"Failed to run analyze_dependency_patterns: {e}")
             return {"success": False, "error": str(e)}
 
-    def run_analyze_dev_tools_import_boundaries(self) -> dict:
-        """Run import boundary checker and save results."""
-        logger.debug("Analyzing dev tools import boundaries...")
-        try:
-            from development_tools.imports.analyze_dev_tools_import_boundaries import (
-                DevToolsImportBoundaryChecker,
-            )
-            checker = DevToolsImportBoundaryChecker(
-                project_root_path=str(self.project_root)
-            )
-            result = checker.analyze()
-            save_tool_result(
-                "analyze_dev_tools_import_boundaries",
-                "imports",
-                result,
-                project_root=self.project_root,
-            )
-            return {"success": True, "data": result}
-        except Exception as e:
-            logger.warning(f"Failed to run analyze_dev_tools_import_boundaries: {e}")
-            return {"success": False, "error": str(e)}
-
     def run_analyze_package_exports(self) -> dict:
         """Run analyze_package_exports and save results."""
         logger.debug("Analyzing package exports...")
@@ -974,7 +952,7 @@ class ToolWrappersMixin:
         """Build aggregate doc-sync payload and save `docs/jsons/analyze_documentation_sync_results.json`.
 
         Used by both `doc-sync` (CLI) and audit paths so the JSON file referenced by
-        AI_PRIORITIES exists after a standalone doc-sync run.
+        PRIORITIES_BRIEF exists after a standalone doc-sync run.
         """
         summary_payload = self.docs_sync_summary or {}
         summary = (
@@ -1338,7 +1316,7 @@ class ToolWrappersMixin:
                 str(output_file),
             ]
             env = os.environ.copy()
-            env["MHM_DEV_TOOLS_RUN"] = "1"
+            env["DEVTOOLS_RUN"] = "1"
             report_config = self.config_path or dev_config.get_loaded_config_file_path()
             if report_config:
                 env["DEVTOOLS_REPORT_CONFIG"] = str(Path(report_config).resolve())
@@ -1451,8 +1429,8 @@ class ToolWrappersMixin:
         if base_name in {"todo.md", "plans.md"}:
             return True
         if base_name in {
-            "ai_priorities.md",
-            "ai_status.md",
+            "priorities_brief.md",
+            "status_brief.md",
             "consolidated_report.md",
             "dev_tools_consolidated_report.md",
         }:

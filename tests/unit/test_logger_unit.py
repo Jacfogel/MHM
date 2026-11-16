@@ -82,7 +82,7 @@ class TestTestingEnvironmentDetection:
         # Other tests can replace core.logger after collection.
         logger_module = import_module("core.logger")
         with patch.dict(os.environ, {
-            "MHM_DEV_TOOLS_RUN": "1",
+            "DEVTOOLS_RUN": "1",
             "DEV_TOOLS_LOGS_DIR": str(tmp_path),
         }), patch.object(
             logger_module, "_is_testing_environment", return_value=False

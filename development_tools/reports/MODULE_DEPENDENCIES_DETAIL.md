@@ -1,8 +1,8 @@
 # Module Dependencies - MHM Project
 
-> **File**: `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
+> **File**: `development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 00:06:59
+> **Last Generated**: 2026-11-16 13:26:46
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -7027,6 +7027,9 @@
 - **Used by**:
   - `tasks/task_data_manager.py`
   - `tasks/task_service.py`
+
+**Dependency Changes**:
+- Removed: tasks/task_data_manager.py, tasks/task_service.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->

@@ -321,7 +321,7 @@ class ProjectCleanup:
                 if scoped_report.is_file():
                     artifacts.append(scoped_report)
 
-        # Rotated markdown snapshots (AI_STATUS / AI_PRIORITIES / CONSOLIDATED) from prior runs.
+        # Rotated markdown snapshots (STATUS_BRIEF / PRIORITIES_BRIEF / CONSOLIDATED) from prior runs.
         reports_archive = config.get_report_archive_dir(self.project_root)
         if reports_archive.is_dir():
             for archived in reports_archive.rglob("*"):

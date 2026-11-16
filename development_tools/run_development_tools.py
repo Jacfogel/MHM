@@ -20,30 +20,34 @@ if project_root_str not in sys.path:
     sys.path.insert(0, project_root_str)
 
 # Force explicit dev-tools logging mode before importing the logger module.
-# Preserve MHM_TESTING=1 when pytest/conftest already set it so Tier 3 pytest
+# Preserve DEVTOOLS_TESTING=1 when pytest/conftest already set it so Tier 3 pytest
 # does not bleed test output into development_tools/reports/logs/ai_dev_tools.log.
-os.environ["MHM_DEV_TOOLS_RUN"] = "1"
-if os.getenv("MHM_TESTING") != "1":
-    os.environ["MHM_TESTING"] = "0"
+os.environ["DEVTOOLS_RUN"] = "1"
+if os.getenv("DEVTOOLS_TESTING") != "1":
+    os.environ["DEVTOOLS_TESTING"] = "0"
 # Integration tests subprocess this entrypoint; inherited PYTEST_CURRENT_TEST would
 # make create_output_file treat the CLI as an in-test write and block real status files.
 os.environ.pop("PYTEST_CURRENT_TEST", None)
 # CLI configuration must be loaded before importing modules that initialize logging.
 if __name__ == "__main__":
-    from development_tools.config import get_loaded_config_file_path, load_external_config
+    from development_tools.config import load_external_config
 
     bootstrap_parser = argparse.ArgumentParser(add_help=False)
     bootstrap_parser.add_argument("--project-root")
     bootstrap_parser.add_argument("--config-path")
     bootstrap_args, _ = bootstrap_parser.parse_known_args()
-    selected_root = Path(
-        bootstrap_args.project_root or os.getenv("DEVTOOLS_REPORT_PROJECT_ROOT") or project_root
-    ).resolve()
-    os.environ["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(selected_root)
-    load_external_config(bootstrap_args.config_path)
-    selected_config = get_loaded_config_file_path()
-    if selected_config is not None:
-        os.environ["DEVTOOLS_REPORT_CONFIG"] = str(selected_config.resolve())
+    if bootstrap_args.project_root:
+        selected_root = Path(bootstrap_args.project_root).resolve()
+        os.environ["DEVTOOLS_REPORT_PROJECT_ROOT"] = str(selected_root)
+        selected_config = selected_root / "development_tools/config/development_tools_config.json"
+    else:
+        selected_config = None
+    config_path = bootstrap_args.config_path or os.getenv("DEVTOOLS_REPORT_CONFIG")
+    if config_path is None and selected_config is not None and selected_config.is_file():
+        config_path = str(selected_config)
+    load_external_config(config_path)
+    if config_path:
+        os.environ["DEVTOOLS_REPORT_CONFIG"] = str(Path(config_path).resolve())
 
 # Now we can import development_tools as a package
 try:
@@ -129,7 +133,6 @@ def _cleanup_transient_runtime_artifacts(project_root: Path) -> None:
     dir_prefixes = (
         "logs_",
         "devtools_pytest_tmp_main_",
-        "mhm_pytest_tmp_main_",  # legacy prefix (pre-portable rename)
         "pytest-of-",
         "tmp_",
     )
@@ -290,7 +293,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--config-path",
         type=str,
         default=None,
-        help="Override the project configuration file",
+        help="Override the launcher or project configuration file",
     )
     parser.add_argument(
         "--clear-cache",
@@ -321,7 +324,7 @@ def _print_available_commands() -> None:
             )
         print()
 
-    script = "development_tools/run_development_tools.py"
+    script = globals().get("CLI_SCRIPT", "development_tools/run_development_tools.py")
     print(f"Run `python {script} audit --quick` for a quick project check.")
     print(f"Run `python {script} <command> --help` for command-specific options.")
 
@@ -333,12 +336,6 @@ def main(argv=None) -> int:
     parser.add_argument("--project-root", type=str, default=None)
     parser.add_argument("--config-path", type=str, default=None)
     parser.add_argument("--clear-cache", "--cache-clear", dest="clear_cache", action="store_true")
-    parser.add_argument(
-        "--dev-tools-only",
-        dest="dev_tools_only",
-        action="store_true",
-        help="With --clear-cache, only remove dev-tools-scoped audit caches (scopes/dev_tools).",
-    )
     parser.add_argument("command", nargs="?")
 
     # Use parse_known_args to separate global args from command args
@@ -349,11 +346,7 @@ def main(argv=None) -> int:
 
     project_root = known_args.project_root
     config_path = known_args.config_path
-    if invoked_from_cli:
-        project_root = project_root or os.getenv("DEVTOOLS_REPORT_PROJECT_ROOT")
-        config_path = config_path or os.getenv("DEVTOOLS_REPORT_CONFIG")
     clear_cache = known_args.clear_cache
-    global_dev_tools_only = getattr(known_args, "dev_tools_only", False)
     command_name = known_args.command
 
     # Determine project root for cache clearing (before service initialization)
@@ -363,16 +356,19 @@ def main(argv=None) -> int:
         # Use the same logic as service initialization
         project_root_path = Path(__file__).resolve().parent.parent
 
+    if (command_name or clear_cache) and project_root_path.is_relative_to(
+        Path(__file__).resolve().parent
+    ) and not any(arg in {"-h", "--help"} for arg in remaining_args):
+        parser.error("Select a host project outside the development_tools directory.")
+
+    if "--dev-tools-only" in remaining_args:
+        parser.error("--dev-tools-only is available on the development branch.")
+
     # Clear caches if requested (match audit scope when possible)
     if clear_cache:
         cache_scope_for_clear = None
         if command_name in {"audit", "full-audit"}:
-            cache_scope_for_clear = (
-                "dev_tools"
-                if global_dev_tools_only
-                or any(a == "--dev-tools-only" for a in remaining_args)
-                else "full"
-            )
+            cache_scope_for_clear = "full"
         cache_count = _clear_all_caches(
             project_root_path, cache_scope=cache_scope_for_clear
         )
@@ -427,10 +423,6 @@ def main(argv=None) -> int:
             if has_active_locks:
                 return 1
         service = AIToolsService(project_root=project_root, config_path=config_path)
-        # Parent parser consumes `--dev-tools-only` before the audit subparser runs; mirror it here
-        # so `audit --full --dev-tools-only` still enables DEV_TOOLS_* outputs and Tier 3 scope (§1.9).
-        if command_name in {"audit", "full-audit"} and global_dev_tools_only:
-            service.dev_tools_only_mode = True
         command = commands[command_name]
         # Align with run_tests.py: first SIGINT ignored, second within 2s stops
         if command_name in {"audit", "full-audit"}:

@@ -2,7 +2,7 @@
 Report generation helpers for AIToolsService.
 
 Document builders live in dedicated mixins (V6 B-015):
-``report_generation_ai_status``, ``report_generation_ai_priorities``,
+``report_generation_status_brief``, ``report_generation_priorities_brief``,
 ``report_generation_consolidated``. Scope filters live in
 ``report_generation_scope_helpers``. This module keeps remaining shared helpers
 and composes those mixins.
@@ -37,16 +37,16 @@ from .report_generation_scope_helpers import (
     filter_high_coupling_dev_tools as _filter_high_coupling_dev_tools_fn,
     path_is_under_development_tools_dir as _path_is_under_development_tools_dir_fn,
 )
-from .report_generation_ai_status import AIStatusDocumentMixin
-from .report_generation_ai_priorities import AIPrioritiesDocumentMixin
+from .report_generation_status_brief import StatusBriefDocumentMixin
+from .report_generation_priorities_brief import PrioritiesBriefDocumentMixin
 from .report_generation_consolidated import ConsolidatedReportDocumentMixin
 
 class ReportGenerationMixin(
-    AIStatusDocumentMixin,
-    AIPrioritiesDocumentMixin,
+    StatusBriefDocumentMixin,
+    PrioritiesBriefDocumentMixin,
     ConsolidatedReportDocumentMixin,
 ):
-    """Shared report helpers plus AI_STATUS / AI_PRIORITIES / CONSOLIDATED builders."""
+    """Shared report helpers plus STATUS_BRIEF / PRIORITIES_BRIEF / CONSOLIDATED builders."""
 
     def _is_dev_tools_scoped_report(self) -> bool:
         """True when reports are written for DEV_TOOLS_*.md (dev-tools-only audit)."""
@@ -717,7 +717,7 @@ class ReportGenerationMixin(
     def _lines_for_verify_process_cleanup_status_snapshot(
         self, vpc_data: dict[str, Any] | None
     ) -> list[str]:
-        """1-2 lines for AI_STATUS Snapshot: Tier 3 verify_process_cleanup advisory."""
+        """1-2 lines for STATUS_BRIEF Snapshot: Tier 3 verify_process_cleanup advisory."""
         if not vpc_data or not isinstance(vpc_data, dict):
             return [
                 "- **Pytest process cleanup**: No data (run `audit --full` Tier 3 to refresh)"

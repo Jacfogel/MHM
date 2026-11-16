@@ -183,6 +183,7 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
             "__pycache__,.git",
         )
     )
+    exclude_csv = f"{exclude_csv},development_tools"
     timeout_seconds = int(static_cfg.get("bandit_timeout_seconds", 900) or 900)
     extra_args = list(static_cfg.get("bandit_args", []))
 
@@ -193,11 +194,11 @@ def run_bandit(project_root: Path) -> dict[str, Any]:
     path_args: list[str] = []
     for name in scan_roots:
         p = project_root / name
-        if p.is_dir():
+        if p.is_dir() and not p.resolve().is_relative_to((project_root / "development_tools").resolve()):
             path_args.append(name)
     for name in root_py:
         p = project_root / name
-        if p.is_file():
+        if p.is_file() and not p.resolve().is_relative_to((project_root / "development_tools").resolve()):
             path_args.append(name)
     if not path_args:
         path_args = ["."]

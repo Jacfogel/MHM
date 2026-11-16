@@ -1,11 +1,11 @@
-# AI Function Registry - Key Patterns & Decision Trees
+# Function Registry Brief - Key Patterns & Decision Trees
 
-> **File**: `ai_development_docs/AI_FUNCTION_REGISTRY.md`
+> **File**: `development_tools/reports/FUNCTION_REGISTRY_BRIEF.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 00:06:54
+> **Last Generated**: 2026-11-16 13:26:43
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
-> **Audience**: AI Collaborators  
-> **Purpose**: Essential function patterns and decision trees for AI context  
+> **Purpose**: Essential function patterns and decision trees
+
 > **Style**: Pattern-focused, decision-tree driven, actionable
 
 ## [*] **Current Status**
@@ -191,7 +191,7 @@ Core System Decision Tree:
 
 ### **Complexity Metrics**
 Most complex functions (may need refactoring):
-1. [OK] `run_tests.py::main()` - Complexity: 2850
+1. [OK] `run_tests.py::main()` - Complexity: 2880
 2. [OK] `run_tests.py::run_command()` - Complexity: 2212
 3. [OK] `run_tests.py::print_combined_summary()` - Complexity: 1898
 4. [OK] `core/web_user_settings.py::build_settings_updates()` - Complexity: 1537
@@ -217,4 +217,4 @@ Most complex functions (may need refactoring):
 - `ui/` - User interface components (45 files, 1038 functions)
 - `user/` - User context and preferences (5 files, 54 functions)
 
-> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](../development_docs/FUNCTION_REGISTRY_DETAIL.md)**
+> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md)**

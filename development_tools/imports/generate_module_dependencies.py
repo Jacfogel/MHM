@@ -58,9 +58,10 @@ logger = get_dev_tools_logger("development_tools")
 
 
 def _dependency_paths() -> tuple[Path, Path]:
+    root = Path(config.get_project_root()).resolve()
     detail = Path(config.get_analyze_module_dependencies_config()["dependency_doc_path"])
-    summary = Path(config.get_paths_config()["ai_docs_dir"]) / "AI_MODULE_DEPENDENCIES.md"
-    return detail, summary
+    summary = config.get_generated_report_path(root, "MODULE_DEPENDENCIES_BRIEF.md")
+    return detail.relative_to(root), summary.relative_to(root)
 
 
 def generate_module_dependencies_content(
@@ -271,7 +272,7 @@ def get_module_purpose(file_path: str) -> str:
         "tasks/task_validation.py": "Task validation helpers for field rules and input checks",
         "tasks/task_schemas.py": "Task schemas and normalization helpers",
         # Root files (entry point - customize for your project)
-        # 'run_mhm.py': 'Main entry point for the application',  # Example - replace with your entry point
+        # 'run_app.py': 'Main entry point for the application',  # Example - replace with your entry point
         "run_tests.py": "Test runner for the application",
     }
 
@@ -592,7 +593,7 @@ def identify_modules_needing_enhancement(
     return enhancement_status
 
 
-def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> str:
+def generate_module_dependencies_brief_content(actual_imports: dict[str, dict]) -> str:
     """Generate the AI-facing dependency summary - dynamic and data-driven."""
     detail_path, summary_path = _dependency_paths()
     detail_link = markdown_file_link(
@@ -629,15 +630,14 @@ def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> 
     lines: list[str] = []
     lines.extend(
         [
-            "# AI Module Dependencies - Key Relationships & Patterns",
+            "# Module Dependencies Brief - Key Relationships & Patterns",
             "",
             f"> **File**: `{summary_path.as_posix()}`",
             "> **Generated**: This file is auto-generated. Do not edit manually.",
             ensure_ascii(f"> **Last Generated**: {generated_at}"),
             "> **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator",
             "",
-            "> **Audience**: AI collaborators",
-            "> **Purpose**: Essential module relationships and dependency patterns for AI context",
+            "> **Purpose**: Essential module relationships and dependency patterns",
             "> **Style**: Pattern-focused, relationship-driven, actionable",
             "",
             "## Current Status",
@@ -687,7 +687,7 @@ def generate_ai_module_dependencies_content(actual_imports: dict[str, dict]) -> 
 
 def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
     """
-    Update MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md with hybrid approach.
+    Update MODULE_DEPENDENCIES_DETAIL.md and MODULE_DEPENDENCIES_BRIEF.md with hybrid approach.
 
     Args:
         local_prefixes: Optional tuple of module prefixes to treat as local.
@@ -700,13 +700,19 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
 
     # Read existing content to preserve manual enhancements
     project_root = Path(config.get_project_root()).resolve()
-    detail_path, ai_path = _dependency_paths()
+    detail_path, brief_path = _dependency_paths()
     detail_path = project_root / detail_path
-    ai_path = project_root / ai_path
+    brief_path = project_root / brief_path
     existing_content = ""
-    if detail_path.exists():
+    previous_path = detail_path
+    if not previous_path.exists():
+        old_path = config.get_external_value("analyze_module_dependencies.dependency_doc_path", None)
+        if old_path is None:
+            old_path = Path(config.get_paths_config()["development_docs_dir"]) / detail_path.name
+        previous_path = project_root / old_path
+    if previous_path.exists():
         try:
-            with open(detail_path, encoding="utf-8") as f:
+            with open(previous_path, encoding="utf-8") as f:
                 existing_content = f.read()
         except Exception as e:
             logger.warning(ensure_ascii(f"Could not read existing file: {e}"))
@@ -716,8 +722,8 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
         actual_imports, existing_content
     )
 
-    logger.info("[GEN] Generating AI_MODULE_DEPENDENCIES.md content...")
-    ai_content = generate_ai_module_dependencies_content(actual_imports)
+    logger.info("[GEN] Generating MODULE_DEPENDENCIES_BRIEF.md content...")
+    brief_content = generate_module_dependencies_brief_content(actual_imports)
 
     # Identify modules needing enhancement
     enhancement_status = identify_modules_needing_enhancement(
@@ -741,10 +747,10 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
             project_root=project_root,
         )
 
-        # Write the AI file with rotation
+        # Write the brief with rotation
         create_output_file(
-            str(ai_path),
-            ai_content,
+            str(brief_path),
+            brief_content,
             rotate=True,
             max_versions=7,
             project_root=project_root,
@@ -763,7 +769,7 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
         )
         logger.info(
             ensure_ascii(
-                f"   {ai_path} - Concise AI-focused dependencies"
+                f"   {brief_path} - Concise dependencies"
             )
         )
         logger.info(ensure_ascii("[STATS] Statistics:"))
@@ -780,7 +786,7 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
         )
         logger.info(ensure_ascii("   Coverage: 100% (all files documented)"))
         logger.info(ensure_ascii(f"   Detail file: {detail_path}"))
-        logger.info(ensure_ascii(f"   AI file: {ai_path}"))
+        logger.info(ensure_ascii(f"   Brief file: {brief_path}"))
 
         # Report preserved manual enhancements
         if preserved_enhancements:

@@ -1,7 +1,7 @@
 # Product List of Lists - Runtime Canonical Sources
 
 > **File**: `development_docs/PRODUCT_LIST_OF_LISTS.md`
-> **Purpose**: Single reference for product/runtime list-like data (commands, prompts, categories, channels). Sibling to [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md) (dev-tools lists only).
+> **Purpose**: Single reference for product/runtime list-like data (commands, prompts, categories, channels). Sibling to [the tools configuration guide](https://github.com/Jacfogel/development-tools/blob/2d511ffc1780a8c923ef1296bf016e5585a81942/LIST_OF_LISTS.md) (dev-tools lists only).
 > **Audience**: Maintainers, AI collaborators.
 > **Last updated**: 2026-08-26
 
@@ -60,4 +60,4 @@
 
 ## 6. Relation to LIST_OF_LISTS
 
-Dev-tools arrays, audit tiers, paired docs, and exclusions stay in [LIST_OF_LISTS.md](../development_tools/LIST_OF_LISTS.md). This file owns product/runtime lists only. Planning ownership remains in [PLANS.md](PLANS.md#2-sources-of-truth) Section 2.
+Dev-tools arrays, audit tiers, paired docs, and exclusions stay in [the tools configuration guide](https://github.com/Jacfogel/development-tools/blob/2d511ffc1780a8c923ef1296bf016e5585a81942/LIST_OF_LISTS.md). This file owns product/runtime lists only. Planning ownership remains in [PLANS.md](PLANS.md#2-sources-of-truth) Section 2.

@@ -33,7 +33,7 @@ def format_list_for_display(items: Sequence[str], limit: int = 3) -> str:
 
 
 def format_repo_paths_as_markdown_links(paths: Sequence[str], limit: int = 3) -> str:
-    """Join repo-relative paths as markdown links using forward slashes (reports / AI_PRIORITIES)."""
+    """Join repo-relative paths as markdown links using forward slashes (reports / PRIORITIES_BRIEF)."""
     filtered = [str(p).strip() for p in paths if p and str(p).strip()]
     if not filtered:
         return ""

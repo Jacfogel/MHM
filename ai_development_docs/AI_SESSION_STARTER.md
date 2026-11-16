@@ -132,7 +132,7 @@ Use this as a routing table for common request types.
 
 #### 1.1. Documentation appears incomplete
 1. Run `python development_tools/run_development_tools.py audit` to refresh metrics.
-2. Review [STATUS_BRIEF.md](../development_tools/STATUS_BRIEF.md) and [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) to highlight specific gaps.
+2. Review [Status Brief](../development_tools/STATUS_BRIEF.md) and [Priorities Brief](../development_tools/PRIORITIES_BRIEF.md) to highlight specific gaps.
 3. Draft a remediation plan and confirm next steps with the user before editing docs.
 
 #### 1.2. Code change introduced failures

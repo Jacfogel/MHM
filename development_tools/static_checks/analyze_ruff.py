@@ -285,7 +285,7 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
                 shard_lists.append(cached_list)
                 fragment_hits += 1
                 continue
-            args = ["check"] + rels + ["--output-format", "json"]
+            args = ["check", "--force-exclude"] + rels + ["--output-format", "json"]
             if "--config" not in args:
                 args.extend(["--config", str(ruff_toml_path)])
             rc, pl, err = _run_ruff_subprocess_for_json_list(
@@ -346,6 +346,7 @@ def run_ruff(project_root: Path) -> dict[str, Any]:
             }
         else:
             args = list(static_cfg.get("ruff_args", ["check", ".", "--output-format", "json"]))
+            args.extend(["--force-exclude", "--extend-exclude", "development_tools"])
             if "--config" not in args:
                 args.extend(["--config", str(ruff_toml_path)])
             rc, pl, err = _run_ruff_subprocess_for_json_list(

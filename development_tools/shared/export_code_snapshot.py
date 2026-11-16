@@ -40,15 +40,12 @@ def _build_exclusions(
 ) -> list[str]:
     """
     Build a final exclusion list using the standard exclusion system,
-    then optionally remove test/dev-tools filters based on CLI flags.
+    then optionally remove test filters based on CLI flags.
     """
     exclusions = list(get_exclusions(tool_type, context=context))
 
     if include_tests:
         exclusions = [p for p in exclusions if "tests" not in p and "test_" not in p]
-
-    if include_dev_tools:
-        exclusions = [p for p in exclusions if "development_tools" not in p]
 
     for pat in extra_excludes:
         pat = (pat or "").strip()
@@ -65,6 +62,9 @@ def _should_exclude(normalized_path: str, exclusions: list[str]) -> bool:
     Mirrors the intent of standard_exclusions.should_exclude_file(), but allows a
     caller-supplied exclusion list (needed for include-tests/include-dev-tools toggles).
     """
+    if "development_tools" in normalized_path.lower().split("/"):
+        return True
+
     # Generated file patterns are always excluded (ui/generated/* etc.)
     for pattern in GENERATED_FILE_PATTERNS:
         if fnmatch.fnmatch(normalized_path, pattern) or fnmatch.fnmatch(
