@@ -129,6 +129,22 @@ async def test_creation_flow_rejects_non_discord_interaction(monkeypatch):
     handle.assert_not_called()
 
 
+@pytest.mark.parametrize("start", [flow.start_account_creation_flow, flow.start_account_linking_flow])
+async def test_account_setup_stops_when_status_is_unavailable(monkeypatch, start):
+    interaction = _interaction()
+    monkeypatch.setattr(
+        "communication.command_handlers.account_handler.get_user_id_by_identifier",
+        MagicMock(side_effect=RuntimeError("PRIVATE ERROR")),
+    )
+
+    await start(interaction, "discord-1")
+
+    interaction.response.send_modal.assert_not_awaited()
+    message = interaction.response.send_message.await_args.args[0]
+    assert "couldn't check your account status" in message
+    assert "PRIVATE" not in message
+
+
 async def test_creation_flow_stops_when_account_already_exists(monkeypatch):
     interaction = _interaction()
     monkeypatch.setattr(

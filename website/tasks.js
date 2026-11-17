@@ -96,7 +96,7 @@ const MHMTaskInput = Object.freeze({
     if (path.endsWith('/snooze')) return 'MHM could not confirm that reminder was snoozed. Refresh the task before trying again.';
     if (path.endsWith('/skip')) return 'MHM could not confirm that occurrence was skipped. Refresh the task before trying again.';
     if (path.endsWith('/breakdown')) return 'MHM could not suggest smaller steps right now. The task was not changed. You can type a step yourself or try again later.';
-    if (path.endsWith('/subtasks')) return 'Those steps were not added. Refresh the task before trying again.';
+    if (path.endsWith('/subtasks')) return 'MHM could not confirm which steps were added. Refresh the task before trying again.';
     if (path.endsWith('/detach')) return 'MHM could not confirm that step became its own task. Refresh the task list before trying again.';
     if (path.endsWith('/simplify')) return 'The task title was not changed. Refresh the task before trying again.';
     return 'MHM could not confirm those task changes. Refresh your task list before trying again.';

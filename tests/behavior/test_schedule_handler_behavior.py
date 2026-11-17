@@ -546,10 +546,10 @@ class TestScheduleHandlerBehavior:
         assert "morning" in periods, "Should include morning period"
         morning_period = periods["morning"]
         assert (
-            morning_period.get("start_time") == "09:00 AM"
+            morning_period.get("start_time") == "09:00"
         ), "Should set correct start_time"
         assert (
-            morning_period.get("end_time") == "11:00 AM"
+            morning_period.get("end_time") == "11:00"
         ), "Should set correct end_time"
         assert morning_period.get("active") is True, "Should set active=True"
         assert "days" in morning_period, "Should include days"
@@ -637,35 +637,17 @@ class TestScheduleHandlerBehavior:
         """Test that ScheduleManagementHandler parses 12-hour time format."""
         handler = ScheduleManagementHandler()
 
-        # Test various 12-hour formats
-        # Note: Parser may or may not add leading zeros, so we normalize before comparing
         test_cases = [
-            ("09:00 AM", "09:00 AM"),  # Already formatted
-            ("9:00 am", "09:00 AM"),  # Should normalize to uppercase AM/PM
-            ("11:30 PM", "11:30 PM"),  # Already formatted
-            ("1:00 pm", "01:00 PM"),  # Should normalize hour and AM/PM
+            ("09:00 AM", "09:00"),
+            ("9:00 am", "09:00"),
+            ("11:30 PM", "23:30"),
+            ("1:00 pm", "13:00"),
+            ("12 a.m.", "00:00"),
+            ("12pm", "12:00"),
         ]
 
         for input_time, expected in test_cases:
-            result = handler._normalize_time_string_to_12h(input_time)
-            # Normalize both results: extract hour, minute, and AM/PM, then compare
-            # Parser may not add leading zeros, so we check if the time values are equivalent
-            import re
-
-            result_match = re.match(r"(\d{1,2}):(\d{2})\s*(AM|PM)", result.upper())
-            expected_match = re.match(r"(\d{1,2}):(\d{2})\s*(AM|PM)", expected.upper())
-
-            assert (
-                result_match and expected_match
-            ), f"Could not parse time format: got {result}, expected {expected}"
-            # Compare hour, minute, and AM/PM (hour can be 1-2 digits, so convert to int)
-            result_hour = int(result_match.group(1))
-            expected_hour = int(expected_match.group(1))
-            assert (
-                result_hour == expected_hour
-                and result_match.group(2) == expected_match.group(2)
-                and result_match.group(3) == expected_match.group(3)
-            ), f"Should parse {input_time} correctly (got {result}, expected {expected})"
+            assert handler._normalize_schedule_time(input_time) == expected
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -674,19 +656,8 @@ class TestScheduleHandlerBehavior:
         """Test that ScheduleManagementHandler parses 24-hour time format."""
         handler = ScheduleManagementHandler()
 
-        # Test 24-hour formats
-        test_cases = [
-            ("09:00", "09:00 AM"),
-            ("21:00", "09:00 PM"),
-            ("13:30", "01:30 PM"),
-            ("00:00", "12:00 AM"),
-        ]
-
-        for input_time, expected in test_cases:
-            result = handler._normalize_time_string_to_12h(input_time)
-            assert (
-                result == expected or "AM" in result or "PM" in result
-            ), f"Should convert {input_time} to 12-hour format"
+        for input_time in ("09:00", "21:00", "13:30", "00:00"):
+            assert handler._normalize_schedule_time(input_time) == input_time
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -695,15 +666,8 @@ class TestScheduleHandlerBehavior:
         """Test that ScheduleManagementHandler parses hour-only format."""
         handler = ScheduleManagementHandler()
 
-        # Test hour-only formats
-        test_cases = [9, 21, 13, 0]
-
-        for input_hour in test_cases:
-            result = handler._normalize_time_string_to_12h(str(input_hour))
-            assert result is not None, f"Should parse hour {input_hour}"
-            assert (
-                "AM" in result or "PM" in result
-            ), f"Should convert hour {input_hour} to 12-hour format"
+        for input_hour in (9, 21, 13, 0):
+            assert handler._normalize_schedule_time(str(input_hour)) == f"{input_hour:02d}:00"
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -777,11 +741,11 @@ class TestScheduleHandlerBehavior:
         assert "morning" in periods, "Should include morning period"
         morning_period = periods["morning"]
         assert (
-            morning_period.get("start_time") == "08:00 AM"
-        ), "Should update start_time to 08:00 AM"
+            morning_period.get("start_time") == "08:00"
+        ), "Should update start_time to 08:00"
         assert (
-            morning_period.get("end_time") == "10:00 AM"
-        ), "Should update end_time to 10:00 AM"
+            morning_period.get("end_time") == "10:00"
+        ), "Should update end_time to 10:00"
 
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -818,17 +782,9 @@ class TestScheduleHandlerBehavior:
         assert isinstance(
             response, InteractionResponse
         ), "Should return InteractionResponse"
-        # When period is not found but category/period_name are provided, should return interactive flow with suggestions
-        assert (
-            not response.completed
-        ), "Response should not be completed (interactive flow with suggestions)"
-        assert (
-            "not found" in response.message.lower()
-            or "what times should" in response.message.lower()
-        ), "Should indicate period not found or prompt for times"
-        assert (
-            response.suggestions is not None and len(response.suggestions) > 0
-        ), "Should provide suggestions for times"
+        assert response.completed
+        assert "couldn't find" in response.message
+        assert response.suggestions == ["Show my schedule"]
 
     @pytest.mark.behavior
     @pytest.mark.communication

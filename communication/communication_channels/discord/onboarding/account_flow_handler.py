@@ -434,8 +434,8 @@ async def start_account_creation_flow(
     )
     status_response = _account_handler.handle(discord_user_id, parsed_command)
 
-    if status_response.rich_data and status_response.rich_data.get("has_account"):
-        # User already has account - respond with message
+    if (status_response.rich_data or {}).get("has_account") is not False:
+        # Only start creation after confirming there is no existing account.
         await interaction.response.send_message(status_response.message, ephemeral=True)
         return
 
@@ -497,8 +497,8 @@ async def start_account_linking_flow(
     )
     status_response = _account_handler.handle(discord_user_id, parsed_command)
 
-    if status_response.rich_data and status_response.rich_data.get("has_account"):
-        # User already has account - respond with message
+    if (status_response.rich_data or {}).get("has_account") is not False:
+        # Only start linking after confirming this Discord account is unlinked.
         await interaction.response.send_message(status_response.message, ephemeral=True)
         return
 

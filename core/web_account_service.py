@@ -55,7 +55,7 @@ from core.web_messages import register_message_routes
 from core.web_notes import note_view, register_notes_routes
 from core.web_settings import register_settings_routes
 from core.web_tasks import register_task_routes, task_view
-from core.web_user_settings import remember_setup_complete
+from core.web_user_settings import SettingsSaveResult, remember_setup_complete
 
 logger = get_component_logger("main")
 COOKIE = "mhm_session"
@@ -283,7 +283,7 @@ class MHMAccounts:
 
         return settings_options(uid)
 
-    @handle_errors("saving website account settings", user_friendly=False, default_return=False)
+    @handle_errors("saving website account settings", user_friendly=False, default_return=SettingsSaveResult(False))
     def save_settings(self, uid, updates):
         """Persist validated self-service settings updates for one account."""
         from core.web_user_settings import save_settings
@@ -1088,7 +1088,7 @@ class WebGateway:
                 )
                 if not uid:
                     raise web.HTTPServiceUnavailable(
-                        text="Your account could not be created. Please try again."
+                        text="MHM could not confirm your account was created. Try logging in with this email before signing up again."
                     )
             account = await asyncio.to_thread(self.accounts.get, uid)
             if (

@@ -20,7 +20,11 @@ from core.time_utilities import (
     parse_flexible_date_only,
     parse_time_only_minute,
 )
-from tasks.task_data_handlers import runtime_task_due_date, runtime_task_due_time
+from tasks.task_data_handlers import (
+    runtime_task_due_date,
+    runtime_task_due_time,
+    runtime_task_scheduled_reminder_periods,
+)
 from tasks.task_service import parse_relative_date
 from tasks.task_time_parsing import parse_time_string
 
@@ -49,6 +53,27 @@ from communication.message_processing.flows.flow_command_helpers import (
 from communication.message_processing.flows.flow_control_mixin import FlowControlMixin
 
 logger = get_component_logger("communication_manager")
+
+_TASK_LOOKUP_RECOVERY = (
+    "I couldn't find the task for this setup step. Send 'list tasks' to check "
+    "whether it's already there before creating it again."
+)
+_REMINDER_SAVE_RECOVERY = (
+    "I couldn't verify whether your reminders were saved. Send 'list tasks' "
+    "and check the task details before setting reminders again."
+)
+_REMINDER_SETUP_RECOVERY = (
+    "I couldn't finish custom reminder setup. Send 'list tasks' to check the task "
+    "and its reminder settings before trying again."
+)
+_PRIORITY_SAVE_RECOVERY = (
+    "I couldn't confirm the priority was saved. Send 'list tasks' to check "
+    "the task's priority before updating it again."
+)
+_DUE_DATE_SAVE_RECOVERY = (
+    "I couldn't confirm the due date was saved. Send 'list tasks' to check "
+    "the task's due date before updating it again."
+)
 
 _TIME_TOKEN_RE = re.compile(
     r"\b(?:at\s+)?(?:\d{1,2}:\d{2}\s*(?:am|pm)?|\d{1,2}\s*(?:am|pm))\b",
@@ -203,7 +228,7 @@ class TaskFlowMixin(FlowControlMixin):
     @handle_errors(
         "handling task reminder follow-up",
         default_return=(
-            "I'm having trouble with the reminder setup. Please try again.",
+            _REMINDER_SETUP_RECOVERY,
             True,
         ),
     )
@@ -229,7 +254,7 @@ class TaskFlowMixin(FlowControlMixin):
                 )
                 self._clear_flow_state(user_id, mark_completion=True)
                 return (
-                    "I couldn't find the task to update. The task was created successfully.",
+                    _TASK_LOOKUP_RECOVERY,
                     True,
                 )
 
@@ -239,7 +264,7 @@ class TaskFlowMixin(FlowControlMixin):
             def _skip_reminders() -> tuple[str, bool]:
                 """Skip reminder setup and finalize the task."""
                 self._clear_flow_state(user_id, mark_completion=True)
-                return ("Task saved. No reminders set.", True)
+                return ("Task setup finished. I skipped custom reminder setup.", True)
 
             control_response = self._try_task_flow_control_command(
                 user_id,
@@ -255,48 +280,17 @@ class TaskFlowMixin(FlowControlMixin):
             skip_patterns = [
                 "no reminders",
                 "no reminder",
-                "no",
-                "skip",
-                "none",
                 "not needed",
                 "don't need",
                 "don't want",
             ]
-            if any(pattern in message_lower for pattern in skip_patterns):
+            if message_lower in {"no", "no thanks", "skip", "none"} or any(
+                pattern in message_lower for pattern in skip_patterns
+            ):
                 # User doesn't want reminders - clear flow
                 self._clear_flow_state(user_id, mark_completion=True)
-                return ("Got it! No reminders will be set for this task.", True)
+                return ("Got it. I skipped custom reminder setup.", True)
 
-            # Parse reminder periods from natural language
-            reminder_periods = self._parse_reminder_periods_from_text(
-                user_id, task_id, message_text
-            )
-            logger.debug(
-                f"Parsed reminder_periods for task {task_id}: {reminder_periods}"
-            )
-
-            # Check if parsing succeeded and if task has due date
-            if not reminder_periods or len(reminder_periods) == 0:
-                # Couldn't parse - check if task has due date to give better error message
-                task = get_task_by_id(user_id, task_id)
-                if task and not runtime_task_due_date(task):
-                    # Task has no due date, can't set reminder periods
-                    self._clear_flow_state(user_id, mark_completion=True)
-                    return (
-                        "This task doesn't have a due date, so I can't set reminder periods. You can add a due date and reminders later by updating the task.",
-                        True,
-                    )
-                # Couldn't parse reminder periods - ask for clarification
-                return (
-                    "I'm not sure what reminder timing you'd like. Please specify something like:\n"
-                    "- '30 minutes to an hour before'\n"
-                    "- '3 to 5 hours before'\n"
-                    "- '1 to 2 days before'\n"
-                    "- Or say 'no reminders' to skip",
-                    False,
-                )
-
-            # Check if task has due date (parsing already checked this, but verify)
             task = get_task_by_id(user_id, task_id)
             if not task:
                 logger.error(
@@ -304,7 +298,7 @@ class TaskFlowMixin(FlowControlMixin):
                 )
                 self._clear_flow_state(user_id, mark_completion=True)
                 return (
-                    "I couldn't find the task to update. The task was created successfully.",
+                    _TASK_LOOKUP_RECOVERY,
                     True,
                 )
 
@@ -329,6 +323,9 @@ class TaskFlowMixin(FlowControlMixin):
                     True,
                 )
 
+            reminder_periods = self._parse_reminder_periods_from_text(
+                user_id, task_id, message_text
+            )
             if reminder_periods:
                 # Update task with reminder periods
                 from tasks import update_task
@@ -350,7 +347,7 @@ class TaskFlowMixin(FlowControlMixin):
                         )
                         self._clear_flow_state(user_id, mark_completion=True)
                         return (
-                            "I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.",
+                            _REMINDER_SAVE_RECOVERY,
                             True,
                         )
 
@@ -363,24 +360,17 @@ class TaskFlowMixin(FlowControlMixin):
                         )
                         self._clear_flow_state(user_id, mark_completion=True)
                         return (
-                            "I couldn't verify whether your reminders were saved. "
-                            "Send 'list tasks' and check the task details before "
-                            "setting reminders again.",
+                            _REMINDER_SAVE_RECOVERY,
                             True,
                         )
-                    has_scheduled = any(
-                        isinstance(r, dict)
-                        and r.get("kind") == "scheduled"
-                        and r.get("period")
-                        for r in (updated_task.get("reminders") or [])
-                    )
-                    if not has_scheduled:
+                    saved_periods = runtime_task_scheduled_reminder_periods(updated_task)
+                    if not all(period in saved_periods for period in reminder_periods):
                         logger.error(
-                            f"Task {task_id} was not updated with reminder_periods after update_task returned True"
+                            f"Reminder read-back did not match the save for user {user_id}, task {task_id}"
                         )
                         self._clear_flow_state(user_id, mark_completion=True)
                         return (
-                            "I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.",
+                            _REMINDER_SAVE_RECOVERY,
                             True,
                         )
 
@@ -394,7 +384,7 @@ class TaskFlowMixin(FlowControlMixin):
                         ]
                     )
                     return (
-                        f"✅ Reminder periods set for this task: {periods_text}",
+                        f"✅ Saved custom reminder times for this task: {periods_text}",
                         True,
                     )
                 except Exception as update_error:
@@ -404,7 +394,7 @@ class TaskFlowMixin(FlowControlMixin):
                     )
                     self._clear_flow_state(user_id, mark_completion=True)
                     return (
-                        "I had trouble saving the reminder periods. The task was created successfully. You can add reminders later by updating the task.",
+                        _REMINDER_SAVE_RECOVERY,
                         True,
                     )
             else:
@@ -423,27 +413,8 @@ class TaskFlowMixin(FlowControlMixin):
                 f"Error handling task reminder follow-up for user {user_id}: {e}",
                 exc_info=True,
             )
-            # Don't clear flow on exception if it's a parsing issue - let user try again
-            # Only clear if it's a critical error
-            _err = str(e).lower()
-            _tid = "".join(("task", "_", "id"))
-            _tident = "".join(("task", "_", "identifier"))
-            if _tid in _err or _tident in _err or "not found" in _err:
-                self._clear_flow_state(user_id, mark_completion=True)
-                return (
-                    "I had trouble setting up reminders, but your task was created successfully. You can add reminders later by updating the task.",
-                    True,
-                )
-            else:
-                # Parsing or other non-critical error - ask for clarification
-                return (
-                    "I'm not sure what reminder timing you'd like. Please specify something like:\n"
-                    "- '30 minutes to an hour before'\n"
-                    "- '3 to 5 hours before'\n"
-                    "- '1 to 2 days before'\n"
-                    "- 'Or say 'no reminders' to skip",
-                    False,
-                )
+            self._clear_flow_state(user_id, mark_completion=True)
+            return (_REMINDER_SETUP_RECOVERY, True)
     @handle_errors("parsing reminder periods from text", default_return=[])
     def _parse_reminder_periods_from_text(
         self, user_id: str, task_id: str, text: str
@@ -764,7 +735,7 @@ class TaskFlowMixin(FlowControlMixin):
     @handle_errors(
         "handling task priority flow",
         default_return=(
-            "I'm having trouble with the priority setup. Your task was created successfully.",
+            _PRIORITY_SAVE_RECOVERY,
             True,
         ),
     )
@@ -780,7 +751,7 @@ class TaskFlowMixin(FlowControlMixin):
         if not task_id:
             self._clear_flow_state(user_id, mark_completion=True)
             return (
-                "I couldn't find the task to update. The task was created successfully.",
+                _TASK_LOOKUP_RECOVERY,
                 True,
             )
 
@@ -809,10 +780,15 @@ class TaskFlowMixin(FlowControlMixin):
                 False,
             )
 
-        if not update_task(user_id, task_id, {"priority": priority}):
+        try:
+            saved = update_task(user_id, task_id, {"priority": priority})
+        except Exception:
+            logger.exception(f"Priority update raised for user {user_id}, task {task_id}")
+            saved = False
+        if not saved:
             self._clear_flow_state(user_id, mark_completion=True)
             return (
-                "I had trouble saving the priority. The task was created successfully.",
+                _PRIORITY_SAVE_RECOVERY,
                 True,
             )
 
@@ -927,7 +903,7 @@ class TaskFlowMixin(FlowControlMixin):
     @handle_errors(
         "handling task due date flow",
         default_return=(
-            "I'm having trouble with the due date flow. Please try again.",
+            _DUE_DATE_SAVE_RECOVERY,
             True,
         ),
     )
@@ -963,7 +939,7 @@ class TaskFlowMixin(FlowControlMixin):
         task_id = self._get_task_flow_identifier(user_state)
         if not task_id:
             self._clear_flow_state(user_id, mark_completion=True)
-            return ("❌ Could not find task. Please try creating the task again.", True)
+            return (_TASK_LOOKUP_RECOVERY, True)
 
         # Parse date/time from message
         parsed_date, parsed_time = self._parse_date_time_from_text(
@@ -990,17 +966,18 @@ class TaskFlowMixin(FlowControlMixin):
 
         try:
             update_result = update_task(user_id, task_id, update_data)
-            if not update_result:
-                self._clear_flow_state(user_id, mark_completion=True)
-                return (
-                    "❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
-                    True,
-                )
+        except Exception:
+            logger.exception(f"Due date update raised for user {user_id}, task {task_id}")
+            update_result = False
+        if not update_result:
+            self._clear_flow_state(user_id, mark_completion=True)
+            return (_DUE_DATE_SAVE_RECOVERY, True)
 
-            due_text = parsed_date
-            if parsed_time:
-                due_text += f" at {parsed_time}"
+        due_text = parsed_date
+        if parsed_time:
+            due_text += f" at {parsed_time}"
 
+        try:
             ask_priority = bool(user_state.get("data", {}).get("ask_priority", False))
             if ask_priority:
                 self.start_task_priority_flow(user_id, task_id, ask_reminders=True)
@@ -1015,11 +992,12 @@ class TaskFlowMixin(FlowControlMixin):
 
             response = f"✅ Due date set: {due_text}\n\nWould you like to set custom reminder periods for this task?"
             return (response, False)  # Not completed - reminder flow is active
-        except Exception as e:
-            logger.error(f"Error updating task with due date: {e}", exc_info=True)
+        except Exception:
+            logger.exception(f"Setup after due date save raised for user {user_id}, task {task_id}")
             self._clear_flow_state(user_id, mark_completion=True)
             return (
-                "❌ Failed to update task with due date. The task was created successfully. You can add a due date later by updating the task.",
+                f"Due date saved: {due_text}. I couldn't continue setup. "
+                "You can update the task's priority or reminders from the task list.",
                 True,
             )
 

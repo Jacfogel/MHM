@@ -88,9 +88,12 @@ def test_unsupported_link_channel_never_sends_or_writes(link_context):
     assert not account_handler._pending_link_operations
 
 
-def test_link_write_failure_suggests_checking_status(link_context):
+@pytest.mark.parametrize("raises", [False, True])
+def test_link_write_failure_suggests_checking_status(link_context, raises):
     update, _ = link_context
     update.return_value = False
+    if raises:
+        update.side_effect = RuntimeError("PRIVATE ERROR")
     account_handler._pending_link_operations["channel-1"] = {
         "operation_type": "link", "user_id": "account-1", "channel_type": "discord",
         "confirmation_code": "123456",
@@ -101,6 +104,7 @@ def test_link_write_failure_suggests_checking_status(link_context):
     assert "couldn't confirm" in response.message
     assert "check account status" in response.message
     assert "linked successfully" not in response.message
+    assert "PRIVATE" not in response.message
 
 
 @pytest.mark.parametrize("method,operation", [

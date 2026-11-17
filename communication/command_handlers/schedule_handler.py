@@ -1,5 +1,6 @@
 # schedule_handler.py
 
+import re
 from typing import Any
 
 from core.logger import get_component_logger
@@ -13,6 +14,10 @@ from communication.command_handlers.shared_types import (
 # Route schedule logs to command handlers component
 schedule_logger = get_component_logger("communication_manager")
 logger = schedule_logger
+
+_START_TIME_HELP = "I couldn't read the start time. Use a time like 9am or 09:00."
+_END_TIME_HELP = "I couldn't read the end time. Use a time like 5pm or 17:00."
+_TIME_RANGE_HELP = "The start time must be before the end time on the same day."
 
 
 class ScheduleManagementHandler(InteractionHandler):
@@ -357,8 +362,14 @@ class ScheduleManagementHandler(InteractionHandler):
             )
 
             # Parse and validate time formats
-            start_time = self._normalize_time_string_to_12h(start_time)
-            end_time = self._normalize_time_string_to_12h(end_time)
+            start_time = self._normalize_schedule_time(start_time)
+            end_time = self._normalize_schedule_time(end_time)
+            if not start_time:
+                return InteractionResponse(_START_TIME_HELP)
+            if not end_time:
+                return InteractionResponse(_END_TIME_HELP)
+            if start_time >= end_time:
+                return InteractionResponse(_TIME_RANGE_HELP)
 
             # Parse days if provided
             if isinstance(days, str):
@@ -375,9 +386,9 @@ class ScheduleManagementHandler(InteractionHandler):
                 "Sunday",
                 "ALL",
             ]
-            if days and not all(day in valid_days for day in days):
+            if not days or not all(day in valid_days for day in days):
                 return InteractionResponse(
-                    f"Invalid days specified. Valid days are: {', '.join(valid_days)}",
+                    "Invalid days. Choose one or more days by name, or use ALL for every day.",
                     True,
                 )
 
@@ -391,6 +402,12 @@ class ScheduleManagementHandler(InteractionHandler):
 
             # Get existing periods and add new one
             periods = get_schedule_time_periods(user_id, category)
+            if period_name in periods:
+                return InteractionResponse(
+                    f"'{period_name}' already exists in {category.title()}. Edit that period "
+                    "or choose a different name for the new one.",
+                    suggestions=["Show my schedule"],
+                )
             periods = dict(periods)
             periods[period_name] = period_data
             if not set_schedule_periods(user_id, category, periods):
@@ -470,9 +487,9 @@ class ScheduleManagementHandler(InteractionHandler):
             # Check if period exists BEFORE providing curated suggestions
             if period_name not in periods:
                 return InteractionResponse(
-                    f"I couldn't find a '{period_name}' period in {category.title()}. What times should it use?",
-                    completed=False,
-                    suggestions=["from 9am to 11am", "from 7pm to 9pm"],
+                    f"I couldn't find a '{period_name}' period in {category.title()}. "
+                    "Send 'show my schedule' to find the period name, then try the edit again.",
+                    suggestions=["Show my schedule"],
                 )
 
             # Curated suggestions when target is identified and exists, but times/days/active are missing
@@ -492,14 +509,29 @@ class ScheduleManagementHandler(InteractionHandler):
             updates = []
 
             if new_start_time:
-                new_start_time = self._normalize_time_string_to_12h(new_start_time)
+                new_start_time = self._normalize_schedule_time(new_start_time)
+                if not new_start_time:
+                    return InteractionResponse(_START_TIME_HELP)
                 current_period["start_time"] = new_start_time
                 updates.append(f"start time to {new_start_time}")
 
             if new_end_time:
-                new_end_time = self._normalize_time_string_to_12h(new_end_time)
+                new_end_time = self._normalize_schedule_time(new_end_time)
+                if not new_end_time:
+                    return InteractionResponse(_END_TIME_HELP)
                 current_period["end_time"] = new_end_time
                 updates.append(f"end time to {new_end_time}")
+
+            if new_start_time or new_end_time:
+                start_time = self._normalize_schedule_time(current_period.get("start_time"))
+                end_time = self._normalize_schedule_time(current_period.get("end_time"))
+                if not start_time or not end_time:
+                    return InteractionResponse(
+                        "One of this period's saved times is invalid. Edit the start and end times together."
+                    )
+                if start_time >= end_time:
+                    return InteractionResponse(_TIME_RANGE_HELP)
+                current_period.update(start_time=start_time, end_time=end_time)
 
             if new_days is not None:
                 if isinstance(new_days, str):
@@ -516,9 +548,9 @@ class ScheduleManagementHandler(InteractionHandler):
                     "Sunday",
                     "ALL",
                 ]
-                if not all(day in valid_days for day in new_days):
+                if not new_days or not all(day in valid_days for day in new_days):
                     return InteractionResponse(
-                        f"Invalid days specified. Valid days are: {', '.join(valid_days)}",
+                        "Invalid days. Choose one or more days by name, or use ALL for every day.",
                         True,
                     )
 
@@ -594,60 +626,21 @@ class ScheduleManagementHandler(InteractionHandler):
         ]
 
     @handle_errors("normalizing time string", default_return="")
-    def _normalize_time_string_to_12h(self, time_str: str) -> str:
-        """
-        Normalize common user-provided time strings to a consistent 12-hour format.
-
-        This is NOT timestamp handling — it is schedule time-of-day formatting
-        for user-facing text.
-
-        Accepted inputs:
-        - "9am", "9 am"
-        - "09:00", "9:00"
-        - "21:30"
-        - "9"
-
-        Output examples:
-        - "9 AM"
-        - "09:00 AM"
-        - "09:30 PM"
-        """
-        if not time_str:
-            return time_str
-
-        raw = str(time_str).strip()
-        if not raw:
-            return raw
-
-        s = raw.lower().strip()
-
-        # Already 12-hour format → normalize casing/spacing only
-        if "am" in s or "pm" in s:
-            return " ".join(s.replace(".", "").split()).upper()
-
-        # 24-hour time with minutes (accept "9:00" and "09:00")
-        if ":" in s:
-            try:
-                hour_part, minute_part = s.split(":", 1)
-                hour = int(hour_part)
-                minute = int(minute_part)
-                if 0 <= hour <= 23 and 0 <= minute <= 59:
-                    hour12 = hour % 12 or 12
-                    ampm = "AM" if hour < 12 else "PM"
-                    return f"{hour12:02d}:{minute:02d} {ampm}"
-            except (ValueError, TypeError):
-                return raw
-
-            return raw
-
-        # Hour-only input ("9", "21")
-        try:
-            hour = int(s)
-            if 0 <= hour <= 23:
-                hour12 = hour % 12 or 12
-                ampm = "AM" if hour < 12 else "PM"
-                return f"{hour12:02d}:00 {ampm}"
-        except (ValueError, TypeError):
-            pass
-
-        return raw
+    def _normalize_schedule_time(self, time_str: str | None) -> str:
+        """Convert a whole clock expression to the scheduler's HH:MM format."""
+        match = re.fullmatch(
+            r"(\d{1,2})(?::(\d{1,2}))?\s*([ap]\.?m\.?)?",
+            str(time_str or "").strip().lower(),
+        )
+        if not match:
+            return ""
+        hour_text, minute_text, meridiem = match.groups()
+        hour = int(hour_text)
+        minute = int(minute_text or "0")
+        if minute > 59 or (not meridiem and hour > 23):
+            return ""
+        if meridiem:
+            if not 1 <= hour <= 12:
+                return ""
+            hour = hour % 12 + (12 if meridiem.startswith("p") else 0)
+        return f"{hour:02d}:{minute:02d}"

@@ -695,8 +695,9 @@ class TestTaskReminderFollowupBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    def test_reminder_save_missing_reload_gives_verification_guidance(
-        self, test_data_dir, monkeypatch
+    @pytest.mark.parametrize("stale_reload", [False, True])
+    def test_reminder_save_unverified_gives_verification_guidance(
+        self, test_data_dir, monkeypatch, stale_reload
     ):
         """A missing read-back must not raise or claim the task still exists."""
         from unittest.mock import Mock
@@ -714,7 +715,12 @@ class TestTaskReminderFollowupBehavior:
             conversation_manager, "_parse_reminder_periods_from_text",
             Mock(return_value=[{"date": due_date, "start_time": "12:00", "end_time": "13:00"}]),
         )
-        reload_task = Mock(side_effect=[task, None])
+        readback = None
+        if stale_reload:
+            readback = {**task, "reminders": [{"kind": "scheduled", "period": {
+                "date": due_date, "start_time": "09:00", "end_time": "10:00"
+            }}]}
+        reload_task = Mock(side_effect=[task, readback])
         monkeypatch.setattr("tasks.get_task_by_id", reload_task)
         update = Mock(return_value=True)
         monkeypatch.setattr("tasks.update_task", update)
@@ -735,3 +741,27 @@ class TestTaskReminderFollowupBehavior:
         log_error.assert_called_once()
         assert user_id in log_error.call_args.args[0]
         assert task_id in log_error.call_args.args[0]
+
+    @pytest.mark.parametrize("setup_step", ["priority", "due_date"])
+    def test_task_setup_write_error_checks_saved_task_before_retry(self, monkeypatch, setup_step):
+        from unittest.mock import Mock
+        from communication.message_processing.flows.task_flow import TaskFlowMixin
+
+        flow = TaskFlowMixin()
+        user_id = "task-setup-write-error"
+        state = {"data": {"task_identifier": "task-1"}}
+        clear = Mock()
+        monkeypatch.setattr(flow, "_clear_flow_state", clear)
+        monkeypatch.setattr(flow, "_try_task_flow_control_command", lambda *_args, **_kwargs: None)
+        monkeypatch.setattr(flow, "_parse_date_time_from_text", lambda *_args, **_kwargs: ("2026-11-17", None))
+        monkeypatch.setattr("tasks.update_task", Mock(side_effect=RuntimeError("PRIVATE ERROR")))
+
+        if setup_step == "priority":
+            reply, completed = flow._handle_task_priority_flow(user_id, state, "high")
+        else:
+            reply, completed = flow._handle_task_due_date_flow(user_id, state, "tomorrow")
+
+        assert completed
+        assert "list tasks" in reply
+        assert "PRIVATE" not in reply
+        clear.assert_called_once_with(user_id, mark_completion=True)

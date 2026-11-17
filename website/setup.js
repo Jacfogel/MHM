@@ -452,7 +452,10 @@
       revision: settings.revisions[section],
       values,
     });
+    stepWarnings.push(...(settings.warnings || []));
   }
+
+  let stepWarnings = [];
 
   function taskValues(enabled) {
     const current = { ...settings.sections.tasks, enabled };
@@ -702,17 +705,22 @@
       messagesToggle.disabled = !canMessage;
       messagesToggle.checked = canMessage;
       const discordResult = new URLSearchParams(location.search).get('discord');
+      let deliveryWarning = '';
       if (discordResult) {
         index = plan.indexOf('discord');
         if (discordResult === 'connected' && account.discord_linked) {
-          await saveDeliveryChannel('discord');
+          try {
+            await saveDeliveryChannel('discord');
+          } catch (_) {
+            deliveryWarning = 'Discord is connected. MHM could not confirm the delivery change. Choose Continue to try saving Discord delivery again.';
+          }
         }
         history.replaceState(null, '', location.pathname);
       }
       setupContent.hidden = false;
       showCurrent();
       if (discordResult === 'connected' && account.discord_linked) {
-        showStatus('Discord is connected.');
+        showStatus(deliveryWarning || 'Discord is connected.', Boolean(deliveryWarning));
       } else if (discordResult === 'cancelled') {
         showStatus('Discord connection was canceled. You can try again, or use email.');
       } else if (discordResult === 'in-use') {
@@ -722,7 +730,9 @@
       } else if (discordResult === 'unavailable') {
         showStatus('Discord connection is not configured right now.', true);
       } else if (discordResult === 'error') {
-        showStatus('Discord could not be connected. Please try again.', true);
+        showStatus(account.discord_linked
+          ? 'Your MHM account shows a Discord connection. Check it here before trying again.'
+          : 'MHM could not confirm the Discord connection. You can try again or use email.', true);
       }
     } catch (error) {
       showStatus(error.message, true);
@@ -733,10 +743,12 @@
     event.preventDefault();
     if (continueButton.disabled) return;
     setBusy(true);
+    stepWarnings = [];
     showStatus(index === plan.length - 1 ? 'Finishing…' : 'Saving…');
     try {
       await actions[plan[index]]();
       await advance();
+      if (stepWarnings.length) showStatus(['Settings saved.', ...stepWarnings].join(' '));
     } catch (error) {
       showStatus(error.message, true);
     } finally {
@@ -747,12 +759,14 @@
   if (skipButton) skipButton.addEventListener('click', async () => {
     if (skipButton.disabled) return;
     setBusy(true);
+    stepWarnings = [];
     try {
       if (plan[index] === 'task-create') {
         showStatus('Saving…');
         await saveTaskFeature();
       }
       await advance();
+      if (stepWarnings.length) showStatus(['Settings saved.', ...stepWarnings].join(' '));
     } catch (error) {
       showStatus(error.message, true);
     } finally {

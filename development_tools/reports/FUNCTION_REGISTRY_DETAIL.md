@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 13:26:43
+> **Last Generated**: 2026-11-16 22:50:23
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,15 +16,15 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 316
-- **Functions Found**: 3277
-- **Methods Found**: 1660
-- **Classes Found**: 292
-- **Total Items**: 4937
-- **Functions Documented**: 2929
-- **Methods Documented**: 1486
+- **Functions Found**: 3278
+- **Methods Found**: 1661
+- **Classes Found**: 293
+- **Total Items**: 4939
+- **Functions Documented**: 2930
+- **Methods Documented**: 1487
 - **Classes Documented**: 225
-- **Total Documented**: 4415
-- **Template-Generated**: 72
+- **Total Documented**: 4417
+- **Template-Generated**: 74
 - **Last Updated**: 2026-11-16
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
@@ -39,7 +39,7 @@
 
 ## Function Categories
 
-### **Core System Functions** (691)
+### **Core System Functions** (692)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (913)
@@ -1628,21 +1628,7 @@ Explains substring search, archived exclusion, and next-step commands.
 - [OK] `_handle_schedule_status(self, user_id, entities)` - Show status of schedules
 - [OK] `_handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
 - [OK] `_handle_update_schedule(self, user_id, entities)` - Update schedule settings
-- [OK] `_normalize_time_string_to_12h(self, time_str)` - Normalize common user-provided time strings to a consistent 12-hour format.
-
-This is NOT timestamp handling — it is schedule time-of-day formatting
-for user-facing text.
-
-Accepted inputs:
-- "9am", "9 am"
-- "09:00", "9:00"
-- "21:30"
-- "9"
-
-Output examples:
-- "9 AM"
-- "09:00 AM"
-- "09:30 PM"
+- [OK] `_normalize_schedule_time(self, time_str)` - Convert a whole clock expression to the scheduler's HH:MM format.
 - [OK] `can_handle(self, intent)` - Check if this handler can handle the given intent.
 - [OK] `get_examples(self)` - Get example commands for schedule management.
 - [OK] `get_help(self)` - Get help text for schedule management commands.
@@ -1655,21 +1641,7 @@ Output examples:
   - [OK] `ScheduleManagementHandler._handle_schedule_status(self, user_id, entities)` - Show status of schedules
   - [OK] `ScheduleManagementHandler._handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
   - [OK] `ScheduleManagementHandler._handle_update_schedule(self, user_id, entities)` - Update schedule settings
-  - [OK] `ScheduleManagementHandler._normalize_time_string_to_12h(self, time_str)` - Normalize common user-provided time strings to a consistent 12-hour format.
-
-This is NOT timestamp handling — it is schedule time-of-day formatting
-for user-facing text.
-
-Accepted inputs:
-- "9am", "9 am"
-- "09:00", "9:00"
-- "21:30"
-- "9"
-
-Output examples:
-- "9 AM"
-- "09:00 AM"
-- "09:30 PM"
+  - [OK] `ScheduleManagementHandler._normalize_schedule_time(self, time_str)` - Convert a whole clock expression to the scheduler's HH:MM format.
   - [OK] `ScheduleManagementHandler.can_handle(self, intent)` - Check if this handler can handle the given intent.
   - [OK] `ScheduleManagementHandler.get_examples(self)` - Get example commands for schedule management.
   - [OK] `ScheduleManagementHandler.get_help(self)` - Get help text for schedule management commands.
@@ -6006,6 +5978,7 @@ its methods as routes.
 
 #### `core/web_user_settings.py`
 **Functions:**
+- [OK] `__bool__(self)` - Special Python method
 - [OK] `_available_message_categories(options, features)` - Return categories supported by the user's currently enabled data sources.
 - [OK] `_custom_task_templates_for_settings(value)` - Return canonical browser-editable custom task-template definitions.
 - [OK] `_editable_custom_questions(checkin_settings)` - Return browser-editable custom question definitions from saved preferences.
@@ -6019,6 +5992,9 @@ its methods as routes.
 - [OK] `save_settings(user_id, updates)` - Persist validated settings and refresh dependent caches and defaults.
 - [OK] `settings_options(user_id)` - Return the time zones, message categories, and check-in choices for a user.
 - [OK] `settings_snapshot(documents, options)` - Build browser-safe settings sections and optimistic-lock revisions.
+**Classes:**
+- [MISSING] `SettingsSaveResult` - No description
+  - [OK] `SettingsSaveResult.__bool__(self)` - Special Python method
 
 ### `integrations/` - Unknown Directory
 

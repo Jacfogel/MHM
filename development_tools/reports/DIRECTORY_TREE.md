@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 13:27:13
+> **Last Generated**: 2026-11-16 22:51:11
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -91,10 +91,8 @@ C:.
 |   |   AI_DEVELOPMENT_WORKFLOW.md
 |   |   AI_DOCUMENTATION_GUIDE.md
 |   |   AI_ERROR_HANDLING_GUIDE.md
-|   |   AI_FUNCTION_REGISTRY.md
 |   |   AI_LEGACY_COMPATIBILITY_GUIDE.md
 |   |   AI_LOGGING_GUIDE.md
-|   |   AI_MODULE_DEPENDENCIES.md
 |   |   AI_SESSION_STARTER.md
 |   |   AI_TESTING_GUIDE.md
 |   |
@@ -298,10 +296,6 @@ C:.
 |   |
 +---development_docs
 |   |   CHANGELOG_DETAIL.md
-|   |   DIRECTORY_TREE.md
-|   |   FUNCTION_REGISTRY_DETAIL.md
-|   |   LEGACY_REFERENCE_REPORT.md
-|   |   MODULE_DEPENDENCIES_DETAIL.md
 |   |   PLANS.md
 |   |   PRODUCT_LIST_OF_LISTS.md
 |   |   TEST_COVERAGE_REPORT.md

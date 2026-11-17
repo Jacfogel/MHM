@@ -522,10 +522,12 @@ class SettingsAccounts(Accounts):
         return deepcopy(OPTIONS)
 
     def save_settings(self, uid, updates):
+        from core.web_user_settings import SettingsSaveResult
+
         self.saved.append(uid)
         self.docs[uid].update(deepcopy(updates))
         self.users[uid] = self.docs[uid]["account"]
-        return True
+        return SettingsSaveResult(True)
 
 
 @pytest_asyncio.fixture
@@ -582,6 +584,27 @@ async def test_api_session_ownership_csrf_conflicts_and_injected_fields(
     assert (await client.get("/settings.js")).status == 200
     accounts.users["existing"]["account_status"] = "suspended"
     assert (await client.get("/api/settings")).status == 401
+
+
+@pytest.mark.asyncio
+async def test_settings_reports_saved_values_when_setup_completion_fails(settings_gateway, monkeypatch):
+    client, accounts, sent = settings_gateway
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1])).status == 200
+    monkeypatch.setattr(accounts, "mark_setup_complete", lambda _: False, raising=False)
+    snapshot = await (await client.get("/api/settings")).json()
+    values = snapshot["sections"]["tasks"]
+    values["periods"] = {"Updated window": deepcopy(WINDOW)}
+    response = await client.post("/api/settings", headers={"Origin": ORIGIN}, json={
+        "section": "tasks", "values": values,
+        "revision": snapshot["revisions"]["tasks"], "complete_setup": True,
+    })
+
+    assert response.status == 200
+    saved = await response.json()
+    assert "Updated window" in saved["sections"]["tasks"]["periods"]
+    assert saved["revisions"]["tasks"] != snapshot["revisions"]["tasks"]
+    assert "could not mark website setup complete" in saved["warnings"][0]
 
 
 @pytest.mark.asyncio
@@ -812,11 +835,25 @@ def test_save_settings_reschedules_only_changed_schedule_categories(monkeypatch)
         },
         "health": evening,
     }
-    assert save_settings("user-1", {"schedules": changed, "preferences": {}}) is True
+    result = save_settings("user-1", {"schedules": changed, "preferences": {}})
+    assert result.saved and not result.warnings
     assert requested == [("user-1", "motivational", "website_settings")]
 
     requested.clear()
-    assert (
-        save_settings("user-1", {"preferences": {"channel": {"type": "email"}}}) is True
-    )
+    assert save_settings("user-1", {"preferences": {"channel": {"type": "email"}}}).saved
     assert requested == []
+
+
+@pytest.mark.parametrize("service_running", [True, False])
+def test_save_settings_remains_saved_when_refresh_is_not_queued(monkeypatch, service_running):
+    from core.web_user_settings import save_settings
+
+    monkeypatch.setattr("core.get_user_data", lambda *_: {"schedules": {}})
+    monkeypatch.setattr("core.save_user_data_transaction", lambda *args, **kwargs: True)
+    monkeypatch.setattr("core.service_requests.create_reschedule_request", lambda *args, **kwargs: False)
+    monkeypatch.setattr("core.service_utilities.is_service_running", lambda: service_running)
+
+    result = save_settings("user-1", {"schedules": {"tasks": {"periods": {"Morning": WINDOW}}}})
+
+    assert result.saved
+    assert bool(result.warnings) is service_running

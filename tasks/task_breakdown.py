@@ -271,29 +271,40 @@ def add_task_subtasks(
     due_time = due.get("time")
     tags = task.get("tags") if isinstance(task.get("tags"), list) else []
     priority = str(task.get("priority") or "medium")
-    saved = 0
+    saved_steps = []
     for title in chosen:
-        created_id = create_task(
-            user_id,
-            title=title,
-            due_date=due_date,
-            due_time=due_time,
-            priority=priority,
-            tags=tags,
-            parent_id=parent_id,
-        )
+        try:
+            created_id = create_task(
+                user_id,
+                title=title,
+                due_date=due_date,
+                due_time=due_time,
+                priority=priority,
+                tags=tags,
+                parent_id=parent_id,
+            )
+        except Exception:
+            logger.exception(f"Subtask creation raised for user {user_id}, parent {parent_id}")
+            continue
         if created_id:
-            saved += 1
-    if saved == 0:
+            saved_steps.append(title)
+    if not saved_steps:
         return TaskBreakdownResult(
-            False, "I could not save those steps. Please try again."
+            False, "I couldn't confirm any steps were saved. Check 'list tasks' before adding them again."
         )
+    saved = len(saved_steps)
     step_word = "step" if saved == 1 else "steps"
     logger.info(f"Added {saved} subtask(s) under {parent_id} for user {user_id}")
+    message = f"Added {saved} smaller {step_word} under {parent_title}. The original task stays."
+    if saved < len(chosen):
+        message += (
+            f" Saved: {', '.join(saved_steps)}. I couldn't confirm the other steps. "
+            "Check 'list tasks' before adding them again."
+        )
     return TaskBreakdownResult(
         True,
-        f"Added {saved} smaller {step_word} under {parent_title}. The original task stays.",
-        steps=chosen[:saved],
+        message,
+        steps=saved_steps,
     )
 
 

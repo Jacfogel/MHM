@@ -112,8 +112,9 @@ class TestTaskHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.tasks
-    def test_snooze_reminder_keeps_due_date(self, test_data_dir):
-        """Snooze asks when, then 1 hour keeps the due date."""
+    @pytest.mark.parametrize("reminder_scheduled", [True, False])
+    def test_snooze_reminder_keeps_due_date(self, test_data_dir, reminder_scheduled):
+        """A saved snooze finishes the interaction even if scheduling fails."""
         from unittest.mock import MagicMock, patch
         from tasks import create_task, get_task_by_id
         from tasks.task_data_handlers import runtime_task_due_date
@@ -131,7 +132,7 @@ class TestTaskHandlerBehavior:
         assert ask.completed is False
         assert ask.rich_data["interaction_view"] == "task_snooze"
         scheduler = MagicMock()
-        scheduler.schedule_task_reminder_at_datetime.return_value = True
+        scheduler.schedule_task_reminder_at_datetime.return_value = reminder_scheduled
         with patch(
             "scheduler.runtime_access.get_scheduler_manager", return_value=scheduler
         ):
@@ -145,7 +146,12 @@ class TestTaskHandlerBehavior:
                 ),
             )
         assert response.completed is True
-        assert "I'll remind you" in response.message
+        if reminder_scheduled:
+            assert "I'll remind you" in response.message
+        else:
+            assert "saved the snooze" in response.message
+            assert "could not schedule the reminder" in response.message
+            assert "Set a separate reminder" in response.message
         task = get_task_by_id(user_id, task_id)
         assert runtime_task_due_date(task) == "2026-09-20"
 

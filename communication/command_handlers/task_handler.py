@@ -251,8 +251,10 @@ def handle_pending_simplify(
 
         result = add_task_subtasks(user_id, str(pending.get("task_id") or ""), steps)
         if not result:
-            return InteractionResponse("Those steps could not be added.", False)
-        return InteractionResponse(result.message, result.success)
+            return InteractionResponse(
+                "I couldn't confirm which steps were added. Check 'list tasks' before adding them again."
+            )
+        return InteractionResponse(result.message)
     PENDING_SIMPLIFY.pop(user_id, None)
     return TaskManagementHandler()._handle_simplify_task(
         user_id,
@@ -1169,7 +1171,10 @@ class TaskManagementHandler(InteractionHandler):
             option,
             custom_when=custom_when or None,
         )
-        return InteractionResponse(result.message, result.success)
+        # A saved snooze needs no follow-up even if its alert could not be scheduled.
+        return InteractionResponse(
+            result.message, completed=result.success or result.until is not None
+        )
 
     @handle_errors(
         "resolving an active task for a reminder command",
@@ -1302,7 +1307,7 @@ class TaskManagementHandler(InteractionHandler):
         if isinstance(task, InteractionResponse):
             return task
         result = skip_task_occurrence(user_id, _task_identifier(task))
-        return InteractionResponse(result.message, result.success)
+        return InteractionResponse(result.message, error=None if result.success else result.message)
 
     @handle_errors(
         "handling simplify task",
@@ -1347,11 +1352,12 @@ class TaskManagementHandler(InteractionHandler):
             PENDING_SIMPLIFY.pop(user_id, None)
             if not result:
                 logger.error(f"Task step creation was not confirmed: user_id={user_id}, task_id={task_id}")
-                return InteractionResponse(
+                message = (
                     "I couldn't confirm the smaller step was added. Keep a copy and check "
-                    "'list tasks' before adding it again.", False
+                    "'list tasks' before adding it again."
                 )
-            return InteractionResponse(result.message, result.success)
+                return InteractionResponse(message, error=message)
+            return InteractionResponse(result.message, error=None if result.success else result.message)
         PENDING_SIMPLIFY.pop(user_id, None)
         result = suggest_breakdown(user_id, task_id, explicit_request=True)
         if not result or not result.success or not result.steps:

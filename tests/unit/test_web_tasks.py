@@ -162,7 +162,9 @@ async def task_gateway(monkeypatch):
         yield client, active, completed
 
 
-async def test_task_crud_lifecycle_and_validation(task_gateway):
+async def test_task_crud_lifecycle_and_validation(task_gateway, monkeypatch):
+    import tasks.task_reminder_snooze as snooze_module
+
     client, active, completed = task_gateway
     assert (await client.get("/api/tasks")).json  # route is authenticated
     created = await client.post("/api/tasks", json={"title": "Plan a gentle start", "description": "One step", "due_date": "2026-09-20", "priority": "high", "recurrence_pattern": "weekly", "recurrence_interval": 2, "repeat_after_completion": False, "tags": ["Health", "morning"], "reminder_periods": [{"date": "2026-09-20", "start_time": "09:00", "end_time": "10:00"}], "quick_reminders": ["1-2hour"]}, headers={"Origin": ORIGIN})
@@ -197,6 +199,28 @@ async def test_task_crud_lifecycle_and_validation(task_gateway):
     )
     assert snoozed.status == 200
     assert (await snoozed.json())["message"] == "Snoozed 1_hour."
+    recovery_message = "Snooze saved. Set a separate reminder if you need an alert."
+    monkeypatch.setattr(
+        snooze_module,
+        "snooze_task_reminder",
+        lambda *args, **kwargs: SimpleNamespace(success=False, until=None, message="Invalid time."),
+    )
+    rejected = await client.post(
+        f"/api/tasks/{task['id']}/snooze", json={"option": "1_hour"}, headers={"Origin": ORIGIN}
+    )
+    assert rejected.status == 400
+    monkeypatch.setattr(
+        snooze_module,
+        "snooze_task_reminder",
+        lambda *args, **kwargs: SimpleNamespace(success=False, until="2026-09-21 11:00:00", message=recovery_message),
+    )
+    saved = await client.post(
+        f"/api/tasks/{task['id']}/snooze", json={"option": "1_hour"}, headers={"Origin": ORIGIN}
+    )
+    assert saved.status == 200
+    saved_payload = await saved.json()
+    assert saved_payload["message"] == recovery_message
+    assert saved_payload["task"]["id"] == task["id"]
     assert (await client.post(f"/api/tasks/{task['id']}/skip", json={}, headers={"Origin": ORIGIN})).status == 200
     simplified = await client.post(
         f"/api/tasks/{task['id']}/simplify",

@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 13:26:46
+> **Last Generated**: 2026-11-16 22:50:30
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 314
-- **Total Imports Found**: 2848
+- **Total Imports Found**: 2852
 - **Dependencies Documented**: 314 (100% coverage)
-- **Standard Library Imports**: 819 (28.8%)
+- **Standard Library Imports**: 821 (28.8%)
 - **Third-Party Imports**: 236 (8.3%)
-- **Local Imports**: 1793 (63.0%)
+- **Local Imports**: 1795 (62.9%)
 - **Last Updated**: 2026-11-16
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 819 imports (28.8%)
+- **Standard Library**: 821 imports (28.8%)
 - **Third-Party**: 236 imports (8.3%)
-- **Local**: 1793 imports (63.0%)
+- **Local**: 1795 imports (62.9%)
 
 ## Module Dependencies by Directory
 
@@ -1592,6 +1592,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.schedule_runtime (get_schedule_time_periods, set_schedule_periods)` (NEW)
   - **Standard Library**:
+    - `re`
     - `typing (Any)`
 - **Used by**: None (not imported by other modules)
 
@@ -3276,7 +3277,7 @@
     - `core.logger (get_component_logger)` (NEW)
     - `core.time_utilities (DATE_ONLY, TIME_ONLY_MINUTE, format_timestamp, now_datetime_full, now_timestamp_full, parse_date_and_time_minute, parse_date_only, parse_flexible_date_only, parse_time_only_minute)` (NEW)
     - `tasks (delete_task, get_task_by_id, update_task)` (NEW)
-    - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time)` (NEW)
+    - `tasks.task_data_handlers (runtime_task_due_date, runtime_task_due_time, runtime_task_scheduled_reminder_periods)` (NEW)
     - `tasks.task_schemas (VALID_PRIORITIES)` (NEW)
     - `tasks.task_service (parse_relative_date)` (NEW)
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
@@ -4560,6 +4561,7 @@
   - `core/user_management.py`
   - `core/web_account_service.py`
   - `core/web_gateway_runtime.py`
+  - `core/web_user_settings.py`
   - `integrations/google_health/auth.py`
   - `integrations/google_health/client.py`
   - `integrations/google_health/data_handlers.py`
@@ -5075,6 +5077,7 @@
   - `core/service.py`
   - `core/service_requests.py`
   - `core/web_account_service.py`
+  - `core/web_user_settings.py`
   - `ui/dialogs/process_watcher_dialog.py`
 
 **Dependency Changes**:
@@ -5367,7 +5370,7 @@
     - `core.web_notes (note_view, register_notes_routes)` (NEW)
     - `core.web_settings (register_settings_routes)` (NEW)
     - `core.web_tasks (register_task_routes, task_view)` (NEW)
-    - `core.web_user_settings (remember_setup_complete, save_settings, settings_options)` (NEW)
+    - `core.web_user_settings (SettingsSaveResult, remember_setup_complete, save_settings, settings_options)` (NEW)
     - `notebook.notebook_data_manager (list_recent)` (NEW)
     - `storage.service_flag_storage (write_service_flag_json)` (NEW)
     - `storage.user_data_backup (delete_user_completely)` (NEW)
@@ -5566,7 +5569,7 @@
   - **Local**:
     - `checkins.checkin_analytics (CheckinAnalytics)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
-    - `core.web_user_settings (build_settings_updates, remember_setup_complete, settings_snapshot)` (NEW)
+    - `core.web_user_settings (build_settings_updates, settings_snapshot)` (NEW)
   - **Standard Library**:
     - `asyncio`
     - `json`
@@ -5626,12 +5629,14 @@
     - `checkins.checkin_schemas (DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS)` (NEW)
     - `core (get_user_data, save_user_data_transaction)` (NEW)
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
     - `core.message_pressure (message_pressure_settings_from_preferences)` (NEW)
     - `core.natural_language_defaults (NaturalLanguageDefaults, natural_language_defaults_to_preferences_dict)` (NEW)
     - `core.profile_v2_io (schedule_categories)` (NEW)
     - `core.schedule_period_normalize (category_uses_all_day_window, create_default_schedule_periods)` (NEW)
     - `core.schedule_runtime (clear_schedule_periods_cache)` (NEW)
     - `core.service_requests (create_reschedule_request)` (NEW)
+    - `core.service_utilities (is_service_running)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
     - `messages.message_data_manager (ensure_user_message_files, get_message_categories)` (NEW)
     - `storage.user_data_validation (validate_schedule_periods)` (NEW)
@@ -5640,6 +5645,7 @@
     - `tasks.task_time_parsing (parse_time_string)` (NEW)
   - **Standard Library**:
     - `copy`
+    - `dataclasses (dataclass)`
     - `datetime (date, datetime)`
     - `hashlib`
     - `json`
@@ -5651,7 +5657,7 @@
   - `core/web_settings.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_dynamic_manager, checkins.checkin_schemas, core, core.error_handling, core.message_pressure, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.service_requests, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_templates, tasks.task_time_parsing
+- Added: checkins.checkin_dynamic_manager, checkins.checkin_schemas, core, core.error_handling, core.logger, core.message_pressure, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.service_requests, core.service_utilities, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_templates, tasks.task_time_parsing
 - Removed: core/web_account_service.py, core/web_settings.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

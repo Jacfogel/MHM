@@ -28,7 +28,7 @@ python development_tools/run_development_tools.py legacy
 
 **Canonical inventory:** `development_docs/devtools/DEPRECATION_INVENTORY.json` is the required source of truth for deprecated/removed/to-retire terms and sweep patterns.
 
-For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md), use section 2. "Running the Tool Suite" in [README.md](../development_tools/README.md#2-running-the-tool-suite) and section 3. "Audit Modes and Outputs" in [README.md](../development_tools/README.md#3-audit-modes-and-outputs).
+For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../development_tools/reports/LEGACY_REFERENCE_REPORT.md), use section 2. "Running the Tool Suite" in [README.md](../development_tools/README.md#2-running-the-tool-suite) and section 3. "Audit Modes and Outputs" in [README.md](../development_tools/README.md#3-audit-modes-and-outputs).
 
 ## 1. Standards
 
@@ -121,7 +121,7 @@ These tools underlie this guide. For detailed behavior and additional commands, 
 
 - `development_tools/run_development_tools.py`:
   - `legacy`: integrated legacy scan, and in some modes, report regeneration.
-  - `audit` / `audit --full`: broader audits that also generate [LEGACY_REFERENCE_REPORT.md](../development_docs/LEGACY_REFERENCE_REPORT.md) and related outputs.
+  - `audit` / `audit --full`: broader audits that also generate [LEGACY_REFERENCE_REPORT.md](../development_tools/reports/LEGACY_REFERENCE_REPORT.md) and related outputs.
 
 For **read-only fallbacks** on pre-scope-migration audit JSON paths (flat `jsons/`, unscoped reports aggregates, timing merge), see [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) Section 7.16 (backlog: retire those bridges with search-and-close).
 

@@ -25,6 +25,26 @@ def _fresh_user_id(name: str) -> str:
 @pytest.mark.unit
 @pytest.mark.tasks
 class TestTaskBreakdown:
+    @pytest.mark.parametrize("first_result", [None, RuntimeError("save interrupted")])
+    def test_partial_save_reports_the_step_that_actually_saved(self, monkeypatch, first_result):
+        from unittest.mock import Mock
+
+        monkeypatch.setattr(
+            "tasks.task_data_manager.get_task_by_id",
+            lambda *_: {"id": "parent", "title": "Call the dentist"},
+        )
+        monkeypatch.setattr("tasks.task_service.load_active_tasks", lambda *_: [])
+        monkeypatch.setattr(
+            "tasks.task_service.create_task", Mock(side_effect=[first_result, "child"])
+        )
+
+        result = add_task_subtasks("user", "parent", ["Find the number", "Ask about openings"])
+
+        assert result.success
+        assert result.steps == ["Ask about openings"]
+        assert "Saved: Ask about openings" in result.message
+        assert "Check 'list tasks'" in result.message
+
     @pytest.mark.parametrize("mode,disabled", [("off", []), ("automatic", ["task_breakdown"])])
     def test_disabled_breakdown_never_initializes_or_calls_model(
         self, test_data_dir, monkeypatch, mode, disabled

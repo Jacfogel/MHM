@@ -110,7 +110,9 @@ async function loadAccount() {
       : discordResult === 'in-use' ? 'That Discord account is already connected to another MHM account.'
         : discordResult === 'account-linked' ? 'This MHM account already has a different Discord account connected.'
           : discordResult === 'unavailable' ? 'Discord connection is not configured right now. Please ask your MHM administrator for help.'
-            : discordResult === 'error' ? 'Discord could not be connected. This can happen when that Discord account is already linked to another MHM account. Disconnect it from the other account first, or try again; if it still fails, ask your MHM administrator for help.' : '';
+            : discordResult === 'error' ? (account.discord_linked
+              ? 'Your MHM account shows a Discord connection. Check it below before trying again.'
+              : 'MHM could not confirm the Discord connection. Check your connections below before trying again.') : '';
     const socialConnections = document.getElementById('social-connections');
     if (!socialConnections) return;
     socialConnections.replaceChildren();

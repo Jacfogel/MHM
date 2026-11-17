@@ -45,7 +45,7 @@ function snapshot() {
 async function page({ account = {
   preferred_name: 'Brook', timezone: 'America/Regina', needs_setup: true,
   billing: { status: 'trialing', trial_days_remaining: 30, checkout_available: true, checkout_defers_charge: true, customer_exists: false, subscription_exists: false },
-}, userAgent = '', platform = '', maxTouchPoints = 0 } = {}) {
+}, userAgent = '', platform = '', maxTouchPoints = 0, search = '', failDeliveryOnce = false } = {}) {
   const nodes = new Map([
     ['setup-status', node()],
     ['setup-content', node()],
@@ -101,7 +101,7 @@ async function page({ account = {
     crypto: { randomUUID() { return String(Math.random()); } },
     history: { replaceState() {} },
     Intl: { DateTimeFormat() { return { resolvedOptions() { return { timeZone: 'America/Regina' }; } }; } },
-    location: { search: '', pathname: '/setup.html', replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
+    location: { search, pathname: '/setup.html', replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
     setTimeout(callback) { timers.push(callback); return timers.length; },
     fetch: async (url, options = {}) => {
       requests.push({ url, method: options.method || 'GET', body: options.body });
@@ -109,6 +109,10 @@ async function page({ account = {
       if (url === '/api/settings' && options.method !== 'POST') return Response.json(current);
       if (url === '/api/settings') {
         const payload = JSON.parse(options.body);
+        if (failDeliveryOnce && payload.section === 'delivery') {
+          failDeliveryOnce = false;
+          return Response.json({ error: 'Could not save delivery.' }, { status: 503 });
+        }
         current = {
           ...current,
           sections: { ...current.sections, [payload.section]: payload.values },
@@ -142,6 +146,18 @@ async function page({ account = {
     for (const callback of timers.splice(0)) callback();
   } };
 }
+
+test('Discord connection leaves setup usable if delivery settings fail to save', async () => {
+  const view = await page({
+    account: { needs_setup: true, discord_linked: true },
+    search: '?discord=connected', failDeliveryOnce: true,
+  });
+  assert.equal(view.nodes.get('setup-content').hidden, false);
+  assert.equal(view.nodes.get('step-discord').hidden, false);
+  assert.match(view.nodes.get('setup-status').textContent, /Discord is connected.*could not confirm/);
+  await view.continue();
+  assert.equal(view.nodes.get('step-2').hidden, false);
+});
 
 test('first-run walks name, delivery, support choices, and a first task', async () => {
   const view = await page();

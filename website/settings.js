@@ -677,7 +677,9 @@ const MHMSettingsInput = Object.freeze({
         revision = latest.revisions[section];
         data.sections[section] = latest.sections[section];
         form.dataset.dirty = 'false';
-        feedback.textContent = 'Changes saved';
+        feedback.textContent = latest.warnings?.length
+          ? ['Changes saved.', ...latest.warnings].join(' ')
+          : 'Changes saved';
         if (section === 'checkins' && forms.messages?.dataset.dirty === 'false') {
           const currentMessages = forms.messages;
           const replacement = renderSection('messages', latest);

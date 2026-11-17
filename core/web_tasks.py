@@ -474,7 +474,8 @@ class WebTaskRoutes:
                     "before trying again."
                 )
             )
-        if not result.success:
+        # A timestamp on a failed result means the snooze was saved but the alert failed.
+        if not result.success and result.until is None:
             raise web.HTTPBadRequest(text=result.message)
         return self._task_response(uid, task_id, result.message)
 
@@ -545,7 +546,7 @@ class WebTaskRoutes:
         if not result:
             raise web.HTTPServiceUnavailable(
                 text=(
-                    "Those steps were not added. Refresh the task before trying again."
+                    "MHM could not confirm which steps were added. Refresh the task before trying again."
                 )
             )
         if not result.success:

@@ -84,7 +84,7 @@ safely.
 -   If you edit any document that has an AI or human counterpart, follow
     section 4, "Documentation Synchronization Checklist".
 -   Use generated reports (for example,
-    [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md))
+    [LEGACY_REFERENCE_REPORT.md](development_tools/reports/LEGACY_REFERENCE_REPORT.md))
     to detect stale references and path drift before finalizing changes.
 
 ## 2. Documentation Categories
@@ -168,13 +168,13 @@ are reports and references, not primary editing targets.
 
 Examples (non-exhaustive):
 
--   [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)
--   [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)
--   [LEGACY_REFERENCE_REPORT.md](development_docs/LEGACY_REFERENCE_REPORT.md)
+-   [FUNCTION_REGISTRY_DETAIL.md](development_tools/reports/FUNCTION_REGISTRY_DETAIL.md)
+-   [MODULE_DEPENDENCIES_DETAIL.md](development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md)
+-   [LEGACY_REFERENCE_REPORT.md](development_tools/reports/LEGACY_REFERENCE_REPORT.md)
 -   [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)
--   [DIRECTORY_TREE.md](development_docs/DIRECTORY_TREE.md)
--   [AI_FUNCTION_REGISTRY.md](ai_development_docs/AI_FUNCTION_REGISTRY.md)
--   [AI_MODULE_DEPENDENCIES.md](ai_development_docs/AI_MODULE_DEPENDENCIES.md)
+-   [DIRECTORY_TREE.md](development_tools/reports/DIRECTORY_TREE.md)
+-   [FUNCTION_REGISTRY_BRIEF.md](development_tools/reports/FUNCTION_REGISTRY_BRIEF.md)
+-   [MODULE_DEPENDENCIES_BRIEF.md](development_tools/reports/MODULE_DEPENDENCIES_BRIEF.md)
 -   [Priorities Brief](development_tools/PRIORITIES_BRIEF.md)
 -   [Status Brief](development_tools/STATUS_BRIEF.md)
 -   [Consolidated Report](development_tools/CONSOLIDATED_REPORT.md)
@@ -705,13 +705,13 @@ Recommended fields:
 
 Examples of generated Markdown files include:
 
--   development_docs/FUNCTION_REGISTRY_DETAIL.md
--   development_docs/MODULE_DEPENDENCIES_DETAIL.md
--   development_docs/LEGACY_REFERENCE_REPORT.md
+-   development_tools/reports/FUNCTION_REGISTRY_DETAIL.md
+-   development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md
+-   development_tools/reports/LEGACY_REFERENCE_REPORT.md
 -   development_docs/TEST_COVERAGE_REPORT.md
--   development_docs/DIRECTORY_TREE.md
--   ai_development_docs/AI_FUNCTION_REGISTRY.md
--   ai_development_docs/AI_MODULE_DEPENDENCIES.md
+-   development_tools/reports/DIRECTORY_TREE.md
+-   development_tools/reports/FUNCTION_REGISTRY_BRIEF.md
+-   development_tools/reports/MODULE_DEPENDENCIES_BRIEF.md
 -   development_tools/STATUS_BRIEF.md
 -   development_tools/PRIORITIES_BRIEF.md
 -   development_tools/CONSOLIDATED_REPORT.md
@@ -749,8 +749,8 @@ Common generated files include:
 -   MODULE_DEPENDENCIES_DETAIL.md
 -   LEGACY_REFERENCE_REPORT.md
 -   TEST_COVERAGE_REPORT.md
--   AI_FUNCTION_REGISTRY.md
--   AI_MODULE_DEPENDENCIES.md
+-   FUNCTION_REGISTRY_BRIEF.md
+-   MODULE_DEPENDENCIES_BRIEF.md
 
 ### 6.4. Automation commands for generated docs
 

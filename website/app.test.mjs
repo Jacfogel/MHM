@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const source = await readFile(new URL('./app.js', import.meta.url), 'utf8');
 const profile = { preferred_name: 'Test', email: 'test@example.com', timezone: 'America/Regina' };
 
-async function page(logoutFetch = async () => Response.json({ ok: true }), search = '') {
+async function page(logoutFetch = async () => Response.json({ ok: true }), search = '', account = profile) {
   let click;
   const nodes = new Map();
   const document = {
@@ -20,7 +20,7 @@ async function page(logoutFetch = async () => Response.json({ ok: true }), searc
   const navigation = [];
   const context = vm.createContext({ document, window, Event, AbortSignal, URLSearchParams, location: { search, replace(url) { navigation.push(url); } }, fetch: async (url, options) => {
     requests.push(url);
-    return url === '/api/account' ? Response.json(profile) : logoutFetch(url, options);
+    return url === '/api/account' ? Response.json(account) : logoutFetch(url, options);
   } });
   vm.runInContext(source, context);
   await new Promise(resolve => setImmediate(resolve));
@@ -78,10 +78,13 @@ test('an expired session also clears account data and returns to login', async (
   assert.deepEqual(view.navigation, ['login.html']);
 });
 
-test('an unknown Discord failure explains the likely account-link conflict', async () => {
+test('an unknown Discord result asks the user to check the saved connection', async () => {
   const view = await page(undefined, '?discord=error');
-  assert.match(view.nodes.get('app-status').textContent, /already linked to another MHM account/);
-  assert.match(view.nodes.get('app-status').textContent, /administrator/);
+  assert.match(view.nodes.get('app-status').textContent, /could not confirm.*Check your connections/);
+  const linked = await page(undefined, '?discord=error', { ...profile, discord_linked: true });
+  assert.match(linked.nodes.get('app-status').textContent, /shows a Discord connection/);
+  const conflict = await page(undefined, '?discord=in-use');
+  assert.match(conflict.nodes.get('app-status').textContent, /already connected to another MHM account/);
 });
 
 test('account actions expose busy state and OAuth starts handle expired sessions', () => {

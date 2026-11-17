@@ -21,6 +21,15 @@ from communication.command_handlers.shared_types import (
 
 logger = get_component_logger("communication_manager")
 
+_ACCOUNT_CREATE_RECOVERY = (
+    "I couldn't confirm your account was created. Reopen account setup to check account status "
+    "before creating it again, to avoid a duplicate account."
+)
+_ACCOUNT_LINK_RECOVERY = (
+    "I couldn't confirm your account was linked. Reopen account setup to check account status "
+    "before submitting the code again."
+)
+
 
 class AccountManagementHandler(InteractionHandler):
     """Handler for account management interactions"""
@@ -59,8 +68,7 @@ class AccountManagementHandler(InteractionHandler):
     @handle_errors(
         "handling account creation",
         default_return=InteractionResponse(
-            "I couldn't confirm your account was created. Try 'check account status' "
-            "before creating it again, to avoid a duplicate account.", False
+            _ACCOUNT_CREATE_RECOVERY, completed=False, suggestions=[]
         ),
     )
     def _handle_create_account(
@@ -100,15 +108,18 @@ class AccountManagementHandler(InteractionHandler):
         channel_type = entities.get("channel_type", "discord")
 
 
-        required_feature_fields = ("tasks_enabled", "checkins_enabled", "messages_enabled")
+        feature_names = {
+            "tasks_enabled": "tasks",
+            "checkins_enabled": "check-ins",
+            "messages_enabled": "automated messages",
+        }
         missing_feature_fields = [
-            field for field in required_feature_fields if field not in entities
+            name for field, name in feature_names.items() if field not in entities
         ]
         if missing_feature_fields:
             missing_list = ", ".join(missing_feature_fields)
             return InteractionResponse(
-                "To create an account, please choose your feature settings first. "
-                f"Missing: {missing_list}.",
+                f"To finish account setup, choose your feature settings for {missing_list}.",
                 completed=False,
                 suggestions=["Enable tasks", "Enable check-ins", "Enable messages"],
             )
@@ -165,23 +176,25 @@ class AccountManagementHandler(InteractionHandler):
             else:
                 logger.error("Account creation was not confirmed")
                 return InteractionResponse(
-                    "I couldn't confirm your account was created. Try 'check account status' "
-                    "before creating it again, to avoid a duplicate account.",
+                    _ACCOUNT_CREATE_RECOVERY,
                     completed=False,
+                    suggestions=[],
                 )
         except Exception as e:
             logger.error(f"Error creating account: {e}")
             return InteractionResponse(
-                "I couldn't confirm your account was created. Try 'check account status' "
-                "before creating it again, to avoid a duplicate account.",
+                _ACCOUNT_CREATE_RECOVERY,
                 completed=False,
+                suggestions=[],
             )
 
     @handle_errors(
         "handling account linking",
         default_return=InteractionResponse(
-            "I couldn't finish account verification. Check 'check account status' before "
-            "trying 'link account' again. Keep verification codes private.", False
+            "I couldn't finish account verification. Reopen account setup to check account status "
+            "before trying to link again. Keep verification codes private.",
+            completed=False,
+            suggestions=[],
         ),
     )
     def _handle_link_account(
@@ -337,9 +350,9 @@ class AccountManagementHandler(InteractionHandler):
 
             if not success:
                 return InteractionResponse(
-                    "I couldn't confirm your account was linked. Try 'check account status' "
-                    "before submitting the code again.",
+                    _ACCOUNT_LINK_RECOVERY,
                     completed=False,
+                    suggestions=[],
                 )
 
             try:
@@ -371,11 +384,17 @@ class AccountManagementHandler(InteractionHandler):
         except Exception as e:
             logger.error(f"Error linking account: {e}")
             return InteractionResponse(
-                "❌ An error occurred while linking your account. Please try again.",
+                _ACCOUNT_LINK_RECOVERY,
                 completed=False,
+                suggestions=[],
             )
 
-    @handle_errors("checking account status")
+    @handle_errors(
+        "checking account status",
+        default_return=InteractionResponse(
+            "I couldn't check your account status right now. Reopen account setup in a moment to try again."
+        ),
+    )
     def _handle_check_account_status(self, user_id: str) -> InteractionResponse:
         """Check if user has an account linked"""
         internal_user_id = get_user_id_by_identifier(user_id)

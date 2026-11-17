@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-16 - Task, schedule, and account recovery **COMPLETED**
+
+- Website and Discord close the snooze interaction after a saved snooze even if the alert fails. Task setup checks saved reminder windows, and partial subtask saves identify the steps that saved.
+- Schedule commands validate windows before saving. Website Settings distinguishes saved changes from failed follow-ups, and website setup lets users retry delivery after Discord connects.
+- Repaired relocated report links, regenerated the function registry, and fixed the stale reminder test assertion. The 118 focused audit tests passed, and `doc-sync` and Pyright reported zero issues.
+
 ### 2026-11-16 - Published tools update and report links **COMPLETED**
 
 - Updated MHM's tools to published revision `74e5284`. MHM keeps its host configuration, and published scans exclude the tools directory.
@@ -110,12 +116,6 @@ Guidelines:
 - Add or remove tags and archive selected active notebook entries. Bulk requests identify entries they could not update.
 - Bulk actions appear after selecting tasks or notebook entries. Priority requires an explicit choice before **Change priority** becomes available.
 - All 51 focused website tests passed after the UI update. Backend verification had no confirmed final result.
-
-### 2026-11-07 - Improve command failure recovery guidance **COMPLETED**
-- Added actionable recovery replies and save confirmation across task, notebook, schedule, check-in, profile, account, and health commands.
-- Preserved drafts on failed saves, made check-in retries idempotent, and hardened account verification and notebook list numbering.
-- Notebook queries distinguish unreadable or invalid files from empty collections and preserve the original files.
-- Focused tests and lint passed. The user reported a clean full audit at the earlier task/notebook checkpoint.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

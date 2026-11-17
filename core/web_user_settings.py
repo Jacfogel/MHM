@@ -4,12 +4,14 @@ import copy
 import hashlib
 import json
 import re
+from dataclasses import dataclass
 from datetime import date, datetime
 
 import pytz
 
 from checkins.checkin_schemas import DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS
 from core.error_handling import ValidationError, handle_errors
+from core.logger import get_component_logger
 from core.profile_v2_io import schedule_categories
 from core.schedule_period_normalize import (
     category_uses_all_day_window,
@@ -17,6 +19,17 @@ from core.schedule_period_normalize import (
 )
 from core.time_utilities import now_timestamp_full
 from storage.user_data_validation import validate_schedule_periods
+
+logger = get_component_logger("main")
+
+
+@dataclass(frozen=True)
+class SettingsSaveResult:
+    saved: bool
+    warnings: tuple[str, ...] = ()
+
+    def __bool__(self) -> bool:
+        return self.saved
 
 PROFILE_LISTS = (
     "pronouns",
@@ -857,32 +870,37 @@ def _schedule_categories_to_reschedule(user_id, updates):
     return changed
 
 
-@handle_errors("saving website settings", user_friendly=False, default_return=False)
-def save_settings(user_id, updates):
+@handle_errors("saving website settings", user_friendly=False, default_return=SettingsSaveResult(False))
+def save_settings(user_id, updates) -> SettingsSaveResult:
     """Persist validated settings and refresh dependent caches and defaults."""
     from core import save_user_data_transaction
     from core.schedule_runtime import clear_schedule_periods_cache
     from core.service_requests import create_reschedule_request
+    from core.service_utilities import is_service_running
     from messages.message_data_manager import ensure_user_message_files
 
     categories_to_reschedule = _schedule_categories_to_reschedule(user_id, updates)
     if not save_user_data_transaction(user_id, updates, auto_create=False):
-        return False
-    clear_schedule_periods_cache(user_id)
-    for category in categories_to_reschedule:
-        create_reschedule_request(user_id, category, source="website_settings")
-    if (
-        updates.get("account", {}).get("features", {}).get("task_management")
-        == "enabled"
-    ):
-        from tasks import setup_default_task_tags
+        return SettingsSaveResult(False)
+    warnings = []
+    try:
+        clear_schedule_periods_cache(user_id)
+        missed = [
+            category for category in categories_to_reschedule
+            if not create_reschedule_request(user_id, category, source="website_settings")
+        ]
+        if missed and is_service_running():
+            logger.error(f"Website settings saved but schedule refresh could not be queued for {user_id}: {missed}")
+            warnings.append("Some reminder windows may take effect after the service restarts.")
+        if updates.get("account", {}).get("features", {}).get("task_management") == "enabled":
+            from tasks import setup_default_task_tags
 
-        if not setup_default_task_tags(user_id):
-            return False
-    if "categories" in updates.get("preferences", {}):
-        categories = updates["preferences"]["categories"]
-        if categories and not ensure_user_message_files(user_id, categories).get(
-            "success"
-        ):
-            return False
-    return True
+            if not setup_default_task_tags(user_id):
+                warnings.append("Default task tags could not be prepared. You can still use Tasks.")
+        categories = updates.get("preferences", {}).get("categories")
+        if categories and not ensure_user_message_files(user_id, categories).get("success"):
+            warnings.append("Some message categories could not be prepared. Check Messages before relying on them.")
+    except Exception:
+        logger.exception(f"Website settings follow-up failed after saving for user {user_id}")
+        warnings.append("MHM could not finish applying all the changes. Reload to check the saved settings.")
+    return SettingsSaveResult(True, tuple(warnings))

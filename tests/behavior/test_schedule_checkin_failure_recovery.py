@@ -29,7 +29,7 @@ def test_schedule_failure_does_not_claim_success_or_mutate_source(monkeypatch, e
         save.side_effect = RuntimeError("PRIVATE PATH AND TOKEN")
     monkeypatch.setattr(schedule_runtime, "set_schedule_periods", save)
     handler = ScheduleManagementHandler()
-    entities = {"category": "tasks", "period_name": "morning",
+    entities = {"category": "tasks", "period_name": "midmorning",
                 "start_time": "10am", "end_time": "12pm"}
     if edit:
         entities = {"category": "tasks", "period_name": "morning",
@@ -42,6 +42,42 @@ def test_schedule_failure_does_not_claim_success_or_mutate_source(monkeypatch, e
     assert "PRIVATE" not in response.message
     assert "✅" not in response.message
     assert source == before
+
+
+@pytest.mark.parametrize(
+    "edit, changes, message",
+    [
+        (False, {"period_name": "morning"}, "already exists"),
+        (False, {"start_time": "13pm"}, "start time"),
+        (False, {"end_time": "11:70"}, "end time"),
+        (False, {"end_time": "8am"}, "before the end"),
+        (False, {"days": []}, "Invalid days"),
+        (True, {"new_start_time": "tomorrow"}, "start time"),
+        (True, {"new_end_time": "24:00"}, "end time"),
+        (True, {"new_start_time": "12pm"}, "before the end"),
+        (True, {"new_days": []}, "Invalid days"),
+    ],
+)
+def test_invalid_schedule_change_does_not_write(monkeypatch, edit, changes, message):
+    from core import schedule_runtime
+
+    source = {"morning": {"start_time": "09:00", "end_time": "11:00", "days": ["ALL"]}}
+    monkeypatch.setattr(schedule_runtime, "get_schedule_time_periods", lambda *_: source)
+    save = Mock()
+    monkeypatch.setattr(schedule_runtime, "set_schedule_periods", save)
+    handler = ScheduleManagementHandler()
+    if edit:
+        response = handler._handle_edit_schedule_period(
+            "user", {"category": "tasks", "period_name": "morning", **changes}
+        )
+    else:
+        response = handler._handle_add_schedule_period(
+            "user", {"category": "tasks", "period_name": "new", "start_time": "9am",
+                     "end_time": "11am", **changes}
+        )
+    assert message in response.message
+    assert response.completed
+    save.assert_not_called()
 
 
 def test_schedule_active_off_is_saved(monkeypatch):

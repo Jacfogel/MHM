@@ -953,7 +953,7 @@ class TestTaskFlowExpansion:
             user_id, flow_manager.user_states[user_id], "no reminders needed"
         )
         assert completed
-        assert "no reminders" in reply.lower()
+        assert "skipped custom reminder setup" in reply.lower()
         assert user_id not in flow_manager.user_states
 
     def test_reminder_followup_unrelated_command_clears_flow(self, flow_manager):

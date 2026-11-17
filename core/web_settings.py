@@ -8,7 +8,6 @@ from aiohttp import web
 from core.error_handling import ValidationError, handle_errors
 from core.web_user_settings import (
     build_settings_updates,
-    remember_setup_complete,
     settings_snapshot,
 )
 
@@ -59,21 +58,23 @@ class WebSettingsRoutes:
                 )
             except ValidationError as exc:
                 raise web.HTTPBadRequest(text=str(exc)) from None
-            if not await asyncio.to_thread(
+            result = await asyncio.to_thread(
                 self.gateway.accounts.save_settings, uid, updates
-            ):
+            )
+            if not result:
                 raise web.HTTPServiceUnavailable(
                     text="MHM could not finish saving. Reload these settings to check their current values before trying again."
                 )
+            warnings: list[str] = list(getattr(result, "warnings", ()))
             if complete_setup and section in {"messages", "tasks", "checkins"}:
-                account_doc = documents.get("account")
-                if isinstance(account_doc, dict):
-                    remember_setup_complete(account_doc)
                 mark = getattr(self.gateway.accounts, "mark_setup_complete", None)
-                if mark is not None:
-                    await asyncio.to_thread(mark, uid)
+                if mark is not None and not await asyncio.to_thread(mark, uid):
+                    warnings.append("MHM could not mark website setup complete. You can finish it from the setup page.")
             latest = await asyncio.to_thread(self.gateway.accounts.documents, uid)
-            return web.json_response(settings_snapshot(latest, options))
+            response = settings_snapshot(latest, options)
+            if warnings:
+                response["warnings"] = warnings
+            return web.json_response(response)
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by gateway middleware.
     async def insights(self, request):

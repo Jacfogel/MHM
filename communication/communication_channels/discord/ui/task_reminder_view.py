@@ -421,7 +421,9 @@ def get_task_simplify_view(
                 )
                 return
             result = add_task_subtasks(internal_user_id, self.task_id, titles)
-            message = result.message if result else "Those steps could not be added."
+            message = result.message if result else (
+                "I couldn't confirm which steps were added. Check 'list tasks' before adding them again."
+            )
             if result and result.success:
                 self.finish_review()
                 await interaction.edit_original_response(view=self)
