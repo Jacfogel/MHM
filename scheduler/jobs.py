@@ -4,6 +4,7 @@ import schedule
 
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
+from scheduler.task_reminders import recover_deferred_task_reminders
 
 logger = get_component_logger("scheduler")
 
@@ -18,6 +19,7 @@ def register_system_daily_jobs(scheduler_manager) -> None:
         "Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)"
     )
     schedule.every().hour.do(scheduler_manager.process_billing_notices)
+    schedule.every(5).minutes.do(recover_deferred_task_reminders, scheduler_manager)
     logger.info("Scheduled hourly trial and billing lifecycle notice check")
 
     try:

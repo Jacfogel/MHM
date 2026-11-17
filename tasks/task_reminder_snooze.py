@@ -382,6 +382,7 @@ def snooze_task_reminder(
         return TaskReminderSnoozeResult(
             False,
             f"I saved the snooze until {until_stamp}, but could not schedule the reminder. "
+            "MHM will try to recover it while the service is running. "
             "Set a separate reminder if you need an alert at that time.",
             until=until,
         )

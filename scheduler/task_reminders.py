@@ -1,10 +1,11 @@
-# Orphaned scheduled task-reminder cleanup (schedule library job scan).
+"""Task reminder scheduling, delivery, and recovery."""
 
 from __future__ import annotations
 
 import schedule
 import random
 import math
+import threading
 import time
 from datetime import datetime, timedelta
 from typing import Any
@@ -30,10 +31,12 @@ from scheduler.user_timezone import (
     resolve_user_timezone_str,
     user_local_now_naive,
 )
-from tasks.task_data_handlers import runtime_task_is_completed
+from tasks.task_data_handlers import runtime_task_is_completed, settle_task_reminder
+from tasks.task_reminder_delivery import record_reminder_attempt
 from tasks import task_reminder_state
 
 logger = get_component_logger("scheduler")
+_deferred_reminder_jobs_lock = threading.Lock()
 
 
 @handle_errors("checking whether a task reminder was already sent today", default_return=False)
@@ -74,10 +77,9 @@ def handle_task_reminder(
         return
 
     attempt = 0
-    outbound_message_id = None
     while attempt < retry_attempts:
         try:
-            from tasks import get_task_by_id, update_task
+            from tasks import get_task_by_id
 
             task = get_task_by_id(user_id, task_identifier)
             if not task:
@@ -108,39 +110,73 @@ def handle_task_reminder(
                 )
                 return
 
+            task_id = str(task.get("id") or task_identifier)
+            sent_fields = task_reminder_state.reminder_sent_fields(user_id)
+            saved_snooze = task.get("reminder_snooze_until") if snooze_until else None
+            kind = "deferred" if saved_snooze else "daily"
+            occurrence = saved_snooze or sent_fields["reminder_sent_on"]
+            record = record_reminder_attempt(user_id, task_id, kind, occurrence)
+            if record is None:
+                logger.error(f"Could not record reminder attempt for user {user_id}, task {task_id}")
+                return
+            if not record.get("claimed"):
+                if record["status"] in ("sent", "unconfirmed"):
+                    if record["status"] == "unconfirmed":
+                        logger.warning(
+                            f"Reminder delivery is unconfirmed for user {user_id}, task {task_id}; "
+                            "suppressing another copy"
+                        )
+                    settle_task_reminder(user_id, task_id, saved_snooze, sent_fields)
+                return
+
             send_kwargs = {}
-            if isinstance(outbound_message_id, str) and outbound_message_id:
-                send_kwargs["message_id"] = outbound_message_id
-            result = delivery.handle_task_reminder(
-                user_id, task_identifier, **send_kwargs
-            )
-            status = getattr(result, "status", None)
-            if status in ("sent", "unconfirmed"):
-                update_task(
-                    user_id,
-                    task_identifier,
-                    {
-                        **task_reminder_state.reminder_sent_fields(user_id),
-                        "reminder_snooze_until": None,
-                    },
+            if record.get("message_id"):
+                send_kwargs["message_id"] = record["message_id"]
+            try:
+                result = delivery.handle_task_reminder(user_id, task_identifier, **send_kwargs)
+                status = getattr(result, "status", None)
+                message_id = getattr(result, "message_id", None)
+            except Exception as exc:
+                logger.warning(
+                    f"Task reminder delivery outcome is unknown for user {user_id}, task {task_id}: {exc}"
                 )
+                status, message_id = "unconfirmed", None
+
+            if status not in ("sent", "unconfirmed", "failed", "skipped"):
+                status = "unconfirmed"
+            if not isinstance(message_id, str) or not message_id.strip():
+                message_id = record.get("message_id")
+            recorded = record_reminder_attempt(
+                user_id,
+                task_id,
+                kind,
+                occurrence,
+                outcome=status,
+                attempt_id=record["attempt_id"],
+                message_id=message_id.strip() if message_id else None,
+            )
+            if recorded is None:
+                logger.error(
+                    f"Could not record reminder outcome for user {user_id}, task {task_id}"
+                )
+                return
+            if status in ("sent", "unconfirmed"):
+                settle_task_reminder(user_id, task_id, saved_snooze, sent_fields)
                 if status == "unconfirmed":
                     logger.warning(
-                        f"Task reminder for user {user_id}, task {task_identifier} was handed off but not confirmed; not sending another copy"
+                        f"Task reminder delivery for user {user_id}, task {task_identifier} "
+                        "could not be confirmed; suppressing another copy"
                     )
                 else:
                     logger.info(
                         f"Task reminder sent successfully for user {user_id}, task {task_identifier}"
                     )
                 return
-            if getattr(result, "status", None) == "skipped":
+            if status == "skipped":
                 logger.info(
                     f"Task reminder skipped for user {user_id}, task {task_identifier}"
                 )
                 return
-            next_id = getattr(result, "message_id", None)
-            if isinstance(next_id, str) and next_id.strip():
-                outbound_message_id = next_id.strip()
             logger.error(
                 f"Task reminder was not accepted for user {user_id}, task {task_identifier}"
             )
@@ -159,12 +195,10 @@ def handle_task_reminder(
 
 @handle_errors("rescheduling snoozed task reminders")
 def reschedule_snoozed_task_reminders(scheduler_manager: Any, user_id: str) -> None:
-    """Re-schedule persisted reminder snoozes after a service restart."""
-    from tasks import load_active_tasks, update_task
+    """Rebuild missing jobs from saved reminder times without moving those times."""
+    from tasks import load_active_tasks
     from tasks.task_reminder_snooze import parse_task_snooze_until
 
-    now = now_datetime_full()
-    scheduled = 0
     for task in load_active_tasks(user_id):
         if runtime_task_is_completed(task):
             continue
@@ -174,26 +208,23 @@ def reschedule_snoozed_task_reminders(scheduler_manager: Any, user_id: str) -> N
         task_id = str(task.get("id") or "").strip()
         if not task_id:
             continue
-        if until <= now:
-            until = now + timedelta(minutes=1)
-            update_task(
-                user_id,
-                task_id,
-                {
-                    **task_reminder_state.reminder_sent_fields(user_id),
-                    "reminder_snooze_until": format_timestamp(until, TIMESTAMP_FULL),
-                },
-            )
         date_str = format_timestamp(until, DATE_ONLY)
         time_str = format_timestamp(until, TIME_ONLY_SECOND)
-        if scheduler_manager.schedule_task_reminder_at_datetime(
+        scheduler_manager.schedule_task_reminder_at_datetime(
             user_id, task_id, date_str, time_str
-        ):
-            scheduled += 1
-    if scheduled:
-        logger.info(
-            f"Rescheduled {scheduled} snoozed task reminder(s) for user {user_id}"
         )
+
+
+@handle_errors("recovering deferred task reminder jobs")
+def recover_deferred_task_reminders(scheduler_manager: Any) -> None:
+    """Retry saved snoozes and skips while the service is running."""
+    from core import get_all_user_ids, get_user_data
+    from tasks import are_tasks_enabled
+
+    for user_id in get_all_user_ids():
+        account = get_user_data(user_id, "account").get("account") or {}
+        if has_service_access(account) and are_tasks_enabled(user_id):
+            reschedule_snoozed_task_reminders(scheduler_manager, user_id)
 
 
 @handle_errors("scheduling all task reminders")
@@ -548,10 +579,26 @@ def schedule_task_reminder_at_time(
 
 @handle_errors("running one-time task reminder", default_return=schedule.CancelJob)
 def _run_one_time_task_reminder(
-    scheduler_manager: Any, user_id: str, task_identifier: str
+    scheduler_manager: Any,
+    user_id: str,
+    task_identifier: str,
+    *,
+    deferred_until: str | None = None,
 ):
     """Deliver once and remove the job, including after a delivery failure."""
-    scheduler_manager.handle_task_reminder(user_id=user_id, task_identifier=task_identifier)
+    if deferred_until is not None:
+        from tasks import are_tasks_enabled, get_task_by_id
+
+        task = get_task_by_id(user_id, task_identifier)
+        if (
+            not task
+            or task.get("reminder_snooze_until") != deferred_until
+            or not are_tasks_enabled(user_id)
+        ):
+            return schedule.CancelJob
+    scheduler_manager.handle_task_reminder(
+        user_id=user_id, task_identifier=task_identifier
+    )
     return schedule.CancelJob
 
 
@@ -584,19 +631,35 @@ def schedule_task_reminder_at_datetime(
             logger.error(f"Invalid date/time format: {date_str} {time_str}")
             return False
 
+        reminder_stamp = format_timestamp(reminder_datetime, TIMESTAMP_FULL)
+        deferred_until = task.get("reminder_snooze_until")
+        is_saved_deferral = deferred_until == reminder_stamp
         now = localized_now_for_user(user_id)
-        if reminder_datetime < now:
+        if reminder_datetime < now and not is_saved_deferral:
             logger.debug(f"Reminder time {reminder_datetime} is in the past, skipping")
             return False
 
         delay_seconds = (reminder_datetime - now).total_seconds()
         delay_seconds_int = max(1, math.ceil(delay_seconds))
-        schedule.every(delay_seconds_int).seconds.do(
-            _run_one_time_task_reminder,
-            scheduler_manager=scheduler_manager,
-            user_id=user_id,
-            task_identifier=task_identifier,
-        )
+        job_kwargs = {
+            "scheduler_manager": scheduler_manager,
+            "user_id": user_id,
+            "task_identifier": task_identifier,
+        }
+        if is_saved_deferral:
+            job_kwargs["deferred_until"] = deferred_until
+            # A web request and the recovery scan can register the same deferral.
+            with _deferred_reminder_jobs_lock:
+                tag = ("deferred-task-reminder", user_id, task_identifier, deferred_until)
+                if schedule.get_jobs(tag):
+                    return True
+                schedule.every(delay_seconds_int).seconds.do(
+                    _run_one_time_task_reminder, **job_kwargs
+                ).tag(tag)
+        else:
+            schedule.every(delay_seconds_int).seconds.do(
+                _run_one_time_task_reminder, **job_kwargs
+            )
 
         logger.info(
             f"Scheduled one-time task reminder for user {user_id}, task {task_identifier} at {reminder_datetime}"

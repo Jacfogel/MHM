@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/MODULE_DEPENDENCIES_BRIEF.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 22:51:05
+> **Last Generated**: 2026-11-17 00:11:08
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 
 > **Purpose**: Essential module relationships and dependency patterns
@@ -12,10 +12,10 @@
 
 ### Dependency Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 314
-- **Total Imports**: 2852
-- **Standard Library**: 821 (28.8%)
-- **Third-Party**: 236 (8.3%)
-- **Local Imports**: 1795 (62.9%)
+- **Total Imports**: 2860
+- **Standard Library**: 821 (28.7%)
+- **Third-Party**: 235 (8.2%)
+- **Local Imports**: 1804 (63.1%)
 
 ## Dependency Decision Trees
 

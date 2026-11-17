@@ -31,7 +31,6 @@ from .task_data_manager import (
     schedule_task_reminders,
     cleanup_task_reminders,
 )
-from .task_service import set_task_dependencies
 
 __all__ = [
     # Error class
@@ -62,5 +61,4 @@ __all__ = [
     "save_completed_tasks",
     "schedule_task_reminders",
     "cleanup_task_reminders",
-    "set_task_dependencies",
 ]

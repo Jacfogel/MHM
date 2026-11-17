@@ -9,7 +9,60 @@ import pytest
 import pytz
 import schedule
 
+from communication.core.message_send_result import MessageSendResult
 from scheduler import task_reminders as tr
+from tasks import task_reminder_delivery
+
+
+class DeliveryProcessStopped(BaseException):
+    """Simulate process exit without running the delivery result handler."""
+
+
+@pytest.mark.unit
+@pytest.mark.scheduler
+@pytest.mark.parametrize("first_outcome", ["crash", "sent", "failed"])
+def test_recovered_reminder_retries_only_explicit_failure(
+    tmp_path, monkeypatch, first_outcome
+):
+    monkeypatch.setattr(task_reminder_delivery, "get_user_subdir_path", lambda *args: tmp_path)
+    monkeypatch.setattr(tr, "has_service_access", lambda account: True)
+    monkeypatch.setattr("core.get_user_data", lambda *args: {"account": {}})
+    task = {"id": "task-1", "reminder_snooze_until": "2000-01-01 12:00:00"}
+    monkeypatch.setattr("tasks.get_task_by_id", lambda *args: task)
+    manager = MagicMock()
+    settle = MagicMock(side_effect=DeliveryProcessStopped)
+    monkeypatch.setattr(tr, "settle_task_reminder", settle)
+    deliver = manager.delivery.handle_task_reminder
+    failure = MessageSendResult.failed(message_id="<retry@example.com>")
+    success = MessageSendResult.sent("user-1", "task_reminders")
+    if first_outcome == "crash":
+        deliver.side_effect = DeliveryProcessStopped
+    else:
+        deliver.return_value = failure if first_outcome == "failed" else success
+
+    if first_outcome == "failed":
+        tr.handle_task_reminder(manager, "user-1", "task-1", retry_attempts=1)
+    else:
+        with pytest.raises(DeliveryProcessStopped):
+            tr.handle_task_reminder(manager, "user-1", "task-1", retry_attempts=1)
+
+    monkeypatch.setattr(task_reminder_delivery, "_PROCESS_ID", "restarted-process")
+    settle.side_effect = None
+    settle.reset_mock()
+    deliver.side_effect = None
+    deliver.return_value = success
+    deliver.reset_mock()
+    tr.handle_task_reminder(manager, "user-1", "task-1", retry_attempts=1)
+
+    if first_outcome == "failed":
+        deliver.assert_called_once_with("user-1", "task-1", message_id="<retry@example.com>")
+    else:
+        deliver.assert_not_called()
+    settle.assert_called_once()
+    stored = task_reminder_delivery.record_reminder_attempt(
+        "user-1", "task-1", "deferred", task["reminder_snooze_until"]
+    )
+    assert stored["status"] == ("unconfirmed" if first_outcome == "crash" else "sent")
 
 
 @pytest.fixture
@@ -75,7 +128,6 @@ class TestScheduleTaskReminderAtDatetime:
         assert local_scheduler.jobs == []
 
     def test_restart_preserves_snooze_seconds(self, mock_scheduler_manager, monkeypatch):
-        monkeypatch.setattr(tr, "now_datetime_full", lambda: datetime(2026, 10, 22, 10, 0))
         monkeypatch.setattr("tasks.load_active_tasks", lambda uid: [{
             "id": "task-1", "status": "active",
             "reminder_snooze_until": "2026-10-22 11:00:30",
@@ -84,6 +136,47 @@ class TestScheduleTaskReminderAtDatetime:
         mock_scheduler_manager.schedule_task_reminder_at_datetime.assert_called_once_with(
             "user-1", "task-1", "2026-10-22", "11:00:30"
         )
+
+    @pytest.mark.parametrize("superseded", [False, True])
+    def test_recovery_restores_one_overdue_job_without_changing_saved_time(
+        self, mock_scheduler_manager, active_task, monkeypatch, superseded
+    ):
+        local_scheduler = schedule.Scheduler()
+        now = pytz.timezone("America/Regina").localize(datetime(2026, 10, 22, 12))
+        saved_time = "2026-10-22 11:00:30"
+        active_task["reminder_snooze_until"] = saved_time
+        monkeypatch.setattr("tasks.load_active_tasks", lambda uid: [active_task])
+        monkeypatch.setattr("tasks.get_task_by_id", lambda *args: active_task)
+        monkeypatch.setattr("tasks.are_tasks_enabled", lambda uid: True)
+        monkeypatch.setattr("core.get_all_user_ids", lambda: ["user-1"])
+        monkeypatch.setattr("core.get_user_data", lambda *args: {"account": {}})
+        monkeypatch.setattr(tr, "has_service_access", lambda account: True)
+        monkeypatch.setattr(tr, "resolve_user_timezone_str", lambda uid: "America/Regina")
+        monkeypatch.setattr(tr, "localized_now_for_user", lambda uid: now)
+        monkeypatch.setattr(tr.schedule, "every", local_scheduler.every)
+        monkeypatch.setattr(tr.schedule, "get_jobs", local_scheduler.get_jobs)
+        mock_scheduler_manager.schedule_task_reminder_at_datetime.side_effect = (
+            lambda *args: tr.schedule_task_reminder_at_datetime(mock_scheduler_manager, *args)
+        )
+
+        tr.recover_deferred_task_reminders(mock_scheduler_manager)
+        tr.recover_deferred_task_reminders(mock_scheduler_manager)
+
+        assert active_task["reminder_snooze_until"] == saved_time
+        job, = local_scheduler.jobs
+        assert job.interval == 1
+        if superseded:
+            active_task["reminder_snooze_until"] = "2026-10-22 14:00:00"
+        job.next_run = datetime.min
+        local_scheduler.run_pending()
+
+        assert not local_scheduler.jobs
+        if superseded:
+            mock_scheduler_manager.handle_task_reminder.assert_not_called()
+        else:
+            mock_scheduler_manager.handle_task_reminder.assert_called_once_with(
+                user_id="user-1", task_identifier="task-1"
+            )
 
     def test_skips_past_reminder(self, mock_scheduler_manager, active_task, monkeypatch):
         fixed_now = datetime(2026, 1, 20, 12, 0, 0)

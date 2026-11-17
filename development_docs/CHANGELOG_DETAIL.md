@@ -32,6 +32,13 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-17 - Task reminder recovery and editor cleanup
+
+- **Reminder scheduling** - Rebuild jobs for saved snoozes and reminders for skipped occurrences at startup and during five-minute checks. Overdue reminders can send late while retaining their original saved time. Repeated checks avoid duplicate jobs, and a superseded job checks the saved time before sending. [Task reminder scheduler](../scheduler/task_reminders.py)
+- **Delivery recovery** - Persist an attempt before contacting Discord or email. A recorded handoff suppresses another send even if the service stopped before updating the task. Explicit failures remain eligible for retry. Interrupted attempts and ambiguous timeouts are recorded as unconfirmed. Automatic replay is suppressed in those cases, so a crash before handoff can leave the reminder undelivered. [Delivery records](../tasks/task_reminder_delivery.py)
+- **Task editor and blocking** - Fixed a browser error that prevented Save changes from reaching the server and placed save errors beside the button. Removed task blocking from the editor, website and Discord task lists, API, and task model. Existing v2 task files remain readable, and obsolete blocking fields are discarded on the next regular task save. Recurring tasks continue to carry their child steps forward. [Task editor](../website/tasks.js) · [Task data model](../core/USER_DATA_MODEL.md)
+- **Audit follow-up and verification** - Documented both reminder storage callbacks, updated the scheduler success test to check guarded settlement, and regenerated the function registry. Separate runs passed 194 reminder and channel tests, 142 website tests, 111 task and API tests, and 74 scheduler follow-up tests. Restart and delivery outcomes were simulated in tests. Live channel delivery, deployment, and a full Tier 3 rerun remained open. [Function registry](../development_tools/reports/FUNCTION_REGISTRY_DETAIL.md)
+
 ### 2026-11-16 - Task, schedule, and account recovery across website and Discord
 
 - **Tasks and reminders** - A saved snooze closes the chat interaction or website dialog even if the alert could not be scheduled. MHM confirms the snooze and suggests setting a separate alert. Task setup checks that the requested reminder windows were saved and directs users to check the task before retrying an uncertain due date, priority, or reminder save. Partial subtask saves report the steps MHM confirmed.

@@ -26,7 +26,10 @@ from communication.communication_channels.email.inbound_processor import (
 from communication.delivery.message_dispatcher import PredefinedMessageDispatcher
 from communication.delivery.recipient_resolver import RecipientResolver
 from communication.reminders.checkin_prompt_dispatcher import CheckinPromptDispatcher
-from communication.reminders.reminder_dispatcher import TaskReminderDispatcher
+from communication.reminders.reminder_dispatcher import (
+    TASK_REMINDER_CATEGORY,
+    TaskReminderDispatcher,
+)
 from core import get_user_data
 from messages.message_data_manager import store_sent_message
 from core.schedule_runtime import get_current_time_periods_with_validation
@@ -808,6 +811,8 @@ class CommunicationManager:
             handle_network_error(
                 e, f"message send via {channel_name}", kwargs.get("user_id")
             )
+            if kwargs.get("category") == TASK_REMINDER_CATEGORY:
+                return CHANNEL_SEND_UNCONFIRMED
             return False
         except Exception as e:
             from core.error_handling import handle_communication_error
@@ -938,6 +943,8 @@ class CommunicationManager:
                     logger.error(
                         f"Async send_message returned None for channel {channel_name}"
                     )
+                    if kwargs.get("category") == TASK_REMINDER_CATEGORY:
+                        return CHANNEL_SEND_UNCONFIRMED
                     return False
                 return result
             except Exception as e:

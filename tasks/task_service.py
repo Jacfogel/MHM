@@ -26,7 +26,6 @@ from tasks.task_link_helpers import (
     sanitize_task_links,
 )
 from tasks.task_schemas import VALID_PRIORITIES
-from tasks.task_dependencies import validate_dependencies
 from tasks.task_templates import (
     TaskTemplate,
     custom_template_reference,
@@ -104,42 +103,6 @@ def delete_task(user_id: str, task_id: str) -> bool:
 @handle_errors("task service: update_task", user_friendly=False, re_raise=True)
 def update_task(user_id: str, task_id: str, updates: dict[str, Any]) -> bool:
     return _tasks().update_task(user_id, task_id, updates)
-
-
-@handle_errors("task service: set task dependencies", user_friendly=False, re_raise=True)
-def set_task_dependencies(
-    user_id: str, task_id: str, blocked_by: list[str]
-) -> bool:
-    """Replace a task's prerequisite list while preserving graph invariants."""
-    return update_task(user_id, task_id, {"blocked_by": blocked_by})
-
-
-@handle_errors(
-    "task service: validate task dependencies",
-    default_return="Task dependencies could not be validated",
-)
-def validate_task_dependencies(
-    user_id: str, task_id: str, blocked_by: list[str]
-) -> str | None:
-    """Return a user-facing validation error, or ``None`` for a valid graph."""
-    tasks = load_active_tasks(user_id)
-    reference = str(task_id or "").strip().casefold()
-    target = next(
-        (
-            task
-            for task in tasks
-            if reference
-            in {
-                str(task.get("id") or "").strip().casefold(),
-                str(task.get("short_id") or "").strip().casefold(),
-            }
-        ),
-        None,
-    )
-    if target is None:
-        return "That task is no longer active"
-    _resolved, reason = validate_dependencies(tasks, target, blocked_by)
-    return reason
 
 
 @handle_errors("task service: append_task_description", user_friendly=False, re_raise=True)
@@ -701,13 +664,6 @@ def format_task_detail_display(task: dict[str, Any], now_dt: datetime | None = N
 
     priority = task.get("priority") or "medium"
     lines.append(f"**Priority:** {priority}")
-
-    blocked_by = task.get("blocked_by") or []
-    if blocked_by:
-        count = len(blocked_by)
-        lines.append(f"**Status:** blocked by {count} unfinished task{'s' if count != 1 else ''}")
-    else:
-        lines.append("**Status:** ready")
 
     due_date = runtime_task_due_date(task)
     due_time = runtime_task_due_time(task)

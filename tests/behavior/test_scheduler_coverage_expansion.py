@@ -825,10 +825,13 @@ class TestMessageHandling:
     @pytest.mark.behavior
     @pytest.mark.scheduler
     @pytest.mark.critical
-    def test_handle_task_reminder_success(self, scheduler_manager):
+    def test_handle_task_reminder_success(self, scheduler_manager, tmp_path, monkeypatch):
         """Test successful task reminder sending."""
         user_id = "test-user"
         task_id = "task-1"
+        monkeypatch.setattr(
+            "tasks.task_reminder_delivery.get_user_subdir_path", lambda *_args: tmp_path
+        )
 
         with patch("tasks.get_task_by_id") as mock_get_task:
             mock_get_task.return_value = {
@@ -837,7 +840,7 @@ class TestMessageHandling:
                 "completion": {"completed": False},
             }
 
-            with patch("tasks.update_task") as mock_update_task:
+            with patch("scheduler.task_reminders.settle_task_reminder") as settle:
                 # Test real behavior: function should send task reminder
                 scheduler_manager.handle_task_reminder(user_id, task_id)
 
@@ -846,10 +849,11 @@ class TestMessageHandling:
                 scheduler_manager.delivery.handle_task_reminder.assert_called_once_with(
                     user_id, task_id
                 )
-                mock_update_task.assert_called_once_with(
+                settle.assert_called_once_with(
                     user_id,
                     task_id,
-                    {**reminder_sent_fields(user_id), "reminder_snooze_until": None},
+                    None,
+                    reminder_sent_fields(user_id),
                 )
 
     @pytest.mark.behavior
@@ -866,14 +870,14 @@ class TestMessageHandling:
                 "completion": {"completed": True},
             }
 
-            with patch("tasks.update_task") as mock_update_task:
+            with patch("scheduler.task_reminders.settle_task_reminder") as settle:
                 # Test real behavior: function should not send reminder for completed task
                 scheduler_manager.handle_task_reminder(user_id, task_id)
 
                 # Verify side effects
                 mock_get_task.assert_called_once_with(user_id, task_id)
                 scheduler_manager.delivery.handle_task_reminder.assert_not_called()
-                mock_update_task.assert_not_called()
+                settle.assert_not_called()
 @pytest.mark.tasks
 
 

@@ -310,7 +310,7 @@ class TestTaskBreakdown:
         }
         assert steps[0].get("due", {}).get("date") == parents[0].get("due", {}).get("date")
 
-    def test_repeated_steps_keep_metadata_and_remap_dependencies(self, test_data_dir):
+    def test_repeated_steps_keep_metadata(self, test_data_dir):
         user_id = _fresh_user_id("breakdown_repeat_metadata")
         assert TestUserFactory.create_basic_user(
             user_id, enable_tasks=True, test_data_dir=test_data_dir
@@ -320,7 +320,6 @@ class TestTaskBreakdown:
             create_task,
             load_active_tasks,
             save_active_tasks,
-            set_task_dependencies,
             update_task,
         )
 
@@ -333,7 +332,6 @@ class TestTaskBreakdown:
         add_task_subtasks(user_id, parent_id, ["Collect metrics", "Write summary"])
         active = load_active_tasks(user_id)
         first = next(task for task in active if task.get("title") == "Collect metrics")
-        second = next(task for task in active if task.get("title") == "Write summary")
         assert update_task(
             user_id,
             first["id"],
@@ -350,7 +348,6 @@ class TestTaskBreakdown:
         first["linked_item_ids"] = ["note-1"]
         first["metadata"] = {"view": "weekly"}
         assert save_active_tasks(user_id, active)
-        assert set_task_dependencies(user_id, second["id"], [first["id"]])
 
         assert complete_task(user_id, parent_id)
         repeated = load_active_tasks(user_id)
@@ -372,8 +369,7 @@ class TestTaskBreakdown:
         assert new_first["source"]["channel"] == "discord"
         assert new_first["linked_item_ids"] == ["note-1"]
         assert new_first["metadata"] == {"view": "weekly"}
-        assert new_second["blocked_by"] == [new_first["id"]]
-        assert new_first["blocks"] == [new_second["id"]]
+        assert new_second["parent_id"] == new_parent["id"]
 
     def test_restoring_recurring_parent_rewinds_generated_occurrence(self, test_data_dir):
         user_id = _fresh_user_id("breakdown_repeat_restore")

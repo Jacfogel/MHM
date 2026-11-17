@@ -137,6 +137,7 @@ def _skip_recurring_occurrence(
     else:
         message += (
             " I could not schedule the next reminder. "
+            "MHM will try to recover it while the service is running. "
             "Set a separate reminder if you need an alert for the next occurrence."
         )
     return TaskOccurrenceSkipResult(True, message, next_due=next_due, recurring=True)

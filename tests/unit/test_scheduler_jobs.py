@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from scheduler.jobs import register_full_daily_maintenance_jobs, register_system_daily_jobs
+from scheduler.task_reminders import recover_deferred_task_reminders
 
 
 @pytest.mark.unit
@@ -31,6 +32,8 @@ def test_register_system_daily_jobs_schedules_log_archival_and_full_daily_run():
         manager.perform_daily_log_archival,
         manager.run_full_daily_scheduler,
     ]
+    schedule_module.every.assert_any_call(5)
+    mock_every.minutes.do.assert_called_once_with(recover_deferred_task_reminders, manager)
 
 
 @pytest.mark.unit

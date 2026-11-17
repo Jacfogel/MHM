@@ -14,7 +14,14 @@ from tasks.task_reminder_state import reminder_sent_fields
 
 def _sent_update(user_id: str = "u1") -> dict:
     """The task fields written after a reminder is handed off."""
-    return {**reminder_sent_fields(user_id), "reminder_snooze_until": None}
+    return reminder_sent_fields(user_id)
+
+
+@pytest.fixture(autouse=True)
+def isolate_reminder_delivery_storage(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "tasks.task_reminder_delivery.get_user_subdir_path", lambda *args: tmp_path
+    )
 
 
 @pytest.mark.unit
@@ -184,11 +191,11 @@ class TestHandleTaskReminderModule:
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
-            patch("tasks.update_task") as update_task,
+            patch("scheduler.task_reminders.settle_task_reminder") as update_task,
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with("u1", "t1", _sent_update())
+        update_task.assert_called_once_with("u1", "t1", None, _sent_update())
 
     def test_already_sent_today_is_not_delivered(self):
         manager = MagicMock()
@@ -201,7 +208,7 @@ class TestHandleTaskReminderModule:
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
-            patch("tasks.update_task") as update_task,
+            patch("scheduler.task_reminders.settle_task_reminder") as update_task,
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_not_called()
@@ -221,11 +228,11 @@ class TestHandleTaskReminderModule:
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
-            patch("tasks.update_task") as update_task,
+            patch("scheduler.task_reminders.settle_task_reminder") as update_task,
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with("u1", "t1", _sent_update())
+        update_task.assert_called_once_with("u1", "t1", None, _sent_update())
 
     def test_stuck_sent_flag_without_a_date_is_delivered_again(self):
         manager = MagicMock()
@@ -236,11 +243,11 @@ class TestHandleTaskReminderModule:
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
-            patch("tasks.update_task") as update_task,
+            patch("scheduler.task_reminders.settle_task_reminder") as update_task,
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with("u1", "t1", _sent_update())
+        update_task.assert_called_once_with("u1", "t1", None, _sent_update())
 
     def test_snoozed_task_is_not_delivered(self):
         manager = MagicMock()
@@ -271,11 +278,11 @@ class TestHandleTaskReminderModule:
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
-            patch("tasks.update_task") as update_task,
+            patch("scheduler.task_reminders.settle_task_reminder") as update_task,
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=1)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with("u1", "t1", _sent_update())
+        update_task.assert_called_once_with("u1", "t1", "2020-01-01 12:00:00", _sent_update())
 
     def test_failed_send_is_not_marked_sent_and_reuses_message_id(self):
         manager = MagicMock()
@@ -290,16 +297,16 @@ class TestHandleTaskReminderModule:
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
-            patch("tasks.update_task") as update_task,
-            patch("scheduler.task_reminders.time.sleep") as sleep,
+            patch("scheduler.task_reminders.settle_task_reminder") as update_task,
+            patch("scheduler.task_reminders.time") as scheduler_time,
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=2, retry_delay=0)
         assert manager.delivery.handle_task_reminder.call_args_list[0].args == ("u1", "t1")
         assert manager.delivery.handle_task_reminder.call_args_list[1].kwargs == {
             "message_id": "<same@example.com>"
         }
-        update_task.assert_called_once_with("u1", "t1", _sent_update())
-        sleep.assert_called_once_with(0)
+        update_task.assert_called_once_with("u1", "t1", None, _sent_update())
+        scheduler_time.sleep.assert_called_once_with(0)
 
     def test_unconfirmed_send_is_marked_sent_without_another_attempt(self):
         manager = MagicMock()
@@ -310,8 +317,8 @@ class TestHandleTaskReminderModule:
         with (
             patch("tasks.get_task_by_id", return_value=task),
             patch("scheduler.task_reminders.runtime_task_is_completed", return_value=False),
-            patch("tasks.update_task") as update_task,
+            patch("scheduler.task_reminders.settle_task_reminder") as update_task,
         ):
             tr.handle_task_reminder(manager, "u1", "t1", retry_attempts=3, retry_delay=0)
         manager.delivery.handle_task_reminder.assert_called_once_with("u1", "t1")
-        update_task.assert_called_once_with("u1", "t1", _sent_update())
+        update_task.assert_called_once_with("u1", "t1", None, _sent_update())

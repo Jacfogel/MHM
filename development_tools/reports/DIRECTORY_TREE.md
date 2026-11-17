@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 22:51:11
+> **Last Generated**: 2026-11-17 00:11:16
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -424,13 +424,13 @@ C:.
 |   |   task_breakdown.py
 |   |   task_data_handlers.py
 |   |   task_data_manager.py
-|   |   task_dependencies.py
 |   |   task_effort.py
 |   |   task_focus.py
 |   |   task_link_helpers.py
 |   |   task_occurrence_skip.py
 |   |   task_reference.py
 |   |   task_reminder_deferrals.py
+|   |   task_reminder_delivery.py
 |   |   task_reminder_snooze.py
 |   |   task_reminder_state.py
 |   |   task_schemas.py
@@ -844,7 +844,6 @@ C:.
 |   |   |   test_tags_expansion.py
 |   |   |   test_tags_gap_coverage.py
 |   |   |   test_task_breakdown.py
-|   |   |   test_task_dependencies.py
 |   |   |   test_task_detail_display.py
 |   |   |   test_task_edit_dialog_time_combos.py
 |   |   |   test_task_effort.py

@@ -221,11 +221,6 @@ const MHMTaskInput = Object.freeze({
       const meta = document.createElement('div'); meta.className = 'task-meta';
       const due = document.createElement('span'); due.textContent = dueText(task); meta.append(due);
       const priority = document.createElement('span'); priority.className = `priority priority-${task.priority}`; priority.textContent = task.priority; meta.append(priority);
-      if (task.is_blocked || (Array.isArray(task.blocked_by) && task.blocked_by.length)) {
-        const blocked = document.createElement('span'); blocked.className = 'task-blocked';
-        const blockers = Array.isArray(task.blocked_by) ? task.blocked_by.length : 0;
-        blocked.textContent = `Blocked by ${blockers} unfinished task${blockers === 1 ? '' : 's'}`; meta.append(blocked);
-      }
       const repeat = recurrenceText(task); if (repeat) { const recurring = document.createElement('span'); recurring.textContent = repeat; meta.append(recurring); }
       const tags = tagsText(task); if (tags) { const tagLabel = document.createElement('span'); tagLabel.textContent = tags; meta.append(tagLabel); }
       const reminders = remindersText(task); if (reminders) { const reminderLabel = document.createElement('span'); reminderLabel.textContent = reminders; meta.append(reminderLabel); }
@@ -482,19 +477,6 @@ const MHMTaskInput = Object.freeze({
     wrapper.append(label, field); parent.append(wrapper); return field;
   }
 
-  function dependencySelect(parent, task) {
-    const wrapper = document.createElement('div'); wrapper.className = 'settings-field';
-    const label = document.createElement('label'); label.htmlFor = 'edit-blocked-by'; label.textContent = 'Blocked by';
-    const help = document.createElement('p'); help.className = 'field-help'; help.textContent = 'Choose unfinished tasks that must be completed first.';
-    const field = document.createElement('select'); field.id = 'edit-blocked-by'; field.name = 'edit-blocked-by'; field.multiple = true; field.size = Math.min(6, Math.max(2, tasks.length - 1));
-    const selected = new Set(Array.isArray(task.blocked_by) ? task.blocked_by : []);
-    for (const candidate of tasks) {
-      if (candidate.id === task.id) continue;
-      const option = document.createElement('option'); option.value = candidate.id; option.textContent = candidate.title; option.selected = selected.has(candidate.id); field.append(option);
-    }
-    wrapper.append(label, help, field); parent.append(wrapper); return field;
-  }
-
   function reminderEditor(parent, reminders = []) {
     const fieldset = document.createElement('fieldset'); fieldset.className = 'task-reminders';
     const legend = document.createElement('legend'); legend.textContent = 'Task reminders'; fieldset.append(legend);
@@ -548,7 +530,6 @@ const MHMTaskInput = Object.freeze({
     tags.maxLength = 1000; tags.placeholder = 'health, errands, home';
     const existingTag = select(form, 'Add an existing tag', '', 'edit-existing-tag', [['', 'Choose a tag…'], ...existingTags.map(value => [value, value])]);
     bindTagPicker(tags, existingTag);
-    const blockedBy = dependencySelect(form, task);
     const reminders = reminderEditor(form, Array.isArray(task.reminders) ? task.reminders : []);
     const actions = document.createElement('div'); actions.className = 'task-dialog-actions';
     actions.append(button('Cancel', 'plain-button', () => {
@@ -558,14 +539,17 @@ const MHMTaskInput = Object.freeze({
       }
     }));
     const save = document.createElement('button'); save.type = 'submit'; save.className = 'button'; save.textContent = 'Save changes'; actions.append(save);
-    form.append(actions); dialog.append(heading, form); document.body.append(dialog);
+    const saveError = document.createElement('p');
+    saveError.className = 'form-status is-error';
+    saveError.setAttribute('role', 'alert');
+    form.append(saveError, actions); dialog.append(heading, form); document.body.append(dialog);
     form.addEventListener('input', () => { openTaskEditDirty = true; });
     form.addEventListener('change', () => { openTaskEditDirty = true; });
     form.addEventListener('click', event => {
       if (event.target.closest('.task-reminder-add, .task-reminder-remove')) openTaskEditDirty = true;
     });
     form.addEventListener('submit', async event => {
-      event.preventDefault(); save.disabled = true;
+      event.preventDefault(); save.disabled = true; saveError.textContent = '';
       try {
         const recurrenceValue = readRecurrence(recurrence, interval, unit);
         await api(`/api/tasks/${encodeURIComponent(task.id)}`, 'PATCH', {
@@ -574,12 +558,11 @@ const MHMTaskInput = Object.freeze({
           recurrence_pattern: recurrenceValue.pattern,
           recurrence_interval: recurrenceValue.interval, repeat_after_completion: recurrenceValue.pattern ? repeatAfter.checked : false,
           tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean),
-          blocked_by: blockedBy.childNodes.filter(option => option.selected).map(option => option.value),
           reminder_periods: reminders.readScheduled(),
           quick_reminders: reminders.readQuick(),
         });
         openTaskEditDirty = false; dialog.close(); await load();
-      } catch (error) { showStatus(error.message, true); save.disabled = false; }
+      } catch (error) { saveError.textContent = error.message; save.disabled = false; }
     });
     dialog.addEventListener('cancel', event => {
       if (openTaskEditDirty && !window.confirm('Discard your unsaved task changes?')) event.preventDefault();

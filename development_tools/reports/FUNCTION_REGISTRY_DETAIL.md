@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-16 22:50:23
+> **Last Generated**: 2026-11-17 00:11:35
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 316
-- **Functions Found**: 3278
+- **Functions Found**: 3271
 - **Methods Found**: 1661
 - **Classes Found**: 293
-- **Total Items**: 4939
-- **Functions Documented**: 2930
+- **Total Items**: 4932
+- **Functions Documented**: 2923
 - **Methods Documented**: 1487
 - **Classes Documented**: 225
-- **Total Documented**: 4417
+- **Total Documented**: 4410
 - **Template-Generated**: 74
-- **Last Updated**: 2026-11-16
+- **Last Updated**: 2026-11-17
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -51,7 +51,7 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (29)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (212)
+### **Task Management Functions** (204)
 Task management and scheduling functions.
 
 ### **Test Functions** (0)
@@ -6856,7 +6856,8 @@ Args:
 ``task_identifier`` is the task record's canonical ``id`` or another value
 accepted by ``tasks.get_task_by_id``.
 - [OK] `handle_task_selection_edge_cases(incomplete_tasks)` - Handle trivial task-selection cases before weighted selection.
-- [OK] `reschedule_snoozed_task_reminders(scheduler_manager, user_id)` - Re-schedule persisted reminder snoozes after a service restart.
+- [OK] `recover_deferred_task_reminders(scheduler_manager)` - Retry saved snoozes and skips while the service is running.
+- [OK] `reschedule_snoozed_task_reminders(scheduler_manager, user_id)` - Rebuild missing jobs from saved reminder times without moving those times.
 - [OK] `schedule_all_task_reminders(scheduler_manager, user_id)` - Schedule one active task reminder per configured task reminder period.
 
 For each active period, one incomplete task is selected with weighted
@@ -7221,6 +7222,7 @@ to persist them. Suggestions may use the provider but never save task data.
 - [MISSING] `_task_v2_to_runtime(task)` - No description
 - [OK] `add_tags_to_active_tasks(user_id, task_ids, tags)` - Merge tags into selected active tasks in one file update.
 - [MISSING] `apply(data)` - No description
+- [OK] `apply(data)` - Update the active task only if its saved snooze matches the settled occurrence.
 - [OK] `ensure_task_directory(user_id)` - Ensure the task directory and default JSON files exist for a user.
 
 Returns:
@@ -7244,6 +7246,7 @@ Returns:
 - [OK] `save_active_tasks(user_id, tasks)` - Save active tasks for a user. Returns True on success.
 - [OK] `save_completed_tasks(user_id, tasks)` - Save completed tasks for a user. Returns True on success.
 - [OK] `save_task_lists(user_id, active_tasks, completed_tasks)` - Replace active and completed tasks in one write. Returns True on success.
+- [OK] `settle_task_reminder(user_id, task_id, expected_snooze, sent_fields)` - Settle a delivery without clearing a concurrently saved deferral.
 
 #### `tasks/task_data_manager.py`
 **Functions:**
@@ -7276,19 +7279,6 @@ When restore_steps is true, finished steps of a top-level task come back with it
 - [OK] `schedule_task_reminders(user_id, task_id, reminder_periods)` - Schedule reminders for a specific task based on its reminder periods.
 - [OK] `setup_default_task_tags(user_id)` - Set up default tags for a user when task management is first enabled.
 - [OK] `update_task(user_id, task_id, updates)` - Update an existing task.
-
-#### `tasks/task_dependencies.py`
-**Functions:**
-- [OK] `_has_path(graph, start, destination, seen)` - Check whether following prerequisites reaches the destination, recording visited IDs.
-- [OK] `_matches(task, reference)` - Match a non-empty reference against the task's full or short ID, ignoring case.
-- [OK] `_resolved_ids(tasks, target_id, references)` - Resolve active prerequisites to unique task IDs or return a validation error.
-- [OK] `apply_dependencies(tasks, target, references)` - Set one task's prerequisites and rebuild inverse relationships in place.
-- [OK] `clear_dependencies(tasks)` - Clear inverse edges while retaining prerequisite templates for restore/repeat.
-- [OK] `normalize_dependency_references(value)` - Normalize a list of dependency references, or reject a non-list payload.
-- [OK] `rebuild_inverse_relationships(tasks)` - Drop stale prerequisite IDs and derive every task's ``blocks`` list.
-- [OK] `remove_dependency_references(tasks, removed_ids)` - Unblock tasks whose prerequisites were completed or deleted.
-- [OK] `task_id(task)` - Return the canonical ID used in dependency records.
-- [OK] `validate_dependencies(tasks, target, references)` - Resolve and validate prerequisites without mutating the task graph.
 
 #### `tasks/task_effort.py`
 **Functions:**
@@ -7365,6 +7355,14 @@ completion. Returns None when the reference is ambiguous.
 - [OK] `reminder_deferral_count(task)` - Return the number of retained snooze and skip records for a task.
 - [OK] `repeated_deferral_advice(task)` - Change reminder guidance after repeated deferrals instead of repeating copy.
 
+#### `tasks/task_reminder_delivery.py`
+**Functions:**
+- [OK] `apply(data)` - Claim a new attempt or update the matching attempt already on disk.
+- [OK] `record_reminder_attempt(user_id, task_id, kind, occurrence)` - Claim an occurrence or record the outcome of the current attempt.
+
+Keep the latest daily reminder and latest deferral for each task. An
+unfinished attempt left by a previous process has an unknown outcome.
+
 #### `tasks/task_reminder_snooze.py`
 **Functions:**
 - [OK] `_at_clock_time(day, hhmm)` - Return *day* with hour and minute from an HH:MM string.
@@ -7397,7 +7395,7 @@ is the date that blocks a second copy. A later day can send again.
 
 #### `tasks/task_schemas.py`
 **Functions:**
-- [OK] `normalize_dependency_ids(cls, value)` - Store unique, non-empty canonical task IDs.
+- [OK] `discard_retired_task_fields(cls, value)` - Keep existing v2 task files readable after removing task blocking.
 - [OK] `sanitize_links(cls, value)` - Normalize link payloads before model construction.
 - [OK] `sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
 - [OK] `validate_at(cls, value)` - Require the canonical timestamp of the deferral action.
@@ -7431,7 +7429,7 @@ is the date that blocks a second copy. A later day can send again.
   - [OK] `TaskLinkModel.validate_url(cls, value)` - Require an http:// or https:// task link URL.
 - [OK] `TaskManagementError` - Custom exception for task management errors.
 - [MISSING] `TaskV2Model` - No description
-  - [OK] `TaskV2Model.normalize_dependency_ids(cls, value)` - Store unique, non-empty canonical task IDs.
+  - [OK] `TaskV2Model.discard_retired_task_fields(cls, value)` - Keep existing v2 task files readable after removing task blocking.
   - [OK] `TaskV2Model.sanitize_links(cls, value)` - Normalize link payloads before model construction.
   - [OK] `TaskV2Model.sanitize_tags(cls, value)` - Normalize and validate task tags before model construction.
   - [MISSING] `TaskV2Model.validate_completion_status(self)` - No description
@@ -7474,12 +7472,10 @@ is the date that blocks a second copy. A later day can send again.
 - [OK] `prepare_create_task_data(user_id, entities, now_dt)` - Normalize ParsedCommand entities into task creation fields.
 - [OK] `remove_task_link(user_id, task_id, matcher)` - Remove a task link by URL or label. Returns removed, missing, or not_found.
 - [MISSING] `restore_task(user_id, task_id, restore_steps)` - No description
-- [OK] `set_task_dependencies(user_id, task_id, blocked_by)` - Replace a task's prerequisite list while preserving graph invariants.
 - [OK] `sort_tasks_by_priority_and_due_date(tasks)` - Sort active tasks by priority, then due date.
 - [OK] `task_identifier(task)` - Return canonical task id for matching and mutations.
 - [OK] `task_short_identifier(task)` - Return canonical task short_id (``t...``) for matching and display.
 - [MISSING] `update_task(user_id, task_id, updates)` - No description
-- [OK] `validate_task_dependencies(user_id, task_id, blocked_by)` - Return a user-facing validation error, or ``None`` for a valid graph.
 **Classes:**
 - [OK] `PreparedTaskCreateData` - Normalized task fields for command-driven task creation.
 

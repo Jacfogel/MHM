@@ -75,13 +75,6 @@ class WebTaskRoutes:
             "tags": task.get("tags") if isinstance(task.get("tags"), list) else [],
             "reminder_snooze_until": task.get("reminder_snooze_until") or None,
             "parent_id": task.get("parent_id") or None,
-            "blocked_by": task.get("blocked_by")
-            if isinstance(task.get("blocked_by"), list)
-            else [],
-            "blocks": task.get("blocks")
-            if isinstance(task.get("blocks"), list)
-            else [],
-            "is_blocked": bool(task.get("blocked_by")),
             "created_at": task.get("created_at"),
             "updated_at": task.get("updated_at"),
         }
@@ -605,7 +598,7 @@ class WebTaskRoutes:
         """Apply a partial update to one active task."""
         from core.time_utilities import parse_date_only, parse_time_only_minute
         from tasks.task_schemas import VALID_PRIORITIES
-        from tasks.task_service import update_task, validate_task_dependencies
+        from tasks.task_service import update_task
 
         data = await self.gateway.body(request)
         allowed = {
@@ -620,7 +613,6 @@ class WebTaskRoutes:
             "tags",
             "reminder_periods",
             "quick_reminders",
-            "blocked_by",
         }
         if not data or set(data) - allowed:
             raise web.HTTPBadRequest(text="Please submit supported task changes.")
@@ -642,21 +634,6 @@ class WebTaskRoutes:
             from tasks.task_tag_helpers import sanitize_task_tags
 
             data["tags"] = sanitize_task_tags(data["tags"])
-        if "blocked_by" in data and (
-            not isinstance(data["blocked_by"], list)
-            or any(not isinstance(item, str) for item in data["blocked_by"])
-        ):
-            raise web.HTTPBadRequest(
-                text="Task dependencies must be a list of task IDs."
-            )
-        if "blocked_by" in data:
-            dependency_error = await asyncio.to_thread(
-                validate_task_dependencies, uid, task_id, data["blocked_by"]
-            )
-            if dependency_error:
-                if "circular" in dependency_error.casefold():
-                    raise web.HTTPConflict(text=dependency_error)
-                raise web.HTTPBadRequest(text=dependency_error)
         if "reminder_periods" in data:
             data["reminder_periods"] = self._clean_reminder_periods(
                 data["reminder_periods"]

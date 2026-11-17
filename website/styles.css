@@ -544,7 +544,6 @@ button[aria-busy="true"] { cursor: wait; }
 .task-select { align-self: flex-start; padding-top: 3px; }
 .task-completion-notes { margin-top: 10px !important; padding: 9px 11px; border-radius: 9px; background: var(--soft); }
 .task-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: .875rem; }
-.task-blocked { color: #9a3412; font-weight: 700; }
 .priority { font-weight: 700; text-transform: capitalize; }
 .priority-high, .priority-urgent, .priority-critical { color: #a24848; }
 .priority-low { color: #4f7d68; }

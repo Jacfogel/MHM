@@ -54,7 +54,6 @@ ALLOWED_UPDATE_FIELDS: tuple[str, ...] = (
     "reminder_snooze_until",
     "reminder_deferrals",
     "links",
-    "blocked_by",
 )
 
 TASKS_V2_FILENAME = "tasks.json"
@@ -197,25 +196,18 @@ class TaskV2Model(BaseItemModel):
     )
     links: list[TaskLinkModel] = Field(default_factory=list)
     parent_id: str | None = None
-    blocked_by: list[str] = Field(default_factory=list)
-    blocks: list[str] = Field(default_factory=list)
 
-    @field_validator("blocked_by", "blocks", mode="before")
+    # devtools: ignore[unused-functions]: pydantic model_validator invoked at model construction
+    @model_validator(mode="before")
     @classmethod
-    def normalize_dependency_ids(cls, value: Any) -> list[str]:
-        """Store unique, non-empty canonical task IDs."""
-        if value is None:
-            return []
-        if not isinstance(value, list):
-            raise v2_schema_validation_error("task dependencies must be a list")
-        normalized: list[str] = []
-        for item in value:
-            if not isinstance(item, str):
-                raise v2_schema_validation_error("task dependency IDs must be strings")
-            item = item.strip()
-            if item and item not in normalized:
-                normalized.append(item)
-        return normalized
+    def discard_retired_task_fields(cls, value: Any) -> Any:
+        """Keep existing v2 task files readable after removing task blocking."""
+        if isinstance(value, dict) and ("blocked_by" in value or "blocks" in value):
+            return {
+                key: item for key, item in value.items()
+                if key not in {"blocked_by", "blocks"}
+            }
+        return value
 
     @field_validator("parent_id")
     @classmethod
@@ -272,8 +264,6 @@ class TaskV2Model(BaseItemModel):
     def validate_completion_status(self) -> TaskV2Model:
         if self.status == "completed" and not self.completion.completed:
             raise v2_schema_validation_error("completed tasks must set completion.completed")
-        if self.id in self.blocked_by or self.id in self.blocks:
-            raise v2_schema_validation_error("a task cannot depend on itself")
         return self
 
 

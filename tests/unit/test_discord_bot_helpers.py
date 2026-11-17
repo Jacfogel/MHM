@@ -15,9 +15,28 @@ from communication.communication_channels.discord.bot import (
     DiscordBot,
     DiscordConnectionStatus,
 )
+from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.communication]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("category", "outcome"),
+    [("task_reminders", CHANNEL_SEND_UNCONFIRMED), ("motivational", False)],
+)
+async def test_send_result_timeout_preserves_reminder_uncertainty(
+    monkeypatch, category, outcome
+):
+    bot = DiscordBot()
+    monkeypatch.setattr(bot, "is_ready", lambda: True)
+    monkeypatch.setattr(
+        "communication.communication_channels.discord.bot._SEND_RESULT_TIMEOUT_SECONDS",
+        0,
+    )
+
+    assert await bot.send_message("123", "hello", category=category) == outcome
 
 
 @pytest.mark.asyncio

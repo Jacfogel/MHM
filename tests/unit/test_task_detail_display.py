@@ -45,17 +45,3 @@ def test_format_task_detail_display_includes_links():
     text = task_service.format_task_detail_display(task)
     assert "**Links:**" in text
     assert "portal: https://example.com/form" in text
-
-
-@pytest.mark.unit
-@pytest.mark.tasks
-def test_format_task_detail_display_shows_blocked_status():
-    text = task_service.format_task_detail_display(
-        {
-            "title": "Paint the room",
-            "short_id": "tpaint1",
-            "blocked_by": ["choose-paint", "buy-brushes"],
-        }
-    )
-
-    assert "**Status:** blocked by 2 unfinished tasks" in text

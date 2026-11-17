@@ -957,11 +957,6 @@ class TaskManagementHandler(InteractionHandler):
             tags = task.get("tags", [])
             tags_info = f" [tags: {', '.join(tags)}]" if tags else ""
 
-            blocked_by = task.get("blocked_by") or []
-            blocked_info = (
-                f" ⛔ BLOCKED ({len(blocked_by)} unfinished)" if blocked_by else ""
-            )
-
             # Add description preview if present
             description = task.get("description", "")
             desc_info = (
@@ -971,7 +966,7 @@ class TaskManagementHandler(InteractionHandler):
             )
 
             task_list.append(
-                f"{i}. {emoji} {task['title']}{blocked_info}{due_info}{recurrence_info}{tags_info}{desc_info}"
+                f"{i}. {emoji} {task['title']}{due_info}{recurrence_info}{tags_info}{desc_info}"
             )
 
         return task_list

@@ -277,6 +277,32 @@ def test_runtime_task_handlers_accept_and_write_v2_task_file(tmp_path, monkeypat
 
 @pytest.mark.unit
 @pytest.mark.tasks
+def test_runtime_tasks_drop_retired_blocking_fields_on_save(tmp_path, monkeypatch):
+    tasks_dir = tmp_path / "tasks"
+    tasks_dir.mkdir()
+    path = tasks_dir / "tasks.json"
+    record = TaskV2Model.model_validate(
+        _base_v2_item("task-existing", "texisting", "task")
+    ).model_dump(mode="json")
+    record.update(blocked_by=[], blocks=[])
+    path.write_text(
+        json.dumps({"schema_version": 2, "updated_at": TIMESTAMP, "tasks": [record]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "storage.user_item_storage.get_user_data_dir", lambda _user_id: str(tmp_path)
+    )
+
+    tasks = task_data_handlers.load_active_tasks("user-1")
+    assert [task["id"] for task in tasks] == ["task-existing"]
+    assert task_data_handlers.save_active_tasks("user-1", tasks)
+    saved = json.loads(path.read_text(encoding="utf-8"))["tasks"][0]
+    assert "blocked_by" not in saved
+    assert "blocks" not in saved
+
+
+@pytest.mark.unit
+@pytest.mark.tasks
 def test_runtime_task_loader_rejects_unknown_item_keys(tmp_path, monkeypatch):
     (tmp_path / "tasks.json").write_text("{}", encoding="utf-8")
     record = TaskV2Model.model_validate(

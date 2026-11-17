@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-17 - Task reminder recovery and editor cleanup **COMPLETED**
+
+- Saved snoozes and skipped-occurrence reminders recover at startup and during five-minute checks. Delivery attempts survive a restart. Explicit failures can retry, while unconfirmed attempts suppress automatic replay.
+- Fixed browser task saving and moved save errors into the editor. Removed task blocking from the website, Discord, and the API. Existing task files still load, and recurring parent tasks retain their child steps.
+- Documented the reminder storage callbacks, corrected the scheduler test, and regenerated the function registry. All 142 website tests, 111 focused task and API tests, and 74 scheduler follow-up tests passed in their respective runs.
+
 ### 2026-11-16 - Task, schedule, and account recovery **COMPLETED**
 
 - Website and Discord close the snooze interaction after a saved snooze even if the alert fails. Task setup checks saved reminder windows, and partial subtask saves identify the steps that saved.
@@ -110,12 +116,6 @@ Guidelines:
 - Fixed the stale nightly profile assertion. All 33 focused profile tests passed.
 - Recorded consecutive clean Tier 3 audits, 6,728 Windows product passes, 1,694 development-tools passes, and 21 slow-test passes.
 - Verified the live restart and signed-in Google Health sync. Removed completed test-plan section 2.1 and retained worker-loss triage in section 2.8.
-
-### 2026-11-09 - Website bulk task and notebook actions **COMPLETED**
-- Add tags to selected active tasks while preserving their existing tags.
-- Add or remove tags and archive selected active notebook entries. Bulk requests identify entries they could not update.
-- Bulk actions appear after selecting tasks or notebook entries. Priority requires an explicit choice before **Change priority** becomes available.
-- All 51 focused website tests passed after the UI update. Backend verification had no confirmed final result.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

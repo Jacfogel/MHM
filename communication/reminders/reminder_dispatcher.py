@@ -162,6 +162,7 @@ class TaskReminderDispatcher:
             user_id=user_id,
             category=TASK_REMINDER_CATEGORY,
             view=custom_view,
+            _queue_on_failure=False,
             **send_kwargs,
         )
 

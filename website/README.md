@@ -102,6 +102,9 @@ callback works only when the browser can reach the MHM host). Check-ins can be
 answered on the Check-in page. Home can still queue one to email or Discord.
 Task reminders can be delayed with a typed time, such as "Friday 3pm" or
 "in 20 minutes," as well as the one-hour, tonight, and next-week choices.
+The scheduler restores saved snoozes and reminders for skipped occurrences
+on startup and checks for missing jobs every five minutes. If a saved reminder
+became due while the service was down, it can be delivered late after recovery.
 
 ## Cloudflare Workers deployment
 

@@ -520,7 +520,12 @@ class TestTaskRemindersModuleCoverage:
             tr.schedule_all_task_reminders(scheduler_manager, user_id)
             mock_schedule.assert_not_called()
 
-    def test_handle_task_reminder_retries_on_delivery_error(self, scheduler_manager):
+    def test_handle_task_reminder_records_delivery_exception_as_unconfirmed(
+        self, scheduler_manager, tmp_path, monkeypatch
+    ):
+        monkeypatch.setattr(
+            "tasks.task_reminder_delivery.get_user_subdir_path", lambda *args: tmp_path
+        )
         scheduler_manager.delivery.handle_task_reminder.side_effect = [
             RuntimeError("network"),
             MessageSendResult.sent("user-1", "task_reminders"),
@@ -530,13 +535,13 @@ class TestTaskRemindersModuleCoverage:
                 "tasks.get_task_by_id",
                 return_value={"id": "t1", "completion": {"completed": False}},
             ),
-            patch("tasks.update_task") as mock_update,
+            patch("scheduler.task_reminders.settle_task_reminder") as mock_update,
             patch("scheduler.task_reminders.time.sleep"),
         ):
             tr.handle_task_reminder(
                 scheduler_manager, "user-1", "t1", retry_attempts=2, retry_delay=0
             )
-            assert scheduler_manager.delivery.handle_task_reminder.call_count == 2
+            assert scheduler_manager.delivery.handle_task_reminder.call_count == 1
             mock_update.assert_called_once()
 
     def test_select_task_by_weight_prunes_stale_selection_state(

@@ -118,6 +118,31 @@ def add_tags_to_active_tasks(
     return [task_id for task_id in task_ids if task_id in matched]
 
 
+@handle_errors("settling a task reminder occurrence", default_return=False)
+def settle_task_reminder(
+    user_id: str, task_id: str, expected_snooze: str | None, sent_fields: dict
+) -> bool:
+    """Settle a delivery without clearing a concurrently saved deferral."""
+    tasks_dir = get_user_subdir_path(user_id, TASKS_SUBDIR)
+    if tasks_dir is None:
+        return False
+
+    # ERROR_HANDLING_EXCLUDE: Called inside the guarded JSON transaction.
+    def apply(data):
+        """Update the active task only if its saved snooze matches the settled occurrence."""
+        for task in data["tasks"]:
+            if task.get("id") == task_id and task.get("status") == "active":
+                if task.get("reminder_snooze_until") == expected_snooze:
+                    task.update(sent_fields, reminder_snooze_until=None)
+                    task["updated_at"] = data["updated_at"] = now_timestamp_full()
+                break
+        return data
+
+    return update_json_data(
+        tasks_dir / TASKS_V2_FILENAME, apply, default={**TASKS_V2_DEFAULT, "tasks": []}
+    )
+
+
 @handle_errors("loading completed tasks", default_return=[])
 def load_completed_tasks(user_id: str) -> list[dict[str, Any]]:
     """
@@ -358,8 +383,6 @@ def _runtime_task_to_v2(task: dict[str, Any], *, status: str) -> dict[str, Any] 
         "reminder_deferrals": task.get("reminder_deferrals") or [],
         "links": task.get("links") or [],
         "parent_id": str(task.get("parent_id") or "").strip() or None,
-        "blocked_by": task.get("blocked_by") or [],
-        "blocks": task.get("blocks") or [],
     }
     return TaskV2Model.model_validate(v2_task).model_dump(mode="json")
 
@@ -397,8 +420,6 @@ def _task_v2_to_runtime(task: dict[str, Any]) -> dict[str, Any]:
         "reminder_deferrals": task.get("reminder_deferrals") or [],
         "links": task.get("links") or [],
         "parent_id": task.get("parent_id") or None,
-        "blocked_by": task.get("blocked_by") or [],
-        "blocks": task.get("blocks") or [],
     }
     return runtime
 

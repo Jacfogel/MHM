@@ -32,6 +32,7 @@ from communication.communication_channels.discord.ui.rich_delivery import (
 from communication.communication_channels.discord.webhooks.tunnel import (
     DiscordWebhookTunnelMixin,
 )
+from communication.core.message_send_result import CHANNEL_SEND_UNCONFIRMED
 from core.config import DISCORD_APPLICATION_ID, DISCORD_BOT_TOKEN
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
@@ -563,7 +564,7 @@ class DiscordBot(
             logger.info("Discord bot shutdown completed")
 
     @handle_errors("sending Discord message", default_return=False)
-    async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
+    async def send_message(self, recipient: str, message: str, **kwargs) -> bool | str:
         if not recipient or not isinstance(recipient, str) or not recipient.strip():
             logger.error(f"Invalid recipient: {recipient}")
             return False
@@ -592,6 +593,8 @@ class DiscordBot(
         except TimeoutError:
             response_future.cancel()
             logger.error(f"Timeout waiting for Discord message send to {recipient}")
+            if kwargs.get("category") == "task_reminders":
+                return CHANNEL_SEND_UNCONFIRMED
             return False
 
     @handle_errors("sending Discord DM", default_return=False)
