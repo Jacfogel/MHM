@@ -103,7 +103,7 @@ class TestConversationalPromptActionBoundaries:
         account["features"] = features
         save_json_data(account, get_user_file_path(actual_id, "account"))
 
-    def test_assembled_prompt_includes_action_boundaries_and_disabled_tasks(
+    def test_assembled_prompt_includes_action_boundaries_and_reminder_status(
         self, monkeypatch
     ):
         monkeypatch.setenv("TEST_DATA_DIR", self.test_data_dir)
@@ -124,8 +124,8 @@ class TestConversationalPromptActionBoundaries:
         )
         system_content = messages[0]["content"]
         assert "ACTION BOUNDARIES" in system_content
-        assert "task management is disabled" in messages[-1]["content"]
-        assert "task management is disabled" not in system_content
+        assert "task creation is available and scheduled task reminders are off" in messages[-1]["content"]
+        assert "task creation is available and scheduled task reminders are off" not in system_content
         assert "no false CRUD claims" in system_content
 
     def test_assemble_messages_includes_wellness_and_boundary_instructions(

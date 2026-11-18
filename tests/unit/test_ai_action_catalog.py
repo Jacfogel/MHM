@@ -31,7 +31,7 @@ def test_action_catalog_contains_handler_backed_task_actions():
         assert action.domain == "tasks"
         assert action.handler_name == "TaskManagementHandler"
         assert action.source == "structured_command_dispatcher"
-        assert "task_management" in action.feature_requirements
+        assert action.feature_requirements == []
 
     create_task = catalog.get("create_task")
     assert create_task is not None
@@ -120,7 +120,7 @@ def test_action_catalog_contains_handler_backed_task_actions():
             [],
             ["nl_field", "nl_value"],
         ),
-        ("show_create_hub", "tasks", "CreateMenuHandler", ["task_management"], []),
+        ("show_create_hub", "tasks", "CreateMenuHandler", [], []),
     ],
 )
 def test_action_catalog_non_task_domain_metadata(
@@ -178,9 +178,10 @@ def test_action_catalog_planning_prompt_summary_is_compact():
 
 def test_chat_prompt_summary_drops_disabled_features_and_field_text():
     catalog = build_action_catalog()
-    summary = catalog.to_chat_prompt_summary({"task_management"})
+    summary = catalog.to_chat_prompt_summary({"task_management", "checkins"})
 
     assert "required:" not in summary
-    assert "create_task" not in summary
-    assert "start_checkin" in summary
+    assert "create_task" in summary
+    assert "task_stats" in summary
+    assert "start_checkin" not in summary
     assert "help" in summary

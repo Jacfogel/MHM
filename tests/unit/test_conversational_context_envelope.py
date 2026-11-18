@@ -85,7 +85,7 @@ def test_build_context_parts_phrases_from_supplied_envelope(monkeypatch):
     assert "Current date and time for the user:" in joined
     assert "Julie's" not in joined
     assert "The user's preferred name is Julie" in joined
-    assert "task management is enabled" in joined
+    assert "scheduled task reminders are enabled" in joined
     assert "check-ins are disabled" in joined
     assert "Recent automated messages sent to them:" in joined
     assert "Keep going." in joined

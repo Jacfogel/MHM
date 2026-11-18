@@ -140,11 +140,8 @@ def _try_task_summary(
         return None
 
     tasks = context.structured.get("tasks") or {}
-    if not tasks.get("enabled"):
-        return (
-            f"{context.name_prefix}Task management is not enabled on your account.",
-            FallbackCategory.DATA_UNAVAILABLE,
-        )
+    if not tasks:
+        return None
 
     active = tasks.get("active") or []
     due_soon = tasks.get("due_soon") or []

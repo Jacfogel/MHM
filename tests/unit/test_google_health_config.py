@@ -48,7 +48,8 @@ def test_validate_warns_when_encryption_key_missing(monkeypatch, request):
     monkeypatch.setenv("GOOGLE_HEALTH_ENABLED", "true")
     monkeypatch.setenv("GOOGLE_HEALTH_CLIENT_ID", "test-client")
     monkeypatch.setenv("GOOGLE_HEALTH_CLIENT_SECRET", "test-secret")
-    monkeypatch.delenv("GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", raising=False)
+    # An explicit empty value prevents reload from restoring the project .env key.
+    monkeypatch.setenv("GOOGLE_HEALTH_TOKEN_ENCRYPTION_KEY", "")
     importlib.reload(config)
     request.addfinalizer(lambda: importlib.reload(config))
 

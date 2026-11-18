@@ -380,7 +380,7 @@ def test_natural_feature_restrictions_are_not_mistaken_for_prompt_leaks():
         repair_vague_capabilities_reply,
     )
 
-    answer = "I can help with notes and check-ins. Task management is disabled here, so I cannot add tasks."
+    answer = "I can help with notes, check-ins, and creating tasks. Scheduled task reminders are off."
     assert clean_system_prompt_leaks(answer) == answer
     assert repair_vague_capabilities_reply("What can you do?", answer) == answer
 

@@ -8,6 +8,7 @@ from ai.chat.response_postprocess import (
     clean_system_prompt_leaks,
     polish_greeting_response,
     repair_truncated_response_tail,
+    smart_truncate_response,
     strip_instruction_tuning_markers,
     strip_letter_signoffs,
     strip_markup_and_tutorial_leaks,
@@ -604,7 +605,24 @@ def test_trim_verbose_reply_for_simple_prompt_shortens_capabilities_answer():
         long_answer,
         max_chars=280,
     )
-    assert len(trimmed) <= 300
+    assert len(trimmed) <= 280
+    assert trimmed.endswith("I help with wellness.")
+
+
+@pytest.mark.parametrize(
+    ("text", "max_chars", "max_words", "expected"),
+    [
+        ("I can help. " + "More detail " * 30, 40, None, "I can help."),
+        ("I can help. Really? More detail follows.", 20, None, "I can help. Really?"),
+        ('She said “Yes!”\nMore detail follows.', 18, 5, 'She said “Yes!”'),
+        ("Yes. Here are some more details.", 20, 3, "Yes."),
+        ("There are several options available.", 14, None, "There are…"),
+    ],
+)
+def test_smart_truncate_response_prefers_complete_sentences(
+    text, max_chars, max_words, expected
+):
+    assert smart_truncate_response(text, max_chars, max_words) == expected
 
 
 def test_repair_short_story_mismatch_replaces_obvious_chat_redirect():

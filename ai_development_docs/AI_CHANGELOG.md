@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-17 - AI replies, task availability, and test fixes **COMPLETED**
+
+- Reply trimming now applies character and word limits together and prefers complete sentences. Replayed both cut-off capability replies successfully, and all 158 focused tests passed.
+- Task creation and task context remain available with scheduled reminders off. Updated AI capabilities, fallbacks, and evaluation expectations. Both final live capability checks passed.
+- The initial 30-request prompt rerun passed 29 checks. Manual review also found parser recovery of malformed venting output and a weak ambiguous-selection clarification.
+- Fixed the nightly test category marker, three stale catalog expectations, and environment leakage in the missing encryption-key test. All 24 affected unit tests passed in parallel. Corrected the changelog ASCII issue and completed documentation sync.
+
 ### 2026-11-17 - Task reminder recovery and editor cleanup **COMPLETED**
 
 - Saved snoozes and skipped-occurrence reminders recover at startup and during five-minute checks. Delivery attempts survive a restart. Explicit failures can retry, while unconfirmed attempts suppress automatic replay.

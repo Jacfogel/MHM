@@ -43,7 +43,7 @@ class TestAILiveJourneys(AITestBase):
         self._test_ambiguous_add_task_does_not_create()
         self._test_wellness_ask_without_checkins_is_honest()
         self._test_wellness_ask_with_checkins_stays_safe()
-        self._test_disabled_tasks_do_not_fake_create()
+        self._test_chat_does_not_fake_task_creation_with_reminders_off()
         self._test_numeric_only_is_unclear_reply()
         self._test_clear_create_task_persists()
 
@@ -220,12 +220,12 @@ class TestAILiveJourneys(AITestBase):
             test_type="contextual",
         )
 
-    def _test_disabled_tasks_do_not_fake_create(self) -> None:
+    def _test_chat_does_not_fake_task_creation_with_reminders_off(self) -> None:
         user_id = self._resolve_user(
             "live_journey_tasks_off", enable_tasks=False, enable_checkins=False
         )
         if not user_id:
-            self.log_test("T-18.5", "Disabled tasks do not fake create", "FAIL", "", "Could not create user")
+            self.log_test("T-18.5", "Chat does not fake task creation with reminders off", "FAIL", "", "Could not create user")
             return
         prompt = "Please create a task to buy milk"
         with self._using_test_data_dir():
@@ -234,10 +234,10 @@ class TestAILiveJourneys(AITestBase):
             response = self.chatbot.generate_response(prompt, user_id=user_id, mode="chat")
             extra = []
             if load_active_tasks(user_id):
-                extra.append("Created a task while task management is disabled")
+                extra.append("Chat-only response unexpectedly created a task")
         self._log_safe_reply(
             "T-18.5",
-            "Disabled tasks do not fake create",
+            "Chat does not fake task creation with reminders off",
             prompt,
             response,
             context_info,

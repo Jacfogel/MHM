@@ -255,7 +255,7 @@ Import paths use the subpackages above (`ai.chat.chatbot`, `ai.context.assembly`
 5. Today's check-in status (skipped when check-ins disabled)
 6. Recent automated sends (`append_recent_sent_messages`) - only when automated messages enabled
 7. Task reminder line from recent sends (only when messages enabled and a task_reminders send exists)
-8. Task data (skipped when task management disabled)
+8. Task data
 9. Schedule details (skipped when automated messages disabled)
 
 **Feature flags in prompts** (`append_feature_enablement`):
@@ -263,7 +263,7 @@ Import paths use the subpackages above (`ai.chat.chatbot`, `ai.context.assembly`
 | Account feature (`account.features`) | Helper | When disabled, context tells the model |
 |--------------------------------------|--------|--------------------------------------|
 | `checkins` | `is_user_checkins_enabled()` | Do not mention check-ins or check-in data |
-| `task_management` | `are_tasks_enabled()` | Do not mention tasks, creation, or reminders |
+| `task_management` | `are_tasks_enabled()` | Task creation is available and scheduled task reminders are off |
 | `automated_messages` | `is_automated_messages_enabled()` | Do not mention scheduled categories, recent sends, or enabling automated messages |
 
 **Recent automated messages:** `append_recent_sent_messages` lists up to three non-checkin sends (full text for the most recent). Check-in outbound messages are excluded from this block. `data_honesty.txt` adds: do not suggest repeating the same category unless the user asks.
@@ -272,7 +272,7 @@ Import paths use the subpackages above (`ai.chat.chatbot`, `ai.context.assembly`
 
 - Context supplies facts; `data_honesty.txt` and `action_boundaries.txt` forbid fabricating data and claiming completed actions.
 - Disabled features must not appear in suggestions even if stale files exist on disk (sections are gated before reading sends/schedules).
-- Task reminder context is additive when a recent `task_reminders` send exists and tasks are enabled.
+- Task reminder context is additive when a recent `task_reminders` send exists and scheduled task reminders are enabled.
 
 **Tests:** `tests/ai/test_context_includes_recent_messages.py` (recent sends + task reminder); `tests/unit/test_conversational_context_actionability.py` (feature flags and messages-disabled gating); `tests/behavior/test_conversational_action_boundaries.py` (prompt ACTION BOUNDARIES rules, false-CRUD detection, validator integration, fallback regression); `tests/unit/test_ai_action_planner.py` (recent-turn grounding for follow-up creates and pronoun updates); `tests/unit/test_task_reference.py` (pronoun task resolution). Shared detector: `ai/chat/action_boundaries.py`.
 

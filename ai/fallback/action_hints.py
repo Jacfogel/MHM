@@ -91,10 +91,6 @@ def _match_catalog_action(prompt_lower: str, actions: dict) -> str | None:
 def _feature_disabled(feature: str, context: FallbackContext | None) -> str | None:
     if context is None:
         return None
-    if feature == "task_management":
-        tasks = context.structured.get("tasks") or {}
-        if tasks.get("enabled") is False:
-            return "Task management is not enabled on your account."
     if feature == "checkins":
         checkins = context.structured.get("checkins") or {}
         if checkins.get("enabled") is False:

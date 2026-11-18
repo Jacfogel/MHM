@@ -953,22 +953,30 @@ def strip_letter_signoffs(text: str) -> str:
 def smart_truncate_response(
     text: str, max_chars: int, max_words: int | None = None
 ) -> str:
-    """Truncate response to avoid mid-sentence cuts when possible."""
+    """Prefer the last complete sentence that fits both limits."""
+    limit = max_chars
     if max_words:
-        words = text.split()
-        if len(words) > max_words:
-            return " ".join(words[:max_words]).rstrip(" ,.;:!?") + "…"
+        for index, word in enumerate(re.finditer(r"\S+", text)):
+            if index == max_words:
+                limit = min(limit, word.start())
+                break
 
-    if len(text) <= max_chars:
+    if len(text) <= limit:
         return text
 
-    cut = text[:max_chars]
-    for mark in (". ", "! ", "? "):
-        idx = cut.rfind(mark)
-        if idx >= 0 and idx > max_chars * 0.6:
-            return cut[: idx + 1]
+    sentence_end = 0
+    for boundary in re.finditer(r"""[.!?]+["'”’)]*(?=\s|$)""", text):
+        if boundary.end() > limit:
+            break
+        sentence_end = boundary.end()
+    if sentence_end:
+        return text[:sentence_end]
 
-    return cut.rstrip() + "…"
+    # Reserve room for the ellipsis and keep whole words when possible.
+    cut = text[: max(0, limit - 1)]
+    if cut and not text[len(cut)].isspace() and not cut[-1].isspace():
+        cut = re.sub(r"\s+\S+$", "", cut)
+    return cut.rstrip().rstrip(",.;:!?") + "…" if limit > 0 else ""
 
 
 _IDENTITY_QUESTION_PATTERN = re.compile(

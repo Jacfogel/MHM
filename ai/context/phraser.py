@@ -217,13 +217,11 @@ def _phrase_feature_status_lines(
             "check-ins are disabled - do NOT mention check-ins, check-in data, "
             "or suggest starting check-ins"
         )
-    if tasks_enabled:
-        feature_status.append("task management is enabled")
-    else:
-        feature_status.append(
-            "task management is disabled - do NOT mention tasks, task creation, "
-            "or task reminders"
-        )
+    feature_status.append(
+        "task creation is available and scheduled task reminders are enabled"
+        if tasks_enabled
+        else "task creation is available and scheduled task reminders are off"
+    )
     if messages_enabled:
         feature_status.append("automated messages are enabled")
     else:
@@ -571,9 +569,6 @@ def _phrase_schedule_details(
 # not_duplicate: task_prompt_section_loads_then_phrases
 @handle_errors("appending task data context", default_return=None)
 def append_task_data(parts: list[str], user_id: str) -> None:
-    if not are_tasks_enabled(user_id):
-        return
-
     _phrase_task_data(
         parts,
         stats=get_user_task_stats(user_id),

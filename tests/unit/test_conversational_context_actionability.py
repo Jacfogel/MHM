@@ -80,7 +80,7 @@ class TestConversationalContextActionability:
         joined = "\n".join(parts)
         assert "Feature availability" in joined
         assert "check-ins are disabled" in joined
-        assert "task management is disabled" in joined
+        assert "task creation is available and scheduled task reminders are off" in joined
         assert "automated messages are enabled" in joined
 
     def test_recent_messages_omitted_when_automated_messages_disabled(

@@ -70,7 +70,7 @@ def test_compose_chat_response_prompt_includes_generated_capabilities():
     assert "[available_actions]" in template.content
     actions = template.content.split("[available_actions]\n", 1)[1].split("\n\n", 1)[0]
     assert "required:" not in actions
-    assert "create_task" not in actions
+    assert "create_task" in actions
     assert "start_checkin" in actions
 
 
@@ -79,7 +79,7 @@ def test_compose_chat_response_prompt_owns_conversation_and_action_rules():
 
     template = manager.compose_product_prompt(
         "chat_response",
-        context_view={"prompt_text": "User Context:\ntask management is disabled"},
+        context_view={"prompt_text": "User Context:\nscheduled task reminders are off"},
     )
 
     assert template is not None
@@ -87,6 +87,6 @@ def test_compose_chat_response_prompt_owns_conversation_and_action_rules():
     assert "Answer direct questions before redirecting" in content
     assert "ACTION BOUNDARIES (no false CRUD claims)" in content
     assert "I've created that task for you" in content
-    assert "task management is disabled" in content
+    assert "scheduled task reminders are off" in content
     assert "GOOD examples" not in content
     assert content.count("Answer direct questions before redirecting") == 1

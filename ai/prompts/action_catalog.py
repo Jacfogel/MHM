@@ -520,8 +520,6 @@ _INTENT_FEATURES: dict[str, list[str]] = {
     "habit_analysis": ["checkins"],
     "sleep_analysis": ["checkins"],
     "wellness_score": ["checkins"],
-    "task_analytics": ["task_management"],
-    "task_stats": ["task_management"],
     "connect_google_health": ["google_health"],
     "google_health_status": ["google_health"],
     "pause_google_health": ["google_health"],
@@ -531,7 +529,6 @@ _INTENT_FEATURES: dict[str, list[str]] = {
 }
 
 _DOMAIN_FEATURES = {
-    "tasks": ["task_management"],
     "checkins": ["checkins"],
     "schedules": ["automated_messages"],
     "notebooks": ["notebook"],

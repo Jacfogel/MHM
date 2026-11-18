@@ -96,12 +96,11 @@ class TestContextPhraser:
         assert "Over the last" in text
         assert "average mood" in text
 
-    @patch("ai.context.phraser.are_tasks_enabled", return_value=True)
     @patch("ai.context.phraser.get_user_task_stats")
     @patch("ai.context.phraser.load_active_tasks", return_value=[])
     @patch("ai.context.phraser.get_tasks_due_soon", return_value=[])
     def test_append_task_data_for_user(
-        self, _mock_due, _mock_active, mock_stats, _mock_enabled, test_data_dir
+        self, _mock_due, _mock_active, mock_stats, test_data_dir
     ):
         user_id = "test-user"
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
@@ -137,7 +136,7 @@ class TestContextPhraser:
             messages_enabled=True,
         )
         assert any("do NOT mention check-ins" in line for line in lines)
-        assert any("do NOT mention tasks" in line for line in lines)
+        assert "task creation is available and scheduled task reminders are off" in lines
         assert "automated messages are enabled" in lines
 
     def test_phrase_today_checkin_status_completed_with_mood(self):

@@ -564,10 +564,10 @@ def test_checkin_status_reply_is_honest_when_no_checkins(test_data_dir, chatbot)
 
 
 @pytest.mark.tasks
-def test_disabled_tasks_prompt_and_reply_stay_within_capabilities(
+def test_task_reminders_off_prompt_and_reply_stay_within_capabilities(
     test_data_dir, chatbot
 ):
-    """Disabled task management is stated in context and replies do not fake a create."""
+    """Reminder availability is stated in context and replies do not fake a create."""
     user_id = _create_journey_user(
         test_data_dir,
         "journey-tasks-off",
@@ -578,7 +578,7 @@ def test_disabled_tasks_prompt_and_reply_stay_within_capabilities(
         user_id, "can you create a task for me"
     )
     system_content = messages[0]["content"]
-    assert "task management is disabled" in messages[-1]["content"]
+    assert "task creation is available and scheduled task reminders are off" in messages[-1]["content"]
     assert "ACTION BOUNDARIES" in system_content
 
     ensure_patch, api_patch = _use_mocked_openai_api(chatbot, _FALSE_CRUD_REPLY)
@@ -592,6 +592,8 @@ def test_disabled_tasks_prompt_and_reply_stay_within_capabilities(
     assert response
     assert find_false_crud_claims(response) == []
     assert load_active_tasks(user_id) == []
+    create_task(user_id, title="Buy milk")
+    assert any(task["title"] == "Buy milk" for task in load_active_tasks(user_id))
 
 
 @pytest.mark.communication

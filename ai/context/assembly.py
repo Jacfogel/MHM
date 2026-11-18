@@ -432,8 +432,6 @@ def _append_task_data_from_envelope(
 ) -> None:
     """Append task summary context from envelope task data."""
     tasks = structured.get("tasks") or {}
-    if not tasks.get("enabled"):
-        return
     _phrase_task_data(
         parts,
         stats=tasks.get("stats") or {},

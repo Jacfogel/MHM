@@ -742,6 +742,9 @@ class TestTaskReminderFollowupBehavior:
         assert user_id in log_error.call_args.args[0]
         assert task_id in log_error.call_args.args[0]
 
+    @pytest.mark.communication
+    @pytest.mark.tasks
+    @pytest.mark.behavior
     @pytest.mark.parametrize("setup_step", ["priority", "due_date"])
     def test_task_setup_write_error_checks_saved_task_before_retry(self, monkeypatch, setup_step):
         from unittest.mock import Mock

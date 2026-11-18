@@ -65,12 +65,24 @@ CASES = [
         "excludes": ["average mood", "your mood has improved", "80%"],
     },
     {
-        "id": "disabled_tasks",
-        "request": "What can you do for me?",
-        "context": "Task management is disabled. Notes and check-ins are enabled.",
-        "disabled_tasks": True,
-        "contains": ["disabled"],
-        "excludes": ["manage your tasks", "create tasks", "set task reminders"],
+        "id": "scheduled_task_reminders_off",
+        "request": "Can I create tasks, and are my scheduled task reminders on?",
+        "context": "Task creation is available. Scheduled task reminders are off.",
+        "contains": ["create task", "reminders"],
+        "contains_any": [
+            "are off",
+            "are currently off",
+            "are disabled",
+            "aren't enabled",
+            "aren’t enabled",
+            "are turned off",
+        ],
+        "excludes": [
+            "can't create",
+            "can’t create",
+            "cannot create",
+            "task management is disabled",
+        ],
     },
     {
         "id": "saved_injection",
@@ -194,11 +206,8 @@ def evaluate_case(case: dict) -> dict:
             "personalized", request, None
         )
     else:
-        context_view = {
-            "structured": {"tasks": {"enabled": not case.get("disabled_tasks", False)}}
-        }
         prompt = PromptManager().compose_product_prompt(
-            "chat_response", context_view=context_view, include_context=False
+            "chat_response", include_context=False
         )
         messages = [{"role": "system", "content": prompt.content}]
         messages.extend(case.get("history", []))

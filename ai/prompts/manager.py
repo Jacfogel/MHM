@@ -99,7 +99,6 @@ def _extract_context_prompt_text(context_view: Any) -> str:
 
 
 _FEATURE_SECTION_FLAGS = (
-    ("task_management", "tasks", "enabled"),
     ("checkins", "checkins", "enabled"),
     ("automated_messages", "messages", "enabled"),
 )
