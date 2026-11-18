@@ -23,7 +23,7 @@ class AIResponseValidator:
         r"\(.*characters?\)",
         r"Response \d+:",
         r"Exchange \d+:",
-        r"Mode:",
+        r"(?m)^\s*Mode:\s*(?:chat|command|contextual|personalized)\b",
         r"User\d+\s*[,:]",  # Username prefix pattern (e.g., "User1, " or "User1:")
     ]
 
@@ -416,13 +416,8 @@ class AIResponseValidator:
         """Check if response is appropriate in length and topic - also validates prompt-response matching"""
         issues = []
 
-        # Check for responses that are too long and go off-topic
-        if len(response) > 250:  # Longer responses might be going off-topic
-            # Check if prompt is simple but response is long
-            if len(prompt) < 50 and len(response) > 300:
-                issues.append(
-                    f"Response may be too long for simple prompt ({len(response)} chars for {len(prompt)} char prompt)"
-                )
+        # Prompt length is not evidence of desired answer length or relevance.
+        # Explicit case budgets are tested separately; semantic review is pending.
 
         # Check if capabilities question gets answered correctly
         if "capabilities" in prompt.lower() or "what can you" in prompt.lower():
@@ -446,6 +441,26 @@ class AIResponseValidator:
                 )
 
         # Check prompt-response matching
+
+        # These canned replies contain words such as "doing" and "feeling",
+        # so keyword overlap alone incorrectly passes them as answers about AI.
+        response_lower = response.lower().replace("’", "'")
+        if re.search(r"\bhow are you(?:\s+(?:doing|feeling))?\b", prompt.lower()):
+            if "i don't have enough information about how you're doing" in response_lower:
+                issues.append(
+                    "Response should answer the question about the assistant, not assess the user"
+                )
+
+        if re.search(r"\btell me about (?:yourself|your capabilities)\b", prompt.lower()):
+            if "since we're just getting started, i'd love to learn more about you" in response_lower:
+                issues.append(
+                    "Response should describe the assistant's capabilities, not substitute a user intake"
+                )
+
+        if "something helpful" in prompt.lower() and "you're very welcome" in response_lower:
+            issues.append(
+                "Response should provide helpful information, not thank the user for prior help"
+            )
 
         # "Hello, how are you?" / "How are you doing today?" / "How are you?" - should get greeting/wellness response
         greeting_prompts = [

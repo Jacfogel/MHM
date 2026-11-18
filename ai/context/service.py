@@ -314,8 +314,11 @@ def _build_task_context(user_id: str) -> dict[str, Any]:
     completed = task_service.load_completed_tasks(user_id) or []
     due_soon = task_service.get_tasks_due_soon(user_id, days_ahead=7) or []
     stats = task_service.get_user_task_stats(user_id) or {}
+    reminders_enabled = are_tasks_enabled(user_id)
     return {
-        "enabled": are_tasks_enabled(user_id),
+        "enabled": reminders_enabled,  # Legacy alias: scheduled reminders only.
+        "task_creation_available": True,
+        "scheduled_reminders_enabled": reminders_enabled,
         "active": active,
         "completed_summary": completed[:10],
         "due_soon": due_soon,
@@ -475,7 +478,10 @@ def _default_prompt_text(name: str, data: Any) -> str:
     if name == "tasks":
         active = (data or {}).get("active") or []
         due_soon = (data or {}).get("due_soon") or []
-        return f"Tasks: {len(active)} active; {len(due_soon)} due soon."
+        reminders = (data or {}).get("scheduled_reminders_enabled", (data or {}).get("enabled"))
+        reminder_status = "enabled" if reminders is True else "off" if reminders is False else "unknown"
+        return (f"Tasks: {len(active)} active; {len(due_soon)} due soon. "
+                f"Task creation is always available. Scheduled task reminders are {reminder_status}.")
     if name == "checkins":
         recent = (data or {}).get("recent") or []
         enabled = (data or {}).get("enabled")

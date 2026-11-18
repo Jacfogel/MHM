@@ -66,7 +66,8 @@ def append_current_datetime_context(parts: list[str], user_id: str) -> None:
 
 _FEATURE_STATUS_UNKNOWN = (
     "IMPORTANT - Feature availability: check-ins status unknown, "
-    "task management status unknown, automated messages status unknown"
+    "task creation is always available, scheduled task reminders status unknown, "
+    "automated messages status unknown"
 )
 
 
@@ -205,7 +206,7 @@ _MOOD_TREND_DESC = {
 def _phrase_feature_status_lines(
     *,
     checkins_enabled: bool,
-    tasks_enabled: bool,
+    tasks_enabled: bool | None,
     messages_enabled: bool,
 ) -> list[str]:
     """Return the shared feature-availability phrases."""
@@ -218,9 +219,10 @@ def _phrase_feature_status_lines(
             "or suggest starting check-ins"
         )
     feature_status.append(
+        "task creation is always available and scheduled task reminders status is unknown"
+        if tasks_enabled is None else
         "task creation is available and scheduled task reminders are enabled"
-        if tasks_enabled
-        else "task creation is available and scheduled task reminders are off"
+        if tasks_enabled else "task creation is available and scheduled task reminders are off"
     )
     if messages_enabled:
         feature_status.append("automated messages are enabled")
@@ -249,7 +251,7 @@ def _append_feature_availability_line(
 def _feature_status_lines(user_id: str) -> list[str] | None:
     return _phrase_feature_status_lines(
         checkins_enabled=is_user_checkins_enabled(user_id),
-        tasks_enabled=are_tasks_enabled(user_id) if user_id else False,
+        tasks_enabled=are_tasks_enabled(user_id) if user_id else None,
         messages_enabled=is_automated_messages_enabled(user_id) if user_id else False,
     )
 

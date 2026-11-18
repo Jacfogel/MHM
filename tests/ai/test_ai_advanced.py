@@ -253,18 +253,21 @@ class TestAIAdvanced(AITestBase):
                 ]
                 
                 recovery_success = 0
+                recovery_responses = []
                 for prompt in malformed_prompts[:2]:  # Skip empty
                     try:
                         response = self.chatbot.generate_contextual_response(actual_user_id, prompt)
+                        recovery_responses.append(response)
                         if response and len(response.strip()) > 0:
                             recovery_success += 1
-                    except Exception:
-                        pass  # Count as failed recovery
+                    except Exception as exc:
+                        recovery_responses.append(f"[generation error: {type(exc).__name__}]")
                 
-                status = "PASS" if recovery_success >= 1 else "PARTIAL"
+                status = "PASS" if recovery_success == 2 else "FAIL"
                 notes = f"Error recovery: {recovery_success}/{len(malformed_prompts) - 1} malformed prompts handled"
                 self.log_test("T-16.1", "Recovery after malformed input", status, notes,
-                            prompt=" | ".join([p[:50] + "..." if len(p) > 50 else p for p in malformed_prompts[:2]]))
+                            prompt=" | ".join(malformed_prompts[:2]),
+                            response=" | ".join(recovery_responses), test_type="contextual")
             except Exception as e:
                 self.log_test("T-16.1", "Recovery after malformed input", "FAIL",
                             "", f"Exception: {str(e)}")

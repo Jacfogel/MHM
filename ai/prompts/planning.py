@@ -12,14 +12,14 @@ TITLE: pack hiking bag
 CONFIDENCE: 0.9
 
 Chat/venting/no action:
-ACTION: unknown
+{no_action}
 
 Missing required detail:
 INTENT: clarify
 QUESTION: What should the task be called?
 
 Available actions: {actions}
-Rules: ACTION must be unknown or one of the available actions.
+Rules: {action_rule}
 For multiple explicit requests, return ordered ACTION blocks, each with its own fields and CONFIDENCE.
 Use only fields defined in the action contracts below. Omit absent optional fields.
 If a required field is missing, return INTENT: clarify and QUESTION: with one specific question instead of actions.
@@ -44,6 +44,9 @@ def build_planning_system_prompt(*, single_action: bool = False) -> str:
     text = _PLANNING_SYSTEM_TEMPLATE.format(
         actions=catalog.to_planning_prompt_summary(),
         fields=catalog.to_planning_field_contract(),
+        no_action="ACTION: unknown" if single_action else "INTENT: answer_only",
+        action_rule=("ACTION must be unknown or one of the available actions." if single_action
+                     else "For no action, return INTENT: answer_only. ACTION must name one of the available actions."),
     ).strip()
     if single_action:
         text = text.replace(

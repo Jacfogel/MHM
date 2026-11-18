@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-18 - AI response quality and prompt contracts **COMPLETED**
+
+- Strengthened command and cache assertions, separated automatic contracts from semantic review, and retained full response/context evidence with observed response sources. Expanded the synthetic prompt suite to 24 cases with adversarial safety coverage and app-versus-model failure diagnostics.
+- Narrowed topic-based response guards so valid clarifications, conversation replies, and grounded wellness summaries survive. Replayed all seven unnecessarily replaced model replies successfully while retaining missing-data and false-completion protections.
+- Aligned planner prompts and parsing, tightened wellness and venting instructions, and made task creation explicitly always available independently of scheduled reminders. Execution summaries distinguish verified saves, pending follow-ups, failures, and unattempted actions.
+- All 850 AI-marked tests and 12 follow-up live checks passed, including six medication cases. Audit follow-up repaired documentation links/numbering, guarded and registered the new helper, and cleared Pyright warnings; all 41 focused maintenance tests passed.
+
 ### 2026-11-17 - AI replies, task availability, and test fixes **COMPLETED**
 
 - Reply trimming now applies character and word limits together and prefers complete sentences. Replayed both cut-off capability replies successfully, and all 158 focused tests passed.
@@ -111,18 +118,6 @@ Guidelines:
 - Added specific recovery steps for Discord account errors and task snoozes whose alerts fail to schedule.
 - Isolated two backup tests and removed one serial-only marker after repeated two-worker validation. Updated the parent, test, and notebook plans with current guidance and evidence.
 - Passed 17 snooze tests, 150 notebook tests, both backup validation tests under two workers, and the empty-user backup test in isolation. Discord pytest results were pending at the last check.
-
-### 2026-11-09 - Isolate audit logs and test files **COMPLETED**
-
-- Routed dev-tools runtime logs outside production and gave each backup restore drill its own temporary directory.
-- Moved read-only file and tag tests to per-test directories and fixed an order-dependent logger test.
-- The Tier 3 rerun passed both product tracks with no observed production-log writes or recurrence of the Windows path error or worker exits. Removed completed test-plan section 2.2.
-
-### 2026-11-09 - Complete test reliability and Google Health validation **COMPLETED**
-
-- Fixed the stale nightly profile assertion. All 33 focused profile tests passed.
-- Recorded consecutive clean Tier 3 audits, 6,728 Windows product passes, 1,694 development-tools passes, and 21 slow-test passes.
-- Verified the live restart and signed-in Google Health sync. Removed completed test-plan section 2.1 and retained worker-loss triage in section 2.8.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

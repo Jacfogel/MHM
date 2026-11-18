@@ -1,6 +1,7 @@
 """Unit tests for follow-up conversation alignment."""
 
 import pytest
+from typing import cast
 
 from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
 from ai.chat.conversation_coherence import (
@@ -145,3 +146,33 @@ def test_align_response_acknowledges_reading_interest():
         [],
     )
     assert "what kinds of books" in reply.lower()
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+@pytest.mark.parametrize("prompt,response,history", [
+    ("My favorite color is blue", "Got it — I’ll remember that your favorite color is blue.", []),
+    ("I love reading books", "That’s a great way to unwind. What kind of books do you like most right now—fiction, non-fiction, fantasy, memoir, or something else?", []),
+    ("What genres do you think I'd like?", "I don’t have enough about your reading tastes yet to guess confidently. If you tell me a few books you’ve liked, or even books you’ve quit halfway through, I can suggest genres that fit.", [{"user_message": "I love reading books"}]),
+    ("What's my favorite color?", "You told me your favorite color is blue. What do you like about it?", [{"user_message": "My favorite color is blue"}]),
+    ("My favorite color is blue. What colors go well with it?", "Blue pairs nicely with cream, orange, or warm gray.", []),
+])
+def test_alignment_preserves_relevant_model_replies(prompt, response, history):
+    assert align_response_to_conversation_topic(prompt, response, history) == response
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+@pytest.mark.parametrize("response", ["Your favorite color is green.", "Your favorite color is not blue."])
+def test_known_fact_contradictions_are_still_repaired(response):
+    assert reinforce_stated_facts_if_needed(
+        "What's my favorite color?", response, [{"user_message": "My favorite color is blue"}]
+    ) == "Your favorite color is blue."
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_conversation_repair_check_preserves_reply_on_invalid_internal_input():
+    from ai.chat.conversation_coherence import _needs_conversation_repair
+
+    assert _needs_conversation_repair(cast(str, object())) is False

@@ -596,6 +596,15 @@ def test_task_reminders_off_prompt_and_reply_stay_within_capabilities(
     assert any(task["title"] == "Buy milk" for task in load_active_tasks(user_id))
 
 
+@pytest.mark.tasks
+@pytest.mark.communication
+def test_explicit_task_creation_persists_when_reminders_are_off(test_data_dir):
+    user_id = _create_journey_user(test_data_dir, "journey-create-reminders-off", enable_tasks=False)
+    result = handle_user_message(user_id, "create task water the plants", "discord")
+    assert result and result.message
+    assert any(task["title"].lower() == "water the plants" for task in load_active_tasks(user_id))
+
+
 @pytest.mark.communication
 def test_numeric_only_prompt_returns_unclear_reply(test_data_dir, chatbot):
     """Digits-only chat input gets the safe unclear reply, not a hallucinated action."""

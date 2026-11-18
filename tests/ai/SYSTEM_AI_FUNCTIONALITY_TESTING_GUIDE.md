@@ -19,12 +19,72 @@ Use it when you change AI-related behavior (prompts, context building, caching, 
 
 ```powershell
 & c:/Users/Julie/projects/MHM/MHM/.venv/Scripts/Activate.ps1
-python tests\ai\run_ai_functionality_tests.py
+python -m tests.ai.run_ai_functionality_tests
 ```
 
 Notes:
 - This is the canonical runner for the AI functionality suite.
 - Default `python run_tests.py` does not run the full AI functionality suite from this guide.
+- Run suites sequentially: the functionality runner cleans shared test users and logs.
+
+**Complementary checks** (use the project virtual environment):
+
+```powershell
+python -m pytest -m ai -q
+python -m tests.ai.evaluate_prompts --live --output tests/ai/results/prompt_evaluation_current.json
+```
+
+The pytest selection covers mocked behavior, context, planning, execution, and
+post-processing contracts. The opt-in prompt evaluator sends paid requests using
+synthetic inputs; it stops on a connection failure and never counts a fallback as
+model success. It currently contains 24 cases, with optional `--repeat 3`.
+Before inference, it checks the request, reference data, history roles, execution
+metadata, and case-specific instruction prerequisites after context-budget fitting.
+Failed preflight skips the model call. `failure_diagnosis` separates application
+context/prompt/parser/post-processing problems from service/configuration errors
+and candidate model-output problems. Arbitrary semantic instruction conflicts and
+model-quality judgments still require review; a failed keyword check is evidence
+to inspect, not definitive blame.
+
+For the six adversarial cases alone:
+
+```powershell
+python -m tests.ai.evaluate_prompts --live --safety-only --repeat 3 --output tests/ai/results/safety_evaluation.json
+```
+
+These use a real model with synthetic crisis, harmful wellness, cross-account
+disclosure, history-injection, action-result-injection, and failed-save-pressure
+inputs. They do not test storage authorization or perform real saves. Safety
+checks apply to raw output as well as final output. Every case retains its review
+rubric, full input messages, raw/final replies, model, and token/latency data.
+
+### 1.1. Contract results, response sources, and semantic review
+
+Automatic PASS means the named contract passed. It is not semantic-quality
+approval. Conversational responses retain `review_status: pending`; missing
+turn evidence is `insufficient_evidence`. Mode/post-process/cache fixtures are
+`not_applicable` for semantic review. Review request fulfillment, grounding,
+capability truthfulness, safety, tone, and concision before approving quality.
+
+The functionality suite observes each synchronous chatbot turn and records
+model output, cache retrieval, fallback, deterministic repairs, and simulated
+provider errors. A successful model source requires observed HTTP transport and
+text on that call. Uninstrumented paths stay `unknown`, rather than inheriting
+availability from an earlier check. Source events preserve raw text when a guard
+replaces it; a repaired answer is not evidence of model-quality success.
+
+The report includes counts by source/scenario and contract status, plus a
+lossless companion `ai_functionality_test_results_latest.json`. Full turn
+prompts/replies, provider input messages, exceptions, disabled flags, zero counts,
+and empty context values are preserved. Cache cases seed distinct per-user and
+per-mode payloads, assert exact retrieval/misses, and actually exercise expiry;
+identical model replies and timing alone cannot pass isolation.
+
+Do not interpret the functionality runner's exit code as a quality approval:
+PARTIAL results currently return zero. Check availability (T-1.4), read the actual
+responses, and distinguish model responses, deterministic guards, mocks, and
+fallbacks. Its latency summary mixes these paths and is not a model benchmark.
+Future reports preserve full responses and explicit zero/false context values.
 
 **Test Results Location**:
 - [ai_functionality_test_results_latest.md](results/ai_functionality_test_results_latest.md)

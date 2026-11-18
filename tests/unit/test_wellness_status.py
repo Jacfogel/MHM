@@ -122,3 +122,63 @@ def test_reinforce_wellness_honesty_replaces_template_reply_with_real_data():
     )
     assert "4.0" in reply
     assert "[current_date]" not in reply
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_grounded_model_summary_keeps_energy_routines_and_follow_up():
+    response = (
+        "You’re doing fairly steady based on the recent check-ins.\n\n"
+        "- Mood has averaged 4.0/5 over the last 3 check-ins and is staying stable.\n"
+        "- Energy has averaged 3.0/5, which looks moderate.\n"
+        "- Breakfast and brushing teeth were both done 3/3 times, so those routines are holding well.\n\n"
+        "If you want, I can help you look for patterns around energy or make a small plan to support the lower-energy days."
+    )
+    context = {"recent_activity": {"recent_responses_count": 3},
+               "mood_trends": {"average_mood": 4.0, "average_energy": 3.0, "trend": "stable"}}
+    assert reinforce_wellness_honesty_if_needed("How am I doing?", response, context) == response
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+@pytest.mark.parametrize("response,context", [
+    ("Your average mood is 5.0.", {"mood_trends": {"average_mood": 4.0}}),
+    ("Energy has averaged 5.0/5.", {"mood_trends": {"average_mood": 4.0, "average_energy": 3.0}}),
+    ("Your average mood is 4.0.", {"mood_trends": {"average_energy": 3.0}}),
+])
+def test_explicit_unverified_average_is_still_repaired(response, context):
+    assert reinforce_wellness_honesty_if_needed("How am I doing?", response, context) == build_honest_wellness_status_reply(context)
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_no_data_guard_still_rejects_fabricated_model_summary():
+    response = "Your average mood is 4.0 and your sleep has improved."
+    assert reinforce_wellness_honesty_if_needed("How am I doing?", response, {}) == build_honest_wellness_status_reply({})
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_rounded_average_does_not_trigger_rewrite():
+    reply = "Your average mood is around 3, with some variation between check-ins."
+    assert reinforce_wellness_honesty_if_needed(
+        "How am I doing?", reply, {"mood_trends": {"average_mood": 3.2}}
+    ) == reply
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_curly_apostrophe_generic_deflection_is_still_repaired():
+    context = {"mood_trends": {"average_mood": 4.0}}
+    assert reinforce_wellness_honesty_if_needed(
+        "How am I doing?", "I’m doing well! How are you?", context
+    ) == build_honest_wellness_status_reply(context)
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_percentage_is_not_compared_directly_to_raw_score():
+    reply = "Your average mood is 80% of the maximum score."
+    assert reinforce_wellness_honesty_if_needed(
+        "How am I doing?", reply, {"mood_trends": {"average_mood": 4.0}}
+    ) == reply

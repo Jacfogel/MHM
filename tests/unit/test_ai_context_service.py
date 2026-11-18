@@ -106,6 +106,34 @@ def test_ai_context_envelope_includes_populated_product_data(test_data_dir):
     assert structured["action_catalog"]["actions"]["create_task"]["domain"] == "tasks"
 
 
+@pytest.mark.parametrize("reminders_enabled", [True, False])
+def test_task_context_always_exposes_creation_separately_from_reminders(monkeypatch, reminders_enabled):
+    from ai.context.service import _build_task_context, _default_prompt_text
+    from tasks import task_service
+
+    monkeypatch.setattr("tasks.are_tasks_enabled", lambda user_id: reminders_enabled)
+    for name in ("load_active_tasks", "load_completed_tasks", "get_tasks_due_soon"):
+        monkeypatch.setattr(task_service, name, lambda *a, **kw: [])
+    monkeypatch.setattr(task_service, "get_user_task_stats", lambda *a: {})
+    monkeypatch.setattr(task_service, "get_recurring_task_defaults", lambda *a: {})
+    context = _build_task_context("test-user")
+    assert context["task_creation_available"] is True
+    assert context["scheduled_reminders_enabled"] is reminders_enabled
+    text = _default_prompt_text("tasks", context)
+    assert "Task creation is always available" in text
+    assert f"Scheduled task reminders are {'enabled' if reminders_enabled else 'off'}" in text
+
+
+def test_missing_reminder_state_is_not_reported_as_off():
+    from ai.context.assembly import _append_feature_enablement_from_envelope
+
+    parts = []
+    _append_feature_enablement_from_envelope(parts, {})
+    assert "task creation is always available" in parts[0]
+    assert "scheduled task reminders status is unknown" in parts[0]
+    assert "scheduled task reminders are off" not in parts[0]
+
+
 def test_notebook_context_uses_titles_pinned_entries_and_short_summaries(test_data_dir):
     user_id = "ai-context-notebook-slice-user"
     assert TestUserFactory.create_full_featured_user(

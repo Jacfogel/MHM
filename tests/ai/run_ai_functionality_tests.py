@@ -233,7 +233,7 @@ class AITestResultsCollector:
 
             # Find all timestamped result files
             pattern = os.path.join(results_dir, "ai_functionality_test_results_*.md")
-            result_files = glob.glob(pattern)
+            result_files = [p for p in glob.glob(pattern) if not p.endswith("_latest.md")]
 
             # Sort by modification time (newest first)
             result_files.sort(key=os.path.getmtime, reverse=True)
@@ -246,6 +246,7 @@ class AITestResultsCollector:
             for file_path in files_to_delete:
                 try:
                     os.remove(file_path)
+                    Path(file_path).with_suffix(".json").unlink(missing_ok=True)
                 except Exception as e:
                     print(f"Warning: Could not delete old result file {file_path}: {e}")
 
@@ -258,6 +259,8 @@ class AITestResultsCollector:
 
     def generate_report(self, project_root):
         """Generate test report with performance metrics"""
+        from tests.ai.evaluation_report import code_block, evidence_markdown, evidence_summary, write_json_report
+        from core.config import OPENAI_MODEL
         print("=" * 60)
         print("TEST SUMMARY")
         print("=" * 60)
@@ -361,9 +364,16 @@ class AITestResultsCollector:
             f.write(
                 f"**Summary**: {passed} passed, {partial} partial, {failed} failed out of {total} tests\n\n"
             )
+            evidence = evidence_summary(self.results)
+            f.write("These are automatic contract results, not a response-quality approval. "
+                    "Semantic review remains pending unless explicitly recorded.\n\n")
+            f.write("## Observed response sources\n\n")
+            for row in evidence["turns_by_source_and_contract_status"]:
+                f.write(f"- {row['source']} ({row['scenario']}): {row['turns']} turns in {row['status']} contract cases\n")
+            f.write(f"\n**Semantic review counts**: {evidence['semantic_review']}\n\n")
 
             if perf_tests:
-                f.write("## Performance Metrics\n\n")
+                f.write("## End-to-end timing (mixed paths; not model latency)\n\n")
                 f.write(f"- **Tests with timing data**: {len(perf_tests)}\n")
                 f.write(f"- **Average response time**: {avg_time:.2f}s\n")
                 f.write(f"- **Min response time**: {min_time:.2f}s\n")
@@ -402,13 +412,11 @@ class AITestResultsCollector:
                 if r.get("prompt"):
                     # Safely handle Unicode in prompt (files use UTF-8, so this should work)
                     prompt = r["prompt"]
-                    f.write(f"- **Prompt**: `{prompt}`\n")
+                    f.write("- **Prompt**:\n\n" + code_block(prompt) + "\n")
                 if r.get("response"):
                     # Safely handle Unicode in response (files use UTF-8, so this should work)
                     response = r["response"]
-                    if len(response) > 500:
-                        response = response[:500] + "... (truncated)"
-                    f.write(f"- **Response**: `{response}`\n")
+                    f.write("- **Response**:\n\n" + code_block(response) + "\n")
                     f.write(f"- **Response Length**: {len(r['response'])} characters\n")
                 if r.get("response_time") is not None:
                     f.write(f"- **Response Time**: {r['response_time']:.2f}s\n")
@@ -416,12 +424,12 @@ class AITestResultsCollector:
                     f.write(f"- **Metrics**: {r['metrics']}\n")
                 if r.get("context_info"):
                     context = r["context_info"]
-                    # Only show fields with meaningful values (not False, 0, empty lists, empty strings, or None)
+                    # False flags and zero counts are evidence for honesty checks.
                     meaningful_context = {
                         k: v
                         for k, v in context.items()
                         if k != "context_keys"
-                        and v not in (False, 0, [], "", None)
+                        and v is not None
                         and not (isinstance(v, (list, dict, str)) and len(v) == 0)
                     }
 
@@ -441,11 +449,14 @@ class AITestResultsCollector:
                 if r.get("manual_review_notes"):
                     f.write(f"- **Manual Review Notes**: {r['manual_review_notes']}\n")
                 f.write(f"- **Timestamp**: {r['timestamp']}\n\n")
+                f.write(evidence_markdown(r) + "\n")
 
         # Copy to latest
         import shutil
 
         shutil.copy(report_file, latest_report)
+        write_json_report(Path(report_file).with_suffix(".json"), self.results, model=OPENAI_MODEL)
+        write_json_report(Path(latest_report).with_suffix(".json"), self.results, model=OPENAI_MODEL)
 
         print()
         print("=" * 60)
@@ -596,7 +607,7 @@ def main():
 
         print("=" * 60)
         if summary["failed"] == 0:
-            print("[PASS] ALL TESTS PASSED OR PARTIAL")
+            print("AUTOMATIC CONTRACTS COMPLETED - semantic review still required")
         else:
             print(
                 f"[PARTIAL] {summary['failed']} TESTS FAILED - Review report for details"

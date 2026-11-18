@@ -1224,8 +1224,11 @@ _EMPTY_SYMBOL_TOPIC_PATTERN = re.compile(
 
 @handle_errors("repairing an empty symbol-only topic", default_return="")
 def repair_symbol_only_topic_reply(user_prompt: str, response: str) -> str:
-    """Treat a symbol-only topic as unclear instead of inventing meaning."""
-    if _EMPTY_SYMBOL_TOPIC_PATTERN.fullmatch(user_prompt or ""):
+    """Repair ungrounded reassurance about symbols; preserve natural clarification."""
+    if _EMPTY_SYMBOL_TOPIC_PATTERN.fullmatch(user_prompt or "") and (
+        not (response or "").strip()
+        or re.match(r"you (?:do not|don't) need to worry", response, re.IGNORECASE)
+    ):
         return UNCLEAR_USER_INPUT_REPLY
     return response
 
@@ -1238,11 +1241,6 @@ def repair_command_clarification_reply(user_prompt: str, response: str) -> str:
     prompt = (user_prompt or "").lower()
     if "task" not in prompt:
         return response
-    if re.fullmatch(
-        r"\s*(?:can|could|would)\s+you\s+(?:add|create)\s+(?:a\s+)?task\s*[?!.]*\s*",
-        prompt,
-    ):
-        return "What would you like the task to be called?"
     lowered = response.lower()
     unsafe_ui_markers = (
         "click the",
@@ -1250,7 +1248,7 @@ def repair_command_clarification_reply(user_prompt: str, response: str) -> str:
         "top right corner",
         "enter the details",
     )
-    if response == UNCLEAR_USER_INPUT_REPLY or any(
+    if response == UNCLEAR_USER_INPUT_REPLY or "[example]" in lowered or any(
         marker in lowered for marker in unsafe_ui_markers
     ):
         return "What would you like the task to be called?"
@@ -1278,12 +1276,15 @@ _EXPLICIT_CREATE_CHAT_PATTERN = re.compile(
 
 @handle_errors("repairing an unexecuted chat create reply", default_return="")
 def repair_unexecuted_chat_create_reply(user_prompt: str, response: str) -> str:
-    """State clearly that chat-mode task creation did not execute."""
+    """Correct false success or a nonanswer without guessing account capabilities."""
     if not _EXPLICIT_CREATE_CHAT_PATTERN.search(user_prompt or ""):
         return response
-    return (
-        "I haven't created a task. Task creation may be unavailable for this account."
-    )
+    if (not (response or "").strip() or response == UNCLEAR_USER_INPUT_REPLY
+            or find_false_crud_claims(response)
+            or _needs_content_repair(response)
+            or (response or "").lower().startswith("please try again")):
+        return "I haven't created a task yet."
+    return response
 
 
 _SHORT_STORY_REQUEST = re.compile(

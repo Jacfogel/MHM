@@ -69,6 +69,21 @@ _FACT_LABELS = {
 }
 
 
+@handle_errors("checking conversation reply for repair", default_return=False)
+def _needs_conversation_repair(response: str) -> bool:
+    """Recognize explicit nonanswers; topic words alone never justify a rewrite."""
+    text = (response or "").strip()
+    return (
+        not text
+        or text == UNCLEAR_USER_INPUT_REPLY
+        or bool(re.fullmatch(
+            r"(?:That sounds great[!.]\s*)?How can I help(?: you)?(?: today)?[?!.]*",
+            text, re.IGNORECASE,
+        ))
+        or bool(re.search(r"\bclick (?:the )?.{0,20}(?:chat|button)\b", text, re.IGNORECASE))
+    )
+
+
 @handle_errors("extracting recent conversation topics", default_return=set())
 def extract_recent_user_topics(
     conversation_history: list[dict[str, Any]],
@@ -155,7 +170,22 @@ def reinforce_stated_facts_if_needed(
     if not known:
         return response
 
-    # Prefer a direct factual answer so the model cannot append unsupported provenance.
+    # Keep correct natural answers; repair omission or explicit invented provenance.
+    invented_provenance = re.search(
+        r"\b(?:confirmed|recorded|saved|learned|found)\b.{0,30}\b(?:check-?in|database|profile)\b",
+        response or "", re.IGNORECASE,
+    )
+    contradicted = any(
+        re.search(r"\b(?:not|isn't|isn’t)\s+" + re.escape(value) + r"(?!\w)",
+                  response or "", re.IGNORECASE)
+        for _, value in known
+    )
+    if not invented_provenance and not contradicted and all(
+        re.search(r"(?<!\w)" + re.escape(value) + r"(?!\w)", response or "", re.IGNORECASE)
+        for _, value in known
+    ):
+        return response
+
     if len(known) == 1:
         key, value = known[0]
         label = _FACT_LABELS.get(key, key.replace("_", " "))
@@ -183,12 +213,14 @@ def align_response_to_conversation_topic(
     stated_now = extract_stated_conversation_facts(
         [{"user_message": user_prompt}], lookback=1
     )
-    if len(stated_now) == 1:
+    if len(stated_now) == 1 and _needs_conversation_repair(response):
         key, value = next(iter(stated_now.items()))
         label = _FACT_LABELS.get(key, key.replace("_", " "))
         return f"Got it - your {label} is {value}."
 
-    if re.search(r"\bi (?:love|enjoy|like) reading books\b", user_prompt, re.IGNORECASE):
+    if _needs_conversation_repair(response) and re.search(
+        r"\bi (?:love|enjoy|like) reading books\b", user_prompt, re.IGNORECASE
+    ):
         return "That sounds great - what kinds of books do you enjoy most?"
 
     response = reinforce_stated_facts_if_needed(
@@ -204,33 +236,9 @@ def align_response_to_conversation_topic(
     if "books" not in topics:
         return response
 
-    lowered = response.lower()
-    concrete_genres = (
-        "mystery",
-        "science fiction",
-        "sci-fi",
-        "fantasy",
-        "historical fiction",
-        "romance",
-        "thriller",
-        "memoir",
-        "nonfiction",
-    )
-    asks_for_genres = bool(re.search(r"\bgenres?\b", user_prompt, re.IGNORECASE))
-    if response == UNCLEAR_USER_INPUT_REPLY or (
-        asks_for_genres and not any(genre in lowered for genre in concrete_genres)
-    ):
+    if _needs_conversation_repair(response):
         return (
             "You mentioned loving books. Mystery, speculative fiction, historical "
             "fiction, or memoir could be good starting points—which sounds best?"
         )
-    if any(word in lowered for word in ("book", "read", "reading", "genre")):
-        return response
-
-    stripped = response.strip()
-    if not stripped:
-        return (
-            "You mentioned loving books - what kinds do you usually enjoy, "
-            "like fiction, mystery, or nonfiction?"
-        )
-    return f"You mentioned loving books. {stripped}"
+    return response

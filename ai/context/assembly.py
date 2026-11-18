@@ -105,6 +105,10 @@ def _assemble_product_flow_messages(
                     "and identifiers. Return one concise reply."
                     " For failures without a supplied next step, suggest retrying "
                     "later; do not offer to save elsewhere or switch to another app feature."
+                    " Capability settings do not establish execution. An error or attempted=false "
+                    "must never become a claim that the whole action succeeded. completed=false may mean a follow-up "
+                    "is still required: preserve any explicitly verified saved change and the "
+                    "remaining question, rather than claiming the whole request completed."
                 ),
             },
             {
@@ -262,7 +266,7 @@ def _append_feature_enablement_from_envelope(
         parts,
         _phrase_feature_status_lines(
             checkins_enabled=bool(checkins.get("enabled")),
-            tasks_enabled=bool(tasks.get("enabled")),
+            tasks_enabled=tasks.get("scheduled_reminders_enabled", tasks.get("enabled")),
             messages_enabled=bool(messages.get("enabled")),
         ),
     )

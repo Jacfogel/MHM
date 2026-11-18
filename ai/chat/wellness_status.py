@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from typing import Any
+from ai.chat.action_boundaries import UNCLEAR_USER_INPUT_REPLY
 
 from core.error_handling import handle_errors
 from core.health_context_builder import (
@@ -125,7 +126,33 @@ def reinforce_wellness_honesty_if_needed(
     response: str,
     context: dict[str, Any],
 ) -> str:
-    """Return a concise wellness summary built only from verified context data."""
+    """Repair missing-data claims, nonanswers, and explicit aggregate mismatches."""
     if not is_wellness_status_question(user_prompt):
         return response
-    return build_honest_wellness_status_reply(context)
+    if not context_has_wellness_data(context):
+        return build_honest_wellness_status_reply(context)
+    if (not (response or "").strip() or response == UNCLEAR_USER_INPUT_REPLY
+            or _GENERIC_DEFLECTION_PATTERN.search(response.replace("’", "'"))
+            or _TEMPLATE_RESPONSE_PATTERN.search(response)):
+        return build_honest_wellness_status_reply(context)
+
+    trends = context.get("mood_trends") or {}
+    for metric in ("mood", "energy"):
+        expected = trends.get(f"average_{metric}")
+        # Match explicit averages, not individual scores or sample counts.
+        pattern = (
+            rf"\b(?:average\s+{metric}(?:\s+score)?\s*"
+            rf"(?:(?:has been|is|was|of|around|about|:)\s*){{0,3}}"
+            rf"|{metric}\s+(?:has\s+)?averaged\s+)(\d+(?:\.\d+)?)"
+        )
+        for match in re.finditer(pattern, response, re.IGNORECASE):
+            if expected is None:
+                return build_honest_wellness_status_reply(context)
+            if response[match.end():].lstrip().startswith("%"):
+                continue  # A percentage is a different unit; do not compare it as a raw score.
+            number = match.group(1)
+            precision = len(number.partition(".")[2])
+            rounding_tolerance = 0.5 * 10 ** -precision + 1e-9
+            if abs(float(number) - float(expected)) > rounding_tolerance:
+                return build_honest_wellness_status_reply(context)
+    return response

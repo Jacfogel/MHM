@@ -68,12 +68,14 @@ class TestAICore(AITestBase):
             
             prompt = "add task buy groceries"
             response = self.chatbot.generate_response(prompt, mode="command", user_id=test_user_id)
-            if response and isinstance(response, str):
+            from tests.ai.evaluation_contracts import command_contract_issues
+            command_issues = command_contract_issues(response, action="create_task", title="buy groceries")
+            if not command_issues:
                 self.log_test("T-1.3", "generate_response() in command mode", "PASS",
                             "Command mode response generated", prompt=prompt, response=response, test_type="command", context_info=context_info)
             else:
                 self.log_test("T-1.3", "generate_response() in command mode", "FAIL",
-                            "No response generated", prompt=prompt)
+                            " | ".join(command_issues), prompt=prompt, response=response, test_type="command")
         except Exception as e:
             self.log_test("T-1.3", "generate_response() in command mode", "FAIL",
                         "", f"Exception: {str(e)}", prompt=prompt if 'prompt' in locals() else "")
@@ -81,7 +83,7 @@ class TestAICore(AITestBase):
         # Test 1.4: AI availability check
         try:
             is_available = self.chatbot.is_ai_available()
-            self.log_test("T-1.4", "AI availability check", "PASS",
+            self.log_test("T-1.4", "AI availability check", "PASS" if is_available else "PARTIAL",
                         f"AI available: {is_available}")
         except Exception as e:
             self.log_test("T-1.4", "AI availability check", "FAIL",
@@ -288,10 +290,10 @@ class TestAICore(AITestBase):
             prompt = "add task buy milk"
             response = self.chatbot.generate_response(prompt, mode="command", user_id=test_user_id)
             
-            has_structure = ('{' in response and '}' in response) or ('action' in response.lower()) or isinstance(response, dict)
-            
-            status = "PASS" if has_structure else "PARTIAL"
-            notes = "Response appears structured (key-value or JSON format)" if has_structure else "Response may not be structured"
+            from tests.ai.evaluation_contracts import command_contract_issues
+            contract_issues = command_contract_issues(response, action="create_task", title="buy milk")
+            status = "FAIL" if contract_issues else "PASS"
+            notes = " | ".join(contract_issues) or "Recognized create_task with exact requested title"
             self.log_test("T-5.6", "Command parsing creates structured output", status,
                         notes,
                         prompt=prompt, response=str(response), test_type="command")

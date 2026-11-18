@@ -26,8 +26,8 @@ def _envelope() -> AIContextEnvelope:
             ),
             "tasks": _section(
                 "tasks",
-                {"enabled": False, "active": []},
-                "Tasks: disabled; 0 active.",
+                {"enabled": False, "scheduled_reminders_enabled": False, "task_creation_available": True, "active": []},
+                "Task creation is always available. Scheduled task reminders are off; 0 active.",
             ),
             "action_catalog": _section(
                 "action_catalog",
@@ -58,7 +58,7 @@ def test_compose_chat_response_prompt_uses_flow_categories_in_order():
     assert content.index("[action_boundaries]") < content.index("[available_actions]")
     assert "MHM's in-app assistant" in content
     assert "Account: preferred name Julie." in content
-    assert "Tasks: disabled; 0 active." in content
+    assert "Task creation is always available. Scheduled task reminders are off" in content
 
 
 def test_compose_chat_response_prompt_includes_generated_capabilities():
@@ -90,3 +90,14 @@ def test_compose_chat_response_prompt_owns_conversation_and_action_rules():
     assert "scheduled task reminders are off" in content
     assert "GOOD examples" not in content
     assert content.count("Answer direct questions before redirecting") == 1
+
+
+def test_chat_prompt_distinguishes_venting_medication_safety_and_capabilities():
+    content = PromptManager().compose_product_prompt("chat_response", context_view=_envelope()).content
+    assert "listen first" in content
+    assert "Offer advice only if asked" in content
+    assert "prescriber or pharmacist" in content
+    assert "Task creation is always available" in content
+    assert "never means task creation is disabled" in content
+    assert "verified changes" in content
+    assert "create_task" in content.split("[available_actions]", 1)[1]

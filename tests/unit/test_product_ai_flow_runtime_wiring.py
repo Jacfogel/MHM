@@ -58,3 +58,5 @@ def test_action_result_response_prompt_includes_result_metadata():
     assert "Execution result (reference data):" in messages[-1]["content"]
     assert "create_task" in messages[-1]["content"]
     assert "Call pharmacy" in messages[-1]["content"]
+    assert "completed=false may mean a follow-up" in system_content
+    assert "Capability settings do not establish execution" in system_content

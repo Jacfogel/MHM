@@ -113,6 +113,19 @@ def test_parse_malformed_output_defaults_to_answer_only():
     assert plan.planning_method.endswith("_malformed")
 
 
+def test_legacy_no_action_sentinel_is_valid_not_malformed():
+    plan = parse_action_plan_from_text("ACTION: unknown", source_message="I just need to vent")
+    assert plan.response_intent == "answer_only"
+    assert plan.actions == ()
+    assert plan.planning_method == "text"
+
+
+def test_no_action_sentinel_with_action_fields_is_not_valid_no_action():
+    plan = parse_action_plan_from_text("ACTION: unknown\nTITLE: buy milk", source_message="hello")
+    assert plan.response_intent == "answer_only"
+    assert plan.planning_method == "text_malformed"
+
+
 def test_parse_missing_required_fields_downgrades_to_clarify():
     catalog = build_action_catalog()
     plan = parse_action_plan_from_text(
@@ -165,7 +178,8 @@ def test_build_planning_messages_are_compact_and_omit_chat_categories():
     assert messages[1] == {"role": "user", "content": "add task laundry"}
     system = messages[0]["content"]
     assert "ACTION: create_task" in system
-    assert "ACTION: unknown" in system
+    assert "INTENT: answer_only" in system
+    assert "ACTION: unknown" not in system
     assert "pack hiking bag" in system
     assert "Recent user said" in system
     assert "Product AI flow:" not in system

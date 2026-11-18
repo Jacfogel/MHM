@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-17 00:11:35
+> **Last Generated**: 2026-11-18 01:43:58
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,16 +16,16 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 316
-- **Functions Found**: 3271
+- **Functions Found**: 3272
 - **Methods Found**: 1661
 - **Classes Found**: 293
-- **Total Items**: 4932
-- **Functions Documented**: 2923
+- **Total Items**: 4933
+- **Functions Documented**: 2924
 - **Methods Documented**: 1487
 - **Classes Documented**: 225
-- **Total Documented**: 4410
+- **Total Documented**: 4411
 - **Template-Generated**: 74
-- **Last Updated**: 2026-11-17
+- **Last Updated**: 2026-11-18
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -220,6 +220,7 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 
 #### `ai/chat/conversation_coherence.py`
 **Functions:**
+- [OK] `_needs_conversation_repair(response)` - Recognize explicit nonanswers; topic words alone never justify a rewrite.
 - [OK] `align_response_to_conversation_topic(user_prompt, response, conversation_history)` - Tie follow-up answers back to a topic or fact the user raised recently.
 - [OK] `detect_fact_follow_up_keys(user_prompt)` - Return fact keys the current user prompt is asking about.
 - [OK] `extract_recent_user_topics(conversation_history)` - Infer coarse topics from recent user messages.
@@ -271,12 +272,12 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `repair_focus_reply(user_prompt, response)` - Replace unusable focus advice with one concrete prioritization step.
 - [OK] `repair_short_story_mismatch(user_prompt, response)` - Return a brief story when a direct story request gets an obvious chat redirect.
 - [OK] `repair_simple_arithmetic_reply(user_prompt, response)` - Answer a direct integer-addition question without model drift or refusal.
-- [OK] `repair_symbol_only_topic_reply(user_prompt, response)` - Treat a symbol-only topic as unclear instead of inventing meaning.
+- [OK] `repair_symbol_only_topic_reply(user_prompt, response)` - Repair ungrounded reassurance about symbols; preserve natural clarification.
 - [OK] `repair_truncated_response_tail(response)` - Remove fake multi-turn continuations and dangling markdown tails.
-- [OK] `repair_unexecuted_chat_create_reply(user_prompt, response)` - State clearly that chat-mode task creation did not execute.
+- [OK] `repair_unexecuted_chat_create_reply(user_prompt, response)` - Correct false success or a nonanswer without guessing account capabilities.
 - [OK] `repair_vague_capabilities_reply(user_prompt, response)` - Answer capability questions with a concise list of supported features.
 - [OK] `sanitize_false_crud_claims(response)` - Drop lines/sentences that falsely claim completed actions without evidence.
-- [OK] `smart_truncate_response(text, max_chars, max_words)` - Truncate response to avoid mid-sentence cuts when possible.
+- [OK] `smart_truncate_response(text, max_chars, max_words)` - Prefer the last complete sentence that fits both limits.
 - [OK] `strip_instruction_tuning_markers(text)` - Remove fine-tuning delimiter leaks (e.g. '## INPUT ##OUTPUT') from model output.
 - [OK] `strip_letter_signoffs(text)` - Remove email-style closings, soft day-wishes, dash signatures, and meta notes.
 - [OK] `strip_markup_and_tutorial_leaks(response)` - Remove HTML, comments, context_override blocks, and tutorial/code continuations.
@@ -291,7 +292,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `build_honest_wellness_status_reply(context)` - Return a supportive reply that does not invent wellness metrics.
 - [OK] `context_has_wellness_data(context)` - True when context includes check-in, mood trend, or recent health guidance.
 - [OK] `is_wellness_status_question(prompt)` - True when the user asks for a personal wellness or progress read.
-- [OK] `reinforce_wellness_honesty_if_needed(user_prompt, response, context)` - Return a concise wellness summary built only from verified context data.
+- [OK] `reinforce_wellness_honesty_if_needed(user_prompt, response, context)` - Repair missing-data claims, nonanswers, and explicit aggregate mismatches.
 
 #### `ai/client/__init__.py`
 

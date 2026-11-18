@@ -8,10 +8,30 @@ from ai.chat.chatbot import AIChatBotSingleton
 from tests.test_helpers.test_utilities import TestUserFactory
 from tests.ai.ai_response_validator import AIResponseValidator
 from core.time_utilities import DATE_ONLY, format_timestamp, now_datetime_full
+from functools import wraps
+from tests.ai.evaluation_evidence import ResponseEvidenceRecorder
+from tests.ai.evaluation_contracts import review_status
 
 
 class AITestBase:
     """Base class for AI functionality tests with shared utilities"""
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        for name, method in list(cls.__dict__.items()):
+            if not name.startswith("test_") or not callable(method):
+                continue
+
+            @wraps(method)
+            def observed(self, *args, _method=method, **kwargs):
+                with ResponseEvidenceRecorder(self.chatbot) as recorder:
+                    self._evidence_recorder = recorder
+                    try:
+                        return _method(self, *args, **kwargs)
+                    finally:
+                        self._evidence_recorder = None
+
+            setattr(cls, name, observed)
 
     def __init__(self, test_data_dir, results_collector):
         """
@@ -39,6 +59,7 @@ class AITestBase:
         metrics=None,
         test_type="",
         context_info=None,
+        turns=None,
     ):
         """
         Log test result with optional performance metrics and automatic response review.
@@ -95,6 +116,13 @@ class AITestBase:
                     notes += " | "
                 notes += "Warnings: " + " | ".join(review_warnings)
 
+        recorder = getattr(self, "_evidence_recorder", None)
+        recorded_turns = recorder.take() if recorder else []
+        if turns is None:
+            turns = recorded_turns
+        if response and not turns and test_type not in ("mode_detection", "postprocess"):
+            turns = [{"prompt": prompt, "response": response, "source": "unknown",
+                      "events": [], "error": None, "scenario": "unobserved"}]
         result = {
             "test_id": test_id,
             "test_name": test_name,
@@ -107,6 +135,9 @@ class AITestBase:
             "metrics": metrics or {},
             "context_info": context_info or {},  # Include context information
             "manual_review_notes": "",  # Will be populated during AI review
+            "turns": turns,
+            "review_status": review_status(turns, test_type, has_response=bool(response)),
+            "test_type": test_type,
             # Test metadata only; not parsed/persisted by production code.
             "timestamp": now_datetime_full().isoformat(),
         }

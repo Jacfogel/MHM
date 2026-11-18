@@ -422,7 +422,12 @@ def parse_action_plan_from_text(
     intent = _normalize_intent(fields.get("INTENT", ""))
 
     if not intent:
-        if fields.get("ACTION") and fields.get("ACTION") != "unknown":
+        if (not shared and len(action_blocks) == 1
+                and {k: v.casefold() for k, v in action_blocks[0].items()} == {"ACTION": "unknown"}):
+            # Older planning prompts and the single-command caller use this
+            # valid no-action sentinel. It is not a malformed model response.
+            intent = "answer_only"
+        elif fields.get("ACTION") and fields.get("ACTION") != "unknown":
             intent = "execute_action"
         elif fields.get("QUESTION"):
             intent = "clarify"

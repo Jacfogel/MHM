@@ -582,6 +582,28 @@ def test_repair_command_clarification_reply_replaces_tutorial_answer():
     assert repaired == "What would you like the task to be called?"
 
 
+@pytest.mark.parametrize("prompt,response", [
+    ("What do you think about: !@#$%^&*()[]{}|\\/:;\"'<>?,.", "I can’t tell what you want me to do with those symbols. If you meant a question, please rephrase it in words."),
+    ("Can you add a task?", "Sure — what task should I add, and when is it due?"),
+    ("Please create a task to buy milk", "What due date or time should I use for the task to buy milk? If you want, I can also make it an unscheduled task."),
+])
+def test_chat_postprocessing_preserves_valid_model_clarifications(prompt, response):
+    from ai.chat.chatbot import AIChatBotSingleton
+
+    bot = object.__new__(AIChatBotSingleton)
+    assert bot._post_process_generated_response("chat", response, prompt) == response
+    if prompt == "Can you add a task?":
+        assert bot._post_process_generated_response("command_with_clarification", response, prompt) == response
+
+
+def test_unexecuted_create_guard_keeps_false_success_protection_without_capability_guess():
+    from ai.chat.response_postprocess import repair_unexecuted_chat_create_reply
+
+    reply = repair_unexecuted_chat_create_reply("Please create a task to buy milk", "I've created that task for you.")
+    assert reply == "I haven't created a task yet."
+    assert "unavailable" not in reply
+
+
 def test_collapse_persona_definition_echo_replaces_instruction_dump():
     from ai.chat.response_postprocess import collapse_persona_definition_echo
 
