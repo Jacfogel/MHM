@@ -116,7 +116,7 @@ website HTTPS origin in production. `WEB_PROXY_SECRET` must contain at least 32
 random characters in production and match the Cloudflare Worker's
 `MHM_API_SECRET` secret. The Worker's `MHM_API_ORIGIN` variable points to the
 gateway's HTTPS origin. Misconfiguration prevents browser login; it does not
-change existing app accounts. See [website/README.md](website/README.md).
+change existing app accounts. See [website/WEBSITE_GUIDE.md](website/WEBSITE_GUIDE.md).
 
 `WEB_GATEWAY_ENABLED` defaults to `true`: the background service starts its website
 gateway and stops it on shutdown. `python run_headless_service.py start` starts bots,
@@ -145,7 +145,7 @@ The secret key, Price, and webhook signing secret must all belong to the same
 Stripe mode. Test-mode values cannot be mixed with live-mode values. Restart the
 running MHM service after changing any Stripe value; the gateway reads them at
 process startup. Use the cutover and rollback checklist in
-[website/README.md](website/README.md#live-mode-cutover-and-rollback).
+[website/WEBSITE_GUIDE.md](website/WEBSITE_GUIDE.md#21-live-mode-cutover-and-rollback).
 
 ---
 
@@ -244,6 +244,8 @@ Action planner (on by default):
 **Breaks if wrong:** excessive API calls, stale context, delayed scheduling, or missing user directory creation.
 
 ### 7.1. Google Health (read-only wellness integration)
+
+For Google Cloud setup, connection/reconnection, personalization controls, and troubleshooting, use [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md). This section remains the canonical configuration reference.
 
 - `GOOGLE_HEALTH_ENABLED` - master switch (default `false`)
 - `GOOGLE_HEALTH_CLIENT_ID` / `GOOGLE_HEALTH_CLIENT_SECRET`

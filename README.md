@@ -31,6 +31,9 @@ If you are new to the project, use the following paths depending on your goal:
 - **Understand how the system is structured**  
   -> [ARCHITECTURE.md](ARCHITECTURE.md)
 
+- **Set up channels, the website, or health integration**
+  -> [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md), [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md), [WEBSITE_GUIDE.md](website/WEBSITE_GUIDE.md), and [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md)
+
 - **Run the system or troubleshoot issues**  
   -> [HOW_TO_RUN.md](HOW_TO_RUN.md)
 

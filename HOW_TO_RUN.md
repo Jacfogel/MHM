@@ -111,7 +111,9 @@ These commands work as Discord slash commands (`/command`), bang commands (`!com
 - If you forget the exact command, typing the mapped text (for example, "show my tasks") works the same way.
 - Check-in related commands (`/checkin`, `/restart`, `/clear`, `/cancel`) operate on the conversation flow system.
 
-For Discord account linking, task selection, and check-in buttons, follow section 4.4. "Account linking, tasks, and check-ins" in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md#44-account-linking-tasks-and-check-ins). For health connect/reconnect and preferences, follow "User flow" in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md#user-flow).
+For Discord account linking, task selection, and check-in buttons, follow section 4.4. "Account linking, tasks, and check-ins" in [DISCORD_GUIDE.md](communication/communication_channels/discord/DISCORD_GUIDE.md#44-account-linking-tasks-and-check-ins). For health connect/reconnect and preferences, follow "User flow" in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md#5-user-flow).
+
+For the optional Twilio owner pilot, use [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md). For browser access and gateway/hosting setup, use [WEBSITE_GUIDE.md](website/WEBSITE_GUIDE.md).
 
 ### 3.1. Replying by email
 
@@ -150,7 +152,7 @@ start the MHM service. `WEB_GATEWAY_HOST` and `WEB_GATEWAY_PORT` configure the l
 `WEB_PUBLIC_ORIGIN` to the browser origin if you change its port.
 The gateway uses MHM's account data. Email login requires SMTP credentials;
 the standard headless startup includes scheduled deliveries.
-See [website/README.md](website/README.md) for the production Cloudflare connection,
+See [website/WEBSITE_GUIDE.md](website/WEBSITE_GUIDE.md) for the production Cloudflare connection,
 gateway configuration, and account creation behavior.
 
 ## 5. Important Notes
@@ -286,7 +288,7 @@ If startup reports configuration errors, read the named setting in [CONFIGURATIO
 
 If the **AI Controls** dialog says controls could not be read and AI is off, the saved administrator policy is invalid or unreadable. Open **AI Controls**, choose valid overrides (or **Use environment defaults**), and save. To keep AI off during recovery, leave **Allow AI features** unchecked and save that valid policy. If saving fails, the dialog keeps the draft open: check the data-directory permissions and `logs/errors.log`, then retry. Expected result: reopening the dialog shows the saved policy and new requests follow it. Do not delete user data or manually remove the policy file as a routine repair. Environment defaults may enable AI, so review them before saving. See section 6.2. "Optional AI usage controls" in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md#62-optional-ai-usage-controls).
 
-If the desktop appears frozen during health sync, wait for its background operation to finish; **Sync Now** disables duplicate account actions until completion. Use **Refresh Status** afterward and follow "Troubleshooting" in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md#troubleshooting). Expect either a refreshed success time or a reconnect/retry message, without deleting the account.
+If the desktop appears frozen during health sync, wait for its background operation to finish; **Sync Now** disables duplicate account actions until completion. Use **Refresh Status** afterward and follow "Troubleshooting" in [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md#10-troubleshooting). Expect either a refreshed success time or a reconnect/retry message, without deleting the account.
 
 ## 7. Next Steps
 - **Project Overview**: See [README.md](README.md) for features and architecture

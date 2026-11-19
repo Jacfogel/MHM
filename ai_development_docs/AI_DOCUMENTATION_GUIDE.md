@@ -14,6 +14,8 @@ Use this section to decide what to open or reference next.
 
 ### 1.1. Decision paths
 
+- For channel setup and boundaries, use [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) and [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md). For browser/gateway work, use [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md); for health OAuth, sync, and personalization, use [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md). These are standalone guides, not additional paired docs.
+
 - If you need project intent and priorities: use [PROJECT_VISION.md](../PROJECT_VISION.md) and [README.md](../README.md).
 - If you need run commands or troubleshooting: use [HOW_TO_RUN.md](../HOW_TO_RUN.md).
 - If you need architecture and module boundaries: use [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md), then [ARCHITECTURE.md](../ARCHITECTURE.md).
@@ -49,7 +51,7 @@ Do not mutate AI docs into pure routing lists. Keep them brief, but rule-heavy.
 
 ### 2.3. Generated and analytical documentation
 
-Generated docs are read-only inputs (registries, dependency maps, legacy reference reports).
+Generated docs are read-only inputs (detailed registries, dependency maps, legacy reference reports). Use architecture and feature guides for navigation and audit reports for actionable findings; function/dependency brief generation is retired.
 - Do not advise editing them directly.
 - If a generated file is stale or wrong, recommend fixing the generator and regenerating.
 

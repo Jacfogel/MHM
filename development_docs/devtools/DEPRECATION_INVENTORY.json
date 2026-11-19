@@ -707,6 +707,19 @@
       ],
       "replacement": "PySide6 6.12.0 exclusion, scoped widget teardown, lightweight nightly history and native-core failure gate",
       "note": "Temporary GC inventories, atexit scans, probe script/matrix/input and inventory-specific tests removed after clean full Linux run 42404010183. Historical proof remains in GitHub runs 42403486795 and 42403966400 and changelogs. No compatibility fallback retained."
+    },
+    {
+      "id": "function_and_dependency_navigation_briefs",
+      "removed_at": "2026-11-19",
+      "status": "removed",
+      "search_terms": [
+        "FUNCTION_REGISTRY_BRIEF.md",
+        "MODULE_DEPENDENCIES_BRIEF.md",
+        "generate_function_registry_brief_content",
+        "generate_module_dependencies_brief_content"
+      ],
+      "replacement": "Detailed inventories for lookups, architecture and feature guides for navigation, and audit reports for actionable findings.",
+      "note": "Brief outputs, generators, brief-only narrative helpers/configuration, and active instructions removed. No compatibility generation remains."
     }
   ],
   "global_sweep_keywords": [

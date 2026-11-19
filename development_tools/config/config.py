@@ -1125,7 +1125,7 @@ def get_documentation_analysis_config():
 
 
 # Audit function registry configuration
-# Portable narrative defaults; project-specific paths live under decision_trees in JSON.
+# Detailed inventory and audit settings; project-specific descriptions may be configured.
 AUDIT_FUNCTION_REGISTRY = {
     "high_complexity_min": 50,  # Generic threshold
     "top_complexity": 10,
@@ -1145,42 +1145,6 @@ AUDIT_FUNCTION_REGISTRY = {
         "tests": "Test suite",
         "scripts": "Utility scripts",
     },
-    "common_operations_priority_order": [
-        "User Message",
-        "AI Response",
-        "Main Entry",
-        "User Data Access",
-        "User Data Save",
-        "User Data Load",
-        "Send Message",
-        "Receive Message",
-        "Command Parsing",
-        "Validation",
-        "Error Handling",
-        "Scheduling",
-        "Configuration",
-    ],
-    "entry_point_descriptions": {
-        "handle_message": "Main message entry point",
-        "generate_response": "AI response generation",
-        "main": "Application entry point",
-        "__init__": "Initialization",
-        "Entry point": "Entry point",
-        "User Message": "User message handling",
-        "AI Response": "AI response generation",
-        "Main Entry": "Main entry point",
-        "User Data Access": "User data access",
-        "User Data Save": "User data save",
-        "User Data Load": "User data load",
-        "Send Message": "Send message",
-        "Receive Message": "Receive message",
-        "Command Parsing": "Command parsing",
-        "Validation": "Validation",
-        "Error Handling": "Error handling",
-        "Scheduling": "Scheduling",
-        "Configuration": "Configuration",
-    },
-    "decision_trees": {},
 }
 
 
@@ -1189,22 +1153,14 @@ def get_analyze_function_registry_config(project_root: Path | None = None):
     external_config = _get_external_value("analyze_function_registry", None)
     result = copy.deepcopy(AUDIT_FUNCTION_REGISTRY)
     if isinstance(external_config, dict):
-        for key in ("directory_descriptions", "entry_point_descriptions"):
+        for key in ("directory_descriptions",):
             if key in external_config and isinstance(external_config[key], dict):
                 merged = dict(result.get(key) or {})
                 merged.update(external_config[key])
                 result[key] = merged
-        if "decision_trees" in external_config and isinstance(
-            external_config["decision_trees"], dict
-        ):
-            trees = dict(result.get("decision_trees") or {})
-            trees.update(external_config["decision_trees"])
-            result["decision_trees"] = trees
         for key, value in external_config.items():
             if key in (
                 "directory_descriptions",
-                "entry_point_descriptions",
-                "decision_trees",
             ):
                 continue
             result[key] = value

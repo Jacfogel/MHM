@@ -444,14 +444,14 @@ All generated Markdown files must use this standardized metadata format at the b
 - `Purpose`: Document purpose (optional but recommended)
 - `Status`: Current status (optional but recommended)
 
+The docs command generates detailed function and dependency inventories only. Use project architecture/feature guides for navigation and audit reports for actionable findings; the former function/dependency brief reports are retired.
+
 **Files using this standard:**
 - `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 - `development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md`
 - `development_tools/reports/LEGACY_REFERENCE_REPORT.md`
 - `development_tools/reports/TEST_COVERAGE_REPORT.md`
 - `development_tools/reports/DIRECTORY_TREE.md`
-- `development_tools/reports/FUNCTION_REGISTRY_BRIEF.md`
-- `development_tools/reports/MODULE_DEPENDENCIES_BRIEF.md`
 - `development_tools/STATUS_BRIEF.md`
 - `development_tools/PRIORITIES_BRIEF.md`
 - `development_tools/CONSOLIDATED_REPORT.md`

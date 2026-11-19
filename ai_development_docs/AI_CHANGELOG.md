@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-19 - Feature guides and brief retirement **COMPLETED**
+
+- Renamed the website README to [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md) and updated maintained references/anchors.
+- Indexed SMS, website, and Google Health guides in human/AI navigation, communication guidance, and tracked/local tools configuration. Standalone guides remain unpaired.
+- Numbered website/health headings and refreshed documentation checks and generated references.
+- Retired function/dependency brief generation, outputs, brief-only settings/helpers, and navigation references. Detailed inventories remain; development c76c393 and published b5affed were pushed upstream. Tools tests: 115 passed, 1 skipped; published/MHM default and custom output checks passed.
+
 ### 2026-11-19 - Health recovery and Twilio SMS pilot **COMPLETED**
 
 - Health status, enable, and sync failures describe unchanged or unconfirmed saved state and safe recovery without exposing service errors.
@@ -113,13 +120,6 @@ Guidelines:
 ### 2026-11-12 - Windows test performance baseline **COMPLETED**
 
 - Established a 138-test Windows baseline for serial and two-worker runs. Closed the baseline task and kept the full-suite memory-pressure trigger in intermittent failure triage.
-
-### 2026-11-12 - Report portability, test coverage, and task skip recovery **COMPLETED**
-
-- Report scripts and analyzers use the host configuration. Integration tests exercise custom folders, detail overrides, and relative summary links.
-- Verify that invalid mood answers preserve progress and corrected answers persist across a state reload.
-- Excluded config and logs from the test backup and removed the serial-only marker after repeated two-worker checks.
-- Recurring and one-off skips report reminder scheduling failures while confirming the saved task state. Snoozes and skips share the deferred reminder scheduler.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

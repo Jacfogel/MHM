@@ -27,7 +27,11 @@
   },
   "fix_version_sync": {
     "ai_docs": [],
-    "docs": [],
+    "docs": [
+      "communication/communication_channels/sms/SMS_GUIDE.md",
+      "integrations/google_health/GOOGLE_HEALTH_GUIDE.md",
+      "website/WEBSITE_GUIDE.md"
+    ],
     "cursor_rules": [
       ".cursor/rules/*.mdc"
     ],
@@ -741,123 +745,7 @@
       ]
     }
   },
-  "analyze_function_registry": {
-    "decision_trees": {
-      "user_data": {
-        "title": "User Data Operations Decision Tree",
-        "entries": [
-          [
-            "core/user_data_read.py",
-            "Primary data access"
-          ],
-          [
-            "core/user_data_manager.py",
-            "Data management"
-          ],
-          [
-            "core/user_data_validation.py",
-            "Validation"
-          ],
-          [
-            "user/user_context.py",
-            "User context management"
-          ],
-          [
-            "user/user_preferences.py",
-            "User preferences"
-          ],
-          [
-            "core/user_data_read.py",
-            "Account operations"
-          ]
-        ]
-      },
-      "ai": {
-        "title": "AI Operations Decision Tree",
-        "entries": [
-          [
-            "ai/chat/chatbot.py",
-            "Main AI implementation"
-          ],
-          [
-            "user/context_manager.py",
-            "Context for AI"
-          ],
-          [
-            "communication/message_processing/command_parser.py",
-            "Natural language parsing"
-          ],
-          [
-            "communication/command_handlers/interaction_handlers.py",
-            "Command handlers"
-          ],
-          [
-            "communication/message_processing/interaction_manager.py",
-            "Main interaction flow"
-          ]
-        ]
-      },
-      "communication": {
-        "title": "Communication Decision Tree",
-        "entries": [
-          [
-            "communication/core/channel_orchestrator.py",
-            "Main communication"
-          ],
-          [
-            "communication/communication_channels/base/base_channel.py",
-            "Channel base class"
-          ],
-          [
-            "communication/core/factory.py",
-            "Channel creation"
-          ]
-        ]
-      },
-      "ui": {
-        "title": "UI Operations Decision Tree",
-        "entries": [
-          [
-            "ui/ui_app_qt.py",
-            "Main admin interface"
-          ],
-          [
-            "ui/admin_actions.py",
-            "Admin system/menu actions"
-          ],
-          [
-            "ui/request_actions.py",
-            "Admin request-file actions"
-          ],
-          [
-            "ui/dialogs/task_crud_dialog.py",
-            "Task CRUD"
-          ],
-          [
-            "ui/widgets/task_settings_widget.py",
-            "Task settings"
-          ]
-        ]
-      },
-      "core": {
-        "title": "Core System Decision Tree",
-        "entries": [
-          [
-            "core/service.py",
-            "Main service"
-          ],
-          [
-            "core/config.py",
-            "Configuration"
-          ],
-          [
-            "core/scheduler.py",
-            "Scheduling"
-          ]
-        ]
-      }
-    }
-  },
+  "analyze_function_registry": {},
   "analyze_functions": {
     "moderate_complexity_threshold": 100,
     "high_complexity_threshold": 200,

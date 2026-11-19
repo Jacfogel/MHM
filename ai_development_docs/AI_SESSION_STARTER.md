@@ -79,6 +79,8 @@ Use these AI docs as your primary routing table; they, in turn, point to detaile
 
 ## 3. Safe Change Rules
 
+For feature-specific setup and operational constraints, read [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md), [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md), or [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md) as applicable. Use [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) for shared channel boundaries.
+
 Follow these high-level rules whenever you propose or describe changes:
 
 1. **Respect existing patterns**  

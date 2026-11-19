@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-19 00:34:15
+> **Last Generated**: 2026-11-19 01:40:32
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -1015,7 +1015,6 @@ C:.
 |   |   notes.js
 |   |   notes.test.mjs
 |   |   privacy.html
-|   |   README.md
 |   |   script.js
 |   |   script.test.mjs
 |   |   settings.js
@@ -1028,6 +1027,7 @@ C:.
 |   |   tasks.js
 |   |   tasks.test.mjs
 |   |   terms.html
+|   |   WEBSITE_GUIDE.md
 |   |   worker.mjs
 |   |   worker.test.mjs
 |   |   wrangler.jsonc

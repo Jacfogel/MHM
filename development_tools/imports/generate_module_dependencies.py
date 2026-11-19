@@ -26,7 +26,6 @@ if __name__ != "__main__" and __package__ and "." in __package__:
         infer_module_purpose,
         format_import_details,
     )
-    from .analyze_dependency_patterns import DependencyPatternAnalyzer
     from ..shared.common import ensure_ascii
 else:
     # Running directly or not as a package, use absolute imports
@@ -38,12 +37,8 @@ else:
         infer_module_purpose,
         format_import_details,
     )
-    from development_tools.imports.analyze_dependency_patterns import (
-        DependencyPatternAnalyzer,
-    )
     from development_tools.shared.common import ensure_ascii
 
-from development_tools.shared.common import markdown_file_link
 from development_tools.shared.logging import get_dev_tools_logger
 from development_tools.shared.time_helpers import now_timestamp_full
 
@@ -57,11 +52,10 @@ logger = get_dev_tools_logger("development_tools")
 # Pattern analysis functions are now in analyze_dependency_patterns.py
 
 
-def _dependency_paths() -> tuple[Path, Path]:
+def _dependency_path() -> Path:
+    """Resolve the detailed dependency output relative to the host project."""
     root = Path(config.get_project_root()).resolve()
-    detail = Path(config.get_analyze_module_dependencies_config()["dependency_doc_path"])
-    summary = config.get_generated_report_path(root, "MODULE_DEPENDENCIES_BRIEF.md")
-    return detail.relative_to(root), summary.relative_to(root)
+    return Path(config.get_analyze_module_dependencies_config(root)["dependency_doc_path"]).relative_to(root)
 
 
 def generate_module_dependencies_content(
@@ -78,7 +72,7 @@ def generate_module_dependencies_content(
 
     content.append(f"# Module Dependencies - {project_name} Project")
     content.append("")
-    content.append(f"> **File**: `{_dependency_paths()[0].as_posix()}`")
+    content.append(f"> **File**: `{_dependency_path().as_posix()}`")
     content.append(
         "> **Generated**: This file is auto-generated. Do not edit manually."
     )
@@ -593,101 +587,12 @@ def identify_modules_needing_enhancement(
     return enhancement_status
 
 
-def generate_module_dependencies_brief_content(actual_imports: dict[str, dict]) -> str:
-    """Generate the AI-facing dependency summary - dynamic and data-driven."""
-    detail_path, summary_path = _dependency_paths()
-    detail_link = markdown_file_link(
-        detail_path, summary_path, Path(config.get_project_root())
-    )
-    generated_at = now_timestamp_full()
-
-    total_files = len(actual_imports)
-    total_imports = sum(data["total_imports"] for data in actual_imports.values())
-    std_lib = sum(
-        len(data["imports"]["standard_library"]) for data in actual_imports.values()
-    )
-    third_party = sum(
-        len(data["imports"]["third_party"]) for data in actual_imports.values()
-    )
-    local = sum(len(data["imports"]["local"]) for data in actual_imports.values())
-
-    def percent(value: int) -> float:
-        return (value / total_imports * 100.0) if total_imports else 0.0
-
-    # Use pattern analyzer for pattern analysis
-    pattern_analyzer = DependencyPatternAnalyzer()
-    patterns = pattern_analyzer.analyze_dependency_patterns(actual_imports)
-
-    # Build decision trees dynamically
-    decision_trees = pattern_analyzer.build_dynamic_decision_trees(actual_imports)
-
-    # Find critical dependencies dynamically
-    critical_deps = pattern_analyzer.find_critical_dependencies(actual_imports)
-
-    # Detect risk areas dynamically
-    risk_areas = pattern_analyzer.detect_risk_areas(actual_imports, patterns)
-
-    lines: list[str] = []
-    lines.extend(
-        [
-            "# Module Dependencies Brief - Key Relationships & Patterns",
-            "",
-            f"> **File**: `{summary_path.as_posix()}`",
-            "> **Generated**: This file is auto-generated. Do not edit manually.",
-            ensure_ascii(f"> **Last Generated**: {generated_at}"),
-            "> **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator",
-            "",
-            "> **Purpose**: Essential module relationships and dependency patterns",
-            "> **Style**: Pattern-focused, relationship-driven, actionable",
-            "",
-            "## Current Status",
-            "",
-            "### Dependency Coverage: 100.0% - COMPLETED",
-            ensure_ascii(f"- **Files Scanned**: {total_files}"),
-            ensure_ascii(f"- **Total Imports**: {total_imports}"),
-            ensure_ascii(
-                f"- **Standard Library**: {std_lib} ({percent(std_lib):.1f}%)"
-            ),
-            ensure_ascii(
-                f"- **Third-Party**: {third_party} ({percent(third_party):.1f}%)"
-            ),
-            ensure_ascii(f"- **Local Imports**: {local} ({percent(local):.1f}%)"),
-            "",
-            "## Dependency Decision Trees",
-            "",
-            decision_trees,
-            "",
-            "## Key Dependency Patterns",
-            "",
-            pattern_analyzer.generate_dependency_patterns_section(
-                patterns, actual_imports
-            ),
-            "",
-            "## Critical Dependencies for AI Context",
-            "",
-            critical_deps,
-            "",
-            "## Dependency Risk Areas",
-            "",
-            risk_areas,
-            "",
-            "## Quick Reference for AI",
-            "",
-            pattern_analyzer.generate_quick_reference(actual_imports, patterns),
-            "",
-            f"> **For complete dependency details, see [{detail_path.name}]({detail_link})**",
-        ]
-    )
-
-    return ensure_ascii("\n".join(lines))
-
-
 # Pattern analysis functions are now in analyze_dependency_patterns.py
 
 
 def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
     """
-    Update MODULE_DEPENDENCIES_DETAIL.md and MODULE_DEPENDENCIES_BRIEF.md with hybrid approach.
+    Update the detailed dependency inventory while preserving manual enhancements.
 
     Args:
         local_prefixes: Optional tuple of module prefixes to treat as local.
@@ -700,9 +605,8 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
 
     # Read existing content to preserve manual enhancements
     project_root = Path(config.get_project_root()).resolve()
-    detail_path, brief_path = _dependency_paths()
+    detail_path = _dependency_path()
     detail_path = project_root / detail_path
-    brief_path = project_root / brief_path
     existing_content = ""
     previous_path = detail_path
     if not previous_path.exists():
@@ -721,9 +625,6 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
     detail_content = generate_module_dependencies_content(
         actual_imports, existing_content
     )
-
-    logger.info("[GEN] Generating MODULE_DEPENDENCIES_BRIEF.md content...")
-    brief_content = generate_module_dependencies_brief_content(actual_imports)
 
     # Identify modules needing enhancement
     enhancement_status = identify_modules_needing_enhancement(
@@ -747,29 +648,15 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
             project_root=project_root,
         )
 
-        # Write the brief with rotation
-        create_output_file(
-            str(brief_path),
-            brief_content,
-            rotate=True,
-            max_versions=7,
-            project_root=project_root,
-        )
-
         logger.info(
             ensure_ascii(
-                "[SUCCESS] Both module dependency files updated successfully!"
+                "[SUCCESS] Detailed module dependencies updated successfully!"
             )
         )
         logger.info(ensure_ascii("[FILES] Generated:"))
         logger.info(
             ensure_ascii(
                 f"   {detail_path} - Complete detailed dependencies"
-            )
-        )
-        logger.info(
-            ensure_ascii(
-                f"   {brief_path} - Concise dependencies"
             )
         )
         logger.info(ensure_ascii("[STATS] Statistics:"))
@@ -786,7 +673,6 @@ def update_module_dependencies(local_prefixes: tuple[str, ...] | None = None):
         )
         logger.info(ensure_ascii("   Coverage: 100% (all files documented)"))
         logger.info(ensure_ascii(f"   Detail file: {detail_path}"))
-        logger.info(ensure_ascii(f"   Brief file: {brief_path}"))
 
         # Report preserved manual enhancements
         if preserved_enhancements:

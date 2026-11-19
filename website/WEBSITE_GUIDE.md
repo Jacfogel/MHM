@@ -1,7 +1,12 @@
-# MHM Website
+# MHM Website Guide
 
 
-> **File**: `website/README.md`
+> **File**: `website/WEBSITE_GUIDE.md`
+> **Audience**: Developers and maintainers
+> **Purpose**: Website features, gateway setup, deployment, billing, and verification
+
+For shared channel boundaries and the website inbox, see [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md). For SMS pilot setup or health connection behavior surfaced by MHM, see [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md) and [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
+
 Marketing site, password and social login/create-account page, signed-in home,
 first-run setup, account settings, task workspace, notebook, personal message
 library, and private insights.
@@ -13,7 +18,7 @@ The Python gateway uses the **same account store as MHM**. It never stores brows
 passwords in plaintext or creates a separate website database. Passwords are
 stored as salted scrypt hashes in the canonical account document.
 
-## Local preview
+## 1. Local preview
 
 From the project root, with `.venv` activated:
 
@@ -71,7 +76,7 @@ the account page. SMS can be added as another channel later.
 The gateway exchanges the one-time
 authorization code server-side, verifies the Discord identity, and stores only the Discord ID
 and username in the existing MHM account. A Discord account already linked to another MHM
-account is rejected. The bot's existing “Link account” flow remains available as a fallback.
+account is rejected. The bot's existing "Link account" flow remains available as a fallback.
 Settings cover preferred name, birth date, identity and health-context lists,
 time zone and linked delivery channel, natural-language phrase times, message
 categories and reminder windows, task recurrence defaults, and check-in windows,
@@ -106,7 +111,7 @@ The scheduler restores saved snoozes and reminders for skipped occurrences
 on startup and checks for missing jobs every five minutes. If a saved reminder
 became due while the service was down, it can be delivered late after recovery.
 
-## Cloudflare Workers deployment
+## 2. Cloudflare Workers deployment
 
 Build command: leave blank (static HTML/CSS/JS)
 Deploy command: `npx wrangler deploy`
@@ -142,7 +147,7 @@ Customer Portal so subscribers can update payment details and cancel. The option
 `BILLING_GRACE_PERIOD_DAYS` defaults to 3. Existing accounts without billing fields
 are treated as complimentary accounts; new accounts get the trial explicitly.
 
-### Live-mode cutover and rollback
+### 2.1. Live-mode cutover and rollback
 
 Do the live cutover as one controlled change. Never mix test-mode and live-mode
 Stripe objects.
@@ -211,30 +216,30 @@ Logout asks before discarding unsaved settings, then ends the session and return
 to login. Canceling leaves the session and drafts intact. Expired sessions also
 return to login; request failures allow retrying logout.
 
-## Files
-- `index.html` — page content
-- `privacy.html`, `terms.html`, `data.html` — privacy policy, terms of use, and download/deletion steps
-- `styles.css` — layout and visual design
-- `mhm-logo.png` — supplied Discord bot logo, used throughout the site and as the favicon
-- `script.js` — year stamp and compact navigation menu
-- `wrangler.jsonc` — Cloudflare Workers configuration
-- `login.html`, `auth.js` — password, email-code, and social login plus verified account creation and password recovery
-- `home.html`, `home.js` — signed-in home with the next task, a link to answer a check-in, a check-in request, one-line notebook capture, and More like this or Not for me on a scheduled message in the chat
-- `checkin.html`, `checkin.js` — answer, skip, or cancel the current check-in in the browser
-- `setup.html`, `setup.js` — first run for name/time zone, feature choice, then categories, questions, a first task, and reminder windows for each feature left on
-- `app.html`, `app.js` — connected account details, password/provider setup, and logout
-- `tasks.html`, `tasks.js` — signed-in task list first, with optional create fields behind More options
-- `notes.html`, `notes.js` — signed-in notebook for creating and editing notes, journals, and lists
-- `messages.html`, `messages.js` — personal message-template library and schedules
-- `insights.html`, `insights.js` — private check-in analytics
-- `integrations.html`, `integrations.js` — Google Health controls, linked from Account settings
-- `settings.js` — signed-in user settings forms
-- `worker.mjs` — same-origin API proxy
-- `../core/web_account_service.py` — account API and email verification
-- `../core/web_user_settings.py` — validated settings and shared-data persistence
-- `../core/web_gateway_runtime.py` — background service gateway lifecycle
+## 3. Files
+- `index.html` - page content
+- `privacy.html`, `terms.html`, `data.html` - privacy policy, terms of use, and download/deletion steps
+- `styles.css` - layout and visual design
+- `mhm-logo.png` - supplied Discord bot logo, used throughout the site and as the favicon
+- `script.js` - year stamp and compact navigation menu
+- `wrangler.jsonc` - Cloudflare Workers configuration
+- `login.html`, `auth.js` - password, email-code, and social login plus verified account creation and password recovery
+- `home.html`, `home.js` - signed-in home with the next task, a link to answer a check-in, a check-in request, one-line notebook capture, and More like this or Not for me on a scheduled message in the chat
+- `checkin.html`, `checkin.js` - answer, skip, or cancel the current check-in in the browser
+- `setup.html`, `setup.js` - first run for name/time zone, feature choice, then categories, questions, a first task, and reminder windows for each feature left on
+- `app.html`, `app.js` - connected account details, password/provider setup, and logout
+- `tasks.html`, `tasks.js` - signed-in task list first, with optional create fields behind More options
+- `notes.html`, `notes.js` - signed-in notebook for creating and editing notes, journals, and lists
+- `messages.html`, `messages.js` - personal message-template library and schedules
+- `insights.html`, `insights.js` - private check-in analytics
+- `integrations.html`, `integrations.js` - Google Health controls, linked from Account settings
+- `settings.js` - signed-in user settings forms
+- `worker.mjs` - same-origin API proxy
+- `../core/web_account_service.py` - account API and email verification
+- `../core/web_user_settings.py` - validated settings and shared-data persistence
+- `../core/web_gateway_runtime.py` - background service gateway lifecycle
 
-## Verification
+## 4. Verification
 
 Node.js 20 or newer is required for the browser-side tests. The standard
 `run_tests.py` suite and `audit --full` execute these tests through pytest; use

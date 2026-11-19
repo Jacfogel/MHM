@@ -79,7 +79,10 @@ This section describes the top-level directories. It should match the actual pro
 - `integrations/`  
   External API integrations (for example `integrations/google_health/` for read-only
   Google Health / Fitbit wellness data). Channel-agnostic sync and signal logic; channels
-  only surface commands or admin UI.
+  only surface commands or admin UI. See [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md) for OAuth, sync, and personalization constraints.
+
+- `website/`
+  Browser assets and the Cloudflare Worker proxy; Python gateway routes share MHM account storage and interaction handling. See [WEBSITE_GUIDE.md](website/WEBSITE_GUIDE.md) for local startup, production connection, and verification. Channel setup and the Twilio pilot are documented in [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md) and [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md).
 
 - `tests/`
   Unit, integration, behavior, and UI tests plus fixtures. Test-only data lives under

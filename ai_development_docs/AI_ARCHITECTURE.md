@@ -14,6 +14,10 @@ sections in [ARCHITECTURE.md](../ARCHITECTURE.md) and other detailed guides.
 
 Typical questions and starting points:
 
+- SMS pilot, browser gateway, or health integration
+  -> [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md), [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md), and [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
+  -> Keep channel adapters, website routes, and health sync in their documented layers; reuse shared account storage and interaction handlers.
+
 - User data access or schema changes  
   -> `storage/user_data_registry.py`, `storage/user_data_read.py`, `storage/user_data_write.py`, `storage/user_data_validation.py`
   -> Details: see section 2. "User Data Model" in [ARCHITECTURE.md](../ARCHITECTURE.md#2-user-data-model) and section 3. "Data Handling Patterns" in
@@ -182,6 +186,6 @@ Reference material:
 - For any non-trivial refactor, read the relevant section in [ARCHITECTURE.md](../ARCHITECTURE.md) before editing
   code. For overall documentation workflow, see section 3. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#3-standards-and-templates).
 
-Health personalization is gated independently by `preferences.health_personalization.use_in_messages` and `use_in_chat` (both default true), after the account health feature guard. The canonical envelope and live chat fallback respect the chat preference; scheduled prompt/fallback and health pressure guidance respect the message preference. See "Personalization preferences" in [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md#personalization-preferences).
+Health personalization is gated independently by `preferences.health_personalization.use_in_messages` and `use_in_chat` (both default true), after the account health feature guard. The canonical envelope and live chat fallback respect the chat preference; scheduled prompt/fallback and health pressure guidance respect the message preference. See "Personalization preferences" in [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md#52-personalization-preferences).
 
 Session context is bounded to 100 users and 20 exchanges each, with one-hour idle expiry checked on reads/writes or explicit sweeps. ContextCache honors `CONTEXT_CACHE_MAX_SIZE` and sweeps expired entries on writes. Stored chat history remains separate; preference reads are fresh. See section 12. "Context cache behavior (canonical semantics)" in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md#12-context-cache-behavior-canonical-semantics).

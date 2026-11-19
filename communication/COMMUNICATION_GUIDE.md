@@ -9,6 +9,9 @@ This guide describes how messages flow through MHM independent of channel (Disco
 
 For the system-wide view, see section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities).
 For Discord-specific details, see section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md#2-discord-channel-architecture).
+For the Twilio owner pilot, signed replies, stop controls, and simulation, see [SMS_GUIDE.md](communication_channels/sms/SMS_GUIDE.md).
+For the browser interface, gateway, deployment, and website inbox, see [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md).
+For Google Health OAuth, sync, and personalization commands exposed through channels, see [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md). Health integration logic remains outside channel adapters.
 For user-visible behavior requirements, see [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) and Discord topic specs listed in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md) (welcome, routing, check-ins, reminders, delivery, lifecycle).  
 For error handling and logging patterns, see section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture).
 
@@ -277,5 +280,11 @@ Use this layout as the template when adding new channels.
 
 - **Email**
   - SMTP delivery and IMAP reply polling are implemented. Follow section 3.1. "Replying by email" in [HOW_TO_RUN.md](../HOW_TO_RUN.md#31-replying-by-email) for sender registration, threading, and recovery steps. New channels should use the same adapter boundaries.
+
+- **SMS**
+  - The opt-in Twilio owner pilot and separate simulator reuse shared task/check-in handlers. See [SMS_GUIDE.md](communication_channels/sms/SMS_GUIDE.md) for configuration, signed webhooks, durable receipts, uncertain sends, and STOP/START behavior.
+
+- **Website**
+  - Signed-in browser conversations and the website inbox use the shared account store and interaction pipeline. See [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md) for gateway startup, hosting, account flows, and verification.
 
 When making structural changes to the communication module, keep this guide updated and ensure all cross-references (especially section numbers) remain valid.

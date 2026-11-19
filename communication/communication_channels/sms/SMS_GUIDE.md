@@ -2,11 +2,16 @@
 
 
 > **File**: `communication/communication_channels/sms/SMS_GUIDE.md`
+> **Audience**: Developers and pilot operators
+> **Purpose**: Configure, operate, and validate SMS simulation and the Twilio owner pilot
+
+For shared delivery boundaries, see [COMMUNICATION_GUIDE.md](../../COMMUNICATION_GUIDE.md). Browser/gateway deployment is covered by [WEBSITE_GUIDE.md](../../../website/WEBSITE_GUIDE.md), and health OAuth/sync setup by [GOOGLE_HEALTH_GUIDE.md](../../../integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
+
 Live SMS is implemented for one explicitly approved account and phone number.
 It remains disabled until configured. Simulation is a separate mode and never
 contacts Twilio. Public self-service signup and additional recipients are not enabled.
 
-## Connect the Twilio pilot
+## 1. Connect the Twilio pilot
 
 1. Install the project requirements in `.venv`. The Twilio SDK is required for live mode.
 2. Obtain a two-way SMS-capable Twilio number and complete the provider registration
@@ -44,7 +49,7 @@ The saved account phone is rechecked for each operation. Configuring another
 number requires restarting and explicit consent. This pilot is manually approved
 by its owner; it is not an automated phone-ownership verification flow.
 
-## Using SMS
+## 2. Using SMS
 
 - Send `sms status` to confirm the connection.
 - A task reminder accepts `done`, `snooze`, `skip`, and the shared task-reply options.
@@ -61,7 +66,7 @@ MHM submits a message once rather than sending character chunks as separate text
 Outbound messages above 1,600 characters are rejected before submission. Incoming
 command responses are shortened to fit. Simulated chunks do not predict billing.
 
-## Delivery and recovery
+## 3. Delivery and recovery
 
 Provider acceptance is not handset delivery. Twilio IDs and signed status callbacks
 are stored in `BASE_DATA_DIR/sms_state.sqlite3`. Terminal delivery states are not
@@ -86,7 +91,7 @@ back it up with application data. Deleting it removes deduplication and stop his
 Retention cleanup and an operator status screen remain future work. Do not run two
 live MHM instances against separate databases for the same Twilio account/number.
 
-## Simulation
+## 4. Simulation
 
 Set `SMS_TWILIO_ENABLED=false`, `SMS_SIMULATION_ENABLED=true`, and restart. The
 `SmsBot` development API supports `await bot.initialize()`,
@@ -95,7 +100,7 @@ Captured messages are in `bot.outbox`; they are volatile and never delivered.
 Simulated inbound commands **can save real changes**, so use isolated test accounts.
 Local simulated input is rejected when live transport is attached.
 
-## Validation and expansion
+## 5. Validation and expansion
 
 Automated tests use the real signature validator, SQLite state, shared task completion,
 and a loopback HTTP listener with mocked paid API calls. They do not establish live
