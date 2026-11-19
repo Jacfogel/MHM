@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-18 01:43:58
+> **Last Generated**: 2026-11-18 20:03:52
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -16,14 +16,14 @@
 
 ### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
 - **Files Scanned**: 316
-- **Functions Found**: 3272
+- **Functions Found**: 3273
 - **Methods Found**: 1661
 - **Classes Found**: 293
-- **Total Items**: 4933
-- **Functions Documented**: 2924
+- **Total Items**: 4934
+- **Functions Documented**: 2925
 - **Methods Documented**: 1487
 - **Classes Documented**: 225
-- **Total Documented**: 4411
+- **Total Documented**: 4412
 - **Template-Generated**: 74
 - **Last Updated**: 2026-11-18
 
@@ -6144,6 +6144,11 @@ Returns empty list when confidence is low or data insufficient.
 - [MISSING] `merge_health_signals(existing, rebuilt)` - No description
 - [OK] `merge_summary_records(existing, incoming)` - Merge one daily summary, keeping existing values when incoming omits them.
 - [MISSING] `pause_google_health_feature(user_id)` - No description
+- [OK] `refresh_health_for_message(user_id)` - Refresh before reading message context, respecting permissions and guards.
+
+Reuse successful pulls for five minutes. Recent failures also defer retries
+for five minutes so repeated messages do not rapidly pause the integration.
+Failure leaves saved data available to the normal context/fallback builders.
 - [OK] `sync_all_enabled_users()` - Synchronously sync enabled accounts regardless of schedule; count successes.
 
 Global disable/testing mode returns zero. Per-user guards and failure recovery

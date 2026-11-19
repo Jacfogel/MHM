@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-18 01:44:05
+> **Last Generated**: 2026-11-18 20:03:56
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -16,11 +16,11 @@
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
 - **Files Scanned**: 314
-- **Total Imports Found**: 2861
+- **Total Imports Found**: 2865
 - **Dependencies Documented**: 314 (100% coverage)
-- **Standard Library Imports**: 821 (28.7%)
+- **Standard Library Imports**: 822 (28.7%)
 - **Third-Party Imports**: 235 (8.2%)
-- **Local Imports**: 1805 (63.1%)
+- **Local Imports**: 1808 (63.1%)
 - **Last Updated**: 2026-11-18
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 821 imports (28.7%)
+- **Standard Library**: 822 imports (28.7%)
 - **Third-Party**: 235 imports (8.2%)
-- **Local**: 1805 imports (63.1%)
+- **Local**: 1808 imports (63.1%)
 
 ## Module Dependencies by Directory
 
@@ -101,7 +101,7 @@
 
 **Dependency Changes**:
 - Added: core.error_handling
-- Removed: ai/chat/__init__.py, ai/chat/chatbot.py, ai/chat/conversation_coherence.py, ai/chat/response_postprocess.py
+- Removed: ai/chat/__init__.py, ai/chat/chatbot.py, ai/chat/conversation_coherence.py, ai/chat/response_postprocess.py, ai/chat/wellness_status.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -169,6 +169,7 @@
     - `core.health_context_builder (PERSONALIZED_PROFILE_CONTEXT_MAX_CHARS, PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS, build_personalized_checkin_context, build_personalized_google_health_context, build_personalized_profile_context)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.response_tracking (store_chat_interaction)` (NEW)
+    - `integrations.google_health.sync_manager (refresh_health_for_message)` (NEW)
     - `user.context_manager (user_context_manager)` (NEW)
   - **Standard Library**:
     - `asyncio`
@@ -192,7 +193,7 @@
   - `tasks/task_effort.py`
 
 **Dependency Changes**:
-- Added: ai.chat.action_boundaries, ai.chat.conversation_coherence, ai.chat.interaction_types, ai.chat.profile_message_variety, ai.chat.response_generator, ai.chat.response_postprocess, ai.chat.wellness_status, ai.client.cache_manager, ai.client.openai_client, ai.context.service, ai.fallback, ai.fallback.conversational, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, ai.usage_policy, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, user.context_manager
+- Added: ai.chat.action_boundaries, ai.chat.conversation_coherence, ai.chat.interaction_types, ai.chat.profile_message_variety, ai.chat.response_generator, ai.chat.response_postprocess, ai.chat.wellness_status, ai.client.cache_manager, ai.client.openai_client, ai.context.service, ai.fallback, ai.fallback.conversational, ai.fallback.profile_helpers, ai.prompts.command_interpreter, ai.prompts.manager, ai.usage_policy, core.config, core.error_handling, core.health_context_builder, core.logger, core.response_tracking, integrations.google_health.sync_manager, user.context_manager
 - Removed: ai/__init__.py, ai/chat/__init__.py, ai/chat/action_planner.py, communication/core/channel_orchestrator.py, communication/message_processing/command_parser.py, communication/message_processing/conversation_flow_manager.py, communication/message_processing/interaction_manager.py, messages/message_reactions.py, tasks/task_breakdown.py, tasks/task_effort.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -797,6 +798,7 @@
     - `core.error_handling (ValidationError, handle_errors)` (NEW)
     - `core.health_context_builder (build_user_facing_signal_wellness_snippet)` (NEW)
     - `core.health_signals (health_personalization_allowed)` (NEW)
+    - `integrations.google_health.sync_manager (refresh_health_for_message)` (NEW)
     - `messages.message_data_manager (get_recent_messages)` (NEW)
   - **Standard Library**:
     - `random`
@@ -804,7 +806,7 @@
   - `ai/fallback/__init__.py`
 
 **Dependency Changes**:
-- Added: ai.fallback.categories, ai.fallback.data_access, ai.fallback.profile_helpers, core.error_handling, core.health_context_builder, core.health_signals, messages.message_data_manager
+- Added: ai.fallback.categories, ai.fallback.data_access, ai.fallback.profile_helpers, core.error_handling, core.health_context_builder, core.health_signals, integrations.google_health.sync_manager, messages.message_data_manager
 - Removed: ai/fallback/__init__.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -4388,6 +4390,7 @@
   - `ai/fallback/personalized.py`
   - `core/health_context_builder.py`
   - `core/message_pressure.py`
+  - `integrations/google_health/sync_manager.py`
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.time_utilities
@@ -5897,8 +5900,9 @@
     - `core (get_user_data, update_user_account)` (NEW)
     - `core.config (GOOGLE_HEALTH_ENABLED, GOOGLE_HEALTH_SYNC_FAILURE_PAUSE_THRESHOLD, GOOGLE_HEALTH_SYNC_LOOKBACK_DAYS)` (NEW)
     - `core.error_handling (CommunicationError, handle_errors)` (NEW)
+    - `core.health_signals (health_personalization_allowed)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
-    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_full, parse_timestamp_full)` (NEW)
     - `core.user_management (get_all_user_ids)` (NEW)
     - `integrations.google_health.auth (DEAD_REFRESH_TOKEN_ERROR, ensure_valid_access_token)` (NEW)
     - `integrations.google_health.client (fetch_daily_summaries, is_unauthenticated_health_error, track_request_counts)` (NEW)
@@ -5910,14 +5914,17 @@
   - **Standard Library**:
     - `__future__ (annotations)`
     - `argparse`
+    - `datetime (timedelta)`
     - `typing (Any)`
 - **Used by**:
+  - `ai/chat/chatbot.py`
+  - `ai/fallback/personalized.py`
   - `integrations/google_health/__init__.py`
   - `integrations/google_health/user_settings.py`
   - `scheduler/health_sync_jobs.py`
 
 **Dependency Changes**:
-- Added: core, core.config, core.error_handling, core.logger, core.time_utilities, core.user_management, integrations.google_health.auth, integrations.google_health.client, integrations.google_health.data_handlers, integrations.google_health.notifications, integrations.google_health.signal_builder, integrations.google_health.testing, scheduler.health_sync_schedule
+- Added: core, core.config, core.error_handling, core.health_signals, core.logger, core.time_utilities, core.user_management, integrations.google_health.auth, integrations.google_health.client, integrations.google_health.data_handlers, integrations.google_health.notifications, integrations.google_health.signal_builder, integrations.google_health.testing, scheduler.health_sync_schedule
 - Removed: integrations/google_health/__init__.py, integrations/google_health/user_settings.py, scheduler/health_sync_jobs.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

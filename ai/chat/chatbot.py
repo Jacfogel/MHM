@@ -868,6 +868,10 @@ class AIChatBotSingleton:
             if source == "profile"
             else PERSONALIZED_WELLNESS_CONTEXT_MAX_CHARS
         )
+        if source == "google_health":
+            from integrations.google_health.sync_manager import refresh_health_for_message
+
+            refresh_health_for_message(user_id)
         user_summary = context_builder(user_id)[:context_limit]
 
         source_rules = {

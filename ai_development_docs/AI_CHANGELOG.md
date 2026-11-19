@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-18 - Refresh Google Health before messages **COMPLETED**
+
+- Google Health personalized messages refresh data before building context, including fallback messages when AI is unavailable. Recent pulls and failed attempts suppress repeat requests for five minutes.
+- Refresh respects message personalization permissions, feature state, and testing mode. Failures retain saved-data/general-message fallback behavior; background syncing remains active.
+- Updated the AI guide. All 41 targeted refresh, sync-manager, and health-context tests passed; targeted Ruff and diff checks passed.
+
 ### 2026-11-18 - AI response quality and prompt contracts **COMPLETED**
 
 - Strengthened command and cache assertions, separated automatic contracts from semantic review, and retained full response/context evidence with observed response sources. Expanded the synthetic prompt suite to 24 cases with adversarial safety coverage and app-versus-model failure diagnostics.
@@ -112,12 +118,6 @@ Guidelines:
 
 - Moved the standalone suite to `development_tools/tool_tests/` and updated runners, coverage, CI, and configuration compatibility.
 - Included the saved snooze time in alert scheduling failure replies.
-
-### 2026-11-10 - Recovery messages and focused test validation **COMPLETED**
-
-- Added specific recovery steps for Discord account errors and task snoozes whose alerts fail to schedule.
-- Isolated two backup tests and removed one serial-only marker after repeated two-worker validation. Updated the parent, test, and notebook plans with current guidance and evidence.
-- Passed 17 snooze tests, 150 notebook tests, both backup validation tests under two workers, and the empty-user backup test in isolation. Discord pytest results were pending at the last check.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

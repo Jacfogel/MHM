@@ -202,6 +202,13 @@ If context cannot be built (for example, missing data, file corruption), envelop
 
 #### 4.1.1. Google Health context
 
+Google Health personalized messages refresh data before building their context,
+including when AI is unavailable and the fallback message is used. Pulls and
+failed attempts are reused for five minutes to avoid repeated provider requests.
+The refresh respects message personalization permissions, feature state, and
+testing mode. A failed refresh leaves normal saved-data/general-message fallback
+behavior available. The background local-time sync schedule remains active.
+
 `ai/context/service.py` builds the health section through `core/health_context_builder.py`; `ai/context/assembly.py` appends selected health guidance. The builder respects disabled/paused account feature state and signal availability. Tone guidance is coarse, while recent-pattern text can include rounded sleep hours, steps, active minutes, and streaks. These are wellness context, not medical interpretation; prompts must not diagnose or recommend treatment. Separate `use_in_messages` / `use_in_chat` preferences remain deferred in TODO.md section 4.1. See `tests/unit/test_health_context_builder.py` for the implemented context contracts.
 
 ### 4.2. Conversation history and recent activity

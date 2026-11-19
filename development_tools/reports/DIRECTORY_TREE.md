@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-18 01:44:51
+> **Last Generated**: 2026-11-18 20:04:27
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -778,6 +778,7 @@ C:.
 |   |   |   test_google_health_token_crypto.py
 |   |   |   test_google_health_user_settings.py
 |   |   |   test_health_context_builder.py
+|   |   |   test_health_message_refresh.py
 |   |   |   test_health_personalization_rules.py
 |   |   |   test_health_pressure_transitions.py
 |   |   |   test_health_signal_builder.py

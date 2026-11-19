@@ -7,6 +7,7 @@ Automated polling path - idempotent daily upsert + signal rebuild.
 from __future__ import annotations
 
 from typing import Any
+from datetime import timedelta
 
 from core import get_user_data, update_user_account
 from core.config import (
@@ -16,7 +17,7 @@ from core.config import (
 )
 from core.error_handling import CommunicationError, handle_errors
 from core.logger import get_component_logger
-from core.time_utilities import now_timestamp_full
+from core.time_utilities import now_datetime_full, now_timestamp_full, parse_timestamp_full
 from core.user_management import get_all_user_ids
 from integrations.google_health.auth import (
     DEAD_REFRESH_TOKEN_ERROR,
@@ -41,6 +42,33 @@ from integrations.google_health.signal_builder import rebuild_signals_for_summar
 from integrations.google_health.testing import is_google_health_testing_mode
 
 logger = get_component_logger("google_health")
+
+MESSAGE_SYNC_REUSE_MINUTES = 5
+
+
+@handle_errors("refreshing Google Health before a message", default_return=False)
+def refresh_health_for_message(user_id: str) -> bool:
+    """Refresh before reading message context, respecting permissions and guards.
+
+    Reuse successful pulls for five minutes. Recent failures also defer retries
+    for five minutes so repeated messages do not rapidly pause the integration.
+    Failure leaves saved data available to the normal context/fallback builders.
+    """
+    from core.health_signals import health_personalization_allowed
+
+    if not GOOGLE_HEALTH_ENABLED or is_google_health_testing_mode():
+        return False
+    if not health_personalization_allowed(user_id, surface="messages"):
+        return False
+    state = load_sync_state(user_id) or {}
+    now = now_datetime_full()
+    for field in ("last_success_at", "last_sync_at"):
+        timestamp = parse_timestamp_full(state.get(field) or "")
+        if timestamp is not None and timedelta(0) <= now - timestamp < timedelta(
+            minutes=MESSAGE_SYNC_REUSE_MINUTES
+        ):
+            return field == "last_success_at"
+    return sync_user_health_data(user_id)
 
 
 @handle_errors("checking google health feature enabled", default_return=False)

@@ -105,7 +105,9 @@ def build_personalized_message(
         )
 
         from core.health_signals import health_personalization_allowed
+        from integrations.google_health.sync_manager import refresh_health_for_message
 
+        refresh_health_for_message(user_id)
         health_note = (
             build_user_facing_signal_wellness_snippet(user_id)
             if health_personalization_allowed(user_id, surface="messages")

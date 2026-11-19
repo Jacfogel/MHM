@@ -32,6 +32,12 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-18 - Refresh Google Health before messages
+
+- **Feature** - Added `refresh_health_for_message` in [sync_manager.py](../integrations/google_health/sync_manager.py). Google Health personalized messages call it before reading context in [chatbot.py](../ai/chat/chatbot.py), and [personalized.py](../ai/fallback/personalized.py) does the same for fallback messages when AI is unavailable. The refresh uses the existing summary persistence and signal rebuild flow.
+- **Freshness and recovery** - Successful pulls are reused for five minutes, and recent failed attempts defer retries for five minutes to avoid rapid repeated failures. Refresh respects global enablement, testing mode, message personalization permissions, and existing account/auth guards. Failed refreshes allow normal saved-data or general supportive messages to continue. The background sync schedule remains active.
+- **Documentation and validation** - Updated [SYSTEM_AI_GUIDE.md](../ai/SYSTEM_AI_GUIDE.md). Added [refresh regression tests](../tests/unit/test_health_message_refresh.py) for freshness boundaries, invalid/future timestamps, permission and testing guards, refresh-before-context ordering, and fallback continuity after failure. All 41 tests across the new refresh suite, sync manager, and health context builder passed. Targeted Ruff and diff whitespace checks passed. Live provider calls were not exercised.
+
 ### 2026-11-18 - AI response quality and prompt contracts
 
 - **Evaluation accuracy and evidence** - Replaced nonempty/structured-output checks with exact action/title contracts and seeded cache retrieval, user/mode isolation, and expiry assertions. Automatic contract results are separate from semantic review. Scoped observation distinguishes model output, deterministic repairs, cache fixtures, fallbacks, simulated errors, and unknown sources. Markdown/JSON reports retain full turns, raw model output, provider inputs, errors, and zero/false context values; malformed-input recovery retains both replies. [Evaluation helpers](../tests/ai/evaluation_contracts.py) - [Response evidence](../tests/ai/evaluation_evidence.py) - [Reporting](../tests/ai/evaluation_report.py)
