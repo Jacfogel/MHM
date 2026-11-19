@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for unresolved active, monitoring, planned, and deferred MHM work
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-11-16
+> **Last Updated**: 2026-11-18
 > **Child plan**: [TEST_PLAN.md](TEST_PLAN.md)\
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -63,7 +63,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Full-suite reliability, test isolation, and coverage growth |
 | Deterministic mood and energy rules | **MONITORING** | Low | This file Section 5.3 | Observe health-derived pressure transitions; additional timer awaits usage evidence |
 | Appropriate coupling reductions | **MONITORING** | Medium | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) | Revisit when triage confirms a wrong-layer dependency or a private API dependency causes maintenance problems (2026-11-16) |
-| SMS channel | **PLANNED** | Later | This file Section 7.1 | Paid SMS adapter beside Discord and email; text replies for check-ins and tasks |
+| SMS channel | **ACTIVE** | Medium | This file Section 7.1 | Twilio owner pilot implemented; provider setup and live phone validation remain |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 
 ---
@@ -152,25 +152,25 @@ Prioritize everyday capture and retrieval in Discord and on the website. When Di
 
 ## 7. Planned scaffolds
 
-Accepted future work. Not the current focus. Active check-in, task, and notebook reliability stay first.
+Accepted integration work. SMS has an active owner pilot; Apple Health remains planned. Active check-in, task, and notebook reliability stay first.
 
 ### 7.1 SMS channel
 
-**Status**: **PLANNED**  
-**Added**: 2026-09-22  
-**Priority**: Later
+**Implementation (2026-11-18)**: Simulation and an explicitly enabled Twilio owner pilot are implemented. Live transport includes signed loopback webhooks, durable inbound receipts, provider status tracking, STOP/START, and shared task/check-in reply routing. Credentials and HTTPS forwarding remain unconfigured; no real text has been sent. See [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md) and [pilot spec](../specs/sms-twilio-pilot.md).
+
+**Status**: **ACTIVE**
+**Added**: 2026-09-22
+**Priority**: Medium
 
 **Use / fit**: SMS is a third messaging channel beside Discord and email, for people who will not use either. Business logic stays in the shared message pipeline. The channel adapter only sends and receives text.
 
-**Scaffold** (in order):
+**Remaining work**:
 
-1. Add `communication/communication_channels/sms/` with an `SmsBot` on `BaseChannel`. Register it from `get_available_channels()` and `get_channel_class_mapping()` in `core/config.py`. Tests mock the provider.
-2. Outbound uses the `phone` field already on `AccountV2EnvelopeModel`. Add `RecipientResolver._resolve_sms_recipient`. Inbound maps that number back to the user and calls `handle_user_message(..., "sms")`.
-3. Receive texts through a provider webhook, using the same kind of tunnel as Discord while developing.
-4. Check-ins and task replies get short text answers (`3`, `done`, `snooze`). Discord buttons stay on Discord. Split long messages into SMS segments.
-5. Let the user choose SMS as their messaging service, with connect, status, and pause as text commands.
+1. Configure the owner pilot's Twilio number/registration, credentials, consent, account phone, preferred channel, and HTTPS forwarding. Verify live sending, replies, callbacks, and STOP/START before routine use.
+2. Add verified phone ownership, per-account consent, and onboarding/management UI before allowing other people. Do not remove the pilot allowlist as a shortcut.
+3. Define receipt retention and operator recovery/status UI from pilot experience. Keep unconfirmed mutations out of automatic retries.
 
-**Provider**: a paid SMS API such as Twilio. Free cloud SMS and carrier email-to-SMS are out of scope. iMessage is out of scope.
+**Provider**: Twilio. Free cloud SMS and carrier email-to-SMS are out of scope. iMessage is out of scope.
 
 **Order**: build this before Apple Health. The channel seams already exist.
 

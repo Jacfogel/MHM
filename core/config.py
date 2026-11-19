@@ -350,6 +350,20 @@ if not DISCORD_BOT_TOKEN:
     logger.warning("DISCORD_BOT_TOKEN not found - Discord channel will be disabled")
 
 
+SMS_SIMULATION_ENABLED = os.getenv("SMS_SIMULATION_ENABLED", "false").lower() in (
+    "true", "1", "yes",
+)
+SMS_TWILIO_ENABLED = os.getenv("SMS_TWILIO_ENABLED", "false").lower() in ("true", "1", "yes")
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER", "")
+SMS_PUBLIC_BASE_URL = os.getenv("SMS_PUBLIC_BASE_URL", "").rstrip("/")
+SMS_WEBHOOK_PORT = int(os.getenv("SMS_WEBHOOK_PORT", "8082"))
+SMS_PILOT_USER_ID = os.getenv("SMS_PILOT_USER_ID", "")
+SMS_PILOT_PHONE_NUMBER = os.getenv("SMS_PILOT_PHONE_NUMBER", "")
+SMS_PILOT_CONSENT = os.getenv("SMS_PILOT_CONSENT", "false").lower() in ("true", "1", "yes")
+
+
 @handle_errors("getting available channels", default_return=[])
 def get_available_channels() -> list[str]:
     """
@@ -376,6 +390,8 @@ def get_available_channels() -> list[str]:
         if DISCORD_BOT_TOKEN:
             available_channels.append("discord")
 
+        if SMS_SIMULATION_ENABLED or SMS_TWILIO_ENABLED:
+            available_channels.append("sms")
         available_channels.append("website")
 
         return available_channels
@@ -397,6 +413,7 @@ def get_channel_class_mapping() -> dict[str, str]:
             "email": "communication.communication_channels.email.bot.EmailBot",
             "discord": "communication.communication_channels.discord.bot.DiscordBot",
             "website": "communication.communication_channels.website.bot.WebsiteBot",
+            "sms": "communication.communication_channels.sms.bot.SmsBot",
         }
     except Exception as e:
         logger.error(f"Error getting channel class mapping: {e}")

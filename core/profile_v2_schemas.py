@@ -93,7 +93,7 @@ class FeaturesV2Model(BaseModel):
 class ChannelV2Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["email", "discord"]
+    type: Literal["email", "discord", "sms"]
     contact: str | None = None
 
     @model_validator(mode="after")

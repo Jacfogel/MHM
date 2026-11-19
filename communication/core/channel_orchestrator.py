@@ -503,6 +503,11 @@ class CommunicationManager:
                 backoff_multiplier=2.0,
             )
 
+        from core.config import SMS_SIMULATION_ENABLED, SMS_TWILIO_ENABLED
+
+        if SMS_SIMULATION_ENABLED or SMS_TWILIO_ENABLED:
+            configs["sms"] = ChannelConfig(name="sms", max_retries=1)
+
         configs["website"] = ChannelConfig(
             name="website",
             enabled=True,
@@ -774,6 +779,8 @@ class CommunicationManager:
                         delivery_meta["discord_message_id"] = outbound_id
                     elif channel_name == "email":
                         delivery_meta["email_message_id"] = outbound_id
+                    elif channel_name == "sms":
+                        delivery_meta["sms_message_id"] = outbound_id
                 if success == CHANNEL_SEND_UNCONFIRMED:
                     logger.warning(
                         f"Channel {channel_name} handed the message to {recipient} but did not confirm acceptance"

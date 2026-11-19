@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-19 - Health recovery and Twilio SMS pilot **COMPLETED**
+
+- Health status, enable, and sync failures describe unchanged or unconfirmed saved state and safe recovery without exposing service errors.
+- Added separate opt-in simulation and Twilio owner-pilot modes, signed loopback webhooks, durable receipts, delivery callbacks, STOP/START, SMS preference persistence, and shared task/check-in reply handling. Pilot recipient/account/consent checks remain mandatory; live credentials and HTTPS forwarding are unconfigured.
+- Final combined SMS/profile/email/reminder regression run: 75 passed; Ruff and whitespace checks passed. Paid API calls are mocked; setup/live validation and additional-user enrollment remain open in the SMS guide and plan.
+- Audit follow-up: SMS docstrings/error boundaries, shared phone helper (no circular import), supported-channel test assertion, and test type fixes. Serial 102 passed; two-worker 77 passed; Pyright zero errors/warnings. Regenerated documentation and fixed metadata/headings/links.
+
 ### 2026-11-18 - Refresh Google Health before messages **COMPLETED**
 
 - Google Health personalized messages refresh data before building context, including fallback messages when AI is unavailable. Recent pulls and failed attempts suppress repeat requests for five minutes.
@@ -113,11 +120,6 @@ Guidelines:
 - Verify that invalid mood answers preserve progress and corrected answers persist across a state reload.
 - Excluded config and logs from the test backup and removed the serial-only marker after repeated two-worker checks.
 - Recurring and one-off skips report reminder scheduling failures while confirming the saved task state. Snoozes and skips share the deferred reminder scheduler.
-
-### 2026-11-11 - Relocate development-tools tests **COMPLETED**
-
-- Moved the standalone suite to `development_tools/tool_tests/` and updated runners, coverage, CI, and configuration compatibility.
-- Included the saved snooze time in alert scheduling failure replies.
 
 ## Archive Notes
 Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.

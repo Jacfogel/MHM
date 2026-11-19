@@ -90,6 +90,10 @@ Each of these controls where a specific component writes logs:
 
 ---
 
+### 3.3. SMS pilot configuration
+
+SMS is configured separately with `SMS_SIMULATION_ENABLED` or `SMS_TWILIO_ENABLED` (both default false; enable only one). The Twilio pilot requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `SMS_PUBLIC_BASE_URL` (HTTPS origin only), `SMS_WEBHOOK_PORT` (default 8082), `SMS_PILOT_USER_ID`, `SMS_PILOT_PHONE_NUMBER`, and `SMS_PILOT_CONSENT=true`. The recipient must match the existing account's saved phone. See [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md) for callback setup, channel preference, and recovery. Restart after configuration changes.
+
 ## 4. Email configuration
 
 Email supports outbound messages through SMTP and inbound text replies through IMAP while the service is running. Replies from a registered email address use the shared interaction handlers; task/check-in threading preserves the matching context.

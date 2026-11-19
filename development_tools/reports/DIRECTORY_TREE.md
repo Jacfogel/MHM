@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-18 20:04:27
+> **Last Generated**: 2026-11-19 00:34:15
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -182,6 +182,14 @@ C:.
 |   |   |   |   inbound_processor.py
 |   |   |   |   quote_strip.py
 |   |   |   |   reply_context.py
+|   |   |   |
+|   |   +---sms
+|   |   |   |   bot.py
+|   |   |   |   phone.py
+|   |   |   |   server.py
+|   |   |   |   SMS_GUIDE.md
+|   |   |   |   twilio_transport.py
+|   |   |   |   __init__.py
 |   |   |   |
 |   |   +---website
 |   |   |   |   bot.py
@@ -394,12 +402,14 @@ C:.
 |       discord-task-reminder-flow.md
 |       discord-welcome-and-onboarding.md
 |       email-reply-loop.md
+|       sms-twilio-pilot.md
 |       SPECS_GUIDE.md
 |       SPEC_COVERAGE_MATRIX.md
 |
 +---storage
 |   |   runtime_state_storage.py
 |   |   service_flag_storage.py
+|   |   sms_state.py
 |   |   user_data_backup.py
 |   |   user_data_index.py
 |   |   user_data_operations.py
@@ -519,6 +529,7 @@ C:.
 |   |   |   test_error_handling_coverage_expansion_phase3_final.py
 |   |   |   test_feature_restart_persistence.py
 |   |   |   test_headless_service_behavior.py
+|   |   |   test_health_error_messages.py
 |   |   |   test_health_handler_behavior.py
 |   |   |   test_interaction_handlers_behavior.py
 |   |   |   test_interaction_handlers_coverage_expansion.py
@@ -555,6 +566,7 @@ C:.
 |   |   |   test_service_behavior.py
 |   |   |   test_service_utilities_behavior.py
 |   |   |   test_settings_task_boundary_recovery.py
+|   |   |   test_sms_simulation.py
 |   |   |   test_static_logging_check.py
 |   |   |   test_task_behavior.py
 |   |   |   test_task_cleanup_bug.py
@@ -565,6 +577,7 @@ C:.
 |   |   |   test_task_management_coverage_expansion.py
 |   |   |   test_task_reminder_followup_behavior.py
 |   |   |   test_task_suggestion_relevance.py
+|   |   |   test_twilio_sms.py
 |   |   |   test_ui_app_behavior.py
 |   |   |   test_user_context_behavior.py
 |   |   |   test_user_data_flow_architecture.py

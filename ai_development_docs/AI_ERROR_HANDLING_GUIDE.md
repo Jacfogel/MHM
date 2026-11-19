@@ -91,6 +91,8 @@ Routing rules for AI:
 
 ## 5. Error Message Guidelines
 
+Health status failures explain that the read did not change settings or data. Enable failures must allow for a saved setting followed by a failed sync; direct users to `health status` before retrying. Incomplete syncs must not claim that no data was saved or expose internal error messages.
+
 Use section 5. "Error Message Guidelines" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#5-error-message-guidelines) as the source of truth.
 
 Key constraints:

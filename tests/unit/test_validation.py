@@ -364,7 +364,10 @@ class TestUserUpdateValidation:
         
         # Pydantic validation provides different error messages than old validation
         assert is_valid is False, "Preferences update should be invalid"
-        assert "Input should be 'email' or 'discord'" in errors[0]
+        assert any(
+            all(f"'{channel}'" in error for channel in ("email", "discord", "sms"))
+            for error in errors
+        )
     
     @pytest.mark.unit
     @pytest.mark.user

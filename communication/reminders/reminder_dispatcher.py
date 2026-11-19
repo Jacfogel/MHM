@@ -152,6 +152,10 @@ class TaskReminderDispatcher:
             send_kwargs["subject"] = f"Task reminder: {display_title}"
             send_kwargs["reply_kind"] = "task_reminder"
             send_kwargs["task_id"] = task_identifier
+        if messaging_service == "sms":
+            reminder_message += "\nReply done, snooze, or skip. If several prompts are open, name the task in your command."
+            send_kwargs["reply_kind"] = "task_reminder"
+            send_kwargs["task_id"] = task_identifier
         if isinstance(message_id, str) and message_id.strip():
             send_kwargs["message_id"] = message_id.strip()
 

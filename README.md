@@ -76,8 +76,8 @@ This list reflects **implemented functionality**, not aspirational goals.
 - **Telegram**  
   Telegram has been almost entirely removed from the project and there are no current plans to reintroduce it.
 
-- **SMS (Exploratory)**  
-  SMS was an original design goal but is not currently implemented due to reliability and cost constraints.
+- **SMS (Twilio Pilot / Simulation)**
+  An opt-in Twilio integration supports one approved account, signed incoming replies, delivery callbacks, and stop controls. Simulation remains available separately. Live delivery requires provider setup and an HTTPS endpoint. See [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md).
 
 ---
 

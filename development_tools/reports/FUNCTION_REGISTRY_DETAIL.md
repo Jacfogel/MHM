@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-18 20:03:52
+> **Last Generated**: 2026-11-19 00:33:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.4% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 316
-- **Functions Found**: 3273
-- **Methods Found**: 1661
-- **Classes Found**: 293
-- **Total Items**: 4934
-- **Functions Documented**: 2925
-- **Methods Documented**: 1487
-- **Classes Documented**: 225
-- **Total Documented**: 4412
+### **Function Documentation Coverage: 89.6% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 322
+- **Functions Found**: 3305
+- **Methods Found**: 1692
+- **Classes Found**: 298
+- **Total Items**: 4997
+- **Functions Documented**: 2957
+- **Methods Documented**: 1518
+- **Classes Documented**: 228
+- **Total Documented**: 4475
 - **Template-Generated**: 74
-- **Last Updated**: 2026-11-18
+- **Last Updated**: 2026-11-19
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -42,7 +42,7 @@
 ### **Core System Functions** (692)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (913)
+### **Communication Functions** (934)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (563)
@@ -2781,6 +2781,72 @@ Returns True only after the message is handled, so the caller can mark it read.
 **Functions:**
 - [OK] `create_interaction_view(channel_name, view_type, user_id)` - Create a channel-specific interaction view when the channel supports it.
 
+#### `communication/communication_channels/sms/__init__.py`
+
+#### `communication/communication_channels/sms/bot.py`
+**Functions:**
+- [OK] `__init__(self, config)` - Initialize SMS lifecycle state without starting a listener or sending texts.
+- [OK] `channel_type(self)` - Use the synchronous channel execution model.
+- [OK] `health_check(self)` - Check local readiness and listener liveness without contacting Twilio.
+- [OK] `initialize(self)` - Start exactly one explicitly enabled SMS mode, failing closed on setup errors.
+- [OK] `receive_messages(self)` - No external inbox; use simulate_incoming for explicit local input.
+- [OK] `send_message(self, recipient, message)` - Submit once through Twilio or capture a message in the simulation outbox.
+- [OK] `shutdown(self)` - Stop accepting SMS work and close the live listener if present.
+- [OK] `simulate_incoming(self, sender, message)` - Resolve a unique saved phone number, run a command, and save its reply.
+
+This can persist real command changes; use test accounts for simulation.
+Never expose this entry point as an unauthenticated network endpoint.
+**Classes:**
+- [OK] `SmsBot` - Explicit mode selection; simulation never submits to a provider.
+  - [OK] `SmsBot.__init__(self, config)` - Initialize SMS lifecycle state without starting a listener or sending texts.
+  - [OK] `SmsBot.channel_type(self)` - Use the synchronous channel execution model.
+  - [OK] `SmsBot.health_check(self)` - Check local readiness and listener liveness without contacting Twilio.
+  - [OK] `SmsBot.initialize(self)` - Start exactly one explicitly enabled SMS mode, failing closed on setup errors.
+  - [OK] `SmsBot.receive_messages(self)` - No external inbox; use simulate_incoming for explicit local input.
+  - [OK] `SmsBot.send_message(self, recipient, message)` - Submit once through Twilio or capture a message in the simulation outbox.
+  - [OK] `SmsBot.shutdown(self)` - Stop accepting SMS work and close the live listener if present.
+  - [OK] `SmsBot.simulate_incoming(self, sender, message)` - Resolve a unique saved phone number, run a command, and save its reply.
+
+This can persist real command changes; use test accounts for simulation.
+Never expose this entry point as an unauthenticated network endpoint.
+
+#### `communication/communication_channels/sms/phone.py`
+**Functions:**
+- [OK] `normalize_phone(value)` - Accept an international number with optional display punctuation.
+
+#### `communication/communication_channels/sms/server.py`
+**Functions:**
+- [OK] `__init__(self, transport, port)` - Bind a loopback listener whose requests use the supplied transport validator.
+- [OK] `do_POST(self)` - Validate bounded form input and return safe HTTP responses without logging content.
+- [OK] `log_message(self, format)` - Do not log request parameters or identifying URLs.
+- [OK] `start(self)` - Start the bound webhook server on its background thread.
+- [OK] `stop(self)` - Stop the listener, release its socket, and wait briefly for its thread.
+**Classes:**
+- [MISSING] `Handler` - No description
+  - [OK] `Handler.do_POST(self)` - Validate bounded form input and return safe HTTP responses without logging content.
+  - [OK] `Handler.log_message(self, format)` - Do not log request parameters or identifying URLs.
+- [MISSING] `SmsWebhookServer` - No description
+  - [OK] `SmsWebhookServer.__init__(self, transport, port)` - Bind a loopback listener whose requests use the supplied transport validator.
+  - [OK] `SmsWebhookServer.start(self)` - Start the bound webhook server on its background thread.
+  - [OK] `SmsWebhookServer.stop(self)` - Stop the listener, release its socket, and wait briefly for its thread.
+
+#### `communication/communication_channels/sms/twilio_transport.py`
+**Functions:**
+- [OK] `__init__(self, bot)` - Validate owner consent and pilot settings before creating the provider client.
+- [OK] `_send(self, recipient, message)` - Submit once, distinguishing provider rejection from uncertain acceptance.
+- [OK] `allowed(self, number)` - Confirm that this recipient still belongs to the configured consenting pilot.
+- [OK] `process(self, path, params, signature)` - Validate the fixed public URL; never trust forwarded/Host headers.
+- [OK] `route(self, text)` - Route an explicit command or an unambiguous short reply through shared handlers.
+- [OK] `send(self, recipient, message)` - Serialize one submission and preserve uncertain outcomes without automatic retry.
+**Classes:**
+- [OK] `TwilioTransport` - Own provider boundaries; keep task/check-in mutations in shared handlers.
+  - [OK] `TwilioTransport.__init__(self, bot)` - Validate owner consent and pilot settings before creating the provider client.
+  - [OK] `TwilioTransport._send(self, recipient, message)` - Submit once, distinguishing provider rejection from uncertain acceptance.
+  - [OK] `TwilioTransport.allowed(self, number)` - Confirm that this recipient still belongs to the configured consenting pilot.
+  - [OK] `TwilioTransport.process(self, path, params, signature)` - Validate the fixed public URL; never trust forwarded/Host headers.
+  - [OK] `TwilioTransport.route(self, text)` - Route an explicit command or an unambiguous short reply through shared handlers.
+  - [OK] `TwilioTransport.send(self, recipient, message)` - Serialize one submission and preserve uncertain outcomes without automatic retry.
+
 #### `communication/communication_channels/website/__init__.py`
 
 #### `communication/communication_channels/website/bot.py`
@@ -3197,11 +3263,13 @@ Returns:
 **Functions:**
 - [OK] `_resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient token for outbound delivery.
 - [OK] `_resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
+- [OK] `_resolve_sms_recipient(self, user_id, preferences)` - Use the existing account phone field, requiring a country code.
 - [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 **Classes:**
 - [OK] `RecipientResolver` - Resolve a user's channel-specific outbound recipient.
   - [OK] `RecipientResolver._resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient token for outbound delivery.
   - [OK] `RecipientResolver._resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
+  - [OK] `RecipientResolver._resolve_sms_recipient(self, user_id, preferences)` - Use the existing account phone field, requiring a country code.
   - [OK] `RecipientResolver.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 
 #### `communication/message_processing/__init__.py`
@@ -6900,6 +6968,33 @@ for tests and callers that isolate a specific file.
 **Functions:**
 - [OK] `read_service_flag_json(flag_file, default_data)` - Read a JSON service flag file and return a dict payload.
 - [OK] `write_service_flag_json(flag_file, data)` - Write a JSON service flag file and optionally record file-auditor metadata.
+
+#### `storage/sms_state.py`
+**Functions:**
+- [OK] `__init__(self, path)` - Open the SMS state database and create its receipt tables.
+- [OK] `add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
+- [OK] `claim(self, sid)` - Atomically claim an inbound ID; return false when it was already claimed.
+- [OK] `clear_context(self, phone, kind, task_id)` - Remove only the prompt context whose completion was confirmed.
+- [OK] `connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
+- [OK] `contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
+- [OK] `finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
+- [OK] `record_outbound(self, sid, status, error)` - Record provider acceptance without overwriting an earlier status callback.
+- [OK] `set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
+- [OK] `stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
+- [OK] `update_status(self, sid, status, error)` - Apply a known delivery state without regressing a terminal status.
+**Classes:**
+- [OK] `SmsState` - Durable claim-before-mutation receipts; a crash never replays a command.
+  - [OK] `SmsState.__init__(self, path)` - Open the SMS state database and create its receipt tables.
+  - [OK] `SmsState.add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
+  - [OK] `SmsState.claim(self, sid)` - Atomically claim an inbound ID; return false when it was already claimed.
+  - [OK] `SmsState.clear_context(self, phone, kind, task_id)` - Remove only the prompt context whose completion was confirmed.
+  - [OK] `SmsState.connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
+  - [OK] `SmsState.contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
+  - [OK] `SmsState.finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
+  - [OK] `SmsState.record_outbound(self, sid, status, error)` - Record provider acceptance without overwriting an earlier status callback.
+  - [OK] `SmsState.set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
+  - [OK] `SmsState.stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
+  - [OK] `SmsState.update_status(self, sid, status, error)` - Apply a known delivery state without regressing a terminal status.
 
 #### `storage/user_data_backup.py`
 **Functions:**

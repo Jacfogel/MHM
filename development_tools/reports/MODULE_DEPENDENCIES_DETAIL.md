@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-18 20:03:56
+> **Last Generated**: 2026-11-19 00:33:35
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 314
-- **Total Imports Found**: 2865
-- **Dependencies Documented**: 314 (100% coverage)
-- **Standard Library Imports**: 822 (28.7%)
-- **Third-Party Imports**: 235 (8.2%)
-- **Local Imports**: 1808 (63.1%)
-- **Last Updated**: 2026-11-18
+- **Files Scanned**: 320
+- **Total Imports Found**: 2906
+- **Dependencies Documented**: 320 (100% coverage)
+- **Standard Library Imports**: 832 (28.6%)
+- **Third-Party Imports**: 239 (8.2%)
+- **Local Imports**: 1835 (63.1%)
+- **Last Updated**: 2026-11-19
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 822 imports (28.7%)
-- **Third-Party**: 235 imports (8.2%)
-- **Local**: 1808 imports (63.1%)
+- **Standard Library**: 832 imports (28.6%)
+- **Third-Party**: 239 imports (8.2%)
+- **Local**: 1835 imports (63.1%)
 
 ## Module Dependencies by Directory
 
@@ -1759,6 +1759,7 @@
   - `communication/communication_channels/discord/events/lifecycle.py`
   - `communication/communication_channels/discord/events/protocol.py`
   - `communication/communication_channels/email/bot.py`
+  - `communication/communication_channels/sms/bot.py`
   - `communication/communication_channels/website/bot.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
@@ -2589,6 +2590,104 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `communication/communication_channels/sms/__init__.py`
+- **Purpose**: Communication channel implementation for __init__
+- **Dependencies**: None (no imports)
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/sms/bot.py`
+- **Purpose**: Communication channel implementation for bot
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.base.base_channel (BaseChannel, ChannelConfig, ChannelStatus, ChannelType)` (NEW)
+    - `communication.communication_channels.sms.phone (normalize_phone)` (NEW)
+    - `communication.communication_channels.sms.server (SmsWebhookServer)` (NEW)
+    - `communication.communication_channels.sms.twilio_transport (TwilioTransport)` (NEW)
+    - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
+    - `core (get_user_data)` (NEW)
+    - `core.config (SMS_SIMULATION_ENABLED, SMS_TWILIO_ENABLED, SMS_WEBHOOK_PORT)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.user_management (get_all_user_ids)` (NEW)
+  - **Standard Library**:
+    - `typing (Any)`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: communication.communication_channels.base.base_channel, communication.communication_channels.sms.phone, communication.communication_channels.sms.server, communication.communication_channels.sms.twilio_transport, communication.message_processing.interaction_manager, core, core.config, core.error_handling, core.user_management
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/sms/phone.py`
+- **Purpose**: Communication channel implementation for phone
+- **Dependencies**:
+  - **Standard Library**:
+    - `re`
+- **Used by**:
+  - `communication/communication_channels/sms/bot.py`
+  - `communication/communication_channels/sms/twilio_transport.py`
+  - `communication/delivery/recipient_resolver.py`
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/sms/server.py`
+- **Purpose**: Communication channel implementation for server
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+  - **Standard Library**:
+    - `http.server (BaseHTTPRequestHandler, ThreadingHTTPServer)`
+    - `threading`
+    - `urllib.parse (parse_qsl)`
+- **Used by**:
+  - `communication/communication_channels/sms/bot.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/sms/twilio_transport.py`
+- **Purpose**: Communication channel implementation for twilio_transport
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.sms.phone (normalize_phone)` (NEW)
+    - `communication.message_processing.email_reply_routing (build_task_reply_command, route_checkin_reply, route_task_reply)` (NEW)
+    - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
+    - `core (config, get_user_data)` (NEW)
+    - `core.error_handling (ConfigurationError, handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `storage.sms_state (SmsState)` (NEW)
+    - `tasks.task_data_manager (get_task_by_id)` (NEW)
+  - **Standard Library**:
+    - `re`
+    - `threading`
+    - `urllib.parse (urlsplit)`
+  - **Third-party**:
+    - `twilio.base.exceptions (TwilioRestException)`
+    - `twilio.http.http_client (TwilioHttpClient)`
+    - `twilio.request_validator (RequestValidator)`
+    - `twilio.rest (Client)`
+- **Used by**:
+  - `communication/communication_channels/sms/bot.py`
+
+**Dependency Changes**:
+- Added: communication.communication_channels.sms.phone, communication.message_processing.email_reply_routing, communication.message_processing.interaction_manager, core, core.error_handling, core.logger, storage.sms_state, tasks.task_data_manager
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `communication/communication_channels/website/__init__.py`
 - **Purpose**: Communication channel implementation for __init__
 - **Dependencies**: None (no imports)
@@ -2708,7 +2807,7 @@
     - `communication.reminders.checkin_prompt_dispatcher (CheckinPromptDispatcher)` (NEW)
     - `communication.reminders.reminder_dispatcher (TASK_REMINDER_CATEGORY, TaskReminderDispatcher)` (NEW)
     - `core (get_user_data)` (NEW)
-    - `core.config (AI_PERSONALIZED_MESSAGE_TIMEOUT, DISCORD_BOT_TOKEN, EMAIL_SMTP_SERVER, get_available_channels)` (NEW)
+    - `core.config (AI_PERSONALIZED_MESSAGE_TIMEOUT, DISCORD_BOT_TOKEN, EMAIL_SMTP_SERVER, SMS_SIMULATION_ENABLED, SMS_TWILIO_ENABLED, get_available_channels)` (NEW)
     - `core.error_handling (handle_communication_error, handle_errors, handle_network_error)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger)` (NEW)
     - `core.message_pressure (scheduled_message_pressure_prefix, user_quiet_mode_is_active)` (NEW)
@@ -2879,6 +2978,7 @@
 - **Purpose**: Communication channel implementation for recipient_resolver
 - **Dependencies**:
   - **Local**:
+    - `communication.communication_channels.sms.phone (normalize_phone)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
@@ -2889,7 +2989,7 @@
   - `integrations/google_health/notifications.py`
 
 **Dependency Changes**:
-- Added: core, core.error_handling, core.logger
+- Added: communication.communication_channels.sms.phone, core, core.error_handling, core.logger
 - Removed: communication/core/channel_orchestrator.py, integrations/google_health/notifications.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3069,6 +3169,7 @@
     - `re`
 - **Used by**:
   - `communication/communication_channels/email/inbound_processor.py`
+  - `communication/communication_channels/sms/twilio_transport.py`
 
 **Dependency Changes**:
 - Added: communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.message_processing.conversation_flow_manager, core.error_handling, core.logger, tasks.task_breakdown, tasks.task_reminder_snooze
@@ -3376,6 +3477,8 @@
   - `communication/communication_channels/discord/ui/checkin_view.py`
   - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/communication_channels/email/inbound_processor.py`
+  - `communication/communication_channels/sms/bot.py`
+  - `communication/communication_channels/sms/twilio_transport.py`
   - `core/web_chat.py`
 
 **Dependency Changes**:
@@ -3851,6 +3954,7 @@
   - `communication/communication_channels/email/bot.py`
   - `communication/communication_channels/email/inbound_processor.py`
   - `communication/communication_channels/email/reply_context.py`
+  - `communication/communication_channels/sms/bot.py`
   - `communication/communication_channels/website/inbox.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
@@ -4016,6 +4120,9 @@
   - `communication/communication_channels/email/quote_strip.py`
   - `communication/communication_channels/email/reply_context.py`
   - `communication/communication_channels/interaction_view_factory.py`
+  - `communication/communication_channels/sms/bot.py`
+  - `communication/communication_channels/sms/server.py`
+  - `communication/communication_channels/sms/twilio_transport.py`
   - `communication/communication_channels/website/bot.py`
   - `communication/communication_channels/website/inbox.py`
   - `communication/core/channel_monitor.py`
@@ -4121,6 +4228,7 @@
   - `scheduler/user_timezone.py`
   - `storage/runtime_state_storage.py`
   - `storage/service_flag_storage.py`
+  - `storage/sms_state.py`
   - `storage/user_data_backup.py`
   - `storage/user_data_index.py`
   - `storage/user_data_operations.py`
@@ -4394,7 +4502,7 @@
 
 **Dependency Changes**:
 - Added: core, core.error_handling, core.logger, core.time_utilities
-- Removed: ai/context/phraser.py, ai/context/service.py, ai/fallback/personalized.py, core/health_context_builder.py, core/message_pressure.py
+- Removed: ai/context/phraser.py, ai/context/service.py, ai/fallback/personalized.py, core/health_context_builder.py, core/message_pressure.py, integrations/google_health/sync_manager.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -4519,6 +4627,8 @@
   - `communication/communication_channels/email/bot.py`
   - `communication/communication_channels/email/inbound_processor.py`
   - `communication/communication_channels/email/reply_context.py`
+  - `communication/communication_channels/sms/server.py`
+  - `communication/communication_channels/sms/twilio_transport.py`
   - `communication/communication_channels/website/inbox.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
@@ -5225,6 +5335,7 @@
   - `scheduler/manager.py`
   - `scheduler/task_reminders.py`
   - `scheduler/user_timezone.py`
+  - `storage/sms_state.py`
   - `storage/user_data_backup.py`
   - `storage/user_data_index.py`
   - `storage/user_data_registry.py`
@@ -5345,6 +5456,7 @@
     - `uuid`
 - **Used by**:
   - `communication/communication_channels/discord/ui/task_reminder_view.py`
+  - `communication/communication_channels/sms/bot.py`
   - `core/service.py`
   - `core/user_lookup.py`
   - `integrations/google_health/sync_manager.py`
@@ -5925,7 +6037,7 @@
 
 **Dependency Changes**:
 - Added: core, core.config, core.error_handling, core.health_signals, core.logger, core.time_utilities, core.user_management, integrations.google_health.auth, integrations.google_health.client, integrations.google_health.data_handlers, integrations.google_health.notifications, integrations.google_health.signal_builder, integrations.google_health.testing, scheduler.health_sync_schedule
-- Removed: integrations/google_health/__init__.py, integrations/google_health/user_settings.py, scheduler/health_sync_jobs.py
+- Removed: ai/chat/chatbot.py, ai/fallback/personalized.py, integrations/google_health/__init__.py, integrations/google_health/user_settings.py, scheduler/health_sync_jobs.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6459,6 +6571,7 @@
   - `communication/core/welcome_manager.py`
   - `communication/message_processing/flows/flow_state.py`
   - `core/ai_usage_settings.py`
+  - `storage/sms_state.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger
@@ -6488,6 +6601,26 @@
 **Dependency Changes**:
 - Added: core.error_handling, core.file_auditor, core.logger
 - Removed: core/headless_service.py, core/service_requests.py, core/web_account_service.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `storage/sms_state.py`
+- **Purpose**: Module for storage/sms_state.py
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `storage.runtime_state_storage (get_runtime_state_path)` (NEW)
+  - **Standard Library**:
+    - `contextlib (contextmanager)`
+    - `sqlite3`
+- **Used by**:
+  - `communication/communication_channels/sms/twilio_transport.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.time_utilities, storage.runtime_state_storage
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -7029,6 +7162,7 @@
     - `typing (Any)`
     - `uuid`
 - **Used by**:
+  - `communication/communication_channels/sms/twilio_transport.py`
   - `core/web_tasks.py`
   - `tasks/task_breakdown.py`
   - `tasks/task_occurrence_skip.py`

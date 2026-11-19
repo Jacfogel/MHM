@@ -221,6 +221,8 @@ Use these categories to choose log levels and to shape messages for later troubl
 
 ## 5. Error Message Guidelines
 
+Health command recovery distinguishes read-only status failures, unconfirmed enable changes, and incomplete syncs. A failed status read changes no settings or data. Enabling can save a setting before its first sync fails, so check `health status` before retrying. A failed sync does not establish whether new data was saved; inspect connection and last successful sync, reconnecting only when status requests it. Never show internal service error text.
+
 Separate user-facing messages from log messages.
 
 ### 5.1. User-facing messages

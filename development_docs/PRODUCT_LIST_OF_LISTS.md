@@ -44,7 +44,7 @@
 
 | What | Canonical source | Uses | Other locations / overlap |
 |------|------------------|------|---------------------------|
-| **Available channels at runtime** | `core/config.py` - `get_available_channels()` | Which transports are enabled from credentials | Conditional: email and/or discord |
+| **Available channels at runtime** | `core/config.py` - `get_available_channels()` | Which transports are enabled from credentials or explicit opt-in | Website; conditional email, Discord, and SMS (simulation or Twilio pilot) |
 | **Channel class mapping** | `core/config.py` - `get_channel_class_mapping()` | Instantiation | |
 | **Default orchestrator channel configs** | `communication/core/channel_orchestrator.py` - `_get_default_channel_configs()` | Defaults when user/channel config missing | |
 | **Transport execution type** | `communication/communication_channels/base/base_channel.py` - `ChannelType` (`SYNC` / `ASYNC`) | Execution model (not channel name) | Email sync; Discord async |

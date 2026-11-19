@@ -56,3 +56,11 @@ class RecipientResolver:
             logger.error(f"User account not found for {user_id}")
             return None
         return account_data.get("email", "") if account_data else None
+
+    @handle_errors("resolving SMS recipient", default_return=None)
+    def _resolve_sms_recipient(self, user_id: str, preferences: dict) -> str | None:
+        """Use the existing account phone field, requiring a country code."""
+        from communication.communication_channels.sms.phone import normalize_phone
+
+        account = get_user_data(user_id, "account", normalize_on_read=True).get("account") or {}
+        return normalize_phone(account.get("phone", ""))

@@ -160,6 +160,8 @@ class CheckinPromptDispatcher:
             if messaging_service == "email":
                 send_kwargs["subject"] = "Check-in"
                 send_kwargs["reply_kind"] = "checkin"
+            if messaging_service == "sms":
+                send_kwargs["reply_kind"] = "checkin"
             if isinstance(message_id, str) and message_id.strip():
                 send_kwargs["message_id"] = message_id.strip()
 

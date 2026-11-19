@@ -23,6 +23,21 @@ from communication.command_handlers.shared_types import InteractionResponse, Par
 
 logger = get_component_logger("communication_manager")
 
+_STATUS_UNAVAILABLE = (
+    "I couldn't load health status. This status request did not change your settings "
+    "or saved data. Try `health status` again in a moment."
+)
+_ENABLE_UNCONFIRMED = (
+    "I couldn't confirm health personalization was enabled. The setting may have "
+    "been saved even if the first sync did not finish. Check `health status` before "
+    "trying `enable health` again."
+)
+_SYNC_INCOMPLETE = (
+    "Health sync did not complete. I can't confirm whether new data was saved. "
+    "Check the connection and last successful sync with `health status`; "
+    "if it asks you to reconnect, use `connect google health`."
+)
+
 
 class HealthHandler(InteractionHandler):
     """Handler for Google Health connect, status, pause, delete, and debug sync."""
@@ -104,13 +119,13 @@ class HealthHandler(InteractionHandler):
 
     @handle_errors(
         "showing google health status",
-        default_return=InteractionResponse("Could not load health status.", True),
+        default_return=InteractionResponse(_STATUS_UNAVAILABLE, True),
     )
     # not_duplicate: command_handler_status_by_domain
     def _handle_status(self, user_id: str) -> InteractionResponse:
         status = get_health_integration_status(user_id)
         if status is None:
-            return InteractionResponse("Could not load health status.", True)
+            return InteractionResponse(_STATUS_UNAVAILABLE, True)
         body = format_status_text(status)
         text = (
             body.replace("Feature:", "**Feature:**", 1)
@@ -141,14 +156,14 @@ class HealthHandler(InteractionHandler):
 
     @handle_errors(
         "enabling google health",
-        default_return=InteractionResponse("Could not enable health personalization.", True),
+        default_return=InteractionResponse(_ENABLE_UNCONFIRMED, True),
     )
     def _handle_enable(self, user_id: str) -> InteractionResponse:
         ok, message = enable_health_integration(user_id)
         if not ok:
             return InteractionResponse(
                 message if message == "Connect Google Health first."
-                else message or "Could not enable health personalization.",
+                else _ENABLE_UNCONFIRMED,
                 True,
             )
         return InteractionResponse(
@@ -176,7 +191,7 @@ class HealthHandler(InteractionHandler):
 
     @handle_errors(
         "manual health sync",
-        default_return=InteractionResponse("Health sync failed.", True),
+        default_return=InteractionResponse(_SYNC_INCOMPLETE, True),
     )
     def _handle_sync(self, user_id: str) -> InteractionResponse:
         ok = sync_health_integration(user_id)
@@ -185,7 +200,7 @@ class HealthHandler(InteractionHandler):
                 "Health sync completed (debug). Normal operation is automatic.", completed=True
             )
         return InteractionResponse(
-            "Health sync did not complete. Check connection with `health status`.", True
+            _SYNC_INCOMPLETE, True
         )
 
     @handle_errors("building health handler help", default_return="Google Health commands unavailable.")
