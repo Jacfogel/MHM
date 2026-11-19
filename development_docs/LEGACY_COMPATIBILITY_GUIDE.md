@@ -1,6 +1,6 @@
-# AI Legacy Compatibility Guide
+# Legacy Compatibility Guide
 
-> **File**: `ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md`
+> **File**: `development_docs/LEGACY_COMPATIBILITY_GUIDE.md`
 > **Audience**: AI collaborators and developers cleaning up deprecated code paths
 > **Purpose**: Routing and constraints for using the legacy cleanup tools and safely removing legacy code
 > **Style**: Minimal, reference-only, tool-focused
@@ -34,12 +34,14 @@ For the full audit workflow that also produces [LEGACY_REFERENCE_REPORT.md](../d
 
 Use this guide only after you understand the general documentation and development rules:
 
-- Documentation and pairing rules: see section 4. "Documentation Synchronization Checklist" in [AI_DOCUMENTATION_GUIDE.md](AI_DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
-- Development workflow and safety: see section 1. "Safety First" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#1-safety-first) and section 3. "Development Process" in [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md#3-development-process).
+- Documentation ownership and consistency rules: see section 4. "Documentation Synchronization Checklist" in [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist).
+- Development workflow and safety: see section 1. "Safety First" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#1-safety-first) and section 3. "Development Process" in [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md#3-development-process).
 
-**When adding legacy compatibility code (temporary compatibility only):**
+**Alpha policy:** Migrate current callers, tests, and actively used data directly. Do not add or preserve shims solely for older MHM versions. Compatibility exceptions require an explicit user request for that change or an external third-party contract. This does not authorize unrelated or irreversible deletion of user-created data; ask before destroying data when migration is not reasonably possible.
 
-- Legacy compatibility code is not desirable as a long-term state. Use it only when strictly necessary and always as temporary bridge code.
+**When an authorized compatibility exception is required:**
+
+- Keep an authorized exception narrowly scoped, temporary, and tied to explicit removal criteria.
 - Mark code with a clear `# LEGACY COMPATIBILITY:` header.
 - Log usage when the legacy path is exercised.
 - Add, or update, a removal plan in the relevant docs or changelog.
@@ -90,7 +92,7 @@ Use the legacy cleanup tool as a structured workflow rather than ad hoc search.
 4. **Remove & Test** - only after verification is clean
 
    - Remove the legacy code and `LEGACY COMPATIBILITY` markers.
-   - Run the standard test suite (see section 4. "Running Automated Tests" in [AI_TESTING_GUIDE.md](AI_TESTING_GUIDE.md#4-running-automated-tests)).
+   - Run the standard test suite (see section 4. "Running Automated Tests" in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md#4-running-automated-tests)).
    - Start the service and confirm normal behavior.
    - Update changelogs or relevant docs to record the removal.
    - Update `development_docs/devtools/DEPRECATION_INVENTORY.json` (change status to `removed` or `retire_candidate`, and keep search terms current).

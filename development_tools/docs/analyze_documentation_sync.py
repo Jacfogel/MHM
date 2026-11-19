@@ -204,7 +204,7 @@ class DocumentationSyncChecker:
             return issues
 
         prose_pairs = parse_documentation_guide_paired_summary(content)
-        if not prose_pairs:
+        if not prose_pairs and self.paired_docs:
             issues["paired_doc_list_drift"].append(
                 "Section 4.1 paired-doc summary bullets not found or empty"
             )

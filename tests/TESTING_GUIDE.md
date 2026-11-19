@@ -4,8 +4,6 @@
 > **Audience**: Developers and AI assistants working on MHM  
 > **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side-effect verification  
 > **Style**: Technical, comprehensive, actionable  
-> **Pair**: [AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md)  
-> This document is paired with [AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md) and any changes must consider both docs.
 
 ---
 
@@ -30,7 +28,7 @@ Use this guide whenever you:
 - Touch any integration (Discord, email, future channels).
 - Need to understand how tests should behave in CI or local runs.
 
-The paired AI doc ([AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md)) provides a routing-first, constraint-focused view for AI tools and automated assistance. This human-facing guide is the canonical source for detailed behavior, rationale, and examples.
+This shared guide is the canonical source for testing rules, safety constraints, commands, rationale, and examples for all contributors.
 
 ---
 
@@ -451,6 +449,8 @@ If you add new markers or special options, ensure `pytest.ini` is updated accord
 Parallel execution can greatly speed up tests, but it also introduces new failure modes. Coverage helps you understand which parts of the codebase are tested.
 
 ### 5.1. Parallel execution
+
+The project runner uses `pytest-xdist` with `--dist=loadscope` to keep fixture-heavy modules together. Auto worker selection caps at six (`cpu_count // 2`, minimum two). Use unique per-test identifiers and isolated fixtures before opting out of parallelism.
 
 Parallel execution is typically handled via `pytest-xdist`:
 

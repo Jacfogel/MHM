@@ -1,5 +1,5 @@
 {
-  "_comment": "Canonical inventory for deprecated/removed/to-retire terms. Update status and search_terms when migrating or removing. See AI_LEGACY_COMPATIBILITY_GUIDE.md.",
+  "_comment": "Canonical inventory for deprecated/removed/to-retire terms. Update status and search_terms when migrating or removing. See LEGACY_COMPATIBILITY_GUIDE.md.",
   "legacy_scan_patterns": {
     "old_bot_directory": [
       "bot/",
@@ -720,6 +720,48 @@
       ],
       "replacement": "Detailed inventories for lookups, architecture and feature guides for navigation, and audit reports for actionable findings.",
       "note": "Brief outputs, generators, brief-only narrative helpers/configuration, and active instructions removed. No compatibility generation remains."
+    },
+    {
+      "id": "paired_ai_documentation_and_cursor_rules",
+      "removed_at": "2026-11-19",
+      "status": "removed",
+      "search_terms": [
+        "AI_ARCHITECTURE.md",
+        "AI_BACKUP_GUIDE.md",
+        "AI_DEVELOPMENT_WORKFLOW.md",
+        "AI_DOCUMENTATION_GUIDE.md",
+        "AI_ERROR_HANDLING_GUIDE.md",
+        "AI_LOGGING_GUIDE.md",
+        "AI_TESTING_GUIDE.md",
+        "AI_LEGACY_COMPATIBILITY_GUIDE.md",
+        ".cursor/rules/"
+      ],
+      "replacement": "Shared topic guides, development_docs/LEGACY_COMPATIBILITY_GUIDE.md, root AGENTS.md, and a short session starter.",
+      "note": "Removed AI topic mirrors and local Cursor rules; retained independent detailed and short changelogs. No heading lockstep or compatibility stubs remain. Historical records are preserved."
+    },
+    {
+      "id": "ai_doc_directory_and_cursor_commands_plans",
+      "removed_at": "2026-11-19",
+      "status": "removed",
+      "search_terms": [
+        "AI_SESSION_STARTER.md",
+        "AI_CHANGELOG.md",
+        "ai_development_docs/",
+        ".cursor/commands/",
+        ".cursor/plans/"
+      ],
+      "replacement": "AGENTS.md, development_docs/CHANGELOG_BRIEF.md, shared guides, and existing .agents/skills.",
+      "note": "Reviewed original session starter and preserved useful missing troubleshooting, evidence, scope, and exclusion guidance in AGENTS.md. Moved the changelog archive to development_docs/changelog_history; removed obsolete generated snapshots and Cursor commands/plans."
+    },
+    {
+      "id": "original_ai_changelog_archive_relocation",
+      "removed_at": "2026-11-19",
+      "status": "removed",
+      "search_terms": [
+        "archive/AI_CHANGELOG_ARCHIVE.md"
+      ],
+      "replacement": "development_docs/changelog_history/CHANGELOG_BRIEF_ARCHIVE.md",
+      "note": "Moved the original historical archive and merged the smaller former AI-doc archive. Preserved all distinct entries, removed only exact duplicate entries, and sorted newest first."
     }
   ],
   "global_sweep_keywords": [

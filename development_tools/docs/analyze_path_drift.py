@@ -639,7 +639,7 @@ class PathDriftAnalyzer:
                 continue
 
             # Skip historical changelog files - they contain accurate historical references
-            if "CHANGELOG_DETAIL.md" in str(md_file) or "AI_CHANGELOG.md" in str(
+            if "CHANGELOG_DETAIL.md" in str(md_file) or "CHANGELOG_BRIEF.md" in str(
                 md_file
             ):
                 continue

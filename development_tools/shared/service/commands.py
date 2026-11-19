@@ -2138,7 +2138,7 @@ class CommandsMixin:
         """Return latest mtime across documentation files that can invalidate doc-sync.
 
         Generated coverage/legacy reports are excluded because those tools still
-        rewrite them after doc-sync. Both ``AI_CHANGELOG.md`` and
+        rewrite them after doc-sync. Both ``CHANGELOG_BRIEF.md`` and
         ``CHANGELOG_DETAIL.md`` are included: changelog trim runs before
         Tier 2 doc-sync, so those edits do not self-invalidate the next audit.
         """

@@ -865,6 +865,6 @@ class ReportGenerationMixin(
         actions.append("Review TODO.md for next development priorities")
         actions.append("Run comprehensive testing before major changes")
         actions.append(
-            "Update AI_CHANGELOG.md and CHANGELOG_DETAIL.md with recent changes"
+            "Update CHANGELOG_BRIEF.md and CHANGELOG_DETAIL.md with recent changes"
         )
         return actions

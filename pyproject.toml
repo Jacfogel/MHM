@@ -112,8 +112,6 @@ exclude = [
   "archive/**",
   "development_docs",
   "development_docs/**",
-  "ai_development_docs",
-  "ai_development_docs/**",
   "styles",
   "styles/**",
   "tests/logs",

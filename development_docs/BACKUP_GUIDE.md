@@ -1,7 +1,6 @@
 # Backup and Archive System Guide
 
 > **File**: `development_docs/BACKUP_GUIDE.md`  
-> **Pair**: [AI_BACKUP_GUIDE.md](../ai_development_docs/AI_BACKUP_GUIDE.md)  
 > **Audience**: Developers and users  
 > **Purpose**: Complete documentation of backup, rotation, archiving, and restore procedures  
 > **Style**: Detailed, comprehensive
@@ -109,7 +108,7 @@ This guide covers both how the systems work and how to restore from backups.
 **Backup Contents:**
 - All user data directories (`data/users/{user_id}/`)
 - Configuration files (`.env`, `requirements.txt`, `user_index.json`)
-> **Note:** Configuration semantics are canonically defined in [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) (source of truth: `.env.example`; loader/validation: `core/config.py`).
+> **Note:** Configuration semantics are canonically defined in [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) (source of truth: `.env.example`; loader/validation: `core/config.py`).
 > Avoid duplicating per-setting definitions outside that reference.
 - Optional: Log files (disabled by default)
 - Optional: Project code (via `include_code` parameter)
@@ -306,7 +305,7 @@ This guide covers both how the systems work and how to restore from backups.
 1. **Locate archived outputs:**
    - Status files: `development_tools/reports/archive/`
    - Tool results: `development_tools/{domain}/jsons/archive/`
-   - Generated docs: `development_docs/archive/` or `ai_development_docs/archive/`
+   - Generated docs: `development_docs/archive/`
 
 2. **Restore status files:**
    ```powershell
@@ -649,5 +648,4 @@ Retention policies are configured in:
 
 ## 11. Related Documentation
 
-- [AI_BACKUP_GUIDE.md](../ai_development_docs/AI_BACKUP_GUIDE.md) - AI collaborator guide
 - [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md) - Detailed logging documentation

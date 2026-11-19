@@ -1,11 +1,9 @@
 # Development Workflow Guide
 
 > **File**: `DEVELOPMENT_WORKFLOW.md`  
-> **Audience**: Human developer (beginner programmer)  
+> **Audience**: Developers and AI collaborators (beginner-friendly)
 > **Purpose**: Safe development practices and day-to-day procedures  
 > **Style**: Comprehensive, step-by-step, practical
-> **Pair**: [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
-> This document is paired with [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), and any potential changes must be considered within the context of both docs.
 
 
 ## Quick Reference
@@ -90,7 +88,7 @@ When in doubt: activate the virtual environment, make a backup, then follow the 
 
 6. **Document meaningful changes**  
    - Describe each meaningful change in [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md).  
-   - Ensure the summarized change appears in [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md).
+   - Ensure the summarized change appears in [CHANGELOG_BRIEF.md](development_docs/CHANGELOG_BRIEF.md).
 
 7. **Use the Audit-First Protocol for docs**  
    - Before editing documentation, consult section 4. "Documentation Synchronization Checklist" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md#4-documentation-synchronization-checklist) so Audit-First instructions remain effective.
@@ -219,7 +217,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 ### 3.4. Step 4: Document
 
 - Update [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) with a clear description of what changed and why.  
-- Ensure [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) contains a concise summary referencing the same change.  
+- Ensure [CHANGELOG_BRIEF.md](development_docs/CHANGELOG_BRIEF.md) contains a concise summary referencing the same change.
 - Update any impacted docs (for example, section 1. "Quick Start (Recommended)" in `HOW_TO_RUN.md`, section 3. "Quick Start" in `README.md`, or specialized guides).
 - If you introduce new patterns for testing, logging, or error handling, update the relevant guide pair (human + AI).
 
@@ -246,7 +244,7 @@ Use this as your default loop for any change: features, bug fixes, or refactors.
 - **Behavior tests** - Exercise realistic end-to-end flows (for example, a check-in through Discord).  
 - **UI tests** - Focus on PySide6 dialogs, widgets, and signal/slot behavior.
 
-For AI-optimized testing instructions and patterns, see the matching sections in [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md).
+For testing instructions, safety constraints, and patterns, see [TESTING_GUIDE.md](tests/TESTING_GUIDE.md).
 
 
 ## 5. Common Tasks
@@ -276,7 +274,7 @@ For AI-optimized testing instructions and patterns, see the matching sections in
 4. Run targeted and regression tests after each step.  
 5. Update imports and documentation to reflect the new structure.  
 6. If you change test or logging patterns, update the associated guides.
-7. For legacy compatibility work, follow section 2. "Process" in [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md#2-process) and treat compatibility code as temporary bridge code only.
+7. For legacy compatibility work, follow section 2. "Process" in [LEGACY_COMPATIBILITY_GUIDE.md](development_docs/LEGACY_COMPATIBILITY_GUIDE.md#2-process) and prefer direct migration during alpha. Compatibility exceptions require an explicit user request or an external contract.
 
 ### 5.4. Static Analysis (Ruff and Pyright)
 
@@ -308,7 +306,7 @@ When **Ruff** (linter) and **Pyright** (type checker) conflict, prefer **Pyright
 ## 7. Learning Resources
 
 - [README.md](README.md) and project-specific guides in `development_docs/`.  
-- `.cursor/rules/` and `ai_development_docs/` for AI-focused instructions and constraints.  
+- [AGENTS.md](AGENTS.md) for project instructions and constraints; shared topic guides apply to all contributors.
 - Official Python resources and tutorials (for syntax and standard library questions).  
 - Existing tests and modules as concrete examples of project patterns.  
 

@@ -4,8 +4,6 @@
 > **Audience**: Developers and AI assistants working on MHM  
 > **Purpose**: Centralized error handling patterns, categories, and integration rules  
 > **Style**: Technical, comprehensive, actionable  
-> **Pair**: [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)  
-> This document is paired with [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) and any changes must consider both docs.
 
 ---
 

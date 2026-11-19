@@ -32,7 +32,7 @@
 | Product/runtime list canonical sources | [PRODUCT_LIST_OF_LISTS.md](PRODUCT_LIST_OF_LISTS.md) (commands, prompts, categories, channels) |
 | Current audit status | [STATUS_BRIEF.md](../development_tools/STATUS_BRIEF.md) |
 | Generated priority queue | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) |
-| Detailed session history | [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) |
+| Session history | [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) and [CHANGELOG_BRIEF.md](CHANGELOG_BRIEF.md) |
 | Architecture/data model references | [CONFIGURATION_REFERENCE.md](../CONFIGURATION_REFERENCE.md) and [USER_DATA_MODEL.md](../core/USER_DATA_MODEL.md) |
 
 ---
@@ -57,7 +57,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Plan | Status | Priority | Where details live | Current focus |
 |------|--------|----------|--------------------|---------------|
 | Flow/check-in scheduled-send stability | **MONITORING** | Low | This file + spec | Live Discord validation, retry/cooldown observation, log review |
-| Error handling quality | **ACTIVE** | Medium | This file + [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
+| Error handling quality | **ACTIVE** | Medium | This file + [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) | Better user/log messages and recovery guidance |
 | Notebook system | **MONITORING** | Low | [Notebook system](#62-notebook-system) | Optional Discord visual checks when rendering or help changes |
 | Task system | **MONITORING** | Low | [Task system](#61-task-system) | Focused validation when Discord UI or parsing changes |
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Full-suite reliability, test isolation, and coverage growth |
@@ -104,7 +104,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 - [ ] Add structured context payloads where they reduce debugging time.
 - [ ] Review direct `handle_error` calls when generated reports surface them.
 
-**Reference**: [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)
+**Reference**: [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md)
 
 ---
 

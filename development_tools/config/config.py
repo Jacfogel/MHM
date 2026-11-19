@@ -364,6 +364,8 @@ def __getattr__(name: str) -> Any:
 # Version sync settings
 # NOTE: Projects should provide config file. All paths are relative to project root.
 VERSION_SYNC = {
+    "changelog_path": "development_docs/CHANGELOG_BRIEF.md",
+    "changelog_archive_path": "development_docs/changelog_history/CHANGELOG_BRIEF_ARCHIVE.md",
     "ai_docs": [],  # Empty by default - requires config file
     "docs": [],  # Empty by default - requires config file
     "cursor_rules": [".cursor/rules/*.mdc"],  # Generic pattern

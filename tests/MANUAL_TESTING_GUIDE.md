@@ -29,8 +29,7 @@ Use this guide:
 
 For the overall testing framework (layout, markers, automation, coverage), use:
 
-- [TESTING_GUIDE.md](TESTING_GUIDE.md) (automation-focused).
-- [AI_TESTING_GUIDE.md](../ai_development_docs/AI_TESTING_GUIDE.md) (AI routing and constraints).
+- [TESTING_GUIDE.md](TESTING_GUIDE.md) (automation, fixtures, and safety constraints).
 
 ---
 

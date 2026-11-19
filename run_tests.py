@@ -105,7 +105,7 @@ _current_console_output_file: Path | None = None
 # Global variable to store current test context
 _current_test_context = None
 
-# Console output retention policy (AI_BACKUP_GUIDE.md / BACKUP_GUIDE.md)
+# Console output retention policy (development_docs/BACKUP_GUIDE.md)
 CONSOLE_OUTPUT_KEEP_LAST = 7
 CONSOLE_OUTPUT_ARCHIVE_RETENTION_DAYS = 30
 ARCHIVE_KEEP_LAST = 7

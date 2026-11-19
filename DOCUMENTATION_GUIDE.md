@@ -1,15 +1,9 @@
 # Documentation Guide
 
-> **File**: `DOCUMENTATION_GUIDE.md`  
-> **Audience**: Developers and contributors  
-> **Purpose**: Organize, author, and maintain project documentation  
-> **Style**: Comprehensive reference with actionable guidance  
-> **Pair**:
-> [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)  
-> This document is paired with
-> [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md),
-> and any structural changes must keep H2 headings in lockstep across
-> both docs.
+> **File**: `DOCUMENTATION_GUIDE.md`
+> **Audience**: Developers and AI collaborators
+> **Purpose**: Organize, author, and maintain project documentation
+> **Style**: Comprehensive reference with actionable guidance
 
 ## 1. Quick Reference
 
@@ -21,71 +15,64 @@ safely.
 - **Channels, website, and health integration**
   See [COMMUNICATION_GUIDE.md](communication/COMMUNICATION_GUIDE.md) for adapter boundaries, [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md) for the Twilio pilot and simulator, [WEBSITE_GUIDE.md](website/WEBSITE_GUIDE.md) for browser/gateway deployment and billing, and [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md) for OAuth, sync, and personalization.
 
--   **Project overview and philosophy**  
+-   **Project overview and philosophy**
     See [README.md](README.md) for high-level context, core principles,
     and navigation.
 
--   **Environment setup and run commands**  
+-   **Environment setup and run commands**
     See section 1. "Quick Start (Recommended)" in
     [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended), especially section
     1.3. "Step 3: Configure Environment (Optional)" in
     [HOW_TO_RUN.md](HOW_TO_RUN.md#13-step-3-configure-environment-optional).
 
--   **Configuration (.env and core/config.py)**  
+-   **Configuration (.env and core/config.py)**
     See [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md) for the canonical list of config values, what they do, and common failure modes.
 
--   **User data persistence layout (data/users/{user_id}/...)**  
+-   **User data persistence layout (data/users/{user_id}/...)**
     See [core/USER_DATA_MODEL.md](core/USER_DATA_MODEL.md) for the canonical on-disk contract (files, subdirectories, and access rules).
 
--   **Development workflow and safe changes**  
+-   **Development workflow and safe changes**
     See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for the
-    standard development cycle and safe-change process.  
-    For a condensed workflow summary, see
-    [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md).
+    standard development cycle and safe-change process.
 
--   **User-visible behavior requirements**  
+
+-   **User-visible behavior requirements**
     See [specs/SPECS_GUIDE.md](specs/SPECS_GUIDE.md) and capability files under
     `specs/` (for example
     [specs/discord-welcome-and-onboarding.md](specs/discord-welcome-and-onboarding.md)).
 
--   **Architecture and data flow**  
+-   **Architecture and data flow**
     See [ARCHITECTURE.md](ARCHITECTURE.md) for module layout, data
-    handling patterns, and UI architecture.  
-    For an AI-optimized summary, see
-    [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
+    handling patterns, and UI architecture.
+
 
 -   **Logging, testing, error handling, and backups**
 
-    -   Logging: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md) and
-        [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md)  
-    -   Testing: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md),
-        [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md),
-        and
-        [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md)
-    -   Error handling:
-        [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md) and
-        [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md)  
-    -   Backups: [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md) and
-        [AI_BACKUP_GUIDE.md](ai_development_docs/AI_BACKUP_GUIDE.md)
+    -   Logging: [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md).
+    -   Testing: [TESTING_GUIDE.md](tests/TESTING_GUIDE.md) and the
+        [development-tools testing guide](https://github.com/Jacfogel/development-tools/blob/development/tests/development_tools/DEVELOPMENT_TOOLS_TESTING_GUIDE.md).
+    -   Error handling: [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
+    -   Backups: [BACKUP_GUIDE.md](development_docs/BACKUP_GUIDE.md).
+    -   Legacy removal: [LEGACY_COMPATIBILITY_GUIDE.md](development_docs/LEGACY_COMPATIBILITY_GUIDE.md).
 
 -   **AI collaboration and rules**
 
-    -   Session constraints and guardrails:
-        [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)  
+    Read [AGENTS.md](AGENTS.md) for project constraints and task navigation.
+    Shared topic guides apply to all contributors.
 
 -   **Change history and priorities**
 
     -   Detailed change history:
-        [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)  
-    -   AI-focused summaries:
-        [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)  
+        [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
+    -   Recent change summaries:
+        [CHANGELOG_BRIEF.md](development_docs/CHANGELOG_BRIEF.md)
     -   Plans and roadmaps: [TODO.md](TODO.md),
         [PLANS.md](development_docs/PLANS.md)
 
 ### 1.2. When editing documentation
 
--   If you edit any document that has an AI or human counterpart, follow
-    section 4, "Documentation Synchronization Checklist".
+-   Update the shared guide that owns the topic and follow section 4,
+    "Documentation Synchronization Checklist", for affected references.
 -   Use generated reports (for example,
     [LEGACY_REFERENCE_REPORT.md](development_tools/reports/LEGACY_REFERENCE_REPORT.md))
     to detect stale references and path drift before finalizing changes.
@@ -95,9 +82,10 @@ safely.
 This section defines how documentation is grouped and how each group
 should be used.
 
-### 2.1. Human-facing documents
+### 2.1. Shared topic guides
 
-Human-facing documents are the detailed, explanatory sources of truth.
+Shared topic guides are the detailed, explanatory sources of truth for
+humans and AI collaborators.
 They prioritize context, rationale, examples, and troubleshooting.
 
 Key documents:
@@ -124,45 +112,12 @@ Key documents:
 -   [PROJECT_VISION.md](PROJECT_VISION.md): Longer-term goals, values,
     and direction of the project.
 
-When in doubt, human-facing docs are where you should look for
+When in doubt, shared topic guides are where you should look for
 rationale, context, and full explanations.
 
-### 2.2. AI-facing documents
+### 2.2. Agent entry documents
 
-AI-facing documents are concise references that help AI collaborators
-behave safely and efficiently.
-
-AI-facing docs should:
-
--   Capture rules, constraints, conventions, and boundaries that must be
-    enforced.
--   Provide fast routing and "what to open next" guidance.
--   Avoid duplicating long explanations already present in the human
-    doc, but include critical rules even if they appear elsewhere.
-
-Key AI-facing docs:
-
--   [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md):
-    Session constraints, must-follow rules, and safety boundaries.
--   [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md):
-    Condensed workflow, with links to sections in
-    [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md).
--   [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md):
-    High-level architectural cues and module overviews, with references
-    to [ARCHITECTURE.md](ARCHITECTURE.md).
--   [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md):
-    Documentation standards (AI view), sync rules, and enforcement
-    boundaries.
--   [AI_LOGGING_GUIDE.md](ai_development_docs/AI_LOGGING_GUIDE.md):
-    Logging usage patterns, triage workflows, and log locations.
--   [AI_TESTING_GUIDE.md](ai_development_docs/AI_TESTING_GUIDE.md):
-    Testing patterns, commands, and debugging guidance.
--   [AI_ERROR_HANDLING_GUIDE.md](ai_development_docs/AI_ERROR_HANDLING_GUIDE.md):
-    Error categories, constraints, and links to
-    [ERROR_HANDLING_GUIDE.md](core/ERROR_HANDLING_GUIDE.md).
--   [AI_LEGACY_COMPATIBILITY_GUIDE.md](ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md):
-    Patterns for safely removing legacy code and using automated
-    reports.
+Keep [AGENTS.md](AGENTS.md) short and actionable. This entry file also provides task navigation; it does not repeat topic guides. Do not create AI mirrors of shared guides.
 
 ### 2.3. Generated and analytical documentation
 
@@ -214,11 +169,10 @@ Required format:
 ``` markdown
 # File Name
 
-> **File**: `relative/path/from/project/root`  
-> **Audience**: [Target audience]  
-> **Purpose**: [What this document is for]  
-> **Style**: [Tone and depth]  
-> **Pair**: ``    # Only for human/AI doc pairs  
+> **File**: `relative/path/from/project/root`
+> **Audience**: [Target audience]
+> **Purpose**: [What this document is for]
+> **Style**: [Tone and depth]
 > **Parent**: ``  # Only for subordinate docs
 ```
 
@@ -227,47 +181,20 @@ Notes:
 File must always match the relative path from the project root (for
 example, logs/LOGGING_GUIDE.md).
 
-Pair must be present for all docs that participate in a doc pair (for
-example, ai_development_docs/AI_LOGGING_GUIDE.md).
+Use `Parent` when a document is subordinate to a higher-level guide, such
+as a manual testing guide. This establishes routing, standards, and
+terminology; it does not require matching headings. Omit Parent for
+standalone documents. Do not add Pair metadata.
 
-The Pair line should be followed by a short sentence stating that
-changes must be considered in the context of both docs.
-
-Parent is used when a doc is subordinate to a higher-level doc (for
-example, manual guides under a primary testing guide).
-
-It does not imply H2 lockstep like Pair.
-
-It exists to guide routing, standards, and terminology.
-
-For docs that are neither paired nor subordinate, omit both Pair and
-Parent.
-
-[EXAMPLE] Paired doc (human-side):
+[EXAMPLE] Shared topic guide:
 
 ``` markdown
-# File Name
+# Logging Guide
 
-> **File**: `logs/LOGGING_GUIDE.md`  
-> **Audience**: Developers and maintainers  
-> **Purpose**: Explain how logging works and how to use it safely  
-> **Style**: Detailed, explanatory  
-> **Pair**: `ai_development_docs/AI_LOGGING_GUIDE.md`  
-> This document is paired with `ai_development_docs/AI_LOGGING_GUIDE.md` and any changes must be considered in the context of both docs.
-```
-
-[EXAMPLE] AI-side paired doc:
-
-``` markdown
-# File Name
-
-> **File**: `ai_development_docs/AI_LOGGING_GUIDE.md`  
-> **Pair**: `logs/LOGGING_GUIDE.md`  
-> **Audience**: AI collaborators and tools  
-> **Purpose**: Routing and constraints for logging usage  
-> **Style**: Minimal, routing-first  
-> For detailed behavior, examples, and rationale, use the matching sections in `logs/LOGGING_GUIDE.md`.  
-> Keep this file's H2 headings in lockstep with `logs/LOGGING_GUIDE.md` when making changes.
+> **File**: `logs/LOGGING_GUIDE.md`
+> **Audience**: Developers and AI collaborators
+> **Purpose**: Explain how logging works and how to use it safely
+> **Style**: Detailed, explanatory
 ```
 
 [EXAMPLE] Subordinate (parented) doc:
@@ -275,39 +202,27 @@ Parent.
 ``` markdown
 # File Name
 
-> **File**: `tests/MANUAL_TESTING_GUIDE.md`  
-> **Audience**: Developers and AI assistants performing manual testing  
-> **Purpose**: Canonical manual testing flows and checklists  
-> **Style**: Checklist-first, concise but detailed  
-> **Parent**: `tests/TESTING_GUIDE.md`  
+> **File**: `tests/MANUAL_TESTING_GUIDE.md`
+> **Audience**: Developers and AI assistants performing manual testing
+> **Purpose**: Canonical manual testing flows and checklists
+> **Style**: Checklist-first, concise but detailed
+> **Parent**: `tests/TESTING_GUIDE.md`
 > This document is subordinate to `tests/TESTING_GUIDE.md` and must remain consistent with its standards and terminology.
 ```
 
-### 3.2. Metadata for .mdc rule files
+### 3.2. Contributor instruction files
 
-For .mdc rule files used by tools like Cursor:
+Project-wide instructions live in [AGENTS.md](AGENTS.md). Keep them
+short, actionable, and linked to the shared guides that own detailed
+procedures. Cursor rules, commands, and plans are retired.
 
--   Prefer YAML frontmatter with a file field, or
--   Use a single comment line if there is no frontmatter.
+Existing task-specific skills remain under `.agents/skills/`. Their
+metadata identifies the skill and when to use it; their File metadata
+must identify the current skill path rather than a deleted Cursor command.
 
-[EXAMPLE] YAML frontmatter:
+### 3.3. Structure guidelines for shared guides
 
-``` yaml
----
-description: "AI behavior rules for error handling"
-file: ".cursor/rules/testing-guidelines.mdc"
----
-```
-
-[EXAMPLE] Comment-only:
-
-``` markdown
-<!-- file: .cursor/rules/testing-guidelines.mdc -->
-```
-
-### 3.3. Structure guidelines for human-facing docs
-
-Human-facing docs (for example, DOCUMENTATION_GUIDE.md,
+Shared topic guides (for example, DOCUMENTATION_GUIDE.md,
 logs/LOGGING_GUIDE.md, tests/TESTING_GUIDE.md) should:
 
 -   Use numbered H2/H3 headings (see section 3.5).
@@ -316,17 +231,9 @@ logs/LOGGING_GUIDE.md, tests/TESTING_GUIDE.md) should:
 -   Cross-reference other docs using specific section numbers when
     pointing to specific behavior or rules.
 
-### 3.4. Structure guidelines for AI-facing docs
+### 3.4. Structure guidelines for entry documents
 
-AI-facing docs in ai_development_docs/ should:
-
--   Be brief, but include critical rules, constraints, conventions, and
-    boundaries.
--   Include routing recommendations and "what to open next" guidance.
--   Prefer linking to AI_* docs first, then to human docs for deep
-    detail.
--   Avoid reproducing long explanations already present in human-facing
-    docs.
+Keep entry documents brief, with essential constraints and links directly to shared guides. Do not duplicate detailed procedures.
 
 ### 3.5. Heading numbering standard
 
@@ -402,7 +309,7 @@ Full paths from project root (preferred):
 Always use the complete path from the project root.
 
 Examples: development_tools/config.py, core/config.py, core/service.py,
-ai_development_docs/AI_DOCUMENTATION_GUIDE.md
+DOCUMENTATION_GUIDE.md
 
 Why: unambiguous, verifiable, works from any context, enables reliable
 file search.
@@ -458,14 +365,16 @@ or another operations.py)
 
 ### 3.8. Markdown link standard (for .md references)
 
-Use only the filename as the link text, not the path. Keep the full
-project-root path in the link target so links remain unambiguous.
+Use only the filename as the link text, not the path. Use a target that
+resolves from the source document so links are clickable in repository
+viewers. In root documents this is the project-root relative path; in
+nested documents use the appropriate relative path, such as `../README.md`.
 
 [OK]
 
 [LOGGING_GUIDE.md](logs/LOGGING_GUIDE.md)
 
-[AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
+[TESTING_GUIDE.md](tests/TESTING_GUIDE.md)
 
 Rules:
 
@@ -520,54 +429,18 @@ visible without expanding collapsed sections.
 
 ## 4. Documentation Synchronization Checklist
 
-This section defines how to keep doc pairs and related references
-synchronized.
+This section defines how to keep shared documentation and related
+references synchronized with the implementation.
 
-### 4.1. Paired documentation files (canonical list)
+### 4.1. Shared documentation ownership
 
-Paired docs (first-line and detailed counterparts) must share the same
-H2 heading set. If you add, remove, rename, or reorder an H2 in one doc,
-you must do the same in the paired doc.
+There are no paired documentation files. Each topic has one shared guide. The detailed changelog and short recent summary have independent structures; headings do not need to match.
 
-**Canonical source**: `development_tools_config.json` -> `constants.paired_docs`.
-The list below is a human-readable summary; `doc-sync` validates it matches config.
+The host configuration explicitly sets `constants.paired_docs` to an empty object. Maintain scan coverage through `fix_version_sync.docs`, `fix_version_sync.ai_docs`, and `constants.default_docs_extra` in the tracked host template and local override.
 
-**Paired documentation (human-readable summary):**
+### 4.2. Synchronization workflow
 
--   DEVELOPMENT_WORKFLOW.md and
-    ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md
--   ARCHITECTURE.md and ai_development_docs/AI_ARCHITECTURE.md
--   DOCUMENTATION_GUIDE.md and
-    ai_development_docs/AI_DOCUMENTATION_GUIDE.md
--   logs/LOGGING_GUIDE.md and ai_development_docs/AI_LOGGING_GUIDE.md
--   tests/TESTING_GUIDE.md and ai_development_docs/AI_TESTING_GUIDE.md
--   core/ERROR_HANDLING_GUIDE.md and
-    ai_development_docs/AI_ERROR_HANDLING_GUIDE.md
--   development_docs/BACKUP_GUIDE.md and
-    ai_development_docs/AI_BACKUP_GUIDE.md
--   development_docs/CHANGELOG_DETAIL.md and
-    ai_development_docs/AI_CHANGELOG.md
-
-The same list is kept in `development_tools_config.json` under `constants.paired_docs` (runtime canonical source). Keep this section and the config in sync; `doc-sync` reports paired-docs list drift if they differ.
-
-### 4.2. Synchronization workflow (practical)
-
-Open both the human and AI doc.
-
-Make the human doc changes first (the human doc is the detailed source
-of truth).
-
-Apply the same H2 heading changes to the AI doc immediately.
-
-Update the AI doc content to reflect:
-
--   constraints, conventions, and boundaries
--   key patterns and "do / do not" rules
--   routing and "what to open next"
-
-Update cross-references and section numbers as needed.
-
-Run documentation tooling checks (see section 4.5).
+Update the owning guide or spec, then fix affected navigation, links, configuration catalogs, and skill references. Run documentation checks. Do not create a second document solely to mirror the first.
 
 ### 4.3. Cross-doc consistency checks
 
@@ -575,7 +448,6 @@ Before finalizing doc changes:
 
 -   Verify referenced paths exist (avoid path drift).
 -   Verify section numbers referenced in links remain correct.
--   Verify paired docs have identical H2 heading sets.
 -   Verify example markers are present around intentional bad examples.
 -   Verify headings and numbering follow section 3.5.
 -   Validate links to generated reports or other docs resolve correctly.
@@ -605,7 +477,7 @@ citations are conservative hints requiring manual review. The heuristic checks
 same-line inline links and ATX headings; it does not prove that every behavioral
 reference is precise or interpret multiline prose. Historical/generated files,
 metadata, fenced examples, and bare navigation links are skipped. Advisory counts
-do not change the paired-doc status, and the check never rewrites files.
+are advisory rather than mandatory failures, and the check never rewrites files.
 
 
 ``` bash
@@ -622,23 +494,13 @@ For detailed tool behavior, see the [Development Tools README](development_tools
 
 ## 5. Maintenance Guidelines
 
-### 5.1. Updating AI documentation
+### 5.1. Updating agent entry documents
 
-When updating an AI-facing document:
+Keep essential constraints and navigation current. Link directly to the authoritative guide and avoid accumulating implementation history.
 
--   Prefer referencing other AI docs first, then human docs.
--   Keep content brief and operational, but include critical rules and
-    boundaries.
--   Remove redundant text when another AI doc already covers the same
-    rule.
--   Add explicit references to the relevant section in the paired human
-    doc for context.
--   When you add a new section in the AI doc, ensure the same H2 exists
-    in the paired human doc.
+### 5.2. Updating shared documentation
 
-### 5.2. Updating human documentation
-
-When updating a human-facing document:
+When updating a shared topic guide:
 
 -   Provide enough context and examples that a beginner developer can
     follow the guidance.
@@ -646,16 +508,18 @@ When updating a human-facing document:
     matter.
 -   Keep cross-references up to date; prefer linking to specific
     sections instead of entire files when possible.
--   If the doc has an AI counterpart, ensure the AI doc accurately
-    summarizes constraints, patterns, and routing.
+-   Preserve important rules, examples, rationale, and troubleshooting
+    details. Remove material only when it is obsolete or superseded by
+    an identified authoritative source.
 
 ### 5.3. Adding new documentation
 
 When adding a new documentation file:
 
--   Decide whether it should be human-facing, AI-facing, or both.
--   If a new pair is needed, register it conceptually under section 4.1
-    and ensure both files share the same H2 set.
+-   Check whether an existing shared guide or spec already owns the topic.
+-   Maintain one shared source for the topic; do not create an AI mirror.
+-   Index new files and register them in the host documentation scan catalog
+    described in section 4.1.
 -   Follow the file address requirement and standard structure for the
     chosen audience.
 -   If the document is generated, follow section 6 instead of these
@@ -682,12 +546,12 @@ All generated Markdown files must use this standardized metadata format:
 ``` markdown
 # Document Title
 
-> **File**: `path/to/file.md`  
-> **Generated**: This file is auto-generated. Do not edit manually.  
-> **Last Generated**: YYYY-MM-DD HH:MM:SS  
-> **Source**: `python development_tools/path/to/generator.py` - Tool Description  
-> **Audience**: [Target audience]  
-> **Purpose**: [What this document is for]  
+> **File**: `path/to/file.md`
+> **Generated**: This file is auto-generated. Do not edit manually.
+> **Last Generated**: YYYY-MM-DD HH:MM:SS
+> **Source**: `python development_tools/path/to/generator.py` - Tool Description
+> **Audience**: [Target audience]
+> **Purpose**: [What this document is for]
 > **Status**: **ACTIVE** - [Brief status note]
 ```
 
@@ -774,10 +638,8 @@ Do not duplicate command semantics here.
 
 Useful supporting materials and locations:
 
--   .cursor/rules/: Rulesets that govern AI behavior and baseline
-    constraints.
--   AI_SESSION_STARTER.md: Required reading for AI collaborators before
-    performing code changes.
--   CHANGELOG_DETAIL.md and AI_CHANGELOG.md: Detailed and condensed
-    histories of changes.
--   [Development Tools README](development_tools/README.md): Documentation on analysis, audit, and sync tools.
+-   [AGENTS.md](AGENTS.md): Project constraints and navigation for AI collaborators.
+-   [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md) and
+    [CHANGELOG_BRIEF.md](development_docs/CHANGELOG_BRIEF.md): Detailed and condensed histories.
+-   [LEGACY_COMPATIBILITY_GUIDE.md](development_docs/LEGACY_COMPATIBILITY_GUIDE.md): Safe migration and removal procedures.
+-   [README.md](development_tools/README.md): Analysis, audit, and documentation tooling.

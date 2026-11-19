@@ -47,19 +47,17 @@ from development_tools.shared.standard_exclusions import (
 
 # Extract .md files from ALL_GENERATED_FILES for generated docs
 # (exclude .txt, .json files which are also in the list)
-# AI docs: files in ai_development_docs/ or development_tools/ directories
+# Tool-owned generated documentation belongs to the tools scope.
 GENERATED_AI_DOCS = [
     f
     for f in ALL_GENERATED_FILES
-    if f.endswith(".md") and ("ai_development_docs/" in f or "development_tools/" in f)
+    if f.endswith(".md") and "development_tools/" in f
 ]
-# Doc files: files in development_docs/ directory (exclude ai_development_docs/)
+# Other generated Markdown belongs to the shared documentation scope.
 GENERATED_DOCS = [
     f
     for f in ALL_GENERATED_FILES
-    if f.endswith(".md")
-    and "development_docs/" in f
-    and "ai_development_docs/" not in f
+    if f.endswith(".md") and "development_tools/" not in f
 ]
 
 CURSOR_RULES = VERSION_SYNC_CONFIG["cursor_rules"]
@@ -404,12 +402,12 @@ def sync_todo_with_changelog(apply_auto_clean: bool = False):
     etc.) are never removed automatically.
     """
     todo_path = "TODO.md"
-    changelog_path = "ai_development_docs/AI_CHANGELOG.md"
+    changelog_path = VERSION_SYNC_CONFIG["changelog_path"]
 
     if not os.path.exists(todo_path) or not os.path.exists(changelog_path):
         return {
             "status": "ok",
-            "message": "TODO.md or AI_CHANGELOG.md not found",
+            "message": "TODO.md or CHANGELOG_BRIEF.md not found",
             "completed_entries": 0,
             "entries": [],
             "summary": {
@@ -542,8 +540,8 @@ def sync_todo_with_changelog(apply_auto_clean: bool = False):
 
 
 def check_changelog_entry_count(max_entries=15):
-    """Check if AI_CHANGELOG.md has too many entries and should be trimmed."""
-    changelog_path = "ai_development_docs/AI_CHANGELOG.md"
+    """Check if CHANGELOG_BRIEF.md has too many entries and should be trimmed."""
+    changelog_path = VERSION_SYNC_CONFIG["changelog_path"]
 
     if not os.path.exists(changelog_path):
         return {"status": "ok", "count": 0, "message": "Changelog not found"}
@@ -604,11 +602,11 @@ def check_changelog_entry_count(max_entries=15):
         }
 
 
-def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
-    """Trim AI_CHANGELOG.md entries older than N days and limit total entries."""
-    changelog_path = "ai_development_docs/AI_CHANGELOG.md"
-    # Archive goes to project-level archive directory for human/AI review workflows.
-    archive_path = "archive/AI_CHANGELOG_ARCHIVE.md"
+def trim_changelog_entries(days_to_keep=30, max_entries=15):
+    """Trim CHANGELOG_BRIEF.md entries older than N days and limit total entries."""
+    changelog_path = VERSION_SYNC_CONFIG["changelog_path"]
+    # Archive location is host-configurable alongside the brief changelog path.
+    archive_path = VERSION_SYNC_CONFIG["changelog_archive_path"]
 
     if not os.path.exists(changelog_path):
         return []
@@ -616,7 +614,7 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
     try:
         # Ensure archive directory exists
         archive_dir = os.path.dirname(archive_path)
-        os.makedirs(archive_dir, exist_ok=True)
+        os.makedirs(archive_dir or ".", exist_ok=True)
 
         with open(changelog_path, encoding="utf-8") as f:
             content = f.read()
@@ -729,9 +727,9 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
                     seen.add(heading)
 
             archive_content = [
-                "# AI Changelog Archive",
+                "# Changelog Brief Archive",
                 "",
-                "> **Purpose**: Archived entries from AI_CHANGELOG.md",
+                "> **Purpose**: Archived entries from CHANGELOG_BRIEF.md",
                 "> **Generated**: Auto-archived by fix_version_sync.py",
                 "",
                 "## Archived Entries",
@@ -769,6 +767,7 @@ def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
             "trimmed_entries": len(archived_entries),
             "kept_entries": len(filtered_entries),
             "archive_created": len(archived_entries) > 0,
+            "archive_path": archive_path,
         }
 
     except Exception as e:
@@ -999,7 +998,7 @@ if __name__ == "__main__":
                     days_to_keep = int(arg.split("=")[1])
                 elif arg.startswith("--max="):
                     max_entries = int(arg.split("=")[1])
-            result = trim_ai_changelog_entries(days_to_keep, max_entries)
+            result = trim_changelog_entries(days_to_keep, max_entries)
             if "error" in result:
                 logger.error(f"Error trimming changelog: {result['error']}")
             else:
@@ -1008,7 +1007,7 @@ if __name__ == "__main__":
                 )
                 if result["archive_created"]:
                     logger.info(
-                        "Archive created: development_tools/reports/archive/AI_CHANGELOG_ARCHIVE.md"
+                        "Archive created: development_tools/reports/development_docs/changelog_history/CHANGELOG_BRIEF_ARCHIVE.md"
                     )
         elif command == "check":
             max_entries = 15
@@ -1050,11 +1049,11 @@ if __name__ == "__main__":
                 for entry in result.get("entries", []):
                     logger.warning(f"  Line {entry['line_number']}: {entry['title']}")
                 logger.warning(
-                    "  -> Please check if these are documented in AI_CHANGELOG.md"
+                    "  -> Please check if these are documented in CHANGELOG_BRIEF.md"
                 )
                 logger.warning("  -> If documented, remove them from TODO.md")
                 logger.warning(
-                    "  -> If not documented, add them to AI_CHANGELOG.md first"
+                    "  -> If not documented, add them to CHANGELOG_BRIEF.md first"
                 )
         else:
             # Usage messages go to stdout for user visibility
@@ -1090,7 +1089,7 @@ if __name__ == "__main__":
                 "  python development_tools/docs/fix_version_sync.py sync --force            # Force update all dates"
             )
             print(
-                "  python development_tools/docs/fix_version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)"
+                "  python development_tools/docs/fix_version_sync.py trim                     # Trim CHANGELOG_BRIEF entries (30 days, max 15)"
             )
             print(
                 "  python development_tools/docs/fix_version_sync.py trim --days=60 --max=20 # Custom trim settings"
@@ -1105,7 +1104,7 @@ if __name__ == "__main__":
                 "  python development_tools/docs/fix_version_sync.py validate                 # Validate all referenced paths exist"
             )
             print(
-                "  python development_tools/docs/fix_version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md"
+                "  python development_tools/docs/fix_version_sync.py sync-todo                # Sync TODO.md with CHANGELOG_BRIEF.md"
             )
             print(
                 "  python development_tools/docs/fix_version_sync.py sync-todo --dry-run    # Print dry-run summary only (no edits)"

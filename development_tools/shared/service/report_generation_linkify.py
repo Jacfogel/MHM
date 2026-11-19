@@ -7,7 +7,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 _REVIEW_PATH_LINK = re.compile(
-    r"^((?:development_docs|development_tools|ai_development_docs)/[\w./-]+\.(?:md|json))(\s*\(.*)?$"
+    r"^([\w.-]+(?:/[\w.-]+)*\.(?:md|json))(\s*\(.*)?$"
 )
 
 

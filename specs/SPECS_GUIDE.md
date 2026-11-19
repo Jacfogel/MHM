@@ -18,9 +18,9 @@ For communication architecture and adapter boundaries, see [COMMUNICATION_GUIDE.
 |----------|-----------|
 | What must happen when a user does X? | `specs/<topic>.md` |
 | Where does code live and what patterns apply? | [ARCHITECTURE.md](../ARCHITECTURE.md), [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), channel guides |
-| How do I change code safely (venv, tests, audits)? | [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), `ai_development_docs/AI_*` guides |
+| How do I change code safely (venv, tests, audits)? | [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), [AGENTS.md](../AGENTS.md) |
 | What work is planned or in progress? | [PLANS.md](../development_docs/PLANS.md), [TODO.md](../TODO.md) |
-| What shipped in a session? | [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md), [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) |
+| What shipped in a session? | [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md), [CHANGELOG_BRIEF.md](../development_docs/CHANGELOG_BRIEF.md) |
 | How do I test the project overall? | [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md), [TEST_PLAN.md](../development_docs/TEST_PLAN.md) |
 
 Specs are **shared by humans and AI** (no AI/human paired spec files). One spec file per capability is enough.
@@ -100,10 +100,10 @@ Update **Last Updated** on the spec when requirements or scenarios change (same 
 Before editing files listed in a spec's **Implementation** block:
 
 1. Read the spec and treat **Requirements** as the behavior contract.
-2. Read architecture and channel guides for structure and safety ([COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [AI_DEVELOPMENT_WORKFLOW.md](../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md), relevant `AI_*` guides).
+2. Read architecture and channel guides for structure and safety ([COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md), relevant shared topic guides).
 3. Implement or adjust code and tests.
 4. Update the spec if behavior intentionally changed.
-5. Add one changelog entry for the session ([CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) and [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md)).
+5. Add one changelog entry for the session ([CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) and [CHANGELOG_BRIEF.md](../development_docs/CHANGELOG_BRIEF.md)).
 
 Do not copy long guide sections into specs; link to them under **Related documentation**.
 
@@ -140,6 +140,5 @@ When you add a new spec file, append its path to `fix_version_sync.docs` and doc
 ## 8. Related Documentation
 
 - [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md#24-behavior-specifications) - section 2.4, behavior specifications category
-- [AI_DOCUMENTATION_GUIDE.md](../ai_development_docs/AI_DOCUMENTATION_GUIDE.md) - AI routing to specs
 - [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md) - channel-agnostic architecture
 - [communication/communication_channels/discord/DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md) - Discord adapter details

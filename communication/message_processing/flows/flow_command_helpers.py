@@ -74,7 +74,7 @@ GREETING_UNRELATED_PATTERN = re.compile(
 _CANCEL_BASE_WORDS = ["cancel", "stop", "quit", "exit", "abort"]
 
 # Pure keyword helpers below perform string matching only (no I/O).
-# error_handling_exclude per AI_ERROR_HANDLING_GUIDE section 7.
+# error_handling_exclude per core/ERROR_HANDLING_GUIDE.md section 7.
 
 
 # error_handling_exclude: pure keyword helper; no I/O

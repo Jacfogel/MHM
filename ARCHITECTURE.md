@@ -1,12 +1,10 @@
 # MHM System Architecture
 
 > **File**: `ARCHITECTURE.md`
-> **Audience**: Human developers building or maintaining the platform  
+> **Audience**: Developers and AI collaborators building or maintaining the platform
 > **Purpose**: Explain system design, module responsibilities, and data flow  
 > **Style**: Technical, detailed, reference-oriented  
-> **Pair**: [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md)
-> This document is paired with [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) and any changes must consider both docs.
-> **Last Updated**: 2026-05-01
+> **Last Updated**: 2026-11-19
 
 See [README.md](README.md) for navigation and project overview.  
 See section 2. "Virtual Environment Best Practices" in [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md#2-virtual-environment-best-practices) and section 1. "Quick Start (Recommended)" in [HOW_TO_RUN.md](HOW_TO_RUN.md#1-quick-start-recommended) for environment setup and running the app.
@@ -26,10 +24,6 @@ This section describes the top-level directories. It should match the actual pro
   AI integration modules, including optional OpenAI integration and local helpers for
   context building or summarization. See the "Overview" section in [SYSTEM_AI_GUIDE.md](ai/SYSTEM_AI_GUIDE.md#1-overview)
   if present.
-
-- `ai_development_docs/`  
-  AI-focused documentation used by tools such as Cursor. These files are kept in sync at the
-  H2 level with their human counterparts (for example `tests/TESTING_GUIDE.md`).
 
 - `development_tools/`  
   AI tools runner and commands (for example `doc-sync`, `config`, `coverage`). These automate
@@ -100,8 +94,7 @@ This section describes the top-level directories. It should match the actual pro
   individual users under `data/users/`. This directory should change rarely and any new files
   must be documented explicitly.
 
-If you add or remove top-level directories, update this section and the matching section in
-[AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
+If you add or remove top-level directories, update this section and affected navigation.
 
 ---
 
@@ -416,9 +409,8 @@ differences between Discord, email, and the UI.
   terminal and verify with the `status` command.
 
 - Keep docs and code in sync.  
-  Whenever you add or remove major modules, update this file and the matching
-  [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md). Use the documentation sync checker to enforce H2
-  alignment between paired docs.
+  Whenever you add or remove major modules, update this file and affected feature guides.
+  Use documentation checks to verify links and paths.
 
 - Use established logging and error handling patterns.  
   Prefer `core/logger.py` and `core/error_handling.py` plus the guidance in section 2.
@@ -429,3 +421,5 @@ differences between Discord, email, and the UI.
   The architecture is built to support safe, incremental changes. Make one change at a time,
   observe its impact, and use logging and tests to confirm behavior. For overall development
   process, see section 3. "Standards and Templates" in [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md#3-standards-and-templates).
+
+Health personalization respects separate message and chat preferences after the account health guard. See [GOOGLE_HEALTH_GUIDE.md](integrations/google_health/GOOGLE_HEALTH_GUIDE.md#52-personalization-preferences). Session context and ContextCache have separate bounds and expiry; stored history is separate and preference reads remain fresh. See [CONFIGURATION_REFERENCE.md](CONFIGURATION_REFERENCE.md#12-context-cache-behavior-canonical-semantics).

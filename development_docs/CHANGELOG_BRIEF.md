@@ -1,19 +1,19 @@
-# AI Changelog - Brief Summary for AI Context
-> **File**: `ai_development_docs/AI_CHANGELOG.md`
-> **Audience**: AI collaborators (Cursor, Codex, etc.)
+# Changelog Brief
+> **File**: `development_docs/CHANGELOG_BRIEF.md`
+> **Audience**: Developers and AI collaborators
 > **Purpose**: Lightweight summary of recent changes
 > **Style**: Concise, essential-only, scannable
-> **See [development_docs/CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the full history**
+> **See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) for the full history**
 
 ## Overview
 
-This file is a lightweight summary of recent changes for AI collaborators. It provides essential context without overwhelming detail. For the complete historical record, see [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md).
+This file is a lightweight summary of recent changes for all contributors. It provides essential context without overwhelming detail. For the complete historical record, see [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md).
 
 ## How to Update This File
-1. Add a new entry at the top summarising the change in 2-4 bullets.
+1. Add a new entry at the top summarising the change in 1-3 bullets.
 2. Keep the title short: "YYYY-MM-DD - Brief Title **COMPLETED**".
 3. Reference affected areas only when essential for decision-making.
-4. Move older entries to archive\AI_CHANGELOG_ARCHIVE.md to stay within 10-15 total.
+4. Move older entries to [CHANGELOG_BRIEF_ARCHIVE.md](changelog_history/CHANGELOG_BRIEF_ARCHIVE.md) to stay within 10 total.
 Template:
 ```markdown
 ### YYYY-MM-DD - Brief Title **COMPLETED**
@@ -27,9 +27,15 @@ Guidelines:
 - Limit entries to 1 per chat session; update the existing session entry as work progresses.
 - Maintain chronological order (most recent first)
 - REMOVE OLDER ENTRIES when adding new ones to keep context short
-- Target 10-15 recent entries maximum for optimal AI context window usage
+- Target 10 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+
+### 2026-11-19 - Shared documentation consolidation **COMPLETED**
+
+- Consolidated AI mirrors and session safeguards into shared guides and AGENTS.md; removed paired-heading requirements.
+- Moved this brief and its archive into development_docs; removed the old AI-doc folder and Cursor rules, commands, and plans.
+- Updated tooling in MHM and both upstream branches (development 352201b, published 02ca5d2). All 170 focused tests and published runtime smoke checks passed.
 
 ### 2026-11-19 - Feature guides and brief retirement **COMPLETED**
 
@@ -89,38 +95,4 @@ Guidelines:
 - Run `python development_tools/run_development_tools.py audit`. The shared CLI selects MHM's config via `pyproject.toml`. Removed the root launcher and MHM-specific loader fallbacks. CLI, environment, and local config overrides still work.
 - Consolidated task and notebook roadmaps into PLANS.md and moved their regression commands to the testing guide. Moved prompt evaluation snapshots to `tests/ai/prompt_reports/`. All 30 prompt regression tests passed.
 - Fixed nightly logging, registry and docstring gaps, Pyright, README checks, and the runner-isolation tests. Upgraded `dnspython` to 2.9.2. Fresh pip-audit and documentation sync were clean, and the saved Tier 3 product tracks reported zero failures or errors.
-
-### 2026-11-15 - Task dependencies **COMPLETED**
-
-- Tasks persist `blocked_by` and inverse `blocks` relationships, reject self/missing/circular edges, and become ready automatically as prerequisites are completed or deleted.
-- Website task editing manages prerequisites; website and Discord lists expose blocked state. Focused Python, browser, route, and Ruff checks pass; live rendering remains unverified.
-- Recurring parents carry complete step templates and remapped dependencies into the next occurrence. Uncomplete rewinds the generated next family, progressed series are protected, completed children require an active parent, and subtasks cannot repeat independently.
-
-### 2026-11-13 - Development-tools documentation and parallel audit test **COMPLETED**
-
-- Fixed stale guide references, the missing README file address, and 32 links to the relocated deprecation inventory. Documentation checks reported zero issues.
-- Isolated the custom-audit subprocess's logging settings from the parallel runner. All 13 portability tests passed with two workers.
-
-### 2026-11-12 - Configurable scoped audit and backup reports **COMPLETED**
-
-- Custom audit status and backup command reports now use host-configured destinations.
-- Scoped status headers, backup health priority links, and cache inventory use the same paths as report writers.
-- MHM's tracked policy and deprecation inventory moved to `development_docs/devtools/`. Host configuration also controls log, archive, and timing destinations.
-- Published and pinned the private development-tools subtree at `9a7dd97c`.
-
-### 2026-11-12 - Host-configured audit and legacy reporting **COMPLETED**
-
-- Audit summaries and aggregate JSON use host-configured paths and keep full-repo and scoped outputs separate. Quick Status, report links, and freshness checks follow those paths.
-- Legacy scanning and reporting share a configured deprecation inventory. Portability tests cover custom destinations, cross-scope links, and audit write timing.
-
-### 2026-11-12 - Configurable coverage report paths **COMPLETED**
-
-- Share the host-configured coverage snapshot directory and Markdown report path across coverage execution, report generation, audit readers, and snapshot cleanup.
-
-### 2026-11-12 - Windows test performance baseline **COMPLETED**
-
-- Established a 138-test Windows baseline for serial and two-worker runs. Closed the baseline task and kept the full-suite memory-pressure trigger in intermittent failure triage.
-
-## Archive Notes
-Older detailed entries live in `development_docs/changelog_history/` and remain the historical source of truth. Use [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the latest detailed entries and the archive folder for month-split history.
 

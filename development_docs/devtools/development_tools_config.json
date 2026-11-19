@@ -20,7 +20,6 @@
     "docs_dir": "development_docs",
     "logs_dir": "logs",
     "data_dir": "data",
-    "ai_docs_dir": "ai_development_docs",
     "development_docs_dir": "development_docs",
     "tests_dir": "tests",
     "tests_data_dir": "tests/data"
@@ -32,12 +31,12 @@
       "integrations/google_health/GOOGLE_HEALTH_GUIDE.md",
       "website/WEBSITE_GUIDE.md"
     ],
-    "cursor_rules": [
-      ".cursor/rules/*.mdc"
-    ],
+    "cursor_rules": [],
     "documentation_patterns": [
       "*.md"
-    ]
+    ],
+    "changelog_path": "development_docs/CHANGELOG_BRIEF.md",
+    "changelog_archive_path": "development_docs/changelog_history/CHANGELOG_BRIEF_ARCHIVE.md"
   },
   "error_handling": {
     "decorator_names": [
@@ -511,8 +510,6 @@
     },
     "context_exclusions": {
       "production": [
-        "ai_development_docs/*",
-        "*/ai_development_docs/*",
         "archive/*",
         "*/archive/*",
         "development_docs/*",
@@ -541,8 +538,6 @@
       ]
     },
     "generated_files": [
-      "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-      "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
       "development_tools/reports/DIRECTORY_TREE.md",
       "development_tools/reports/FUNCTION_REGISTRY_DETAIL.md",
       "development_tools/reports/LEGACY_REFERENCE_REPORT.md",
@@ -556,9 +551,8 @@
     ],
     "historical_preserve_files": [
       "*_PLAN",
-      ".cursor/plans",
       ".plan.md",
-      "AI_CHANGELOG.md",
+      "CHANGELOG_BRIEF.md",
       "archive/",
       "CHANGELOG_DETAIL.md",
       "logs/",
@@ -583,19 +577,20 @@
   },
   "constants": {
     "default_docs_extra": [
-      "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md"
+      "development_docs/LEGACY_COMPATIBILITY_GUIDE.md",
+      "ARCHITECTURE.md",
+      "development_docs/BACKUP_GUIDE.md",
+      "DEVELOPMENT_WORKFLOW.md",
+      "DOCUMENTATION_GUIDE.md",
+      "core/ERROR_HANDLING_GUIDE.md",
+      "logs/LOGGING_GUIDE.md",
+      "tests/TESTING_GUIDE.md",
+      "AGENTS.md",
+      "development_docs/CHANGELOG_BRIEF.md",
+      "development_docs/CHANGELOG_DETAIL.md"
     ],
     "_comment": "default_docs derived from paired_docs + fix_version_sync + default_docs_extra. local_module_prefixes is canonical for scan-derived lists.",
-    "paired_docs": {
-      "DEVELOPMENT_WORKFLOW.md": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-      "ARCHITECTURE.md": "ai_development_docs/AI_ARCHITECTURE.md",
-      "DOCUMENTATION_GUIDE.md": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-      "logs/LOGGING_GUIDE.md": "ai_development_docs/AI_LOGGING_GUIDE.md",
-      "tests/TESTING_GUIDE.md": "ai_development_docs/AI_TESTING_GUIDE.md",
-      "core/ERROR_HANDLING_GUIDE.md": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-      "development_docs/BACKUP_GUIDE.md": "ai_development_docs/AI_BACKUP_GUIDE.md",
-      "development_docs/CHANGELOG_DETAIL.md": "ai_development_docs/AI_CHANGELOG.md"
-    },
+    "paired_docs": {},
     "local_module_prefixes": [
       "ai",
       "checkins",
@@ -681,7 +676,6 @@
       "ai.chatbot"
     ],
     "fix_version_sync_directories": {
-      "ai_development_docs": "ai_development_docs/",
       "development_docs": "development_docs/",
       "logs": "logs/",
       "resources": "resources/",
@@ -880,8 +874,7 @@
       {
         "name": "generated_docs_archives",
         "paths": [
-          "development_docs/archive/**/*",
-          "ai_development_docs/archive/**/*"
+          "development_docs/archive/**/*"
         ],
         "category": "B",
         "enabled": true,
@@ -912,7 +905,6 @@
           "core/**/*.py",
           "communication/**/*.py",
           "development_docs/*.md",
-          "ai_development_docs/*.md",
           "README.md",
           "TODO.md"
         ],

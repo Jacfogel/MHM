@@ -732,29 +732,29 @@ class PrioritiesBriefDocumentMixin:
             normalized_tier = max(1, min(4, tier))
 
             guidance_defaults: dict[str, str] = {
-                "Stabilize documentation drift": "development_tools/README.md (doc-sync), ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-                "Add docstrings to missing functions": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Update function registry": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Add error handling to missing functions": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-                "Modernize error handling (Phase 1 + Phase 2)": "ai_development_docs/AI_ERROR_HANDLING_GUIDE.md",
-                "Raise coverage for domains below target": "ai_development_docs/AI_TESTING_GUIDE.md",
-                "Raise development tools coverage": "development_tools/README.md, ai_development_docs/AI_TESTING_GUIDE.md",
-                "Reduce dependency pattern risk": "development_tools/README.md (CONSOLIDATED_REPORT), ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Remove legacy compatibility code (after full call-site migration)": "ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+                "Stabilize documentation drift": "development_tools/README.md (doc-sync), DOCUMENTATION_GUIDE.md",
+                "Add docstrings to missing functions": "DEVELOPMENT_WORKFLOW.md",
+                "Update function registry": "DEVELOPMENT_WORKFLOW.md",
+                "Add error handling to missing functions": "core/ERROR_HANDLING_GUIDE.md",
+                "Modernize error handling (Phase 1 + Phase 2)": "core/ERROR_HANDLING_GUIDE.md",
+                "Raise coverage for domains below target": "tests/TESTING_GUIDE.md",
+                "Raise development tools coverage": "development_tools/README.md, tests/TESTING_GUIDE.md",
+                "Reduce dependency pattern risk": "development_tools/README.md (CONSOLIDATED_REPORT), DEVELOPMENT_WORKFLOW.md",
+                "Remove legacy compatibility code (after full call-site migration)": "development_docs/LEGACY_COMPATIBILITY_GUIDE.md",
                 "Update tools to use centralized config": "development_tools/README.md",
-                "Add docstrings to handler classes": "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Add pytest category markers to tests": "development_tools/README.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md",
-                "Add pytest domain-attribution markers to tests": "development_tools/README.md (test markers), ai_development_docs/AI_TESTING_GUIDE.md, development_docs/TEST_PLAN.md (§4.4)",
-                "Review orphaned pytest worker processes (Windows)": "development_tools/README.md, ai_development_docs/AI_TESTING_GUIDE.md",
-                "Investigate possible duplicate functions/methods": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Clean up unused/uncalled functions": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Consider splitting large modules": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Refactor high-complexity functions": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Investigate and correct test failures/errors": "development_tools/README.md, ai_development_docs/AI_TESTING_GUIDE.md",
-                "Investigate backup health failures": "ai_development_docs/AI_BACKUP_GUIDE.md",
-                "Consolidate documentation files": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Review documentation overlaps": "development_tools/README.md, ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
-                "Triage documentation example-marker hints": "ai_development_docs/AI_DOCUMENTATION_GUIDE.md (section 3.6)",
+                "Add docstrings to handler classes": "DEVELOPMENT_WORKFLOW.md",
+                "Add pytest category markers to tests": "development_tools/README.md (test markers), tests/TESTING_GUIDE.md",
+                "Add pytest domain-attribution markers to tests": "development_tools/README.md (test markers), tests/TESTING_GUIDE.md, development_docs/TEST_PLAN.md (§4.4)",
+                "Review orphaned pytest worker processes (Windows)": "development_tools/README.md, tests/TESTING_GUIDE.md",
+                "Investigate possible duplicate functions/methods": "development_tools/README.md, DEVELOPMENT_WORKFLOW.md",
+                "Clean up unused/uncalled functions": "development_tools/README.md, DEVELOPMENT_WORKFLOW.md",
+                "Consider splitting large modules": "development_tools/README.md, DEVELOPMENT_WORKFLOW.md",
+                "Refactor high-complexity functions": "development_tools/README.md, DEVELOPMENT_WORKFLOW.md",
+                "Investigate and correct test failures/errors": "development_tools/README.md, tests/TESTING_GUIDE.md",
+                "Investigate backup health failures": "development_docs/BACKUP_GUIDE.md",
+                "Consolidate documentation files": "development_tools/README.md, DEVELOPMENT_WORKFLOW.md",
+                "Review documentation overlaps": "development_tools/README.md, DEVELOPMENT_WORKFLOW.md",
+                "Triage documentation example-marker hints": "DOCUMENTATION_GUIDE.md (section 3.6)",
             }
             details_defaults: dict[str, str] = {
                 "Stabilize documentation drift": self._scoped_tool_result_path(
@@ -846,7 +846,7 @@ class PrioritiesBriefDocumentMixin:
             )
             if not has_guidance:
                 guidance = guidance_defaults.get(
-                    title, "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    title, "DEVELOPMENT_WORKFLOW.md"
                 )
                 normalized_bullets.insert(0, f"Review for guidance: {guidance}")
             if not has_details:
@@ -1315,7 +1315,7 @@ class PrioritiesBriefDocumentMixin:
                 "Action order: complete decorator-based handling migration first, then categorize remaining generic exception raises."
             )
             modernization_bullets.append(
-                "See `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` for decorator and exception categorization rules."
+                "See `core/ERROR_HANDLING_GUIDE.md` for decorator and exception categorization rules."
             )
             modernization_bullets.append(
                 "Why this matters: Standardized decorator-driven handling plus specific exceptions improves resilience and debuggability."
@@ -1345,7 +1345,7 @@ class PrioritiesBriefDocumentMixin:
                 for module in low_coverage_modules
             ]
             coverage_bullets = [
-                "Review for Guidance: ai_development_docs/AI_TESTING_GUIDE.md",
+                "Review for Guidance: tests/TESTING_GUIDE.md",
                 f"Top target domains: {self._format_list_for_display(coverage_highlights, limit=3)}",
                 f"Review for details: {self._coverage_report_display_path()}",
                 "Action: Add scenario tests for uncovered code paths in target domains",
@@ -1373,7 +1373,7 @@ class PrioritiesBriefDocumentMixin:
                 if dev_pct < 60 or low_dev_modules_below_target:
                     dev_bullets: list[str] = []
                     dev_bullets.append(
-                        "Review for Guidance: development_tools/README.md and ai_development_docs/AI_TESTING_GUIDE.md"
+                        "Review for Guidance: development_tools/README.md and tests/TESTING_GUIDE.md"
                     )
                     if low_dev_modules_below_target:
                         highlights = [
@@ -1509,7 +1509,7 @@ class PrioritiesBriefDocumentMixin:
                     ]
                     ruff_bullets.insert(
                         0,
-                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                        "Review for guidance: DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=3,
@@ -1530,7 +1530,7 @@ class PrioritiesBriefDocumentMixin:
                     ]
                     pyright_bullets.insert(
                         0,
-                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                        "Review for guidance: DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=3,
@@ -1550,7 +1550,7 @@ class PrioritiesBriefDocumentMixin:
                     ]
                     bandit_bullets.insert(
                         0,
-                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                        "Review for guidance: DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=3,
@@ -1595,7 +1595,7 @@ class PrioritiesBriefDocumentMixin:
                         )
                     pip_bullets.insert(
                         0,
-                        "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+                        "Review for guidance: DEVELOPMENT_WORKFLOW.md",
                     )
                     add_priority(
                         tier=2,
@@ -1692,7 +1692,7 @@ class PrioritiesBriefDocumentMixin:
             if circular_count > 0 or high_coupling_count > 0:
                 dep_bullets: list[str] = []
                 dep_bullets.append(
-                    "Review for Guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    "Review for Guidance: DEVELOPMENT_WORKFLOW.md"
                 )
 
                 if isinstance(circular_dependencies, list) and circular_dependencies:
@@ -1757,7 +1757,7 @@ class PrioritiesBriefDocumentMixin:
         if legacy_files and legacy_files > 0:
             legacy_bullets: list[str] = []
             legacy_bullets.append(
-                "Review for Guidance: ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md"
+                "Review for Guidance: development_docs/LEGACY_COMPATIBILITY_GUIDE.md"
             )
             if legacy_markers:
                 legacy_bullets.append(
@@ -2058,7 +2058,7 @@ class PrioritiesBriefDocumentMixin:
                 sorted_groups = sorted(groups, key=group_sort_key, reverse=True)[:3]
                 duplicate_bullets: list[str] = []
                 duplicate_bullets.append(
-                    "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    "Review for guidance: DEVELOPMENT_WORKFLOW.md"
                 )
                 duplicate_bullets.append("Top target groups:")
                 for idx, group in enumerate(sorted_groups, start=1):
@@ -2125,7 +2125,7 @@ class PrioritiesBriefDocumentMixin:
             if uf_count > 0 and isinstance(uf_list, list) and uf_list:
                 uf_bullets: list[str] = []
                 uf_bullets.append(
-                    "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md"
+                    "Review for guidance: DEVELOPMENT_WORKFLOW.md"
                 )
                 uf_bullets.append("Top unused functions (consider removing or verifying usage):")
                 for idx, func in enumerate(uf_list[:5], start=1):
@@ -2175,7 +2175,7 @@ class PrioritiesBriefDocumentMixin:
             )
             if facade_count > 0 and isinstance(findings, list):
                 facade_bullets = [
-                    "Review for guidance: ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+                    "Review for guidance: development_docs/LEGACY_COMPATIBILITY_GUIDE.md",
                     "Top facade/shim candidates:",
                 ]
                 for idx, finding in enumerate(findings[:3], start=1):
@@ -2235,7 +2235,7 @@ class PrioritiesBriefDocumentMixin:
             ):
                 refactor_bullets = []
                 refactor_bullets.append(
-                    "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md"
+                    "Review for guidance: DEVELOPMENT_WORKFLOW.md, development_docs/LEGACY_COMPATIBILITY_GUIDE.md"
                 )
                 refactor_bullets.append("Top candidate modules (consider splitting):")
                 for idx, cand in enumerate(candidates_list[:3], start=1):
@@ -2367,7 +2367,7 @@ class PrioritiesBriefDocumentMixin:
             # Standard order: guidance, top results, details, action
             complexity_bullets.insert(
                 0,
-                "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+                "Review for guidance: DEVELOPMENT_WORKFLOW.md, development_docs/LEGACY_COMPATIBILITY_GUIDE.md",
             )
             # Insert details after top results (after index 1 if we have "Highest complexity")
             details_line = f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_functions')}"
@@ -2426,7 +2426,7 @@ class PrioritiesBriefDocumentMixin:
             # Standard order: guidance, top results, details, action
             high_complexity_bullets.insert(
                 0,
-                "Review for guidance: ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md, ai_development_docs/AI_LEGACY_COMPATIBILITY_GUIDE.md",
+                "Review for guidance: DEVELOPMENT_WORKFLOW.md, development_docs/LEGACY_COMPATIBILITY_GUIDE.md",
             )
             details_line_high = f"Review for details: {self._scoped_tool_result_path('functions', 'analyze_functions')}"
             high_complexity_bullets.insert(1, details_line_high)
@@ -2599,7 +2599,7 @@ class PrioritiesBriefDocumentMixin:
                     f"Failing/erroring test(s): {self._format_list_for_display(failed_nodes, limit=10)}"
                 )
             tier3_bullets.insert(
-                0, "Review for guidance: ai_development_docs/AI_TESTING_GUIDE.md"
+                0, "Review for guidance: tests/TESTING_GUIDE.md"
             )
             if self._tier3_test_outcome_is_cached_for_report():
                 tier3_reason = (
@@ -2647,7 +2647,7 @@ class PrioritiesBriefDocumentMixin:
         if backup_summary and not backup_success:
             backup_bullets: list[str] = []
             backup_bullets.append(
-                "Review for guidance: ai_development_docs/AI_BACKUP_GUIDE.md"
+                "Review for guidance: development_docs/BACKUP_GUIDE.md"
             )
 
             failed_checks: list[str] = []
@@ -2862,15 +2862,15 @@ class PrioritiesBriefDocumentMixin:
                     if len(line_numbers) > 5:
                         lines_str += f", ... +{len(line_numbers) - 5}"
                     quick_wins.append(
-                        f"Review {count} completed TODO entry/entries (lines {lines_str}) - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first."
+                        f"Review {count} completed TODO entry/entries (lines {lines_str}) - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and CHANGELOG_BRIEF.md first."
                     )
                 else:
                     quick_wins.append(
-                        f"Review {count} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first."
+                        f"Review {count} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and CHANGELOG_BRIEF.md first."
                     )
             else:
                 quick_wins.append(
-                    f"Review {self._quick_wins_todo} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and AI_CHANGELOG.md first."
+                    f"Review {self._quick_wins_todo} completed TODO entry/entries - if documented in changelogs, remove from TODO.md; otherwise move to CHANGELOG_DETAIL.md and CHANGELOG_BRIEF.md first."
                 )
 
         if (

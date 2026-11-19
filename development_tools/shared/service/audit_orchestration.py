@@ -2017,11 +2017,11 @@ class AuditOrchestrationMixin:
         pass
     
     def _check_and_trim_changelog_entries(self) -> None:
-        """Check and trim AI_CHANGELOG entries to prevent bloat."""
+        """Check and trim CHANGELOG_BRIEF entries to prevent bloat."""
         try:
             from development_tools.docs.fix_version_sync import (
                 check_changelog_entry_count,
-                trim_ai_changelog_entries,
+                trim_changelog_entries,
             )
         except Exception as exc:
             logger.warning(f"   Changelog check: Tooling unavailable (skipping trim): {exc}")
@@ -2049,7 +2049,7 @@ class AuditOrchestrationMixin:
             return
 
         try:
-            trim_result = trim_ai_changelog_entries(days_to_keep=30, max_entries=15)
+            trim_result = trim_changelog_entries(days_to_keep=30, max_entries=15)
         except Exception as exc:
             logger.warning(f"   Changelog trim failed: {exc}")
             return
@@ -2073,7 +2073,7 @@ class AuditOrchestrationMixin:
 
         logger.info(f"   Changelog entries kept: {kept}")
         if archive_created:
-            logger.info("   Created archive: archive/AI_CHANGELOG_ARCHIVE.md")
+            logger.info(f"   Created archive: {trim_result['archive_path']}")
     
     def _validate_referenced_paths(self) -> None:
         """Validate that all referenced paths in documentation exist."""

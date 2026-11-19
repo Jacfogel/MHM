@@ -42,8 +42,7 @@ If you are new to the project, use the following paths depending on your goal:
   -> [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
 
 - **Use an AI assistant (Cursor, ChatGPT, etc.) to help with development**  
-  -> [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)  
-  -> [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
+  -> [AGENTS.md](AGENTS.md)
 
 ---
 
@@ -159,7 +158,6 @@ A simplified view of the repository (names may evolve; see [ARCHITECTURE.md](ARC
 ```text
 MHM/
 - ai/                      # AI assistant components
-- ai_development_docs/     # AI-focused documentation
 - development_tools/       # Audit, coverage, and doc tools
 - communication/           # Channels and orchestration
 - core/                    # Core service logic and helpers
@@ -178,8 +176,7 @@ MHM/
 - run_headless_service.py  # Headless service entry (AI collaborators)
 ```
 
-For deeper explanations, see [ARCHITECTURE.md](ARCHITECTURE.md) and
-[AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md).
+For deeper explanations, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
@@ -199,8 +196,7 @@ This project is deliberately structured to support a beginner developer who is
 learning as they go, with heavy AI assistance.
 
 - **Safety first** - Assume real data and a real machine. Prefer small, reversible
-  changes and keep backups (see
-  [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)).
+  changes and keep backups (see [AGENTS.md](AGENTS.md)).
 - **Learning-focused** - Many improvements exist to learn concepts (logging,
   error handling, scheduling, testing, UI). Slow down and understand changes.
 - **No rush** - One small, well-understood change per session is better than a
@@ -213,7 +209,7 @@ For current priorities and recent history, see:
 
 - [TODO.md](TODO.md)
 - [PLANS.md](development_docs/PLANS.md)
-- [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md)
+- [CHANGELOG_BRIEF.md](development_docs/CHANGELOG_BRIEF.md)
 - [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
 ---
@@ -288,13 +284,7 @@ If you are stuck:
 - Workflow: [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)
 - Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
 - Priorities: [TODO.md](TODO.md), [PLANS.md](development_docs/PLANS.md)
-- Changes: [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md),
+- Changes: [CHANGELOG_BRIEF.md](development_docs/CHANGELOG_BRIEF.md),
   [CHANGELOG_DETAIL.md](development_docs/CHANGELOG_DETAIL.md)
 
-AI assistants should consult:
-
-- [AI_SESSION_STARTER.md](ai_development_docs/AI_SESSION_STARTER.md)
-- [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md)
-- [AI_DOCUMENTATION_GUIDE.md](ai_development_docs/AI_DOCUMENTATION_GUIDE.md)
-
-before making non-trivial changes.
+AI assistants should consult [AGENTS.md](AGENTS.md) before making non-trivial changes.

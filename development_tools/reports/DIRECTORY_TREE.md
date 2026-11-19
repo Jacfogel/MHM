@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-19 01:40:32
+> **Last Generated**: 2026-11-19 02:23:14
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -13,6 +13,7 @@ Volume serial number is 5EAC-07BC
 C:.
 |   .env.example
 |   .ruff.toml
+|   AGENTS.md
 |   ARCHITECTURE.md
 |   CONFIGURATION_REFERENCE.md
 |   DEVELOPMENT_WORKFLOW.md
@@ -84,18 +85,6 @@ C:.
 |   |   |   planning.py
 |   |   |   __init__.py
 |   |   |
-+---ai_development_docs
-|   |   AI_ARCHITECTURE.md
-|   |   AI_BACKUP_GUIDE.md
-|   |   AI_CHANGELOG.md
-|   |   AI_DEVELOPMENT_WORKFLOW.md
-|   |   AI_DOCUMENTATION_GUIDE.md
-|   |   AI_ERROR_HANDLING_GUIDE.md
-|   |   AI_LEGACY_COMPATIBILITY_GUIDE.md
-|   |   AI_LOGGING_GUIDE.md
-|   |   AI_SESSION_STARTER.md
-|   |   AI_TESTING_GUIDE.md
-|   |
 +---checkins
 |   |   analysis.py
 |   |   checkin_analytics.py
@@ -303,13 +292,16 @@ C:.
 |   |   __init__.py
 |   |
 +---development_docs
+|   |   CHANGELOG_BRIEF.md
 |   |   CHANGELOG_DETAIL.md
+|   |   LEGACY_COMPATIBILITY_GUIDE.md
 |   |   PLANS.md
 |   |   PRODUCT_LIST_OF_LISTS.md
 |   |   TEST_COVERAGE_REPORT.md
 |   |   TEST_PLAN.md
 |   |
 |   +---changelog_history
+|   |       CHANGELOG_BRIEF_ARCHIVE.md
 |   |       CHANGELOG_DETAIL_2025_08.md
 |   |       CHANGELOG_DETAIL_2025_09.md
 |   |       CHANGELOG_DETAIL_2025_10.md

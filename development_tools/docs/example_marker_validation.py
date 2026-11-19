@@ -8,7 +8,7 @@ region that contain typical file paths in backticks but do not start with a stan
 example marker ([OK], [AVOID], etc.). Pair with domain-specific analyzers; keep heuristics
 conservative to avoid doc-sync noise.
 
-Aligns with ai_development_docs/AI_DOCUMENTATION_GUIDE.md section 3.6 using an advisory
+Aligns with DOCUMENTATION_GUIDE.md section 3.6 using an advisory
 marker-nearby heuristic (windowed proximity around path lines).
 
 Callers pass the path list (typically ``DEFAULT_DOCS`` from ``development_tools.shared.constants``,

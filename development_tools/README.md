@@ -639,7 +639,7 @@ When `PRIORITIES_BRIEF.md` is generated, items that lack explicit "Review for gu
 
 | Theme | Primary procedural docs | Typical JSON / report |
 |--------|-------------------------|------------------------|
-| Documentation drift / doc-sync | This guide sections 3-5; AI_DOCUMENTATION_GUIDE | `docs/jsons/scopes/*/analyze_documentation_sync_results.json` |
+| Documentation drift / doc-sync | This guide sections 3-5; DOCUMENTATION_GUIDE | `docs/jsons/scopes/*/analyze_documentation_sync_results.json` |
 | Static analysis (Ruff/Pyright/Bandit/pip-audit) | Section 10; `pyproject.toml` `[tool.pyright]` | `**/jsons/scopes/*/static_checks/*.json`, `STATUS_BRIEF` |
 | Test markers (category + optional domain) | This section; `tests/analyze_test_markers.py` | `tests/jsons/analyze_test_markers_results.json` |
 | Coverage / Tier 3 | Section 3; HOW_TO_RUN Tier 3 freshness | `tests/jsons/coverage.json`, `development_tools/reports/TEST_COVERAGE_REPORT.md` |
@@ -681,7 +681,7 @@ When `PRIORITIES_BRIEF.md` is generated, items that lack explicit "Review for gu
   3. Auto-clean only when the dry-run list looks right: `python development_tools/docs/fix_version_sync.py sync-todo --apply` removes auto-cleanable `- [x]` / `- [X]` checklist lines only (never strikethrough/bold completions).
   4. Do **not** combine `--dry-run` and `--apply`. Tiered `audit` also runs a non-apply sync for report signals; use the CLI above for cleanup.
 
-- **Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run this scan over **`DEFAULT_DOCS`** (config-derived approved doc list; see Command Summary `doc-sync` bullet). Hints appear in **STATUS_BRIEF** (summary line), **CONSOLIDATED_REPORT** (detail), **PRIORITIES_BRIEF** (Tier 4 when hints > 0), and `development_tools/docs/jsons/scopes/full/analyze_documentation_sync_results.json`. Heuristics: broad example-style `##` headings (e.g. "Command Examples"), short marker proximity window, repo-style backtick paths, citation-line skips, changelog-class docs excluded via shared historical-preserve patterns; marker tokens per AI_DOCUMENTATION_GUIDE Section 3.6. Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
+- **Example markers (advisory, V5 Section 3.0)**: Tiered `audit` and `doc-sync` run this scan over **`DEFAULT_DOCS`** (config-derived approved doc list; see Command Summary `doc-sync` bullet). Hints appear in **STATUS_BRIEF** (summary line), **CONSOLIDATED_REPORT** (detail), **PRIORITIES_BRIEF** (Tier 4 when hints > 0), and `development_tools/docs/jsons/scopes/full/analyze_documentation_sync_results.json`. Heuristics: broad example-style `##` headings (e.g. "Command Examples"), short marker proximity window, repo-style backtick paths, citation-line skips, changelog-class docs excluded via shared historical-preserve patterns; marker tokens per DOCUMENTATION_GUIDE Section 3.6. Standalone: `python development_tools/docs/analyze_documentation_sync.py --json --check-example-markers`.
 
 ### 10.1. Gap-analysis alignment (V6 B-013 - closed 2026-07-28)
 
@@ -710,3 +710,5 @@ Practical order: (1) Immediate Focus in `PRIORITIES_BRIEF.md`, (2) linked JSON f
 **Status**: **DEFERRED**
 
 Extending custom audit scopes beyond Tier 2 and revisiting Radon, pydeps, or pre-commit require a separate plan. Package distribution awaits a second consumer.
+
+Changelog tooling uses `fix_version_sync.changelog_path` and `changelog_archive_path` (defaults: `development_docs/CHANGELOG_BRIEF.md` and `development_docs/changelog_history/CHANGELOG_BRIEF_ARCHIVE.md`). Projects without paired guides can set `constants.paired_docs` to `{}`; shared scan coverage comes from configured documentation paths.

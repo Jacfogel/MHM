@@ -407,7 +407,6 @@ AI components rely heavily on the centralized error handling system:
 For detailed patterns, see:
 
 - section 2. "Architecture Overview" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#2-architecture-overview) and section 4. "Error Categories and Severity" in [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity).
-- [AI_ERROR_HANDLING_GUIDE.md](../ai_development_docs/AI_ERROR_HANDLING_GUIDE.md#4-error-categories-and-severity) for AI-facing routing rules and constraints.
 
 ### 8.1. Typical AI-specific fallbacks
 
@@ -461,7 +460,6 @@ AI-related logs are routed to component loggers named:
 For logging details, see:
 
 - section 2. "Logging Architecture" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) and section 4. "Component Log Files and Layout" in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#4-component-log-files-and-layout).
-- [AI_LOGGING_GUIDE.md](../ai_development_docs/AI_LOGGING_GUIDE.md#4-component-log-files-and-layout) for AI-specific logging rules and patterns.
 
 When debugging:
 
