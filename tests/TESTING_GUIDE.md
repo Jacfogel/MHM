@@ -802,6 +802,7 @@ Align tests with those patterns:
 
 - Ensure critical errors are logged at the correct level.
 - Verify expected recovery behavior (for example, retries, fallbacks, user-visible messages).
+- For UI failures, check the saved-state explanation and recovery action along with side effects (such as no submitted edit and a retained draft). Avoid assertions that depend only on generic labels such as "Error" or retired message wording.
 
 ---
 

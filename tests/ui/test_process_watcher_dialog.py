@@ -710,7 +710,10 @@ class TestProcessWatcherErrorHandling:
 
             # Details text should show error
             details_text = dialog.process_details_text.toPlainText()
-            assert "Error" in details_text, "Should show error message"
+            assert "could not load process details" in details_text
+            assert "did not stop or restart the service" in details_text
+            assert "Refresh the process list" in details_text
+            assert "Test error" not in details_text
 
 
 class TestProcessWatcherClose:

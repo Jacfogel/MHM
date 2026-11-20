@@ -413,13 +413,23 @@ class TestMessageEditDialogSave:
         dialog_edit.period_checkboxes['morning'].setChecked(True)
         
         # Act: Try to save
-        with patch('PySide6.QtWidgets.QMessageBox.critical') as mock_critical:
+        with (
+            patch('PySide6.QtWidgets.QMessageBox.critical') as mock_critical,
+            patch('ui.dialogs.message_editor_dialog.edit_message') as mock_edit,
+            patch.object(dialog_edit, 'accept') as mock_accept,
+        ):
             dialog_edit.save_message()
             
             # Assert: Should show error message
             mock_critical.assert_called_once()
             call_args = mock_critical.call_args
-            assert "Message ID not found" in str(call_args), "Should show message ID error"
+            message = call_args.args[2]
+            assert "could not identify the selected message" in message
+            assert "no change was submitted" in message
+            assert "Reopen the message list" in message
+            mock_edit.assert_not_called()
+            mock_accept.assert_not_called()
+            assert dialog_edit.message_text.toPlainText() == "Updated test message"
 
 
 class TestMessageEditorDialogInitialization:

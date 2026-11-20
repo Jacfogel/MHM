@@ -414,10 +414,12 @@ class TestConnectFlowWorker:
 @pytest.mark.parametrize("success", [True, False])
 def test_sync_runs_in_background_and_blocks_duplicate_actions(qapp, success):
     import threading
-    from PySide6.QtCore import QEventLoop, QTimer
+    from PySide6.QtCore import QEventLoop, QTimer, QThread
     stack, dialog = _open_dialog(status=_status(connected=True, feature_state="enabled"))
     released = threading.Event()
     calls = []
+    completion_threads = []
+    dialog.user_changed.connect(lambda: completion_threads.append(QThread.currentThread()))
     def sync(user_id):
         calls.append((user_id, threading.get_ident()))
         assert released.wait(2)
@@ -447,6 +449,7 @@ def test_sync_runs_in_background_and_blocks_duplicate_actions(qapp, success):
         assert thread.wait(1000)
         qapp.processEvents()
         assert dialog._sync_thread is None
+        assert completion_threads == [qapp.thread()]
         assert dialog.btn_sync.isEnabled()
         assert len(calls) == 1
         assert calls[0][0] == "user-1"
@@ -454,6 +457,27 @@ def test_sync_runs_in_background_and_blocks_duplicate_actions(qapp, success):
         assert info.called is success
         assert warning.called is (not success)
     dialog.deleteLater()
+
+
+def test_background_callbacks_are_registered_qt_slots(qapp):
+    """Decorated callbacks must retain QObject thread affinity."""
+    from ui.dialogs.google_health_settings_dialog import _SyncFlowWorker
+
+    stack, dialog = _open_dialog()
+    with stack:
+        for receiver, signatures in (
+            (dialog, (
+                "_on_connect_finished(bool,QString)", "_on_sync_result(bool)",
+                "_on_sync_finished()",
+            )),
+            (_ConnectFlowWorker("user-1"), ("run()",)),
+            (_SyncFlowWorker("user-1"), ("run()",)),
+        ):
+            try:
+                for signature in signatures:
+                    assert receiver.metaObject().indexOfSlot(signature) >= 0, signature
+            finally:
+                receiver.deleteLater()
 
 
 @pytest.mark.parametrize("status,expected", [

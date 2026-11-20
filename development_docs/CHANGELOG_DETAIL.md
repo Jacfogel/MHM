@@ -34,6 +34,13 @@ Retired document and rule names in historical entries refer to their Git history
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-19 - Google Health nightly native crash
+
+- **Diagnosis**: GitHub nightly run `44553248877` crashed with a native bus error in Google Health sync completion during the background-sync UI test. The callback reached widget refresh from a background signal without explicit Qt slot registration.
+- **Fix**: Registered connect/sync worker entry points and dialog completion callbacks as Qt slots outside shared error decorators, preserving receiver thread affinity. Added slot-registration coverage and an assertion that sync completion emits its UI update on the application thread; documented the callback contract in the Google Health guide.
+- **Validation**: All 27 focused dialog tests passed both serially and with two parallel workers. Documentation sync and `git diff --check` exited successfully. The Linux nightly run still needs to confirm the native crash is resolved.
+- **Audit follow-up**: Replaced Qt class-level metadata access with the typed instance `metaObject()` API in registration coverage. Updated the message-editor and process-watcher tests for current recovery guidance; the missing-ID case also verifies no edit submission, no dialog acceptance, and retained draft text. All 78 tests across the three dialog modules passed with two workers; the changed registration test passed again separately. Fresh full-project Pyright reported zero errors and zero warnings.
+
 ### 2026-11-19 - Helpful failures and audit fixes
 
 - **Behavior**: Repeatedly reviewed vague user-facing failures across desktop dialogs, browser requests, shared command routing, check-ins, analytics, task reminders, Discord setup/buttons, AI fallbacks, and launchers. Messages distinguish confirmed outcomes, actions never submitted, and uncertain or partial saves, and give the relevant view or command to check before retrying. Removed unsupported claims that missing responses mean nothing was saved; raw technical errors remain in logs.

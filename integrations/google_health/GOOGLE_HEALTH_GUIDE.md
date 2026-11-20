@@ -50,6 +50,8 @@ Use section 7.1. "Google Health (read-only wellness integration)" in [CONFIGURAT
 
 ### 5.1. Desktop manual sync
 
+Background connect and sync callbacks are registered Qt slots, with `@Slot` outside the shared error-handling decorator. Workers run in their assigned threads; completion callbacks refresh widgets and show messages on the dialog's UI thread. Keep these registrations when changing callbacks to avoid native Qt crashes.
+
 For a selected user, open **Google Health** and choose **Sync Now**. Sync runs in the background; the panel stays responsive and disables its account actions until it finishes. Repeated clicks do not start another sync. Wait for completion before closing the panel. Success refreshes the saved status. A connection failure prompts a retry; a paused/disabled account needs **Enable** first. If saved credentials were revoked, **Connect** becomes available and the panel asks you to reconnect before retrying. A missing connection also offers **Connect**.
 
 The desktop calls the same sync operation as `sync health`; it does not change the schedule or bypass the account's enabled/paused state. Manual sync can update error state and trigger the existing automatic pause/reconnect-notice behavior.

@@ -31,6 +31,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-19 - Google Health nightly native crash **COMPLETED**
+
+- Registered background connect/sync callbacks as Qt slots to keep window updates on the UI thread after the nightly bus error. Added thread-affinity regression coverage; Linux nightly confirmation remains pending.
+- Updated stale message-editor/process-watcher recovery assertions and Qt metadata typing; all 78 affected dialog tests passed with two workers.
+
 ### 2026-11-19 - Helpful failures and audit fixes **COMPLETED**
 
 - Improved vague desktop, browser, chat, Discord, task, and launcher failures with saved-state guidance and concrete recovery steps.
@@ -88,10 +93,3 @@ Guidelines:
 - Website and Discord close the snooze interaction after a saved snooze even if the alert fails. Task setup checks saved reminder windows, and partial subtask saves identify the steps that saved.
 - Schedule commands validate windows before saving. Website Settings distinguishes saved changes from failed follow-ups, and website setup lets users retry delivery after Discord connects.
 - Repaired relocated report links, regenerated the function registry, and fixed the stale reminder test assertion. The 118 focused audit tests passed, and `doc-sync` and Pyright reported zero issues.
-
-### 2026-11-16 - Published tools update and report links **COMPLETED**
-
-- Updated MHM's tools to published revision `74e5284`. MHM keeps its host configuration, and published scans exclude the tools directory.
-- Regenerated the registry, dependencies, and directory tree under `development_tools/reports/`. The dependency check passed after reading the new report.
-- Repaired links to removed tools files. All 43 logger tests passed, and `doc-sync` reported zero issues and zero Markdown link hints.
-

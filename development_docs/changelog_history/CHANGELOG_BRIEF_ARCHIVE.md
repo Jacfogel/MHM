@@ -6,6 +6,12 @@
 
 ## Archived Entries
 
+### 2026-11-16 - Published tools update and report links **COMPLETED**
+
+- Updated MHM's tools to published revision `74e5284`. MHM keeps its host configuration, and published scans exclude the tools directory.
+- Regenerated the registry, dependencies, and directory tree under `development_tools/reports/`. The dependency check passed after reading the new report.
+- Repaired links to removed tools files. All 43 logger tests passed, and `doc-sync` reported zero issues and zero Markdown link hints.
+
 ### 2026-11-16 - Development tools release split and audit cleanup **COMPLETED**
 
 - The private tools repo now has development and published branches. The development branch owns self-checks, tests, fixtures, and the testing guide. MHM uses the published runtime, one tools README, and the renamed `STATUS_BRIEF.md` and `PRIORITIES_BRIEF.md` reports.

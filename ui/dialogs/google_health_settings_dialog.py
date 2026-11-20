@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import webbrowser
 
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Slot
 from PySide6.QtWidgets import (
     QDialog,
     QCheckBox,
@@ -46,6 +46,7 @@ class _ConnectFlowWorker(QObject):
         super().__init__()
         self.user_id = user_id
 
+    @Slot()
     @handle_errors("running Google Health connect worker", default_return=None)
     def run(self) -> None:
         from integrations.google_health.user_settings import run_connect_flow
@@ -64,6 +65,7 @@ class _SyncFlowWorker(QObject):
         super().__init__()
         self.user_id = user_id
 
+    @Slot()
     @handle_errors("running Google Health sync worker", default_return=None)
     def run(self) -> None:
         """Always report completion, including unexpected backend failures."""
@@ -287,6 +289,7 @@ class GoogleHealthSettingsDialog(QDialog):
         self._connect_thread.finished.connect(self._connect_thread.deleteLater)
         self._connect_thread.start()
 
+    @Slot(bool, str)
     @handle_errors("handling Google Health connect completion", default_return=None)
     def _on_connect_finished(self, success: bool, error: str) -> None:
         self._connect_thread = None
@@ -367,11 +370,13 @@ class GoogleHealthSettingsDialog(QDialog):
         self._sync_thread.finished.connect(self._sync_thread.deleteLater)
         self._sync_thread.start()
 
+    @Slot(bool)
     @handle_errors("recording Google Health sync result", default_return=None)
     def _on_sync_result(self, success: bool) -> None:
         """Remember the result while retaining worker references until exit."""
         self._sync_success = success
 
+    @Slot()
     @handle_errors("finishing Google Health desktop sync", default_return=None)
     def _on_sync_finished(self) -> None:
         """Refresh persisted status and explain the next action on failure."""
