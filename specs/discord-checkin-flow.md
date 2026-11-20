@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord check-in prompts, check-in buttons, and retry-safe check-in delivery  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-05-16  
+> **Last Updated**: 2026-11-19
 > **Implementation**: `communication/communication_channels/discord/ui/checkin_view.py`, `communication/communication_channels/discord/bot.py`, `communication/communication_channels/discord/ui/rich_delivery.py`, `communication/reminders/checkin_prompt_dispatcher.py`, `communication/message_processing/interaction_manager.py`, `communication/command_handlers/checkin_handler.py`, `checkins/checkin_service.py`, `checkins/checkin_data_manager.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
 > **Automated tests**: `tests/unit/test_checkin_view.py`, `tests/behavior/test_discord_checkin_retry_behavior.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_checkin_handler_behavior.py`  
@@ -118,6 +118,10 @@ Discord-specific modules SHALL only map button clicks and messages into channel-
 - **WHEN** `communication/communication_channels/discord/ui/checkin_view.py` handles the click  
 - **THEN** it SHALL NOT directly mutate check-in state files  
 - **AND** it SHALL use `handle_user_message` so `checkin_handler` and check-in services own state changes  
+
+### Requirement: Check-in failures preserve informed recovery
+
+Check-in start and continuation failures SHALL warn that a flow or answer may already be saved, and direct users to `checkin status` and `start checkin` before resubmitting. They SHALL NOT claim that a restart occurred. Validation failures SHALL say the answer was not accepted and direct users to the requested format or `skip`. Account lookup failures SHALL explain that no button action was submitted and direct users to `/start`.
 
 ## 3. Out of scope
 

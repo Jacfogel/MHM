@@ -448,7 +448,7 @@ async def test_confirmation_modal_redacts_handler_exception(monkeypatch):
     await modal.on_submit(submission)
 
     submission.response.send_message.assert_awaited_once_with(
-        "❌ An error occurred while linking your account. Please try again.",
+        "❌ MHM could not confirm that your account was linked. The link may already be saved. Send /start and check account status before submitting the latest verification code again.",
         ephemeral=True,
     )
     exception_log.assert_called_once()

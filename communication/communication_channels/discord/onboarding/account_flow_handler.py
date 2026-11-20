@@ -35,9 +35,7 @@ class _ConfirmLinkModal(discord.ui.Modal, title="Enter Confirmation Code"):
         self.account_identifier = account_identifier
         self.discord_user_id = discord_user_id
 
-    @handle_errors(
-        "submitting confirmation code", context={"component": "discord"}
-    )
+    @handle_errors("submitting confirmation code", context={"component": "discord"})
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Verify the supplied code and complete the pending account link."""
         entered_code = self.code_input.value.strip()
@@ -85,7 +83,7 @@ class _ConfirmLinkModal(discord.ui.Modal, title="Enter Confirmation Code"):
                 error_type=type(error).__name__,
             )
             await interaction.response.send_message(
-                "❌ An error occurred while linking your account. Please try again.",
+                "❌ MHM could not confirm that your account was linked. The link may already be saved. Send /start and check account status before submitting the latest verification code again.",
                 ephemeral=True,
             )
 

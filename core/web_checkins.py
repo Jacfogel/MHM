@@ -168,7 +168,7 @@ class WebCheckinRoutes:
                 text="Choose start, answer, skip, or cancel."
             )
         if not isinstance(message, str):
-            message = "MHM could not continue that check-in. Please try again."
+            message = "MHM could not return the next check-in prompt. Your latest answer may already be saved. Keep a copy, then reload the check-in to check its current question or completion before answering again."
         latest = (
             await asyncio.to_thread(
                 conversation_manager.current_checkin_prompt, uid

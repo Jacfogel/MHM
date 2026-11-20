@@ -66,7 +66,7 @@ class NaturalLanguageSettingsDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Save Failed",
-                "Could not save phrase settings. Please try again.",
+                "MHM could not confirm that phrase settings were saved. Your entries are still here. Save again; if this continues, ask your administrator to check the error log.",
             )
             return
 

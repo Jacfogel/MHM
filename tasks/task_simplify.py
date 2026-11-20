@@ -82,7 +82,8 @@ def simplify_task(
     )
     if not saved:
         return TaskSimplifyResult(
-            False, "I could not simplify that task. Please try again."
+            False,
+            "I could not confirm that the smaller task title was saved. Keep a copy of your new title and send 'list tasks' to check it before simplifying again.",
         )
     due = runtime_task_due_date(task)
     due_bit = f" Due date stays {due}." if due else " Due date stays the same."

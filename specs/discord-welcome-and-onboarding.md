@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord welcome messaging and create/link account onboarding  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-11-05
+> **Last Updated**: 2026-11-19
 > **Implementation**: `communication/core/welcome_manager.py`, `communication/communication_channels/discord/onboarding/welcome_handler.py`, `communication/communication_channels/discord/webhooks/handler.py`, `communication/communication_channels/discord/onboarding/account_flow_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/command_handlers/account_handler.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md)  
 > **Automated tests**: `tests/behavior/test_welcome_manager_behavior.py`, `tests/behavior/test_welcome_handler_behavior.py`, `tests/behavior/test_webhook_handler_behavior.py`  
@@ -193,6 +193,10 @@ Linking SHALL use `AccountManagementHandler` with intent `link_account`. When th
 ### 3.7. Requirement: Channel-agnostic business logic
 
 Create, link, and status checks SHALL be implemented in `communication/command_handlers/account_handler.py` (`AccountManagementHandler`). Discord modules SHALL only provide UI and map interactions to `ParsedCommand` calls.
+
+### Requirement: Unconfirmed account linking has safe recovery
+
+If linking raises after submission, the response SHALL explain that the link may already be saved and direct the user to reopen setup and check account status before resubmitting the latest verification code. Raw exception details SHALL remain redacted from the reply and logs.
 
 ## 4. Out of scope
 

@@ -125,7 +125,8 @@ def _skip_recurring_occurrence(
     )
     if not saved:
         return TaskOccurrenceSkipResult(
-            False, "I could not skip that occurrence. Please try again."
+            False,
+            "I could not confirm that the occurrence was skipped. Send 'list tasks' and check the next due date before skipping again.",
         )
     reminder_scheduled = schedule_deferred_task_reminder(user_id, task_id, ping_at)
     logger.info(

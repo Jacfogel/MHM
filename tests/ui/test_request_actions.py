@@ -279,7 +279,7 @@ def test_create_task_reminder_request_reports_unexpected_error():
             "test-user", create_communication_manager=Mock()
         )
     assert outcome.level == "critical"
-    assert "Failed to send task reminder" in outcome.message
+    assert "could not confirm that the reminder request was queued" in outcome.message
 
 
 def test_truncate_and_poll_response_file(tmp_path):

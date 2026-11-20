@@ -114,7 +114,8 @@ class TestGoogleHealthSettingsDialog:
     def test_refresh_status_when_status_missing(self, qapp):
         stack, dialog = _open_dialog(load_status=None)
         with stack:
-            assert dialog.status_view.toPlainText() == "Could not load health status."
+            assert "could not load health status" in dialog.status_view.toPlainText()
+            assert "Reopen Google Health settings" in dialog.status_view.toPlainText()
             assert dialog.btn_sync.isEnabled() is False
         dialog.deleteLater()
 
@@ -175,7 +176,11 @@ class TestGoogleHealthSettingsDialog:
             ):
                 dialog.start_connect()
             mock_warning.assert_called_once()
-            assert mock_warning.call_args.args[2] == "Could not build authorization URL."
+            assert (
+                "browser authorization has not started"
+                in mock_warning.call_args.args[2]
+            )
+            assert "configuration" in mock_warning.call_args.args[2]
         dialog.deleteLater()
 
     def test_start_connect_cancels_when_user_declines(self, qapp):
@@ -483,4 +488,38 @@ def test_revoked_saved_credentials_allow_reconnect(qapp):
         dialog._on_sync_result(False)
         dialog._on_sync_finished()
         assert "Reconnect" in warning.call_args.args[2]
+    dialog.deleteLater()
+
+
+@pytest.mark.parametrize(
+    "action,backend",
+    [
+        ("pause_health", "pause_health_integration"),
+        ("delete_data", "delete_health_integration"),
+    ],
+)
+def test_unconfirmed_health_action_refreshes_status_and_warns(qapp, action, backend):
+    stack, dialog = _open_dialog(
+        status=_status(connected=True, feature_state="enabled")
+    )
+    with (
+        stack,
+        patch(
+            "ui.dialogs.google_health_settings_dialog." + backend,
+            return_value=False,
+        ),
+        patch(
+            "ui.dialogs.google_health_settings_dialog.QMessageBox.question",
+            return_value=QMessageBox.StandardButton.Yes,
+        ),
+        patch(
+            "ui.dialogs.google_health_settings_dialog.QMessageBox.warning",
+        ) as warning,
+        patch.object(dialog, "refresh_status") as refresh,
+    ):
+        getattr(dialog, action)()
+        refresh.assert_called_once()
+        warning.assert_called_once()
+        assert "could not confirm" in warning.call_args.args[2]
+        assert "status" in warning.call_args.args[2]
     dialog.deleteLater()

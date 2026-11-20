@@ -80,7 +80,11 @@ class AdminActions:
             logger.debug("Process watcher dialog opened")
         except Exception as e:
             logger.error(f"Error opening process watcher: {e}")
-            QMessageBox.critical(parent, "Error", f"Failed to open process watcher: {e}")
+            QMessageBox.critical(
+                parent,
+                "Error",
+                "MHM could not open the process watcher. This does not stop the service. Check Service Status in the admin panel, then reopen the watcher. If this continues, ask your administrator to check the error log.",
+            )
 
     @handle_errors("viewing cache status", default_return=None)
     def view_cache_status(
@@ -170,7 +174,11 @@ Current cache files found:
             )
             logger.info("Force cache cleanup completed successfully")
         else:
-            QMessageBox.critical(parent, "Error", "Cache cleanup failed")
+            QMessageBox.critical(
+                parent,
+                "Error",
+                "MHM could not finish clearing Python cache files. Some cache files may already be removed; account data is not part of this cleanup. Close other MHM windows and retry. If this continues, ask your administrator to check the error log.",
+            )
 
     @handle_errors("validating configuration", default_return=None)
     def validate_configuration(self, parent: QWidget) -> None:
@@ -341,7 +349,7 @@ Current cache files found:
     @handle_errors(
         "building all users summary",
         user_friendly=False,
-        default_return="Unable to build users summary.\n",
+        default_return="MHM could not build the users summary. This report request did not change account records. Reopen the summary to retry; if this continues, check the error log.\n",
     )
     def _build_all_users_summary(self, user_ids: list[str]) -> str:
         """Build the plain-text all-users summary body."""
@@ -416,7 +424,7 @@ Current cache files found:
     @handle_errors(
         "building system health report",
         user_friendly=False,
-        default_return="Unable to build system health report.\n",
+        default_return="MHM could not build the system health report. Existing account data has not been removed. Check Service Status before starting another instance, then reopen the report; if this continues, check the error log.\n",
     )
     def _build_system_health_report(
         self,
@@ -471,7 +479,7 @@ Current cache files found:
     @handle_errors(
         "checking Discord health for admin report",
         user_friendly=False,
-        default_return=["[INFO] Discord Status: Unable to check"],
+        default_return=["[INFO] Discord Status: Not confirmed. This status check did not save channel settings. Reopen System Health to retry; check the Discord log if this continues."],
     )
     def _discord_health_lines(
         self, create_communication_manager: Callable[[], Any]
@@ -480,7 +488,7 @@ Current cache files found:
         comm_manager = create_communication_manager()
         discord_status = comm_manager.get_channel_connectivity_status("discord")
         if not discord_status:
-            return ["[INFO] Discord Status: Unable to check"]
+            return ["[INFO] Discord Status: Not confirmed. This status check did not save channel settings. Reopen System Health to retry; check the Discord log if this continues."]
 
         connection_status = discord_status.get("connection_status", "unknown")
         if connection_status == "connected":

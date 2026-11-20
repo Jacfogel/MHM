@@ -44,7 +44,8 @@ class AnalyticsHandler(InteractionHandler):
     @handle_errors(
         "handling analytics interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with analytics right now. Please try again.", True
+            "I could not load analytics. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle(
@@ -81,7 +82,8 @@ class AnalyticsHandler(InteractionHandler):
     @handle_errors(
         "showing analytics",
         default_return=InteractionResponse(
-            "I'm having trouble showing your analytics. Please try again.", True
+            "I could not finish showing your analytics. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_show_analytics(
@@ -93,7 +95,8 @@ class AnalyticsHandler(InteractionHandler):
     @handle_errors(
         "showing status",
         default_return=InteractionResponse(
-            "I'm having trouble showing your status. Please try again.", True
+            "I could not finish showing your status. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_show_status(

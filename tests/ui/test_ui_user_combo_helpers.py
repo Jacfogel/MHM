@@ -62,7 +62,7 @@ class TestUIUserComboHelpers:
             "collect_fallback_display_names",
             return_value=["Preferred (name-u1) - u1", "name-u2 - u2"],
         ):
-            controller.refresh_user_list_fallback(Mock(), Exception("primary failed"))
+            controller.refresh_user_list_fallback(Mock())
 
         assert controller.ui.comboBox_users.items == [
             USER_COMBO_PLACEHOLDER,

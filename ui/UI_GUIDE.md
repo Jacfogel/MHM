@@ -90,6 +90,8 @@ All UI files are auto-generated from `.ui` files in `ui/designs/` and stored in 
 
 ---
 
+Save dialogs must keep drafts visible after failed validation or unconfirmed writes. Check storage return values before reporting success. Explain possible partial saves and give a retry or reload step that preserves the user's entries. Task batch failures show confirmed counts and unconfirmed titles. Technical exception detail belongs in logs, not message boxes.
+
 ## 1. UI Generation
 
 The **preferred** way to generate UI code is the wrapper script:

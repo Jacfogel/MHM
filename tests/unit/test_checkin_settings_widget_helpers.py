@@ -189,3 +189,24 @@ class TestCheckinSettingsWidgetHelpers:
         assert [fallback.itemData(i) for i in range(fallback.count())] == list(
             DEFAULT_QUESTION_CATEGORY_KEYS
         )
+
+
+@pytest.mark.unit
+@pytest.mark.checkins
+def test_unconfirmed_question_restore_keeps_undo_definition(qapp):
+    from unittest.mock import Mock, patch
+
+    deleted = {"key": "custom_test", "definition": {"question": "How was today?"}}
+    widget = Mock()
+    widget.user_id = "test-user"
+    widget.deleted_questions = [deleted]
+    with (
+        patch(
+            "checkins.checkin_dynamic_manager.dynamic_checkin_manager.save_custom_question",
+            return_value=False,
+        ),
+        patch("ui.widgets.checkin_settings_widget.QMessageBox.critical") as critical,
+    ):
+        CheckinSettingsWidget.undo_last_question_delete(widget)
+    assert widget.deleted_questions == [deleted]
+    assert "another undo attempt" in critical.call_args.args[2]

@@ -44,7 +44,7 @@ dialog_logger = logger
 # Import core functionality
 from core import get_predefined_options
 from storage.user_data_validation import validate_personalization_data
-from core.error_handling import handle_errors
+from core.error_handling import FileOperationError, handle_errors
 from core.time_utilities import now_timestamp_full
 
 
@@ -519,11 +519,13 @@ class UserProfileDialog(QDialog):
 
             # Save data: use callback if provided, else save directly
             if self.on_save:
-                self.on_save(data)
+                if self.on_save(data) is False:
+                    raise FileOperationError("Personalization write was not confirmed")
             else:
                 from core import update_user_context
 
-                update_user_context(self.user_id, data)
+                if not update_user_context(self.user_id, data):
+                    raise FileOperationError("Settings write was not confirmed")
 
             self.user_changed.emit()
             self.accept()
@@ -533,12 +535,9 @@ class UserProfileDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Save Failed",
-                "Unable to save your personalization changes.\n\n"
-                "Please check that:\n"
-                "â€¢ All required fields are filled in\n"
-                "â€¢ Your user data files are accessible\n"
-                "â€¢ You have permission to modify files\n\n"
-                "If the problem persists, try closing and reopening the dialog.",
+                "MHM could not finish saving your personalization changes. Some changes may already be saved. "
+                "Your entries are still here; keep this window open and try saving again. "
+                "If this continues, ask your administrator to check data-folder permissions and the error log.",
             )
 
     @handle_errors("canceling dialog")

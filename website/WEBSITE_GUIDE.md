@@ -18,6 +18,8 @@ The Python gateway uses the **same account store as MHM**. It never stores brows
 passwords in plaintext or creates a separate website database. Passwords are
 stored as salted scrypt hashes in the canonical account document.
 
+Browser failure messages identify the attempted action, distinguish view failures from unconfirmed mutations, and explain how to check saved state before retrying. Keep draft text when a request fails; tell users to copy it before reloading. Network failures can occur after a successful save, so never infer that nothing changed from a missing response. Settings provide Reload this section after save failures, while validation retains its specific guidance.
+
 ## 1. Local preview
 
 From the project root, with `.venv` activated:

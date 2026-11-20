@@ -12,7 +12,7 @@ from PySide6.QtCore import Signal
 from core.schedule_runtime import set_schedule_periods, clear_schedule_periods_cache
 from core import update_user_account
 from core import get_user_data
-from core.error_handling import handle_errors
+from core.error_handling import FileOperationError, handle_errors
 from core.logger import setup_logging, get_component_logger
 from storage.user_data_validation import validate_schedule_periods
 from tasks import setup_default_task_tags
@@ -129,7 +129,8 @@ class TaskManagementDialog(QDialog):
                 f"Saving task time periods for user {self.user_id}: {time_periods}"
             )
             # When saving periods
-            set_schedule_periods(self.user_id, "tasks", time_periods)
+            if not set_schedule_periods(self.user_id, "tasks", time_periods):
+                raise FileOperationError("Settings write was not confirmed")
             clear_schedule_periods_cache(self.user_id, "tasks")
 
             # Update user account features
@@ -147,7 +148,8 @@ class TaskManagementDialog(QDialog):
             account["features"]["task_management"] = (
                 "enabled" if tasks_enabled else "disabled"
             )
-            update_user_account(self.user_id, account)
+            if not update_user_account(self.user_id, account):
+                raise FileOperationError("Settings write was not confirmed")
 
             # Set up default tags if task management is being enabled for the first time
             if was_disabled and will_be_enabled:
@@ -157,7 +159,10 @@ class TaskManagementDialog(QDialog):
                 setup_default_task_tags(self.user_id)
 
             # Save recurring task settings
-            self.task_widget.save_recurring_task_settings()
+            if not self.task_widget.save_recurring_task_settings():
+                raise FileOperationError(
+                    "Recurring task settings write was not confirmed"
+                )
 
             QMessageBox.information(
                 self, "Task Settings Saved", "Task settings saved successfully."
@@ -168,7 +173,9 @@ class TaskManagementDialog(QDialog):
         except Exception as e:
             logger.error(f"Error saving task settings for user {self.user_id}: {e}")
             QMessageBox.critical(
-                self, "Error", f"Failed to save task settings: {str(e)}"
+                self,
+                "Error",
+                "MHM could not finish saving task settings. Time periods or feature settings may already be saved. Your entries are still here. Save again; if this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("getting task statistics")

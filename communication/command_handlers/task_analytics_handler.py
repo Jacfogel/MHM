@@ -17,7 +17,8 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
     @error_handling.handle_errors(
         "showing task analytics",
         default_return=InteractionResponse(
-            "I'm having trouble showing task analytics. Please try again.", True
+            "I could not finish showing task analytics. This report request did not change your saved records. Try `task stats` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_task_analytics(
@@ -59,7 +60,9 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
                     emoji = (
                         "ðŸŸ¢"
                         if completion_rate >= 80
-                        else "ðŸŸ¡" if completion_rate >= 50 else "ðŸ”´"
+                        else "ðŸŸ¡"
+                        if completion_rate >= 50
+                        else "ðŸ”´"
                     )
                     response += f"â€¢ {emoji} {task_name}: {completion_rate:.1f}% ({completed_days}/{total_days} days)\n"
             else:
@@ -71,7 +74,9 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
             if task_stats.get("active_count", 0) > 5:
                 response += "â€¢ You have many active tasks - consider prioritizing or breaking them down\n"
             elif task_stats.get("active_count", 0) == 0:
-                response += "â€¢ No active tasks - great job staying on top of things!\n"
+                response += (
+                    "â€¢ No active tasks - great job staying on top of things!\n"
+                )
 
             if task_stats.get("completed_count", 0) > 0:
                 response += "â€¢ You're making good progress on task completion\n"
@@ -89,7 +94,7 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing task analytics", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your task analytics right now. Please try again.",
+                "I could not finish showing your task analytics. This report request did not change your saved records. Try `task stats` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
@@ -97,7 +102,8 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
     @error_handling.handle_errors(
         "showing task statistics",
         default_return=InteractionResponse(
-            "I'm having trouble showing task statistics. Please try again.", True
+            "I could not finish showing task statistics. This report request did not change your saved records. Try `task stats` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_task_stats(
@@ -137,7 +143,9 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
                     emoji = (
                         "ðŸ”´"
                         if priority == "high"
-                        else "ðŸŸ¡" if priority == "medium" else "ðŸŸ¢"
+                        else "ðŸŸ¡"
+                        if priority == "medium"
+                        else "ðŸŸ¢"
                     )
                     response += f"â€¢ {emoji} {priority.title()}: {count} tasks\n"
 
@@ -156,6 +164,6 @@ class TaskAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing task statistics", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your task statistics right now. Please try again.",
+                "I could not finish showing your task statistics. This report request did not change your saved records. Try `task stats` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )

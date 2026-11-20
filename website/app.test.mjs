@@ -97,8 +97,8 @@ test('account actions expose busy state and OAuth starts handle expired sessions
 test('account action fallbacks explain recovery and unchanged state', () => {
   assert.match(source, /Your current access has not changed/);
   assert.match(source, /Your subscription has not changed/);
-  assert.match(source, /is still connected\. Please wait a moment and try again/);
-  assert.match(source, /Your password was not changed/);
-  assert.match(source, /Your account was not deleted/);
+  assert.match(source, /could not confirm that \$\{provider\} was disconnected/);
+  assert.match(source, /could not confirm that your password changed/);
+  assert.match(source, /could not confirm that account deletion finished/);
   assert.match(source, /Check your connection, then refresh the page/);
 });

@@ -289,7 +289,11 @@ class MHMManagerUI(QMainWindow):
                 None, "Scheduler", "Full scheduler started successfully for all users"
             )
         else:
-            QMessageBox.warning(None, "Scheduler", "Failed to start full scheduler")
+            QMessageBox.warning(
+                None,
+                "Scheduler",
+                "MHM could not confirm that scheduling started. Some reminders may already be scheduled. Check service status and the scheduler log before retrying.",
+            )
 
     @handle_errors("running user scheduler", default_return=None)
     def run_user_scheduler(self):
@@ -310,7 +314,7 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(
                 None,
                 "Scheduler",
-                f"Failed to start user scheduler for {self.current_user}",
+                f"MHM could not confirm scheduling for {self.current_user}. Some reminders may already be scheduled. Check service status and the scheduler log before retrying.",
             )
 
     @handle_errors("running category scheduler", default_return=None)
@@ -337,7 +341,7 @@ class MHMManagerUI(QMainWindow):
             QMessageBox.warning(
                 None,
                 "Scheduler",
-                f"Failed to start category scheduler for {self.current_user}, {category}",
+                f"MHM could not confirm scheduling for {self.current_user}, {category}. Some reminders may already be scheduled. Check service status and the scheduler log before retrying.",
             )
 
     @handle_errors("refreshing user list", default_return=None)

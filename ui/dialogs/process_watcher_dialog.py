@@ -504,7 +504,9 @@ class ProcessWatcherDialog(QDialog):
 
         except Exception as e:
             logger.error(f"Error showing process details: {e}")
-            self.process_details_text.setPlainText(f"Error: {e}")
+            self.process_details_text.setPlainText(
+                "MHM could not load process details. This view request did not stop or restart the service. Refresh the process list and select the process again; if this continues, ask your administrator to check the error log."
+            )
 
     @handle_errors(
         "closing process watcher dialog", user_friendly=False, default_return=None

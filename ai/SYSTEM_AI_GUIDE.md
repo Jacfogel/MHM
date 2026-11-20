@@ -6,6 +6,8 @@
 > **Style**: Technical, concise, system-level (hybrid of conceptual and concrete details)
 > **Last Updated**: 2026-11-05
 
+AI reply failures ask users to retain their text and check the relevant saved task or settings before repeating requested changes. If a planned action cannot be prepared after earlier actions ran, show the earlier handler results and identify the current and remaining actions as not run. Do not discard completed outcomes or invite replay of the entire plan.
+
 ## 1. Overview
 
 The MHM AI subsystem is responsible for generating context-aware, safety-aligned responses and for helping interpret user messages (for example, parsing commands) across all channels.

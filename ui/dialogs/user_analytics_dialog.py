@@ -110,7 +110,9 @@ class UserAnalyticsDialog(QDialog):
 
         except Exception as e:
             logger.error(f"Error loading analytics data for user {self.user_id}: {e}")
-            self.show_error_state(f"Error loading analytics: {str(e)}")
+            self.show_error_state(
+                "MHM could not load analytics. This report request did not change your saved records. Use Refresh to reload the report; if this continues, ask your administrator to check the error log."
+            )
 
     @handle_errors("detecting available data types")
     def detect_available_data_types(self):
@@ -287,7 +289,7 @@ Key Metrics:
             else:
                 logger.error(f"Error loading overview data: {e}")
             self.ui.textEdit_summary.setPlainText(
-                f"Error loading overview data: {str(e)}"
+                "MHM could not load overview data. This report request did not change your saved records. Use Refresh to reload the report; if this continues, ask your administrator to check the error log."
             )
 
     @handle_errors("loading mood data")
@@ -364,7 +366,7 @@ Recent Mood Data:"""
             else:
                 logger.error(f"Error loading mood data: {e}")
             self.ui.textEdit_mood_data.setPlainText(
-                f"Error loading mood data: {str(e)}"
+                "MHM could not load mood data. This report request did not change your saved records. Use Refresh to reload the report; if this continues, ask your administrator to check the error log."
             )
 
     @handle_errors("loading habits data")
@@ -442,7 +444,7 @@ Habit Breakdown:"""
             else:
                 logger.error(f"Error loading habits data: {e}")
             self.ui.textEdit_habits_data.setPlainText(
-                f"Error loading habits data: {str(e)}"
+                "MHM could not load habits data. This report request did not change your saved records. Use Refresh to reload the report; if this continues, ask your administrator to check the error log."
             )
 
     @handle_errors("loading sleep data")
@@ -530,7 +532,7 @@ Recommendations:"""
             else:
                 logger.error(f"Error loading sleep data: {e}")
             self.ui.textEdit_sleep_data.setPlainText(
-                f"Error loading sleep data: {str(e)}"
+                "MHM could not load sleep data. This report request did not change your saved records. Use Refresh to reload the report; if this continues, ask your administrator to check the error log."
             )
 
     @handle_errors("loading quantitative data")
@@ -578,7 +580,7 @@ Field-by-Field Analysis:"""
             else:
                 logger.error(f"Error loading quantitative data: {e}")
             self.ui.textEdit_quantitative_data.setPlainText(
-                f"Error loading quantitative data: {str(e)}"
+                "MHM could not load quantitative data. This report request did not change your saved records. Use Refresh to reload the report; if this continues, ask your administrator to check the error log."
             )
 
     @handle_errors("refreshing analytics")
@@ -612,11 +614,21 @@ Field-by-Field Analysis:"""
         """Show error state with message."""
         self.ui.label_wellness_score.setText("Wellness Score: Error")
         self.ui.textEdit_summary.setPlainText(f"Error: {error_message}")
-        self.ui.textEdit_mood_data.setPlainText("Error loading data")
-        self.ui.textEdit_habits_data.setPlainText("Error loading data")
-        self.ui.textEdit_sleep_data.setPlainText("Error loading data")
-        self.ui.textEdit_quantitative_data.setPlainText("Error loading data")
-        self.ui.textEdit_recommendations.setPlainText("Error loading data")
+        self.ui.textEdit_mood_data.setPlainText(
+            "Data could not load. Saved records were not changed by this report request. Use Refresh to retry."
+        )
+        self.ui.textEdit_habits_data.setPlainText(
+            "Data could not load. Saved records were not changed by this report request. Use Refresh to retry."
+        )
+        self.ui.textEdit_sleep_data.setPlainText(
+            "Data could not load. Saved records were not changed by this report request. Use Refresh to retry."
+        )
+        self.ui.textEdit_quantitative_data.setPlainText(
+            "Data could not load. Saved records were not changed by this report request. Use Refresh to retry."
+        )
+        self.ui.textEdit_recommendations.setPlainText(
+            "Data could not load. Saved records were not changed by this report request. Use Refresh to retry."
+        )
 
 
 @handle_errors("opening user analytics dialog", default_return=None)

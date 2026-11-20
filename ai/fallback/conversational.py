@@ -52,9 +52,10 @@ def try_technical_unavailable(
 ) -> tuple[str, FallbackCategory] | None:
     if any(word in prompt_lower for word in TECHNICAL_KEYWORDS):
         return (
-            f"{name_prefix}I'm having some technical difficulties right now. "
-            f"Could you please try again in a moment? If the issue persists, "
-            f"we can troubleshoot together. What were you trying to do?",
+            f"{name_prefix}I could not use the AI service right now. "
+            "Keep a copy of any text you want to keep, then try again later. "
+            "If you requested a change, check the relevant task list or settings "
+            "before repeating it; the change may already be saved.",
             FallbackCategory.TECHNICAL_UNAVAILABLE,
         )
     return None

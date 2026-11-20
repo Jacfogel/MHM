@@ -27,13 +27,14 @@
     status.classList.toggle('is-error', error);
   }
   async function api(path, method = 'GET', payload) {
+    const recoveryMessage = method === 'GET' ? 'MHM could not load your messages. This view request did not change them. Check your connection, then reload.' : 'MHM could not confirm that the message action finished. Some changes may already be saved. Keep a copy of your draft, then reload the message list before repeating the action.';
     const response = await fetch(path, {
       method, credentials: 'same-origin', cache: 'no-store',
       ...(payload === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }),
-    });
+    }).catch(() => { throw new Error(recoveryMessage); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { window.dispatchEvent(new Event('mhm:signed-out')); location.replace('login.html'); throw new Error('Please log in again.'); }
-    if (!response.ok) throw new Error(result.error || 'MHM could not update your messages. Please try again.');
+    if (!response.ok) throw new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : recoveryMessage));
     return result;
   }
   function checkbox(parent, value, labelText, checked) {

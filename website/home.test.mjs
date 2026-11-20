@@ -435,7 +435,8 @@ test('failed chat sends restore the message for a quick retry', async () => {
   assert.equal(input.value, 'Please help me plan today');
   assert.equal(send.disabled, false);
   assert.equal(send.getAttribute('aria-busy'), undefined);
-  assert.equal(view.nodes.get('talk-status').textContent, 'Connection dropped.');
+  assert.match(view.nodes.get('talk-status').textContent, /Some changes may already be saved/);
+  assert.match(view.nodes.get('talk-status').textContent, /reload and check the conversation or task/);
   const failedCopies = view.nodes.get('talk-log').childNodes
     .flatMap(item => item.childNodes || [])
     .filter(item => item.textContent === 'Please help me plan today');

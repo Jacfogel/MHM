@@ -91,9 +91,13 @@ class ChannelManagementDialog(QDialog):
         if result is False:
             # Error occurred (handled by decorator on save_channel_settings, but show user-friendly dialog)
             QMessageBox.critical(
-                self, "Error", "Failed to save channel settings. Please try again."
+                self,
+                "Channel Settings Not Confirmed",
+                "MHM could not confirm that all channel settings were saved. "
+                "Some changes may already be saved. Your entries are still in this window. "
+                "Check the selected channel and contact details, then save again. "
+                "If this continues, ask your administrator to check the error log.",
             )
-            self.reject()
 
     @handle_errors("saving channel settings", default_return=False, user_friendly=True)
     def save_channel_settings(self):
@@ -131,7 +135,7 @@ class ChannelManagementDialog(QDialog):
                 + "\n".join(validation_errors)
             )
             QMessageBox.warning(self, "Validation Errors", error_message)
-            return False  # Don't save, let user fix errors
+            return None  # Validation already explains the problem; keep the draft open.
 
         # Save channel type to preferences (lowercase for consistency)
         channel_type = channel.lower()
@@ -163,8 +167,10 @@ class ChannelManagementDialog(QDialog):
 
         account["timezone"] = timezone
         # Save both using the channel-specific function to avoid overwriting schedules
-        update_channel_preferences(self.user_id, prefs)
-        update_user_account(self.user_id, account)
+        if not update_channel_preferences(self.user_id, prefs):
+            return False
+        if not update_user_account(self.user_id, account):
+            return False
         QMessageBox.information(self, "Success", "Channel settings saved successfully.")
         self.user_changed.emit()
         self.accept()

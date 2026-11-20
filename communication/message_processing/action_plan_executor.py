@@ -174,7 +174,8 @@ class ActionPlanExecutor:
             return ActionExecutionResult(
                 plan=plan,
                 response=InteractionResponse(
-                    "I had trouble preparing that action. Please try again.",
+                    "I could not prepare the requested actions, so none were run. "
+                    "Try one action at a time, or send 'help' for commands.",
                     True,
                 ),
             )
@@ -188,7 +189,15 @@ class ActionPlanExecutor:
                 return ActionExecutionResult(
                     plan=plan,
                     response=InteractionResponse(
-                        "I had trouble preparing that action. Please try again.",
+                        "\n\n".join(
+                            [response.message for _, response, _ in completed_steps]
+                            + [
+                                f"I could not prepare action {index + 1} of {len(plan.actions)}. "
+                                "This action and the remaining actions were not run. "
+                                "Earlier results are shown above; check those before "
+                                "retrying only the actions that still need to be done."
+                            ]
+                        ),
                         True,
                     ),
                     metadata=_normalize_execution_metadata(

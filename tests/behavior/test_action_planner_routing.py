@@ -1203,3 +1203,41 @@ def test_show_create_hub_parity_rule_parser_vs_planner(test_data_dir, planner_en
         seed_user=lambda _user_id: None,
         assert_parity=assert_parity,
     )
+
+
+def test_preparation_failure_retains_earlier_action_results():
+    from communication.message_processing.action_plan_executor import ActionPlanExecutor
+
+    actions = tuple(
+        AIActionRequest(
+            action_name="list_tasks", entities={}, confidence=1.0, source_message="test"
+        )
+        for _ in range(3)
+    )
+    plan = _execute_multi_action_plan("test", actions)
+    adapter = MagicMock()
+    adapter.build_parsing_result_from_action_request.side_effect = [MagicMock(), None]
+    adapter.build_action_execution_metadata.return_value = None
+    with (
+        patch(
+            "communication.message_processing.action_plan_executor._load_action_request_helpers",
+            return_value=adapter,
+        ),
+        patch(
+            "communication.message_processing.action_plan_executor.dispatch_structured_command",
+            return_value=InteractionResponse("Earlier confirmed result", True),
+        ) as dispatch,
+    ):
+        result = ActionPlanExecutor()._execute_planned_actions(
+            plan,
+            "test-user",
+            "discord",
+            command_parser=MagicMock(),
+            ai_chatbot=MagicMock(),
+            command_definitions={},
+        )
+    assert result is not None
+    assert "Earlier confirmed result" in result.response.message
+    assert "action 2 of 3" in result.response.message
+    assert "remaining actions were not run" in result.response.message
+    assert dispatch.call_count == 1

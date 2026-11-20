@@ -10,7 +10,7 @@ from PySide6.QtCore import Signal
 from core.logger import get_component_logger
 from core import update_user_preferences, update_user_account
 from core import get_user_data
-from core.error_handling import handle_errors
+from core.error_handling import FileOperationError, handle_errors
 from core.schedule_runtime import clear_schedule_periods_cache
 
 logger = get_component_logger("ui")
@@ -140,7 +140,8 @@ class CategoryManagementDialog(QDialog):
             prefs["categories"] = selected_categories
 
             # Save updated preferences
-            update_user_preferences(self.user_id, prefs)
+            if not update_user_preferences(self.user_id, prefs):
+                raise FileOperationError("Settings write was not confirmed")
 
             # Update account features (preserve existing account data)
             user_data_result = get_user_data(self.user_id, "account")
@@ -150,7 +151,8 @@ class CategoryManagementDialog(QDialog):
                 "enabled" if messages_enabled else "disabled"
             )
             account["features"] = features
-            update_user_account(self.user_id, account)
+            if not update_user_account(self.user_id, account):
+                raise FileOperationError("Settings write was not confirmed")
             logger.debug(
                 f"Category dialog: Updated account features - automated_messages: {features['automated_messages']}"
             )
@@ -179,7 +181,11 @@ class CategoryManagementDialog(QDialog):
 
         except Exception as e:
             logger.error(f"Error saving category settings for user {self.user_id}: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to save categories: {str(e)}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                "MHM could not finish saving category settings. Some changes may already be saved. Your selections are still here. Save again; if this continues, ask your administrator to check the error log.",
+            )
 
     @handle_errors("getting selected categories", default_return=[])
     def get_selected_categories(self):

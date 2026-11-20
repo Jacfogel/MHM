@@ -913,9 +913,7 @@ class CheckinSettingsWidget(QWidget):
                 dialog,
                 "Template Selection Error",
                 (
-                    "An error occurred while loading the template. "
-                    "Please try again or start from scratch.\n\n"
-                    f"Error: {str(e)}"
+                    "MHM could not finish loading the question template. No question has been saved by selecting it. Review the fields already filled in, then choose another template or enter the question yourself."
                 ),
             )
 
@@ -1049,7 +1047,7 @@ class CheckinSettingsWidget(QWidget):
             QMessageBox.critical(
                 self,
                 "Error",
-                "Failed to save the custom question. Please try again.",
+                "MHM could not confirm that the custom question was saved. Reopen the question list and check for it before adding it again. If it is missing, enter the question again; if this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("showing question dialog")
@@ -1341,7 +1339,7 @@ class CheckinSettingsWidget(QWidget):
                 QMessageBox.critical(
                     self,
                     "Error",
-                    "Failed to delete the custom question. Please try again.",
+                    "MHM could not confirm that the custom question was deleted. Reopen Check-in Settings and check the question list before deleting it again.",
                 )
 
     @handle_errors("undoing last question delete")
@@ -1372,10 +1370,14 @@ class CheckinSettingsWidget(QWidget):
             )
             # Preserve current min/max values
             current_min = (
-                self.min_questions_spinbox.value() if self.min_questions_spinbox else DEFAULT_MIN_QUESTIONS
+                self.min_questions_spinbox.value()
+                if self.min_questions_spinbox
+                else DEFAULT_MIN_QUESTIONS
             )
             current_max = (
-                self.max_questions_spinbox.value() if self.max_questions_spinbox else DEFAULT_MAX_QUESTIONS
+                self.max_questions_spinbox.value()
+                if self.max_questions_spinbox
+                else DEFAULT_MAX_QUESTIONS
             )
 
             # Get current state from UI and add the restored question
@@ -1423,10 +1425,11 @@ class CheckinSettingsWidget(QWidget):
             # Final validation
             self._validate_question_counts()
         else:
+            self.deleted_questions.append(deleted_question)
             QMessageBox.critical(
                 self,
                 "Error",
-                "Failed to restore the custom question. Please try again.",
+                "MHM could not confirm that the custom question was restored. Its definition is kept for another undo attempt. Check the question list before trying Undo again.",
             )
 
     @handle_errors("getting check-in settings")

@@ -88,7 +88,7 @@ async def _handle_welcome_button(
             f"Invalid interaction type for welcome button: {type(interaction)}"
         )
         await interaction.response.send_message(
-            "❌ An error occurred. Please try again.",
+            "❌ MHM could not open account setup from this button. No setup action was submitted. Send /start to reopen account setup.",
             ephemeral=True,
         )
         return
@@ -117,7 +117,7 @@ async def _handle_suggestion_button(
             f"Could not extract button label from suggestion button {custom_id}"
         )
         await interaction.followup.send(
-            "❌ Could not process button click. Please try typing the command instead.",
+            "❌ MHM could not read this button, so no command was submitted. Type the command instead, or send /help for commands.",
             ephemeral=True,
         )
         return
@@ -141,7 +141,7 @@ async def _handle_suggestion_button(
     )
     if response is None:
         await interaction.followup.send(
-            "❌ An error occurred processing your button click. Please try typing the command instead.",
+            "❌ MHM could not confirm that the button action finished. A change may already be saved. Check the relevant task list, profile, or schedule before typing the command again.",
             ephemeral=True,
         )
         return

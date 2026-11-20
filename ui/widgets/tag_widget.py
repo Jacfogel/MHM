@@ -214,11 +214,17 @@ class TagWidget(QWidget):
                     logger.info(f"Added tag '{tag_text}' for user {self.user_id}")
                 else:
                     QMessageBox.critical(
-                        self, "Error", f"Failed to add tag '{tag_text}'."
+                        self,
+                        "Error",
+                        f"MHM could not confirm that tag '{tag_text}' was added. Reopen the tag list and check for it before adding it again.",
                     )
         except Exception as e:
             logger.error(f"Error adding tag '{tag_text}' for user {self.user_id}: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to add tag: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                "MHM could not finish adding the tag. It may already be saved. Reopen the tag list before adding it again; if this continues, ask your administrator to check the error log.",
+            )
 
     @handle_errors("editing tag")
     def edit_tag(self):
@@ -274,13 +280,19 @@ class TagWidget(QWidget):
                     )
                 else:
                     QMessageBox.critical(
-                        self, "Error", f"Failed to edit tag '{old_tag}'."
+                        self,
+                        "Error",
+                        f"MHM could not finish renaming '{old_tag}' to '{new_tag}'. The old tag may already have been removed. Reopen the tag list, check both names, and add the intended name if it is missing.",
                     )
         except Exception as e:
             logger.error(
                 f"Error editing tag '{old_tag}' to '{new_tag}' for user {self.user_id}: {e}"
             )
-            QMessageBox.critical(self, "Error", f"Failed to edit tag: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                f"MHM could not finish renaming '{old_tag}' to '{new_tag}'. Some changes may already be saved. Reopen the tag list and check both names before retrying.",
+            )
 
     @handle_errors("deleting tag")
     def delete_tag(self):
@@ -342,13 +354,19 @@ class TagWidget(QWidget):
                     )
                 else:
                     QMessageBox.critical(
-                        self, "Error", f"Failed to delete tag '{tag_to_delete}'."
+                        self,
+                        "Error",
+                        f"MHM could not confirm that tag '{tag_to_delete}' was deleted. Some changes may already be saved. Reopen the tag list and check affected tasks before retrying.",
                     )
         except Exception as e:
             logger.error(
                 f"Error deleting tag '{tag_to_delete}' for user {self.user_id}: {e}"
             )
-            QMessageBox.critical(self, "Error", f"Failed to delete tag: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                "MHM could not finish deleting the tag. Some changes may already be saved. Reopen the tag list and check affected tasks before retrying; if this continues, ask your administrator to check the error log.",
+            )
 
     @handle_errors("getting available tags")
     def get_available_tags(self):

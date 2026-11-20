@@ -120,5 +120,5 @@ class NaturalLanguageSettingsWidget(QWidget):
             if not value:
                 return f"{label} time is required."
             if not parse_time_string(value):
-                return f"Could not parse {label} time: {value}"
+                return f"MHM could not read the {label} time. Nothing was saved by this validation. Use a time such as 9am or 09:00, then save again."
         return ""

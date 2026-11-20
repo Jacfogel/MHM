@@ -88,8 +88,8 @@ const MHMTaskInput = Object.freeze({
   function taskRequestFailure(path, method) {
     if (path === '/api/task-templates' && method === 'GET') return 'Task templates could not load. You can still create a task without one, or reload the page.';
     if (method === 'GET') return 'Your tasks could not load. Check your connection, then reload the page.';
-    if (path === '/api/tasks' && method === 'POST') return 'That task was not added. Your draft is still here. Check your connection and try again.';
-    if (method === 'PATCH') return 'Your task changes were not saved. The edit window is still open. Check your connection and try again.';
+    if (path === '/api/tasks' && method === 'POST') return 'MHM could not confirm that the task was added. Your draft is still here. Keep a copy, then reload the task list before creating it again to avoid a duplicate.';
+    if (method === 'PATCH') return 'MHM could not confirm that your task changes were saved. The edit window is still open. Keep a copy, then reload the task before saving again.';
     if (method === 'DELETE') return 'MHM could not confirm that task was deleted. Refresh your task list before trying again.';
     if (path.endsWith('/complete')) return 'MHM could not confirm that task was completed. Refresh your task list before trying again.';
     if (path.endsWith('/restore')) return 'MHM could not confirm that task was restored. Refresh your task list before trying again.';
@@ -98,7 +98,7 @@ const MHMTaskInput = Object.freeze({
     if (path.endsWith('/breakdown')) return 'MHM could not suggest smaller steps right now. The task was not changed. You can type a step yourself or try again later.';
     if (path.endsWith('/subtasks')) return 'MHM could not confirm which steps were added. Refresh the task before trying again.';
     if (path.endsWith('/detach')) return 'MHM could not confirm that step became its own task. Refresh the task list before trying again.';
-    if (path.endsWith('/simplify')) return 'The task title was not changed. Refresh the task before trying again.';
+    if (path.endsWith('/simplify')) return 'MHM could not confirm that the task title changed. Refresh the task before trying again.';
     return 'MHM could not confirm those task changes. Refresh your task list before trying again.';
   }
 
@@ -124,7 +124,7 @@ const MHMTaskInput = Object.freeze({
       throw new Error('Please log in again.');
     }
     if (!response.ok) {
-      const error = new Error(result.error || taskRequestFailure(path, method));
+      const error = new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : taskRequestFailure(path, method)));
       error.status = response.status;
       throw error;
     }

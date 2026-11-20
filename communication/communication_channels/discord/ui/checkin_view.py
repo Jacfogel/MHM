@@ -67,7 +67,8 @@ def get_checkin_view(user_id: str) -> Optional["discord.ui.View"]:
                 await interaction.followup.send(response.message, ephemeral=True)
             else:
                 await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
+                    "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                    ephemeral=True,
                 )
 
         @discord.ui.button(
@@ -98,7 +99,8 @@ def get_checkin_view(user_id: str) -> Optional["discord.ui.View"]:
                 await interaction.followup.send(response.message, ephemeral=True)
             else:
                 await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
+                    "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                    ephemeral=True,
                 )
 
         @discord.ui.button(

@@ -399,7 +399,7 @@ async def test_notebook_queries_validate_status_and_filter_results(notes_gateway
     assert (await archived.json())["note"]["pinned"] is False
 
 
-async def test_notebook_create_failure_reports_nothing_was_added(
+async def test_notebook_create_failure_explains_unconfirmed_save(
     notes_gateway, monkeypatch
 ):
     import notebook.notebook_data_manager as manager
@@ -414,8 +414,9 @@ async def test_notebook_create_failure_reports_nothing_was_added(
 
     assert response.status == 503
     message = (await response.json())["error"]
-    assert "Nothing was added" in message
-    assert "try again" in message.lower()
+    assert "could not confirm" in message
+    assert "Keep a copy" in message
+    assert "refresh the notebook" in message.lower()
 
 
 async def test_notebook_archive_failure_reports_previous_section(

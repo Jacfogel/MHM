@@ -280,10 +280,9 @@ class TestCheckinHandlerBehavior:
             response, InteractionResponse
         ), "Should return InteractionResponse"
         assert response.completed, "Response should be completed"
-        assert (
-            "trouble" in response.message.lower()
-            or "try again" in response.message.lower()
-        ), "Should indicate error"
+        assert "could not finish opening" in response.message.lower()
+        assert "may already be in progress" in response.message
+        assert "checkin status" in response.message
 
     @pytest.mark.behavior
     @pytest.mark.communication

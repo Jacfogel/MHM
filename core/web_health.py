@@ -79,7 +79,7 @@ class WebHealthRoutes:
                 url = await asyncio.to_thread(get_connect_authorization_url, uid)
                 if not url:
                     raise web.HTTPServiceUnavailable(
-                        text="Google Health could not start connecting."
+                        text="MHM could not prepare the Google sign-in link, so browser approval has not started. Existing health data has not been deleted. Ask your administrator to check Google Health configuration, then try Connect again."
                     )
                 self.gateway.health_connecting.add(uid)
 
@@ -112,7 +112,7 @@ class WebHealthRoutes:
                 )
             if not ok:
                 raise web.HTTPServiceUnavailable(
-                    text="Google Health could not complete that action."
+                    text="MHM could not confirm that the Google Health action finished. Some data or settings may already have changed. Reload to check health status before retrying; reconnect if requested."
                 )
             return web.json_response({"ok": True, "message": message, **snapshot()})
 

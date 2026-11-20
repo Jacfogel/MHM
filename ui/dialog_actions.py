@@ -64,7 +64,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening create account dialog: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open create account dialog: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening create account dialog. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing communication settings", default_return=None)
@@ -93,7 +95,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening communication settings dialog: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open communication settings: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening communication settings. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing categories", default_return=None)
@@ -124,7 +128,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening category management dialog: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open category management: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening category management. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing checkins", default_return=None)
@@ -153,7 +159,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening check-in management: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open check-in management: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening check-in management. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing tasks", default_return=None)
@@ -182,7 +190,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening task management dialog: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open task management: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening task management. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing Google Health settings", default_return=None)
@@ -212,7 +222,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening Google Health settings dialog: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open Google Health settings: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening Google Health settings. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing phrase settings", default_return=None)
@@ -242,7 +254,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening phrase settings dialog: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open phrase settings: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening phrase settings. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing task CRUD", default_return=None)
@@ -263,7 +277,11 @@ class DialogActions:
             dialog.exec()
         except Exception as e:
             logger.error(f"Error opening task CRUD dialog: {e}")
-            QMessageBox.critical(parent, "Error", f"Failed to open task CRUD: {str(e)}")
+            QMessageBox.critical(
+                parent,
+                "Error",
+                "MHM could not finish opening Task Management. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
+            )
 
     @handle_errors("managing personalization", default_return=None)
     def manage_personalization(
@@ -296,7 +314,8 @@ class DialogActions:
                 updates = {"context": data}
                 if tz is not None:
                     updates["account"] = {"timezone": tz}
-                save_user_data(current_user, updates)
+                saved = save_user_data(current_user, updates)
+                return all(saved.get(section, False) for section in updates)
 
             dialog = UserProfileDialog(
                 parent, current_user, on_save, existing_data=context_data
@@ -307,7 +326,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening personalization dialog: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open personalization settings: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening personalization settings. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("managing user analytics", default_return=None)
@@ -329,7 +350,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening user analytics: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open user analytics: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening user analytics. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("preparing selected user category editor", default_return=None)
@@ -440,7 +463,9 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening message editor: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open message editor: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening message editor. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )
 
     # not_duplicate: user_category_editor_actions
@@ -504,5 +529,7 @@ class DialogActions:
         except Exception as e:
             logger.error(f"Error opening schedule editor: {e}")
             QMessageBox.critical(
-                parent, "Error", f"Failed to open schedule editor: {str(e)}"
+                parent,
+                "Error",
+                "MHM could not finish opening schedule editor. Reopen the window and check any changes you already saved before retrying. If this continues, ask your administrator to check the error log.",
             )

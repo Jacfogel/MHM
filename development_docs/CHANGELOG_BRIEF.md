@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-19 - Helpful failures and audit fixes **COMPLETED**
+
+- Improved vague desktop, browser, chat, Discord, task, and launcher failures with saved-state guidance and concrete recovery steps.
+- Kept drafts open on failed saves, checked storage results before success, retained failed question undo, and preserved earlier planned-action results.
+- Completed priority actions 1, 2, 4 and quick wins: 68 affected tests pass, four Pyright errors are fixed, and three stale references plus ten broken links are repaired. Pyright and documentation checks are clean; Vulture reports zero findings. Full audits remain owner-run.
+
 ### 2026-11-19 - Shared documentation consolidation **COMPLETED**
 
 - Consolidated AI mirrors and session safeguards into shared guides and AGENTS.md; removed paired-heading requirements.
@@ -88,11 +94,4 @@ Guidelines:
 - Updated MHM's tools to published revision `74e5284`. MHM keeps its host configuration, and published scans exclude the tools directory.
 - Regenerated the registry, dependencies, and directory tree under `development_tools/reports/`. The dependency check passed after reading the new report.
 - Repaired links to removed tools files. All 43 logger tests passed, and `doc-sync` reported zero issues and zero Markdown link hints.
-
-### 2026-11-16 - Development tools release split and audit cleanup **COMPLETED**
-
-- The private tools repo now has development and published branches. The development branch owns self-checks, tests, fixtures, and the testing guide. MHM uses the published runtime, one tools README, and the renamed `STATUS_BRIEF.md` and `PRIORITIES_BRIEF.md` reports.
-- Run `python development_tools/run_development_tools.py audit`. The shared CLI selects MHM's config via `pyproject.toml`. Removed the root launcher and MHM-specific loader fallbacks. CLI, environment, and local config overrides still work.
-- Consolidated task and notebook roadmaps into PLANS.md and moved their regression commands to the testing guide. Moved prompt evaluation snapshots to `tests/ai/prompt_reports/`. All 30 prompt regression tests passed.
-- Fixed nightly logging, registry and docstring gaps, Pyright, README checks, and the runner-isolation tests. Upgraded `dnspython` to 2.9.2. Fresh pip-audit and documentation sync were clean, and the saved Tier 3 product tracks reported zero failures or errors.
 

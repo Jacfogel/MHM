@@ -30,7 +30,7 @@ class CheckinFlowMixin(FlowStateMixin):
     @handle_errors(
         "starting dynamic checkin",
         default_return=(
-            "I'm having trouble starting your check-in. Please try again.",
+            "I could not finish opening your check-in. A check-in may already be in progress. Send 'start checkin' again to check for an open check-in; send 'checkin status' to check completed check-ins.",
             True,
         ),
     )
@@ -102,6 +102,7 @@ class CheckinFlowMixin(FlowStateMixin):
             f"FLOW_STATE_CREATE: Check-in flow initialized successfully for user {user_id} | First question: {first_question_key}"
         )
         return (intro, False)
+
     @handle_errors(
         "getting personalized welcome",
         default_return="🌟 Hello! Let's take a moment to check in on how you're feeling today.\n\nI have some quick questions for you today. Type /cancel anytime to skip.",
@@ -128,10 +129,11 @@ class CheckinFlowMixin(FlowStateMixin):
             )
 
         return f"{welcome}\n\nI have {question_count} quick questions for you today. Type /cancel anytime to skip."
+
     @handle_errors(
         "getting next question",
         default_return=(
-            "I'm having trouble with the check-in flow. Let's start over.",
+            "I could not continue the check-in. Your latest answer or completed check-in may already be saved. Send 'checkin status' to check completed check-ins, then 'start checkin' to check for an open check-in before answering again.",
             True,
         ),
     )
@@ -154,6 +156,7 @@ class CheckinFlowMixin(FlowStateMixin):
         user_state["state"] = QUESTION_STATES.get(question_key, CHECKIN_START)
 
         return (question_text, False)
+
     @handle_errors(
         "getting question text", default_return="Please answer this question:"
     )
@@ -232,7 +235,7 @@ class CheckinFlowMixin(FlowStateMixin):
     @handle_errors(
         "handling checkin",
         default_return=(
-            "I'm having trouble with the check-in. Let's start over.",
+            "I could not continue the check-in. Your latest answer or completed check-in may already be saved. Send 'checkin status' to check completed check-ins, then 'start checkin' to check for an open check-in before answering again.",
             True,
         ),
     )
@@ -363,12 +366,13 @@ class CheckinFlowMixin(FlowStateMixin):
 
         # Get next question or complete
         return self._get_next_question(user_id, user_state)
+
     @handle_errors(
         "validating response",
         default_return={
             "valid": False,
             "value": None,
-            "message": "I didn't understand that response. Please try again.",
+            "message": "I could not validate that answer, so it has not been accepted for this question. Check the format requested in the latest question and send your answer again; you can also reply 'skip'.",
         },
     )
     def _validate_response(
@@ -384,6 +388,7 @@ class CheckinFlowMixin(FlowStateMixin):
         )
 
         return {"valid": is_valid, "value": value, "message": error_message}
+
     @handle_errors(
         "completing checkin",
         default_return=(
@@ -438,10 +443,11 @@ class CheckinFlowMixin(FlowStateMixin):
         self._clear_flow_state(user_id, mark_completion=True)
 
         return (completion_message, True)
+
     @handle_errors(
         "handling command during checkin",
         default_return=(
-            "I'm having trouble with that command right now. Please continue with your check-in.",
+            "I could not confirm that command finished. Its changes may already be saved. Check the relevant task list, profile, or schedule before repeating it. You can continue by answering the latest check-in question.",
             False,
         ),
     )
@@ -572,6 +578,7 @@ class CheckinFlowMixin(FlowStateMixin):
                 "You're currently in a check-in. Type `/help` for available commands or continue answering the questions.",
                 False,
             )
+
     # error_handling_exclude: called only from the guarded check-in command dispatcher
     def _checkin_command_unavailable(self, user_id: str, command: str) -> str:
         """Explain a read-command failure without ending the active check-in."""
@@ -638,6 +645,7 @@ class CheckinFlowMixin(FlowStateMixin):
         )
 
         return message
+
     @handle_errors("selecting check-in questions with weighted randomization")
     def _select_checkin_questions_with_weighting(
         self, user_id: str, enabled_questions: dict

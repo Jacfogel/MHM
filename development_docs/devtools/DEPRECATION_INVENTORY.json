@@ -762,6 +762,14 @@
       ],
       "replacement": "development_docs/changelog_history/CHANGELOG_BRIEF_ARCHIVE.md",
       "note": "Moved the original historical archive and merged the smaller former AI-doc archive. Preserved all distinct entries, removed only exact duplicate entries, and sorted newest first."
+    },
+    {
+      "id": "user_list_fallback_original_error_argument",
+      "removed_at": "2026-11-19",
+      "status": "removed",
+      "search_terms": ["refresh_user_list_fallback original_error"],
+      "replacement": "refresh_user_list_fallback(parent_window)",
+      "note": "Removed the unused original exception argument after moving technical details out of the user-facing failure. Updated the caller and tests; Vulture confirmed the unused argument."
     }
   ],
   "global_sweep_keywords": [

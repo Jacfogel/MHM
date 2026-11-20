@@ -129,7 +129,7 @@ Examples (non-exhaustive):
 -   [FUNCTION_REGISTRY_DETAIL.md](development_tools/reports/FUNCTION_REGISTRY_DETAIL.md)
 -   [MODULE_DEPENDENCIES_DETAIL.md](development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md)
 -   [LEGACY_REFERENCE_REPORT.md](development_tools/reports/LEGACY_REFERENCE_REPORT.md)
--   [TEST_COVERAGE_REPORT.md](development_docs/TEST_COVERAGE_REPORT.md)
+-   [TEST_COVERAGE_REPORT.md](development_tools/reports/TEST_COVERAGE_REPORT.md)
 -   [DIRECTORY_TREE.md](development_tools/reports/DIRECTORY_TREE.md)
 -   [Priorities Brief](development_tools/PRIORITIES_BRIEF.md)
 -   [Status Brief](development_tools/STATUS_BRIEF.md)
@@ -573,7 +573,7 @@ Examples of generated Markdown files include:
 -   development_tools/reports/FUNCTION_REGISTRY_DETAIL.md
 -   development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md
 -   development_tools/reports/LEGACY_REFERENCE_REPORT.md
--   development_docs/TEST_COVERAGE_REPORT.md
+-   development_tools/reports/TEST_COVERAGE_REPORT.md
 -   development_tools/reports/DIRECTORY_TREE.md
 -   development_tools/STATUS_BRIEF.md
 -   development_tools/PRIORITIES_BRIEF.md

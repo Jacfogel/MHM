@@ -15,7 +15,8 @@ class TrendAnalyticsHandler(AnalyticsFormattingMixin):
     @error_handling.handle_errors(
         "showing mood trends",
         default_return=InteractionResponse(
-            "I'm having trouble showing mood trends. Please try again.", True
+            "I could not finish showing mood trends. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_mood_trends(
@@ -61,14 +62,15 @@ class TrendAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing mood trends", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your mood trends right now. Please try again.",
+                "I could not finish showing your mood trends. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
     @error_handling.handle_errors(
         "showing energy trends",
         default_return=InteractionResponse(
-            "I'm having trouble showing energy trends. Please try again.", True
+            "I could not finish showing energy trends. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_energy_trends(
@@ -116,6 +118,6 @@ class TrendAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing energy trends", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your energy trends right now. Please try again.",
+                "I could not finish showing your energy trends. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )

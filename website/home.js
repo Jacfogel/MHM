@@ -8,6 +8,7 @@
   }
 
   async function api(path, method = 'GET', payload) {
+    const recoveryMessage = method === 'GET' ? 'MHM could not load this view. Saved tasks and check-ins were not changed by this view request. Check your connection, then reload.' : 'MHM could not confirm that this action finished. Some changes may already be saved. Keep a copy of your message, then reload and check the conversation or task before repeating it.';
     const response = await fetch(path, {
       method,
       credentials: 'same-origin',
@@ -16,13 +17,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       }),
-    });
+    }).catch(() => { throw new Error(recoveryMessage); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) {
       returnToLogin();
       throw new Error('Please log in again.');
     }
-    if (!response.ok) throw new Error(result.error || 'MHM could not load that just now. Please try again.');
+    if (!response.ok) throw new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : recoveryMessage));
     return result;
   }
 

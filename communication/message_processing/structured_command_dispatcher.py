@@ -19,7 +19,7 @@ logger = get_component_logger("communication_manager")
 @handle_errors(
     "handling structured command",
     default_return=InteractionResponse(
-        "I encountered an error while processing your request. Please try again or ask for help.",
+        "I could not confirm that your command finished. Some changes may already be saved. Check the relevant task list, profile, or schedule before repeating a change; send 'help' for commands.",
         True,
     ),
 )

@@ -172,11 +172,21 @@ class GoogleHealthSettingsDialog(QDialog):
         """Save independent opt-outs without enabling the account feature."""
         if not self.user_id:
             return
-        if not update_user_preferences(self.user_id, {"health_personalization": {
-            "use_in_messages": self.use_in_messages.isChecked(),
-            "use_in_chat": self.use_in_chat.isChecked(),
-        }}, auto_create=False):
-            QMessageBox.warning(self, "Google Health", "Could not save personalization. Try again.")
+        if not update_user_preferences(
+            self.user_id,
+            {
+                "health_personalization": {
+                    "use_in_messages": self.use_in_messages.isChecked(),
+                    "use_in_chat": self.use_in_chat.isChecked(),
+                }
+            },
+            auto_create=False,
+        ):
+            QMessageBox.warning(
+                self,
+                "Google Health",
+                "MHM could not confirm that health personalization preferences were saved. Your selections are still here. Save again; if this continues, ask your administrator to check the error log.",
+            )
             return
         self.user_changed.emit()
         QMessageBox.information(self, "Google Health", "Personalization preferences saved.")
@@ -199,7 +209,9 @@ class GoogleHealthSettingsDialog(QDialog):
 
         status = get_health_integration_status(self.user_id)
         if status is None:
-            self.status_view.setPlainText("Could not load health status.")
+            self.status_view.setPlainText(
+                "MHM could not load health status. This request did not change health settings or delete saved health data. Reopen Google Health settings to retry; if this continues, ask your administrator to check the error log."
+            )
             self._set_actions_enabled(False)
             return
 
@@ -231,7 +243,11 @@ class GoogleHealthSettingsDialog(QDialog):
 
         auth_url = get_connect_authorization_url(self.user_id)
         if not auth_url:
-            QMessageBox.warning(self, "Google Health", "Could not build authorization URL.")
+            QMessageBox.warning(
+                self,
+                "Google Health",
+                "MHM could not prepare the Google sign-in link, so browser authorization has not started. Existing health data has not been deleted. Ask your administrator to check Google Health configuration, then try Connect again.",
+            )
             return
 
         reply = QMessageBox.question(
@@ -289,7 +305,8 @@ class GoogleHealthSettingsDialog(QDialog):
         QMessageBox.warning(
             self,
             "Connect Failed",
-            error or "Google Health connect did not complete.",
+            error
+            or "MHM could not confirm the Google Health connection. Credentials may already be saved. Check the refreshed status before using Connect again; reconnect if status requests it.",
         )
 
     @handle_errors("pausing Google Health from admin UI", default_return=None)
@@ -304,6 +321,15 @@ class GoogleHealthSettingsDialog(QDialog):
                 "Google Health",
                 "Health personalization paused. Data is kept until you re-enable.",
             )
+        else:
+            self.refresh_status()
+            QMessageBox.warning(
+                self,
+                "Pause Not Confirmed",
+                "MHM could not confirm that health personalization was paused. "
+                "Check the refreshed status before trying Pause again. "
+                "This action does not delete saved health data.",
+            )
 
     @handle_errors("enabling Google Health from admin UI", default_return=None)
     def enable_health(self) -> None:
@@ -315,7 +341,12 @@ class GoogleHealthSettingsDialog(QDialog):
             self.user_changed.emit()
             QMessageBox.information(self, "Google Health", "Health personalization enabled.")
             return
-        QMessageBox.warning(self, "Google Health", message or "Could not enable health.")
+        QMessageBox.warning(
+            self,
+            "Google Health",
+            message
+            or "MHM could not confirm that health personalization was enabled. Check the refreshed status before enabling it again; reconnect if status requests it. Saved health data has not been deleted by this action.",
+        )
 
     @handle_errors("syncing Google Health from admin UI", default_return=None)
     def sync_now(self) -> None:
@@ -357,7 +388,7 @@ class GoogleHealthSettingsDialog(QDialog):
         elif status is not None and status.feature_state != "enabled":
             message = "Health is paused or disabled. Enable it before syncing; reconnect if requested in status."
         else:
-            message = "Sync did not complete. Check your connection and status, then try again."
+            message = "MHM could not confirm that sync completed. Some health records may already be refreshed. Check your connection and the latest status before using Sync Now again."
         QMessageBox.warning(self, "Google Health", message)
 
     @handle_errors("closing Google Health dialog", default_return=None)
@@ -393,4 +424,14 @@ class GoogleHealthSettingsDialog(QDialog):
                 self,
                 "Google Health",
                 "Local Google Health data deleted and feature disabled.",
+            )
+        else:
+            self.refresh_status()
+            QMessageBox.warning(
+                self,
+                "Deletion Not Confirmed",
+                "MHM could not confirm that all local health data was deleted. "
+                "Some files or settings may already have changed. Check the refreshed "
+                "status before retrying; if this continues, ask your administrator "
+                "to check the error log.",
             )

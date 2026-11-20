@@ -33,7 +33,7 @@ from ui.period_row_management import (
     remove_period_row_from_layout,
     DEFAULT_PERIOD_DATA,
 )
-from core.error_handling import handle_errors
+from core.error_handling import FileOperationError, handle_errors
 from storage.user_data_validation import _shared__title_case, validate_schedule_periods
 
 # Import our new period row widget
@@ -328,7 +328,8 @@ class ScheduleEditorDialog(QDialog):
                 return False
 
             # Save the schedule
-            set_schedule_periods(self.user_id, self.category, periods)
+            if not set_schedule_periods(self.user_id, self.category, periods):
+                raise FileOperationError("Settings write was not confirmed")
 
             # Clear cache
             clear_schedule_periods_cache(self.user_id, self.category)
@@ -350,12 +351,9 @@ class ScheduleEditorDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Save Failed",
-                "Unable to save your schedule changes.\n\n"
-                "Please check that:\n"
-                "â€¢ All required fields are filled in\n"
-                "â€¢ Your user data files are accessible\n"
-                "â€¢ You have permission to modify files\n\n"
-                "If the problem persists, try closing and reopening the dialog.",
+                "MHM could not finish saving your schedule changes. Some changes may already be saved. "
+                "Your entries are still here; keep this window open and try saving again. "
+                "If this continues, ask your administrator to check data-folder permissions and the error log.",
             )
             return False
 

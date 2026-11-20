@@ -107,15 +107,19 @@ def _run_handler(
 @handle_errors(
     "building create hub recovery response",
     default_return=InteractionResponse(
-        "I couldn't save that item. Open `create` and try again.", True
+        "I could not confirm that the item was saved. Keep a copy of your text and check your task list or notebook before opening `create` again.",
+        True,
     ),
 )
-def _create_failure_response(item_name: str, command_example: str) -> InteractionResponse:
+def _create_failure_response(
+    item_name: str, command_example: str
+) -> InteractionResponse:
     """Return actionable recovery text when a create-hub handler fails."""
     logger.warning(f"Discord create hub failed to save {item_name}")
     return InteractionResponse(
-        f"I couldn't save that {item_name}. Open `create` and try again, "
-        f"or type `{command_example}` in chat.",
+        f"I could not confirm that the {item_name} was saved. Keep a copy of your text "
+        "and check your task list or notebook before creating it again. "
+        f"If it is missing, open `create` or type `{command_example}` in chat.",
         True,
     )
 

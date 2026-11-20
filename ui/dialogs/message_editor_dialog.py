@@ -272,7 +272,11 @@ class MessageEditDialog(QDialog):
                     self, "Success", "Message updated successfully."
                 )
             else:
-                QMessageBox.critical(self, "Error", "Message ID not found.")
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "MHM could not identify the selected message, so no change was submitted. Reopen the message list and select it again before editing or deleting.",
+                )
                 return
         else:
             # Add new message
@@ -473,7 +477,11 @@ class MessageEditorDialog(QDialog):
             message_text = body[:50] + "..." if len(body) > 50 else body
 
             if not template_id:
-                QMessageBox.critical(self, "Error", "Message ID not found.")
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "MHM could not identify the selected message, so no change was submitted. Reopen the message list and select it again before editing or deleting.",
+                )
                 return
 
             # Confirm deletion

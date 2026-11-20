@@ -5,13 +5,14 @@
   let healthBusy = false;
 
   async function api(path, method = 'GET', payload) {
+    const recoveryMessage = method === 'GET' ? 'MHM could not load health status. This status request did not change health settings or delete data. Check your connection, then reload.' : 'MHM could not confirm that the health action finished. Some data or settings may already have changed. Reload to check health status before retrying; reconnect if requested.';
     const response = await fetch(path, {
       method, credentials: 'same-origin', cache: 'no-store',
       ...(payload ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : {}),
-    });
+    }).catch(() => { throw new Error(recoveryMessage); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { window.dispatchEvent(new Event('mhm:signed-out')); location.replace('login.html'); throw new Error('Please log in again.'); }
-    if (!response.ok) throw new Error(result.error || 'MHM could not load this information.');
+    if (!response.ok) throw new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : recoveryMessage));
     return result;
   }
 

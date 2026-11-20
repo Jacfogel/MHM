@@ -35,6 +35,7 @@
   }
 
   async function api(path, method = 'GET', payload) {
+    const recoveryMessage = method === 'GET' ? 'MHM could not load account setup. This view request did not save setup changes. Check your connection, then reload.' : 'MHM could not confirm that this setup step finished. Earlier steps remain saved, and this step may also be saved. Keep a copy of your entries, then reload setup to check progress before continuing.';
     const response = await fetch(path, {
       method,
       credentials: 'same-origin',
@@ -43,13 +44,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       }),
-    });
+    }).catch(() => { throw new Error(recoveryMessage); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) {
       returnToLogin();
       throw new Error('Please log in again.');
     }
-    if (!response.ok) throw new Error(result.error || 'MHM could not save that just now. Please try again.');
+    if (!response.ok) throw new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : recoveryMessage));
     return result;
   }
 

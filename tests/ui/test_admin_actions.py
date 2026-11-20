@@ -137,7 +137,7 @@ def test_open_process_watcher_reports_load_failure():
         actions.open_process_watcher(parent)
 
     msgbox.critical.assert_called_once()
-    assert "Failed to open process watcher" in msgbox.critical.call_args.args[2]
+    assert "could not open the process watcher" in msgbox.critical.call_args.args[2]
 
 
 def test_force_clean_cache_cancelled_does_not_clean():
@@ -198,7 +198,9 @@ def test_force_clean_cache_failure_shows_critical():
         patch("ui.admin_actions.QMessageBox.critical") as mock_critical:
         actions.force_clean_cache(parent)
 
-    mock_critical.assert_called_once_with(parent, "Error", "Cache cleanup failed")
+    mock_critical.assert_called_once()
+    assert "Some cache files may already be removed" in mock_critical.call_args.args[2]
+    assert "retry" in mock_critical.call_args.args[2]
 
 
 def test_build_all_users_summary_empty_and_skips_missing_account():
@@ -231,7 +233,7 @@ def test_discord_health_lines_connected_and_error_paths():
     missing = Mock()
     missing.get_channel_connectivity_status.return_value = None
     assert actions._discord_health_lines(lambda: missing) == [
-        "[INFO] Discord Status: Unable to check"
+        "[INFO] Discord Status: Not confirmed. This status check did not save channel settings. Reopen System Health to retry; check the Discord log if this continues."
     ]
 
     disconnected = Mock()
@@ -390,4 +392,3 @@ def test_show_configuration_help_and_summary_windows(qapp):
     assert mock_exec.call_count == 3
     assert "REQUIRED SETTINGS" in CONFIGURATION_HELP_TEXT
     parent.deleteLater()
-

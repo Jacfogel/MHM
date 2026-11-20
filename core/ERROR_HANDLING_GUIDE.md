@@ -225,6 +225,12 @@ Separate user-facing messages from log messages.
 
 ### 5.1. User-facing messages
 
+Every failure response should identify the operation, describe only confirmed saved state, and give a concrete next step. A failed or missing return value does not prove that no write occurred. For uncertain mutations, say the change may already be saved and direct the user to its current view before retrying. For read-only reports, explain that the report request did not change saved records. Do not claim automatic recovery or a specific cause unless the result confirms it.
+
+Desktop save failures keep drafts open. Channel validation shows one validation message and leaves the form available for correction; a storage failure must not show success. Multi-stage settings saves may be partial. Batch task results report the confirmed count and identify unconfirmed tasks, then direct the user to check the list before retrying only remaining work. Planned-action preparation failures retain earlier handler results and identify actions that were never run. Custom-question undo retains the deleted definition if restoration is unconfirmed.
+
+Browser network failures use the same operation-aware recovery messages as server failures. Preserve drafts and useful validation errors; do not display raw browser connection exceptions. A lost response can follow a successful save, so creation, completion, deletion, and account changes require checking current state before repeating the action.
+
 - Short, clear, and non-technical.  
 - Focus on what the user can do (if anything).  
 - Avoid stack traces, internal names, or raw exception text.  
@@ -253,7 +259,7 @@ Notebook list/query service results carry a `success` flag. Exceptions and inval
 Example user message:
 
 ```text
-"Could not send your email right now. Please check your internet connection and try again."
+"MHM could not confirm email delivery. Check your inbox before retrying; the email may already have been sent."
 ```
 
 When user-visible recovery occurs (for example, recreating a corrupted config file), consider whether to surface a gentle notice to the user so they understand any loss of custom settings.

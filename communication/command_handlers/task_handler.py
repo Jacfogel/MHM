@@ -286,9 +286,7 @@ def _valid_pending_restore(user_id: str) -> dict[str, Any] | None:
 
 
 @handle_errors("handling pending task restore choice", default_return=None)
-def handle_pending_restore(
-    user_id: str, message: str
-) -> InteractionResponse | None:
+def handle_pending_restore(user_id: str, message: str) -> InteractionResponse | None:
     """Restore the last task with its steps, or the task alone."""
     pending = _valid_pending_restore(user_id)
     if not pending:
@@ -312,7 +310,10 @@ def handle_pending_restore(
                 "Restored that task and its smaller steps.", True
             )
         return InteractionResponse("Restored that task. Its steps stay finished.", True)
-    return InteractionResponse("That task could not be restored. Please try again.", True)
+    return InteractionResponse(
+        "I could not confirm that the task was restored. Send 'list tasks' to check whether it is already active before restoring it again.",
+        True,
+    )
 
 
 @handle_errors("loading sorted active tasks for which-task replies", default_return=[])
@@ -509,7 +510,8 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors(
         "handling task management interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with task management right now. Please try again.", True
+            "I could not confirm that your task request finished. Some changes may already be saved. Send 'list tasks' before repeating a change to avoid duplicate tasks or recurring occurrences.",
+            True,
         ),
     )
     def handle(
@@ -562,7 +564,8 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors(
         "listing tasks",
         default_return=InteractionResponse(
-            "I'm having trouble listing your tasks. Please try again.", True
+            "I could not load your task list. This view request did not change your tasks, and does not mean the list is empty. Try 'list tasks' again later.",
+            True,
         ),
     )
     def handle_list_tasks(
@@ -778,7 +781,8 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors(
         "listing task templates",
         default_return=InteractionResponse(
-            "I'm having trouble listing task templates. Please try again.", True
+            "I could not load task templates. This request did not create a task. Try 'list task templates' again later, or create a task by typing its title.",
+            True,
         ),
     )
     def _handle_list_task_templates(
@@ -1174,7 +1178,8 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors(
         "resolving an active task for a reminder command",
         default_return=InteractionResponse(
-            "I could not find that task right now. Please try again.", True
+            "I could not look up the task, so no reminder change was submitted by this lookup. Send 'list tasks', then use the task's current number or name.",
+            True,
         ),
     )
     def _resolve_active_task_for_command(
@@ -1215,7 +1220,8 @@ class TaskManagementHandler(InteractionHandler):
     @handle_errors(
         "resolving task for reminder snooze",
         default_return=InteractionResponse(
-            "I could not snooze that reminder right now. Please try again.", True
+            "I could not look up the task to snooze, so this lookup did not change the reminder. Send 'list tasks', then use the task's current number or name with the snooze command.",
+            True,
         ),
     )
     def _handle_snooze_task_reminder__resolve_task(
@@ -1912,7 +1918,6 @@ class TaskManagementHandler(InteractionHandler):
             "I couldn't confirm the link was removed. Send 'list tasks' and check "
             "the task details before trying 'remove link from task <number> <URL>' again.", True
         )
-
 
     # not_duplicate: task_identifier_service_facade
     @handle_errors("finding task by identifier")

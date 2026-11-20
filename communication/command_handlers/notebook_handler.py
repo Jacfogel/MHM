@@ -97,6 +97,7 @@ def _entry_failure_response(
         )
     return InteractionResponse(fallback, True)
 
+
 # Channel-neutral notebook help (single source for `help notebook` and handler.get_help).
 NOTEBOOK_HELP_TEXT = """**Notebook Help:**
 Capture notes, lists, and journal entries from Discord.
@@ -276,7 +277,8 @@ class NotebookHandler(InteractionHandler):
     @handle_errors(
         "handling notebook interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with your notebook right now. Please try again.", True
+            "I could not confirm that your notebook request finished. Keep a copy of any new text and check '!recent' before submitting it again, since it may already be saved.",
+            True,
         ),
     )
     def handle(

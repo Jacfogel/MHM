@@ -307,7 +307,7 @@ async def test_task_mutation_failures_explain_state_and_recovery(
     )
     assert creation.status == 503
     assert (await creation.json())["error"] == (
-        "That task was not added. Please wait a moment and try again."
+        "MHM could not confirm that the task was added. Your draft is still here. Keep a copy and refresh the task list before creating it again to avoid a duplicate."
     )
 
     monkeypatch.setattr(service, "update_task", lambda _uid, _task_id, _data: False)
@@ -318,8 +318,8 @@ async def test_task_mutation_failures_explain_state_and_recovery(
     )
     assert update.status == 503
     assert (await update.json())["error"] == (
-        "Your task changes were not saved. The original task is unchanged. "
-        "Check your connection and try again."
+        "MHM could not confirm that your task changes were saved. Keep a copy of your edits, "
+        "then refresh the task to check its saved values before trying again."
     )
 
     monkeypatch.setattr(

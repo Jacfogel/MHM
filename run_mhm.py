@@ -40,7 +40,10 @@ def main() -> int:
     # Check if the UI app exists.
     ui_app_path = script_dir / "ui" / "ui_app_qt.py"
     if not ui_app_path.exists():
-        message = f"Could not find ui_app_qt.py at {ui_app_path}"
+        message = (
+            f"MHM could not open the admin panel because ui_app_qt.py is missing at {ui_app_path}. "
+            "No admin panel was opened. Restore the application files from your checkout or reinstall MHM, then retry; keep your existing data folder."
+        )
         logger.error(message)
         print(f"Error: {message}")
         return 1

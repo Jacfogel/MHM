@@ -41,7 +41,7 @@ class UserSelectionController:
             self.populate_active_users()
         except Exception as e:
             logger.error(f"Error refreshing user list: {e}")
-            self.refresh_user_list_fallback(parent_window, e)
+            self.refresh_user_list_fallback(parent_window)
         finally:
             self.ui.comboBox_users.blockSignals(False)
         self.reselect_user_if_present(current_user_id)
@@ -62,7 +62,7 @@ class UserSelectionController:
             )
 
     @handle_errors("refreshing user list fallback", default_return=None)
-    def refresh_user_list_fallback(self, parent_window, original_error: Exception):
+    def refresh_user_list_fallback(self, parent_window):
         """Fallback user list refresh using minimal account/context reads."""
         try:
             self.reset_user_combo_box()
@@ -71,7 +71,9 @@ class UserSelectionController:
         except Exception as fallback_error:
             logger.error(f"Fallback user list refresh also failed: {fallback_error}")
             QMessageBox.warning(
-                parent_window, "Error", f"Failed to refresh user list: {original_error}"
+                parent_window,
+                "Error",
+                "MHM could not reload the user list. This does not mean accounts were deleted. Reopen the admin panel to reload it; if this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("reselecting previously active user", default_return=None)
@@ -125,12 +127,18 @@ class UserSelectionController:
                 return self.current_user
 
             QMessageBox.warning(
-                parent_window, "User Error", f"Could not load user account for {user_id}"
+                parent_window,
+                "User Error",
+                f"MHM could not load account {user_id}. This request did not save account changes. Reload the user list and select the account again; if this continues, ask your administrator to check the error log.",
             )
             self.disable_content_management()
         except Exception as e:
             logger.error(f"Error handling user selection: {e}")
-            QMessageBox.warning(parent_window, "Error", f"Failed to load user: {e}")
+            QMessageBox.warning(
+                parent_window,
+                "Error",
+                "MHM could not load the selected account. Account details may be incomplete. Reload the user list and select the account again; if this continues, ask your administrator to check the error log.",
+            )
             self.disable_content_management()
         return self.current_user
 

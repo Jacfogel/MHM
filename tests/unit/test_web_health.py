@@ -240,7 +240,10 @@ async def test_health_failed_mutation_returns_service_unavailable(monkeypatch):
         await WebHealthRoutes(_Gateway("sync")).health_settings(
             SimpleNamespace(method="POST")
         )
-    assert error.value.text == "Google Health could not complete that action."
+    message = error.value.text
+    assert isinstance(message, str)
+    assert "Some data or settings may already have changed" in message
+    assert "Reload to check health status" in message
 
 
 async def test_health_connect_checks_readiness_and_single_flight(monkeypatch):
@@ -272,7 +275,10 @@ async def test_health_connect_requires_authorization_url(monkeypatch):
         await WebHealthRoutes(_Gateway("connect")).health_settings(
             SimpleNamespace(method="POST")
         )
-    assert error.value.text == "Google Health could not start connecting."
+    message = error.value.text
+    assert isinstance(message, str)
+    assert "browser approval has not started" in message
+    assert "configuration" in message
 
 
 async def test_health_connect_releases_slot_from_completion_callback(monkeypatch):

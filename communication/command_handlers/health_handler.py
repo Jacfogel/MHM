@@ -56,10 +56,13 @@ class HealthHandler(InteractionHandler):
     @handle_errors(
         "handling health interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with health settings right now. Please try again.", True
+            "I could not confirm that your health request finished. Some settings may already be saved. Send 'health status' before retrying a change; reconnect if status requests it.",
+            True,
         ),
     )
-    def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
+    def handle(
+        self, user_id: str, parsed_command: ParsedCommand
+    ) -> InteractionResponse:
         intent = parsed_command.intent
         handlers = {
             "connect_google_health": self._handle_connect,

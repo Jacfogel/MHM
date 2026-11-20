@@ -210,7 +210,9 @@ class TaskEditDialog(QDialog):
         )
         if not task_data:
             QMessageBox.warning(
-                self, "Template Unavailable", "That task template could not be loaded."
+                self,
+                "Template Unavailable",
+                "MHM could not load that task template. You can still enter the task details yourself, or choose another template. This has not created a task.",
             )
             return
 
@@ -742,8 +744,7 @@ class TaskEditDialog(QDialog):
                 return
 
             if any(
-                period.get("end_time")
-                and period["end_time"] <= period["start_time"]
+                period.get("end_time") and period["end_time"] <= period["start_time"]
                 for period in reminder_periods
             ):
                 QMessageBox.warning(
@@ -778,19 +779,23 @@ class TaskEditDialog(QDialog):
                 task_identifier = self.task_data.get("id")
                 if not task_identifier:
                     QMessageBox.critical(
-                        self, "Error", "Failed to update task: missing task identifier."
+                        self,
+                        "Error",
+                        "This task has no identifier, so MHM has not submitted your changes. Copy your entries, reopen the task list, and select the task again before editing.",
                     )
                     return
-                success = update_task(
-                    self.user_id, task_identifier, task_data
-                )
+                success = update_task(self.user_id, task_identifier, task_data)
                 if success:
                     QMessageBox.information(
                         self, "Success", "Task updated successfully!"
                     )
                     self.accept()
                 else:
-                    QMessageBox.critical(self, "Error", "Failed to update task.")
+                    QMessageBox.critical(
+                        self,
+                        "Error",
+                        "MHM could not confirm that the task changes were saved. Your entries are still here. Check the task list before saving again; if this continues, ask your administrator to check the error log.",
+                    )
             else:
                 # Create new task
                 task_id = create_task(
@@ -813,8 +818,16 @@ class TaskEditDialog(QDialog):
                     )
                     self.accept()
                 else:
-                    QMessageBox.critical(self, "Error", "Failed to create task.")
+                    QMessageBox.critical(
+                        self,
+                        "Error",
+                        "MHM could not confirm that the new task was saved. Your entries are still here. Check the task list before creating it again to avoid a duplicate; if this continues, ask your administrator to check the error log.",
+                    )
 
         except Exception as e:
             logger.error(f"Error saving task: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to save task: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                "MHM could not finish saving the task. It may already be saved, and your entries are still here. Check the task list before retrying to avoid a duplicate. If this continues, ask your administrator to check the error log.",
+            )

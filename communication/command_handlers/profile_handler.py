@@ -54,7 +54,7 @@ class ProfileHandler(InteractionHandler):
     @handle_errors(
         "handling profile interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with profile management right now. Please try again.",
+            "I could not confirm that your profile request finished. Some changes may already be saved. Send 'show my profile' and check the saved details before retrying a change.",
             True,
         ),
     )
@@ -80,7 +80,8 @@ class ProfileHandler(InteractionHandler):
     @handle_errors(
         "showing profile",
         default_return=InteractionResponse(
-            "I'm having trouble loading your profile. Please try again.", True
+            "I could not load your profile. This view request did not change your saved details. Try 'show my profile' again later.",
+            True,
         ),
     )
     def handle_show_profile(

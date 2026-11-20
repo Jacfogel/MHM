@@ -363,7 +363,8 @@ def snooze_task_reminder(
     )
     if not saved:
         return TaskReminderSnoozeResult(
-            False, "I could not save that snooze. Please try again."
+            False,
+            "I could not confirm that the snooze was saved. Send 'list tasks' and check the reminder time before snoozing again.",
         )
 
     refreshed = get_task_by_id(user_id, task_id) or task
@@ -373,7 +374,8 @@ def snooze_task_reminder(
             f"Snooze unexpectedly changed due date for task {task_id}: {due_before} -> {due_after}"
         )
         return TaskReminderSnoozeResult(
-            False, "Something went wrong saving the snooze. The due date may need a check."
+            False,
+            "The snooze was saved, but the task's due date changed unexpectedly. Send 'list tasks' and check both the due date and reminder time. Correct the due date if needed before snoozing again.",
         )
 
     if not schedule_deferred_task_reminder(

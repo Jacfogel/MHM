@@ -289,7 +289,7 @@ test('a network failure keeps the task draft and gives a concrete retry step', a
   assert.equal(screen.submit.disabled, false);
   assert.equal(
     screen.nodes.get('tasks-status').textContent,
-    'That task was not added. Your draft is still here. Check your connection and try again.',
+    'MHM could not confirm that the task was added. Your draft is still here. Keep a copy, then reload the task list before creating it again to avoid a duplicate.',
   );
   assert.doesNotMatch(screen.nodes.get('tasks-status').textContent, /raw browser/);
 });
@@ -442,7 +442,7 @@ test('task drafts and changed edit dialogs are protected from accidental dismiss
 
 test('task fallbacks explain retained state and the next recovery step', () => {
   assert.match(source, /Task templates could not load\. You can still create a task without one/);
-  assert.match(source, /Your task changes were not saved\. The edit window is still open/);
+  assert.match(source, /could not confirm that your task changes were saved\. The edit window is still open/);
   assert.match(source, /could not confirm that task was completed\. Refresh your task list/);
   assert.match(source, /could not confirm that reminder was snoozed\. Refresh the task/);
   assert.match(source, /The task was not changed\. You can type a step yourself/);

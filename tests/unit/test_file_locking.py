@@ -26,6 +26,7 @@ def _unique_json_path(test_data_dir: str, prefix: str) -> str:
 
 pytestmark = [pytest.mark.core]
 
+
 @pytest.mark.unit
 @pytest.mark.file_io
 @pytest.mark.core
@@ -456,7 +457,7 @@ class TestSafeJsonWrite:
         )
         assert recovery.can_handle(disconnected) is True
         message = ErrorHandler()._get_user_friendly_message(disconnected, {})
-        assert "try again" in message.lower()
+        assert "check your inbox before retrying" in message.lower()
         assert "contact support" not in message.lower()
 
 

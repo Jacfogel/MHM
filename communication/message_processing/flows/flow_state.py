@@ -48,6 +48,7 @@ class FlowStateMixin:
 
         self._load_user_states()
         self._expire_inactive_checkins()
+
     @handle_errors("loading user states from disk", default_return=None)
     def _load_user_states(self) -> None:
         """Load user states from disk with comprehensive logging"""
@@ -98,6 +99,7 @@ class FlowStateMixin:
                 dirty = True
         if dirty:
             self._save_user_states()
+
     @handle_errors("saving user states to disk", default_return=None)
     def _save_user_states(self) -> None:
         """Save user states to disk with comprehensive logging and error handling"""
@@ -111,6 +113,7 @@ class FlowStateMixin:
                 f"FLOW_STATE_SAVE: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, "
                 f"question_index={state.get('current_question_index')}"
             )
+
     @handle_errors("resolving task flow identifier", default_return="")
     def _get_task_flow_identifier(self, user_state: dict[str, Any]) -> str:
         """Get canonical task identifier from flow state."""
@@ -119,12 +122,14 @@ class FlowStateMixin:
             return ""
 
         return str(data.get("task_identifier") or "").strip()
+
     @handle_errors("marking flow completion", default_return=None)
     def _mark_flow_completion(self, user_id: str) -> None:
         """Record when a user flow completed to enforce post-flow cooldown."""
         if not user_id:
             return
         self._flow_completion_timestamps[user_id] = now_timestamp_full()
+
     @handle_errors("clearing flow state", default_return=None)
     def _clear_flow_state(self, user_id: str, mark_completion: bool = True) -> None:
         """Clear user flow state and optionally mark completion timestamp."""
@@ -132,6 +137,7 @@ class FlowStateMixin:
         if mark_completion:
             self._mark_flow_completion(user_id)
         self._save_user_states()
+
     @handle_errors("checking active flow state", default_return=False)
     def has_active_flow(self, user_id: str) -> bool:
         """Return True when user currently has an active non-zero flow."""
@@ -139,6 +145,7 @@ class FlowStateMixin:
             return False
         user_state = self.user_states.get(user_id)
         return bool(user_state and user_state.get("flow", FLOW_NONE) != FLOW_NONE)
+
     @handle_errors("checking post-flow cooldown", default_return=False)
     def is_within_post_flow_cooldown(
         self, user_id: str, cooldown_minutes: int = POST_FLOW_COOLDOWN_MINUTES
@@ -154,6 +161,7 @@ class FlowStateMixin:
         if completion_dt is None:
             return False
         return now_datetime_full() - completion_dt <= timedelta(minutes=cooldown_minutes)
+
     @handle_errors("getting flow block reason", default_return=None)
     def get_flow_block_reason(
         self, user_id: str, cooldown_minutes: int = POST_FLOW_COOLDOWN_MINUTES
@@ -164,6 +172,7 @@ class FlowStateMixin:
         if self.is_within_post_flow_cooldown(user_id, cooldown_minutes):
             return "post_flow_cooldown"
         return None
+
     @handle_errors("expiring inactive check-in states", default_return=None)
     def _expire_inactive_checkins(self, user_id: str | None = None) -> None:
         """Remove stale check-in flows that have been idle beyond the allowed window."""
@@ -205,6 +214,7 @@ class FlowStateMixin:
                 continue
 
         self._save_user_states()
+
     @handle_errors("caching expired check-in order", default_return=None)
     def _cache_expired_checkin_order(self, user_id: str, user_state: dict) -> None:
         """Cache the question order for a same-day restart after expiration."""
@@ -224,6 +234,7 @@ class FlowStateMixin:
             "date": started_date,
         }
         self._clear_flow_state(user_id, mark_completion=True)
+
     @handle_errors("getting cached check-in order", default_return=None)
     def _get_cached_checkin_order(self, user_id: str) -> list[str] | None:
         """Return same-day cached question order if present and valid."""
@@ -244,6 +255,7 @@ class FlowStateMixin:
         # Clean up stale cached order
         self._checkin_order_cache.pop(user_id, None)
         return None
+
     @handle_errors(
         "expiring check-in flow due to unrelated outbound", default_return=False
     )
@@ -280,10 +292,11 @@ class FlowStateMixin:
                     f"FLOW_STATE_EXPIRE: User {user_id} has flow={user_state.get('flow')}, not check-in, skipping expiration"
                 )
         return False
+
     @handle_errors(
         "clearing stuck flows",
         default_return=(
-            "I'm having trouble clearing your flow state. Please try again.",
+            "I could not confirm that the open conversation was cleared. Its unfinished answers may already have been cleared. Try 'cancel' again, then send the command you want to use; if this continues, ask your MHM administrator for help.",
             True,
         ),
     )

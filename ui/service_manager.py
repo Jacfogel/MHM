@@ -163,7 +163,11 @@ class ServiceManager:
             return True
 
         logger.error("Failed to start service")
-        QMessageBox.critical(None, "Service Error", "Failed to start MHM Service")
+        QMessageBox.critical(
+            None,
+            "Service Error",
+            "MHM could not confirm that the service started. Account data has not been removed. Check service status before starting another instance, then ask your administrator to review the error log and startup configuration.",
+        )
         return False
 
     @handle_errors("stopping service", default_return=False)

@@ -747,13 +747,11 @@ class WebGateway:
             "redirect_uri": redirect_uri,
         }
 
-
     # ERROR_HANDLING_EXCLUDE: Pure closure protected by the gateway middleware.
     def website_redirect(self, path, **params):
         """Build a same-origin website redirect with encoded query parameters."""
         query = urlencode(params)
         return f"{self.origin}{path}{('?' + query) if query else ''}"
-
 
     # ERROR_HANDLING_EXCLUDE: In-memory cleanup runs inside the gateway middleware.
     def prune(self):
@@ -770,7 +768,6 @@ class WebGateway:
         for key in [key for key, value in self.oauth_states.items() if value["expires"] <= now]:
             del self.oauth_states[key]
 
-
     # ERROR_HANDLING_EXCLUDE: Validation helper raises HTTP errors for the middleware.
     def throttle(self, key, maximum, window):
         """Count a rate-limit key and reject requests beyond its active window."""
@@ -780,7 +777,9 @@ class WebGateway:
                 text="Too many attempts. Please wait before trying again."
             )
         if len(self.limits) >= 10000 and key not in self.limits:
-            raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
+            raise web.HTTPTooManyRequests(
+                text="MHM has reached its request or session limit and could not finish this request. Keep your entries and wait a few minutes; check account status before resubmitting a change."
+            )
         self.limits[key] = (count + 1, expires)
 
     # ERROR_HANDLING_EXCLUDE: This is the central request error boundary by design.
@@ -817,7 +816,15 @@ class WebGateway:
         except Exception:
             logger.error("Website account request failed")
             response = web.json_response(
-                {"error": "MHM could not complete this request. Please try again."},
+                {
+                    "error": (
+                        "MHM could not load this view. This request did not submit changes. "
+                        "Check your connection, then reload; if this continues, contact your MHM administrator."
+                        if request.method == "GET"
+                        else "MHM could not confirm that this request finished. Some changes may already be saved. "
+                        "Keep a copy of your entries, then reload the relevant view to check before retrying."
+                    )
+                },
                 status=503,
             )
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -836,10 +843,12 @@ class WebGateway:
             data = await request.json()
         except (ValueError, UnicodeDecodeError):
             raise web.HTTPBadRequest(
-                text="Please check the form and try again."
+                text="MHM could not read the submitted form, so this submission did not reach the account action. Keep your entries and try submitting again; if this continues, contact your MHM administrator."
             ) from None
         if not isinstance(data, dict):
-            raise web.HTTPBadRequest(text="Please check the form and try again.")
+            raise web.HTTPBadRequest(
+                text="MHM could not read the submitted form, so this submission did not reach the account action. Keep your entries and try submitting again; if this continues, contact your MHM administrator."
+            )
         return data
 
     # ERROR_HANDLING_EXCLUDE: Pure validation helper used inside guarded routes.
@@ -855,7 +864,7 @@ class WebGateway:
         """Attach a new opaque browser session to a response."""
         if len(self.sessions) >= 10000:
             raise web.HTTPServiceUnavailable(
-                text="MHM is busy. Please try again later."
+                text="MHM has reached its request or session limit and could not finish this request. Keep your entries and wait a few minutes; check account status before resubmitting a change."
             )
         session = secrets.token_urlsafe(32)
         self.sessions[hashlib.sha256(session.encode()).hexdigest()] = (
@@ -959,7 +968,6 @@ class WebGateway:
             {"ok": True, "email": current.get("email", "")}
         )
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def request_code(self, request):
         """Validate a login or signup request and send an eligible email code."""
@@ -991,13 +999,15 @@ class WebGateway:
                 ZoneInfo(timezone)
             except (ZoneInfoNotFoundError, ValueError, TypeError):
                 raise web.HTTPBadRequest(
-                    text="Your time zone could not be recognized."
+                    text="MHM could not recognize your device's time zone, so this request did not create an account. Check your device time-zone setting and try signup again; if this continues, ask your MHM administrator for help."
                 ) from None
         else:
             preferred_name, timezone = "", "America/Regina"
         self.throttle(("email", email), 3, 600)
         if len(self.challenges) >= 10000:
-            raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
+            raise web.HTTPTooManyRequests(
+                text="MHM has reached its request or session limit and could not finish this request. Keep your entries and wait a few minutes; check account status before resubmitting a change."
+            )
         if not self.test_mailer and not all(
             [
                 config.EMAIL_SMTP_SERVER,
@@ -1006,7 +1016,7 @@ class WebGateway:
             ]
         ):
             raise web.HTTPServiceUnavailable(
-                text="Email sign-in is not available yet. Please try again later."
+                text="Email sign-in is not configured, so MHM could not send a sign-in code. Use a connected sign-in provider or ask your MHM administrator to enable email sign-in."
             )
         existing = await asyncio.to_thread(self.accounts.by_email, email)
         eligible = (
@@ -1124,7 +1134,6 @@ class WebGateway:
         )
         return self.start_session(uid, challenge.email, response, auth_method=auth_method)
 
-
     # ERROR_HANDLING_EXCLUDE: Authentication failures are HTTP responses by design.
     async def authenticated_account(self, request):
         """Resolve an active account from the request session cookie."""
@@ -1212,7 +1221,7 @@ class WebGateway:
         await self.body(request)
         if not self.billing.checkout_configured():
             raise web.HTTPServiceUnavailable(
-                text="Subscriptions are not available yet. Please try again later."
+                text="Subscriptions are not configured, so checkout has not started. Your existing access has not changed. Contact your MHM administrator for billing setup."
             )
         if str(current.get("subscription_status") or "comped") == "comped":
             raise web.HTTPConflict(
@@ -1472,7 +1481,6 @@ class WebGateway:
             )
         return web.json_response({"ok": True, "provider": provider})
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def account_export(self, request):
         """Download a JSON copy of the signed-in user's stored MHM data."""
@@ -1542,8 +1550,8 @@ class WebGateway:
         if not deleted:
             raise web.HTTPServiceUnavailable(
                 text=(
-                    "Your account was not deleted. Please wait a moment and try again. "
-                    "If this keeps happening, contact your MHM administrator."
+                    "MHM could not confirm that account deletion finished. Some data may already have been removed. "
+                    "Check account status before retrying; if this continues, contact your MHM administrator."
                 )
             )
         for key, session in list(self.sessions.items()):
@@ -1575,7 +1583,9 @@ class WebGateway:
                 text=f"{provider.title()} sign-in is not configured yet."
             )
         if len(self.oauth_states) >= 10000:
-            raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
+            raise web.HTTPTooManyRequests(
+                text="MHM has reached its request or session limit and could not finish this request. Keep your entries and wait a few minutes; check account status before resubmitting a change."
+            )
         session_key = hashlib.sha256(
             request.cookies.get(COOKIE, "").encode()
         ).hexdigest()
@@ -1778,7 +1788,9 @@ class WebGateway:
                 text="Discord connection is not configured yet. Please ask your MHM administrator."
             )
         if len(self.discord_states) >= 10000:
-            raise web.HTTPTooManyRequests(text="MHM is busy. Please try again later.")
+            raise web.HTTPTooManyRequests(
+                text="MHM has reached its request or session limit and could not finish this request. Keep your entries and wait a few minutes; check account status before resubmitting a change."
+            )
         next_path = request.query.get("next", "/app.html")
         if next_path not in {"/app.html", "/setup.html"}:
             raise web.HTTPBadRequest(text="Choose a valid return page.")
@@ -1910,7 +1922,9 @@ class WebGateway:
             audit_reason="website_delivery_request",
             audit_extra={"user_id": uid, "action": action},
         ):
-            raise web.HTTPServiceUnavailable(text="MHM could not queue that request.")
+            raise web.HTTPServiceUnavailable(
+                text="MHM could not confirm that the delivery request was queued. It may already be queued. Check your messages and service status before requesting another delivery."
+            )
         return web.json_response({"ok": True, "message": message})
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
@@ -1946,7 +1960,7 @@ class WebGateway:
         uid, _current = await self.authenticated_account(request)
         if not await asyncio.to_thread(self.accounts.mark_setup_complete, uid):
             raise web.HTTPServiceUnavailable(
-                text="MHM could not save that setup is finished. Please try again."
+                text="MHM could not confirm that setup was marked complete. Earlier setup steps remain saved. Reload setup to check progress before choosing Finish again."
             )
         return web.json_response({"needs_setup": False})
 

@@ -18,7 +18,8 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
     @error_handling.handle_errors(
         "showing analytics overview",
         default_return=InteractionResponse(
-            "I'm having trouble showing your analytics. Please try again.", True
+            "I could not finish showing your analytics. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_show_analytics(
@@ -62,14 +63,15 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing analytics", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your analytics right now. Please try again.",
+                "I could not finish showing your analytics. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
     @error_handling.handle_errors(
         "showing quantitative summary",
         default_return=InteractionResponse(
-            "I'm having trouble showing quantitative summary. Please try again.", True
+            "I could not finish showing quantitative summary. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_quant_summary(
@@ -102,7 +104,7 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
                 e, "computing quantitative summaries", user_id
             )
             return InteractionResponse(
-                "I'm having trouble computing your quantitative summaries right now. Please try again.",
+                "I could not finish computing your quantitative summaries. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
@@ -129,7 +131,8 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
     @error_handling.handle_errors(
         "showing habit analysis",
         default_return=InteractionResponse(
-            "I'm having trouble showing habit analysis. Please try again.", True
+            "I could not finish showing habit analysis. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_habit_analysis(
@@ -174,14 +177,15 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing habit analysis", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your habit analysis right now. Please try again.",
+                "I could not finish showing your habit analysis. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
     @error_handling.handle_errors(
         "showing sleep analysis",
         default_return=InteractionResponse(
-            "I'm having trouble showing sleep analysis. Please try again.", True
+            "I could not finish showing sleep analysis. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_sleep_analysis(
@@ -206,9 +210,7 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
             response += (
                 f"â­ **Average Quality:** {sleep_data.get('average_quality', 0)}/5\n"
             )
-            response += (
-                f"âœ… **Good Sleep Days:** {sleep_data.get('good_sleep_days', 0)} days\n"
-            )
+            response += f"âœ… **Good Sleep Days:** {sleep_data.get('good_sleep_days', 0)} days\n"
             response += f"âŒ **Poor Sleep Days:** {sleep_data.get('poor_sleep_days', 0)} days\n\n"
 
             consistency = sleep_data.get("sleep_consistency", 0)
@@ -225,14 +227,15 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing sleep analysis", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your sleep analysis right now. Please try again.",
+                "I could not finish showing your sleep analysis. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
     @error_handling.handle_errors(
         "showing wellness score",
         default_return=InteractionResponse(
-            "I'm having trouble showing wellness score. Please try again.", True
+            "I could not finish showing wellness score. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_wellness_score(
@@ -250,7 +253,8 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
     @error_handling.handle_errors(
         "showing check-in history",
         default_return=InteractionResponse(
-            "I'm having trouble showing check-in history. Please try again.", True
+            "I could not finish showing check-in history. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_checkin_history(
@@ -314,8 +318,10 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
             else:
                 header_label = f"Last {days} days"
             response_lines = [f"**Check-in History ({header_label}):**", ""]
-            question_defs = checkin_dynamic_manager.dynamic_checkin_manager.get_all_questions(
-                user_id
+            question_defs = (
+                checkin_dynamic_manager.dynamic_checkin_manager.get_all_questions(
+                    user_id
+                )
             )
             question_keys = set(question_defs.keys())
 
@@ -353,14 +359,15 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "showing check-in history", user_id)
             return InteractionResponse(
-                "I'm having trouble showing your check-in history right now. Please try again.",
+                "I could not finish showing your check-in history. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
     @error_handling.handle_errors(
         "showing check-in analysis",
         default_return=InteractionResponse(
-            "I'm having trouble showing check-in analysis. Please try again.", True
+            "I could not finish showing check-in analysis. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_checkin_analysis(
@@ -381,7 +388,9 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
             analytics = checkin_analytics.CheckinAnalytics()
             mood_data = analytics.get_mood_trends(user_id, days)
 
-            response = f"**ðŸ“ˆ Check-in Analysis (Last {len(checkins)} check-ins):**\n\n"
+            response = (
+                f"**ðŸ“ˆ Check-in Analysis (Last {len(checkins)} check-ins):**\n\n"
+            )
 
             if "error" not in mood_data:
                 response += "**ðŸ˜Š Mood Trends:**\n"
@@ -440,14 +449,15 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "analyzing check-ins", user_id)
             return InteractionResponse(
-                "I'm having trouble analyzing your check-ins right now. Please try again.",
+                "I could not finish analyzing your check-ins. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )
 
     @error_handling.handle_errors(
         "showing completion rate",
         default_return=InteractionResponse(
-            "I'm having trouble showing completion rate. Please try again.", True
+            "I could not finish showing completion rate. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle_completion_rate(
@@ -472,7 +482,9 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
             response += (
                 f"ðŸ“… **Days Completed:** {completion_rate.get('days_completed', 0)}\n"
             )
-            response += f"ðŸ“… **Days Missed:** {completion_rate.get('days_missed', 0)}\n"
+            response += (
+                f"ðŸ“… **Days Missed:** {completion_rate.get('days_missed', 0)}\n"
+            )
             response += f"ðŸ“… **Total Days:** {completion_rate.get('total_days', 0)}\n"
 
             return InteractionResponse(response, True)
@@ -480,6 +492,6 @@ class CheckinAnalyticsHandler(AnalyticsFormattingMixin):
         except Exception as e:
             error_handling.handle_ai_error(e, "calculating completion rate", user_id)
             return InteractionResponse(
-                "I'm having trouble calculating your completion rate right now. Please try again.",
+                "I could not finish calculating your completion rate. This report request did not change your saved records. Try `show analytics` again later; if this continues, ask your MHM administrator for help.",
                 True,
             )

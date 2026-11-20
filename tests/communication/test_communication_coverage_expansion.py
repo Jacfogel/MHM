@@ -173,7 +173,11 @@ class TestDiscordInteractionRouter:
             await _handle_suggestion_button(MagicMock(), interaction, "suggestion_0")
 
         interaction.followup.send.assert_awaited_once()
-        assert "could not process" in interaction.followup.send.await_args.args[0].lower()
+        assert (
+            "no command was submitted"
+            in interaction.followup.send.await_args.args[0].lower()
+        )
+        assert "/help" in interaction.followup.send.await_args.args[0]
 
     @pytest.mark.asyncio
     async def test_suggestion_button_unregistered_user(self):
@@ -409,7 +413,14 @@ class TestDiscordInteractionRouter:
         ):
             await _handle_suggestion_button(bot, interaction, "suggestion_x")
 
-        assert "error occurred" in interaction.followup.send.await_args.args[0].lower()
+        assert (
+            "may already be saved"
+            in interaction.followup.send.await_args.args[0].lower()
+        )
+        assert (
+            "before typing the command again"
+            in interaction.followup.send.await_args.args[0]
+        )
 
     @pytest.mark.asyncio
     async def test_start_command_welcome_dms_disabled_sends_ephemeral_id(self):
@@ -601,7 +612,9 @@ class TestCreateItemUi:
         call_args = mock_deliver.await_args
         assert call_args is not None
         response = call_args.args[1]
-        assert "couldn't save that task" in response.message.lower()
+        assert "could not confirm that the task was saved" in response.message.lower()
+        assert "Keep a copy of your text" in response.message
+        assert "before creating it again" in response.message
         assert "`create task ...`" in response.message
 
     @pytest.mark.asyncio
@@ -803,7 +816,9 @@ class TestCreateItemUi:
 
         response = _create_failure_response(item_name, command_example)
 
-        assert f"couldn't save that {item_name}" in response.message.lower()
+        assert f"could not confirm that the {item_name} was saved" in response.message.lower()
+        assert "Keep a copy of your text" in response.message
+        assert "before creating it again" in response.message
         assert f"`{command_example}`" in response.message
 
     @pytest.mark.asyncio
@@ -833,7 +848,9 @@ class TestCreateItemUi:
         call_args = mock_deliver.await_args
         assert call_args is not None
         response = call_args.args[1]
-        assert f"couldn't save that {item_name}" in response.message.lower()
+        assert f"could not confirm that the {item_name} was saved" in response.message.lower()
+        assert "Keep a copy of your text" in response.message
+        assert "before creating it again" in response.message
         assert f"`{command_example}`" in response.message
 
     @pytest.mark.asyncio

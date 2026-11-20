@@ -330,7 +330,7 @@ class TestUserAnalyticsDataLoading:
         
         # Verify error message is displayed
         summary_text = dialog.ui.textEdit_summary.toPlainText()
-        assert "Error loading overview data" in summary_text, "Should show error message"
+        assert "could not load overview data" in summary_text, "Should show error message"
     
     @pytest.mark.ui
     @pytest.mark.analytics
@@ -594,7 +594,7 @@ class TestUserAnalyticsInteractions:
         # Verify error messages are displayed
         assert "Error" in dialog.ui.label_wellness_score.text(), "Should show error for wellness score"
         assert error_message in dialog.ui.textEdit_summary.toPlainText(), "Should show error message in summary"
-        assert "Error loading data" in dialog.ui.textEdit_mood_data.toPlainText(), "Should show error for mood"
+        assert "Data could not load" in dialog.ui.textEdit_mood_data.toPlainText(), "Should show error for mood"
 
 
 class TestUserAnalyticsErrorHandling:
@@ -636,7 +636,9 @@ class TestUserAnalyticsErrorHandling:
         
         # Verify error state is shown (error may be in summary or overview)
         summary_text = dialog.ui.textEdit_summary.toPlainText()
-        assert "Error" in summary_text, "Should show error message (may be in overview data error)"
+        assert "could not load" in summary_text
+        assert "saved records" in summary_text
+        assert "Refresh" in summary_text
     
     @pytest.mark.ui
     @pytest.mark.analytics
@@ -649,7 +651,7 @@ class TestUserAnalyticsErrorHandling:
         
         # Verify error message is displayed
         mood_text = dialog.ui.textEdit_mood_data.toPlainText()
-        assert "Error loading mood data" in mood_text, "Should show error message"
+        assert "could not load mood data" in mood_text, "Should show error message"
     
     @pytest.mark.ui
     @pytest.mark.analytics
@@ -662,7 +664,7 @@ class TestUserAnalyticsErrorHandling:
         
         # Verify error message is displayed
         habits_text = dialog.ui.textEdit_habits_data.toPlainText()
-        assert "Error loading habits data" in habits_text, "Should show error message"
+        assert "could not load habits data" in habits_text, "Should show error message"
     
     @pytest.mark.ui
     @pytest.mark.analytics
@@ -675,7 +677,7 @@ class TestUserAnalyticsErrorHandling:
         
         # Verify error message is displayed
         sleep_text = dialog.ui.textEdit_sleep_data.toPlainText()
-        assert "Error loading sleep data" in sleep_text, "Should show error message"
+        assert "could not load sleep data" in sleep_text, "Should show error message"
     
     @pytest.mark.ui
     @pytest.mark.analytics
@@ -688,7 +690,7 @@ class TestUserAnalyticsErrorHandling:
         
         # Verify error message is displayed
         quant_text = dialog.ui.textEdit_quantitative_data.toPlainText()
-        assert "Error loading quantitative data" in quant_text, "Should show error message"
+        assert "could not load quantitative data" in quant_text, "Should show error message"
 
 
 class TestUserAnalyticsHelperFunction:

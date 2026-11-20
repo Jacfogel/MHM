@@ -443,7 +443,7 @@ def create_task_reminder_request(
             return RequestActionOutcome(
                 level="warning",
                 title="Task Selection Error",
-                message="Could not select a task for reminder.",
+                message="MHM could not choose an eligible task. No reminder request was submitted. Check the active task list and reminder settings, then try again.",
             )
 
         task_id = selected_task.get("id")
@@ -452,7 +452,7 @@ def create_task_reminder_request(
             return RequestActionOutcome(
                 level="warning",
                 title="Invalid Task",
-                message="Selected task has no id.",
+                message="The selected task has no identifier. No reminder request was submitted. Reopen the task list and select a valid task before retrying.",
             )
 
         messaging_service = (
@@ -471,9 +471,7 @@ def create_task_reminder_request(
         with open(request_file, "w") as f:
             json.dump(task_reminder_request, f, indent=2)
 
-        logger.info(
-            f"Admin Panel: Task reminder request file created: {request_file}"
-        )
+        logger.info(f"Admin Panel: Task reminder request file created: {request_file}")
         return RequestActionOutcome(
             level="info",
             title="Task Reminder Sent",
@@ -493,5 +491,5 @@ def create_task_reminder_request(
         return RequestActionOutcome(
             level="critical",
             title="Error",
-            message=f"Failed to send task reminder: {str(e)}",
+            message="MHM could not confirm that the reminder request was queued. The task has not been deleted. Check for a delivered reminder and service status before retrying to avoid duplicate reminders.",
         )

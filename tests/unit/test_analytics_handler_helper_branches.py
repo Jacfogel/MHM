@@ -52,7 +52,7 @@ class TestAnalyticsHandlerHelperBranches:
             lambda exc, context, user_id: seen.append((str(exc), context, user_id)),
         )
         result = self.checkin_handler.handle_show_analytics("u1", {"days": 7})
-        assert "trouble showing your analytics" in result.message
+        assert "could not finish showing your analytics" in result.message
         assert seen and seen[0][1] == "showing analytics"
 
     def test_energy_trends_error_and_insight_branches(self, monkeypatch):
@@ -229,7 +229,7 @@ class TestAnalyticsHandlerHelperBranches:
             lambda exc, context, user_id: seen.append((str(exc), context, user_id)),
         )
         error_response = self.checkin_handler.handle_checkin_analysis("u1", {"days": 7})
-        assert "trouble analyzing your check-ins" in error_response.message
+        assert "could not finish analyzing your check-ins" in error_response.message
         assert seen and seen[0][1] == "analyzing check-ins"
 
     def test_completion_rate_error_and_exception_paths(self, monkeypatch):
@@ -257,7 +257,7 @@ class TestAnalyticsHandlerHelperBranches:
             lambda exc, context, user_id: seen.append((str(exc), context, user_id)),
         )
         error = self.checkin_handler.handle_completion_rate("u1", {"days": 30})
-        assert "trouble calculating your completion rate" in error.message
+        assert "could not finish calculating your completion rate" in error.message
         assert seen and seen[0][1] == "calculating completion rate"
 
     def test_task_analytics_branches(self, monkeypatch):
@@ -299,11 +299,16 @@ class TestAnalyticsHandlerHelperBranches:
             lambda exc, context, user_id: seen.append((str(exc), context, user_id)),
         )
         task_analytics_error = self.task_handler.handle_task_analytics("u1", {"days": 30})
-        assert "trouble showing your task analytics" in task_analytics_error.message
+        assert (
+            "could not finish showing your task analytics"
+            in task_analytics_error.message
+        )
         assert any(ctx == "showing task analytics" for _, ctx, _ in seen)
 
         task_stats_error = self.task_handler.handle_task_stats("u1", {"days": 30})
-        assert "trouble showing your task statistics" in task_stats_error.message
+        assert (
+            "could not finish showing your task statistics" in task_stats_error.message
+        )
         assert any(ctx == "showing task statistics" for _, ctx, _ in seen)
 
     def test_task_stats_success_and_basic_line_variants(self, monkeypatch):

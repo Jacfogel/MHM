@@ -7,13 +7,14 @@
   let loadRequest = 0;
 
   async function api(path, method = 'GET', payload) {
+    const recoveryMessage = method === 'GET' ? 'MHM could not load your insights. This report request did not change your saved records. Check your connection, then reload.' : 'MHM could not confirm that the check-in prompt was sent. Check your messages and connection before requesting another prompt.';
     const response = await fetch(path, {
       method, credentials: 'same-origin', cache: 'no-store',
       ...(payload ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : {}),
-    });
+    }).catch(() => { throw new Error(recoveryMessage); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { window.dispatchEvent(new Event('mhm:signed-out')); location.replace('login.html'); throw new Error('Please log in again.'); }
-    if (!response.ok) throw new Error(result.error || 'MHM could not load this information.');
+    if (!response.ok) throw new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : recoveryMessage));
     return result;
   }
 

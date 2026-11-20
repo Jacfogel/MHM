@@ -37,7 +37,7 @@ class ScheduleManagementHandler(InteractionHandler):
     @handle_errors(
         "handling schedule management interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with schedule management right now. Please try again.",
+            "I could not confirm that your schedule request finished. Some changes may already be saved. Send 'show my schedule' before repeating a change.",
             True,
         ),
     )
@@ -67,7 +67,8 @@ class ScheduleManagementHandler(InteractionHandler):
     @handle_errors(
         "showing schedule",
         default_return=InteractionResponse(
-            "I'm having trouble showing your schedule. Please try again.", True
+            "I could not load your schedule. This view request did not change saved schedules. Try 'show my schedule' again later.",
+            True,
         ),
     )
     def handle_show_schedule(
@@ -79,7 +80,8 @@ class ScheduleManagementHandler(InteractionHandler):
     @handle_errors(
         "showing schedule",
         default_return=InteractionResponse(
-            "I'm having trouble showing your schedule. Please try again.", True
+            "I could not load your schedule. This view request did not change saved schedules. Try 'show my schedule' again later.",
+            True,
         ),
     )
     def _handle_show_schedule(
@@ -209,7 +211,7 @@ class ScheduleManagementHandler(InteractionHandler):
         except Exception as e:
             logger.error(f"Error showing schedule for user {user_id}: {e}")
             return InteractionResponse(
-                "I'm having trouble showing your schedule right now. Please try again.",
+                "I could not load your schedule. This view request did not change saved schedules. Try 'show my schedule' again later.",
                 True,
             )
 
@@ -282,7 +284,8 @@ class ScheduleManagementHandler(InteractionHandler):
     @handle_errors(
         "checking schedule status",
         default_return=InteractionResponse(
-            "I'm having trouble checking your schedule status. Please try again.", True
+            "I could not load schedule status. This status request did not change saved schedules. Try 'show my schedule' again later.",
+            True,
         ),
     )
     def _handle_schedule_status(
@@ -319,7 +322,7 @@ class ScheduleManagementHandler(InteractionHandler):
         except Exception as e:
             logger.error(f"Error showing schedule status for user {user_id}: {e}")
             return InteractionResponse(
-                "I'm having trouble checking your schedule status right now. Please try again.",
+                "I could not load schedule status. This status request did not change saved schedules. Try 'show my schedule' again later.",
                 True,
             )
 

@@ -75,7 +75,9 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = _build_parser()
     if parser is None:
-        print("[ERROR] Failed to build command parser")
+        print(
+            "[ERROR] MHM could not read launcher commands. No service action was submitted. Check logs/errors.log and repair the installation before retrying."
+        )
         return 1
     args = parser.parse_args(argv)
 
@@ -105,8 +107,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         logger.error("Failed to start headless service")
-        print("[ERROR] Failed to start headless service")
-        print("Check the logs for more information.")
+        print(
+            "[ERROR] MHM could not confirm service startup. Account data has not been removed. Run the status command before starting another instance."
+        )
+        print(
+            "Check logs/errors.log, then logs/app.log for the startup failure; correct the reported configuration before retrying."
+        )
         return 1
 
     if args.action == "stop":
@@ -119,7 +125,9 @@ def main(argv: list[str] | None = None) -> int:
         logger.warning(
             "Headless service stop requested, but service may not have been running"
         )
-        print("[ERROR] Failed to stop headless service")
+        print(
+            "[ERROR] MHM could not confirm service shutdown. Run the status command to check whether reminders can still be sent."
+        )
         print("The service may not have been running.")
         return 1
 
@@ -161,7 +169,9 @@ def main(argv: list[str] | None = None) -> int:
         logger.error(
             f"Failed to send test message request for user={args.user_id}, category={args.category}"
         )
-        print("[ERROR] Failed to send test message request")
+        print(
+            "[ERROR] MHM could not confirm the test-message request was queued. Check service status and delivered messages before retrying to avoid duplicates."
+        )
         return 1
 
     if args.action == "reschedule":
@@ -180,7 +190,9 @@ def main(argv: list[str] | None = None) -> int:
         logger.error(
             f"Failed to send reschedule request for user={args.user_id}, category={args.category}"
         )
-        print("[ERROR] Failed to send reschedule request")
+        print(
+            "[ERROR] MHM could not confirm the reschedule request was queued. Saved schedule settings have not been deleted. Check service status and logs/scheduler.log before retrying."
+        )
         return 1
 
     logger.error(f"Unknown headless service action: {args.action}")

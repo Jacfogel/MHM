@@ -186,7 +186,11 @@ class TaskCrudDialog(QDialog):
 
         except Exception as e:
             logger.error(f"Error loading task data: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to load task data: {e}")
+            QMessageBox.critical(
+                self,
+                "Error",
+                "MHM could not load the task list. The list may be incomplete; this does not mean your tasks were deleted. Reopen Task Management to reload it. If this continues, ask your administrator to check the error log.",
+            )
 
     @handle_errors("refreshing active tasks", user_friendly=True, default_return=None)
     def refresh_active_tasks(self):
@@ -364,7 +368,9 @@ class TaskCrudDialog(QDialog):
             QMessageBox.critical(
                 self,
                 "Error",
-                f"Failed to process {len(failed_titles)} task(s): {', '.join(failed_titles)}.",
+                f"MHM could not confirm the changes for {len(failed_titles)} task(s): {', '.join(failed_titles)}. "
+                f"Changes were confirmed for {count - len(failed_titles)} of {count} selected tasks. "
+                "Reload the task list and check Active and Completed before retrying only the tasks that still need changes.",
             )
             return
         QMessageBox.information(
@@ -398,7 +404,11 @@ class TaskCrudDialog(QDialog):
 
         task_data = get_task_by_id(self.user_id, task_id)
         if not task_data:
-            QMessageBox.critical(self, "Error", "Task not found.")
+            QMessageBox.critical(
+                self,
+                "Error",
+                "MHM could not find the selected task. No edits were submitted. Reopen the task list and select it again; it may have been completed or deleted elsewhere.",
+            )
             return
 
         from ui.dialogs.task_edit_dialog import TaskEditDialog
@@ -430,7 +440,11 @@ class TaskCrudDialog(QDialog):
                 self.refresh_active_tasks()
                 self.refresh_completed_tasks()
             else:
-                QMessageBox.critical(self, "Error", "Failed to complete task.")
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "MHM could not confirm that this task was completed. Reopen the task list and check Active and Completed before retrying; completing a recurring task again may create another occurrence.",
+                )
             return
 
         if not self._confirm_yes_no(
@@ -522,12 +536,18 @@ class TaskCrudDialog(QDialog):
                 failed.append(title)
         if failed:
             if count == 1:
-                QMessageBox.critical(self, "Error", "Failed to delete task.")
+                QMessageBox.critical(
+                    self,
+                    "Error",
+                    "MHM could not confirm that this task was deleted. Reload the task list and check whether it is still there before deleting again.",
+                )
             else:
                 QMessageBox.critical(
                     self,
                     "Error",
-                    f"Failed to delete {len(failed)} task(s): {', '.join(failed)}.",
+                    f"MHM could not confirm deletion for {len(failed)} task(s): {', '.join(failed)}. "
+                    f"Deletion was confirmed for {count - len(failed)} of {count} selected tasks. "
+                    "Reload the task list before retrying only the tasks that remain.",
                 )
         elif permanent:
             message = (

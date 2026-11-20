@@ -340,7 +340,8 @@ def detach_task_step(user_id: str, task_id: str) -> TaskBreakdownResult | None:
         item["updated_at"] = now_timestamp_full()
         if not save_active_tasks(user_id, tasks):
             return TaskBreakdownResult(
-                False, "I could not separate that step. Please try again."
+                False,
+                "I could not confirm that the step became its own task. Send 'list tasks' and check its parent before separating it again.",
             )
         title = str(task.get("title") or "That step")
         logger.info(f"Detached step {target_id} for user {user_id}")

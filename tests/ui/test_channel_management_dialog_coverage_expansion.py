@@ -4,6 +4,7 @@ Test coverage expansion for ChannelManagementDialog.
 This module provides comprehensive test coverage for the ChannelManagementDialog
 to improve overall test coverage for UI dialogs.
 """
+
 from tests.conftest import ensure_qt_runtime
 
 ensure_qt_runtime()
@@ -281,7 +282,7 @@ class TestChannelManagementDialogCoverageExpansion:
         dialog = Mock(spec=ChannelManagementDialog)
         dialog.user_id = 'test-user'
         dialog.reject = Mock()
-        
+
         # Mock the channel widget
         dialog.channel_widget = Mock()
         dialog.channel_widget.get_selected_channel.return_value = ('Email', 'test@example.com')
@@ -291,23 +292,30 @@ class TestChannelManagementDialogCoverageExpansion:
             'phone': '+1234567890',
             'discord_id': '123456789'
         }
-        
+
         # Bind the real methods to the mock so they actually execute
         dialog.save_channel_settings = lambda: ChannelManagementDialog.save_channel_settings(dialog)
-        
-        with patch('ui.dialogs.channel_management_dialog.get_user_data') as mock_get_data, \
-             patch('ui.dialogs.channel_management_dialog.QMessageBox.critical') as mock_critical:
-            
+
+        with (
+            patch(
+                "ui.dialogs.channel_management_dialog.get_user_data"
+            ) as mock_get_data,
+            patch(
+                "ui.dialogs.channel_management_dialog.QMessageBox.critical"
+            ) as mock_critical,
+        ):
             mock_get_data.side_effect = Exception("Database error")
-            
+
             # Call _on_save_clicked which handles the error and shows dialog
             # The decorator on save_channel_settings will catch the exception and return False
             ChannelManagementDialog._on_save_clicked(dialog)
-            
+
             # Verify error dialog was shown
             mock_critical.assert_called_once()
-            assert "Failed to save channel settings" in mock_critical.call_args[0][2]
-            dialog.reject.assert_called_once()
+            assert "Some changes may already be saved" in mock_critical.call_args[0][2]
+            assert "Your entries are still" in mock_critical.call_args[0][2]
+            dialog.reject.assert_not_called()
+            dialog.accept.assert_not_called()
 
     def test_save_channel_settings_removes_old_settings(self, mock_user_data):
         """Test that old settings are properly removed."""
@@ -380,3 +388,77 @@ class TestChannelManagementDialogCoverageExpansion:
         ChannelManagementDialog.set_selected_channel(dialog, 'Discord', '123456789')
         
         dialog.channel_widget.set_selected_channel.assert_called_once_with('Discord', '123456789')
+
+
+@pytest.mark.ui
+@pytest.mark.parametrize(
+    "preferences_saved,account_saved", [(False, True), (True, False)]
+)
+def test_unconfirmed_channel_write_keeps_draft_open(preferences_saved, account_saved):
+    dialog = Mock(spec=ChannelManagementDialog)
+    dialog.user_id = "test-user"
+    dialog.channel_widget = Mock()
+    dialog.channel_widget.get_selected_channel.return_value = (
+        "Email",
+        "test@example.com",
+    )
+    dialog.channel_widget.get_timezone.return_value = "America/Regina"
+    dialog.channel_widget.get_all_contact_info.return_value = {
+        "email": "test@example.com",
+        "discord_id": "",
+    }
+    dialog.save_channel_settings = (
+        lambda: ChannelManagementDialog.save_channel_settings(dialog)
+    )
+    with (
+        patch("ui.dialogs.channel_management_dialog.get_user_data", return_value={}),
+        patch(
+            "ui.dialogs.channel_management_dialog.update_channel_preferences",
+            return_value=preferences_saved,
+        ),
+        patch(
+            "ui.dialogs.channel_management_dialog.update_user_account",
+            return_value=account_saved,
+        ) as account_write,
+        patch("ui.dialogs.channel_management_dialog.QMessageBox.critical") as critical,
+        patch(
+            "ui.dialogs.channel_management_dialog.QMessageBox.information"
+        ) as information,
+    ):
+        ChannelManagementDialog._on_save_clicked(dialog)
+        critical.assert_called_once()
+        assert "Some changes may already be saved" in critical.call_args.args[2]
+        information.assert_not_called()
+        dialog.accept.assert_not_called()
+        dialog.reject.assert_not_called()
+        dialog.user_changed.emit.assert_not_called()
+        assert account_write.call_count == int(preferences_saved)
+
+
+@pytest.mark.ui
+def test_channel_validation_shows_one_message_and_keeps_draft():
+    dialog = Mock(spec=ChannelManagementDialog)
+    dialog.user_id = "test-user"
+    dialog.channel_widget = Mock()
+    dialog.channel_widget.get_selected_channel.return_value = ("Email", "")
+    dialog.channel_widget.get_all_contact_info.return_value = {
+        "email": "",
+        "discord_id": "",
+    }
+    dialog.save_channel_settings = (
+        lambda: ChannelManagementDialog.save_channel_settings(dialog)
+    )
+    with (
+        patch("ui.dialogs.channel_management_dialog.get_user_data", return_value={}),
+        patch(
+            "ui.dialogs.channel_management_dialog.update_channel_preferences"
+        ) as write,
+        patch("ui.dialogs.channel_management_dialog.QMessageBox.warning") as warning,
+        patch("ui.dialogs.channel_management_dialog.QMessageBox.critical") as critical,
+    ):
+        ChannelManagementDialog._on_save_clicked(dialog)
+        warning.assert_called_once()
+        critical.assert_not_called()
+        write.assert_not_called()
+        dialog.accept.assert_not_called()
+        dialog.reject.assert_not_called()

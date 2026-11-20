@@ -407,8 +407,8 @@ async def test_account_action_failures_explain_unchanged_state_and_recovery(
     )
     assert deletion.status == 503
     assert (await deletion.json())["error"] == (
-        "Your account was not deleted. Please wait a moment and try again. "
-        "If this keeps happening, contact your MHM administrator."
+        "MHM could not confirm that account deletion finished. Some data may already have been removed. "
+        "Check account status before retrying; if this continues, contact your MHM administrator."
     )
 
 

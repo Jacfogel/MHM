@@ -60,7 +60,7 @@ async function openBilling(endpoint, button) {
     const response = await fetch(endpoint, {
       method: 'POST', credentials: 'same-origin', cache: 'no-store',
       headers: { 'Content-Type': 'application/json' }, body: '{}',
-    });
+    }).catch(() => { throw new Error('MHM could not open secure billing. Your current access remains available. Check your connection, then try opening billing again.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok || !result.url) {
@@ -79,7 +79,7 @@ async function openBilling(endpoint, button) {
 async function loadAccount() {
   if (!accountContent) return;
   try {
-    const response = await fetch('/api/account', { credentials: 'same-origin', cache: 'no-store' });
+    const response = await fetch('/api/account', { credentials: 'same-origin', cache: 'no-store' }).catch(() => { throw new Error('MHM could not load account details. This view request did not change saved settings. Check your connection, then reload the page.'); });
     if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok) throw new Error('Your account details could not load. Check your connection, then refresh the page.');
     const account = await response.json();
@@ -104,7 +104,7 @@ async function loadAccount() {
       : billingResult === 'cancelled' ? 'Checkout was canceled. Your plan has not changed.'
       : socialProvider ? `${socialProvider[0].toUpperCase()}${socialProvider.slice(1)} is connected to your MHM account.`
       : socialResult === 'in-use' ? 'That social account is already connected to another MHM account.'
-        : socialResult === 'error' ? 'That social account could not be connected. Please try again.'
+        : socialResult === 'error' ? 'MHM could not confirm that social account was connected. Check your connections below before trying Connect again.'
           : discordResult === 'connected' ? 'Discord is connected to your MHM account.'
       : discordResult === 'cancelled' ? 'Discord connection was canceled. You can try again whenever you are ready.'
       : discordResult === 'in-use' ? 'That Discord account is already connected to another MHM account.'
@@ -158,10 +158,10 @@ async function disconnectProvider(provider, button) {
     const response = await fetch('/api/account/connections', {
       method: 'POST', credentials: 'same-origin', cache: 'no-store',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider }),
-    });
+    }).catch(() => { throw new Error('MHM could not confirm the disconnection. The connection may already be removed. Reload your account and check connections before retrying.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok) throw new Error(result.error || `${provider} is still connected. Please wait a moment and try again.`);
+    if (!response.ok) throw new Error(result.error || `MHM could not confirm that ${provider} was disconnected. Reload your account and check connections before retrying.`);
     await loadAccount();
     status.textContent = `${provider[0].toUpperCase()}${provider.slice(1)} was disconnected.`;
     status.classList.remove('is-error');
@@ -173,7 +173,7 @@ async function startOAuth(provider, button) {
   status.textContent = `Opening ${provider}…`;
   status.classList.remove('is-error');
   try {
-    const response = await fetch(`/api/auth/oauth/${provider}/start`, { credentials: 'same-origin', cache: 'no-store' });
+    const response = await fetch(`/api/auth/oauth/${provider}/start`, { credentials: 'same-origin', cache: 'no-store' }).catch(() => { throw new Error('MHM could not open the sign-in provider. Browser authorization has not started. Check your connection and try Connect again; if this continues, ask your MHM administrator for help.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok || !result.url) throw new Error(result.error || `${provider} connection is unavailable.`);
@@ -192,7 +192,7 @@ if (connectDiscord) connectDiscord.addEventListener('click', async (event) => {
   status.textContent = 'Opening Discord…';
   status.classList.remove('is-error');
   try {
-    const response = await fetch('/api/auth/discord/start', { credentials: 'same-origin', cache: 'no-store' });
+    const response = await fetch('/api/auth/discord/start', { credentials: 'same-origin', cache: 'no-store' }).catch(() => { throw new Error('MHM could not open Discord authorization. Browser authorization has not started. Check your connection and try Connect again; if this continues, ask your MHM administrator for help.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok || !result.url) throw new Error(result.error || 'Discord connection is unavailable.');
@@ -238,10 +238,10 @@ if (passwordForm) passwordForm.addEventListener('submit', async (event) => {
     const response = await fetch('/api/auth/password/setup', {
       method: 'POST', credentials: 'same-origin', cache: 'no-store',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: first.value, current_password: current.value }),
-    });
+    }).catch(() => { throw new Error('MHM could not confirm that your password was changed. Keep this page open. Check your connection and try signing in with the new password in another tab before changing it again.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok) throw new Error(result.error || 'Your password was not changed. Please wait a moment and try again.');
+    if (!response.ok) throw new Error(result.error || 'MHM could not confirm that your password changed. Keep this page open and try signing in with the new password in another tab before changing it again.');
     first.value = '';
     confirmation.value = '';
     current.value = '';
@@ -276,10 +276,10 @@ if (deleteForm) deleteForm.addEventListener('submit', async (event) => {
       method: 'POST', credentials: 'same-origin', cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ confirmation: 'DELETE' }),
-    });
+    }).catch(() => { throw new Error('MHM could not confirm that account deletion finished. Some data may already have been removed. Check your connection and account status before retrying; if this continues, contact your MHM administrator.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
-    if (!response.ok) throw new Error(result.error || 'Your account was not deleted. Please wait a moment and try again. If this keeps happening, contact your MHM administrator.');
+    if (!response.ok) throw new Error(result.error || 'MHM could not confirm that account deletion finished. Some data may already have been removed. Check account status before retrying; if this continues, contact your MHM administrator.');
     window.dispatchEvent(new Event('mhm:signed-out'));
     location.replace('login.html');
   } catch (error) {

@@ -778,21 +778,17 @@ class AccountCreatorDialog(QDialog):
             else:
                 self._validate_and_accept__show_error_dialog(
                     "Account Creation Failed",
-                    "Unable to create the account.\n\n"
-                    "Please check that:\n"
-                    "â€¢ All required fields are filled in\n"
-                    "â€¢ You have permission to create user accounts\n\n"
-                    "Try again with different information if needed.",
+                    "MHM could not confirm that the account was created. Some account data may already be saved. "
+                    "Your entries are still here. Check the admin panel user list before creating it again "
+                    "to avoid a duplicate; if this continues, ask your administrator to check the error log.",
                 )
         except Exception as e:
             logger.error(f"Error during account creation: {e}")
             self._validate_and_accept__show_error_dialog(
                 "Account Creation Error",
-                "An unexpected error occurred while creating the account.\n\n"
-                "Please try:\n"
-                "â€¢ Checking that all fields are valid\n"
-                "â€¢ Closing and reopening the dialog\n\n"
-                "If the problem continues, check the logs for details.",
+                "MHM could not finish account creation. The account may already be saved. "
+                "Keep a copy of your entries and check the admin panel user list before trying again "
+                "to avoid a duplicate; if this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("checking input errors")

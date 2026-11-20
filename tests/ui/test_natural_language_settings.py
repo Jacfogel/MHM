@@ -76,7 +76,8 @@ class TestNaturalLanguageSettingsWidget:
         _fill_valid_times(widget)
         widget.line_morning.setText("not-a-time")
 
-        assert widget.validate_fields() == "Could not parse Morning time: not-a-time"
+        assert "Morning time" in widget.validate_fields()
+        assert "9am or 09:00" in widget.validate_fields()
         widget.deleteLater()
 
     def test_validate_fields_accepts_parseable_times(self, qapp):

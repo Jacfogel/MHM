@@ -43,7 +43,8 @@ class HelpHandler(InteractionHandler):
     @handle_errors(
         "handling help interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with help right now. Please try again.", True
+            "I could not load help. This help request did not change your saved data. Try 'commands' for the command list, or ask your MHM administrator for help.",
+            True,
         ),
     )
     def handle(

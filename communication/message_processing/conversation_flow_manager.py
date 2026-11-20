@@ -49,7 +49,7 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
     @handle_errors(
         "handling inbound message",
         default_return=(
-            "I'm having trouble processing your message right now. Please try again in a moment.",
+            "I could not confirm that your message was processed. Your latest answer or requested change may already be saved. Check the latest check-in prompt or relevant task list before sending it again; send 'help' for commands.",
             True,
         ),
     )
@@ -166,7 +166,7 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
     @handle_errors(
         "starting checkin",
         default_return=(
-            "I'm having trouble starting your check-in. Please try again.",
+            "I could not finish opening your check-in. A check-in may already be in progress. Send 'start checkin' again to check for an open check-in; send 'checkin status' to check completed check-ins.",
             True,
         ),
     )
@@ -206,16 +206,18 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
         user_logger.info("User check-in started", user_id=user_id, checkin_type="daily")
 
         return result
+
     @handle_errors("clearing all conversation states", default_return=None)
     def clear_all_states(self):
         """Clear all user states - primarily for testing."""
         self.user_states.clear()
         self._save_user_states()
         logger.info("Cleared all user states")
+
     @handle_errors(
         "restarting checkin",
         default_return=(
-            "I'm having trouble restarting your check-in. Please try again.",
+            "I could not confirm that your check-in restarted. The previous unfinished check-in may already have been cleared. Send 'start checkin' to check for an open check-in; send 'checkin status' to check completed check-ins.",
             True,
         ),
     )
@@ -234,9 +236,13 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
 
         # Start a new checkin
         return self.start_checkin(user_id)
+
     @handle_errors(
         "starting tasks flow",
-        default_return=("I'm having trouble starting the tasks flow.", True),
+        default_return=(
+            "I could not open the tasks view. This view request did not change your saved data. Try 'show my tasks' again later.",
+            True,
+        ),
     )
     def start_tasks_flow(self, user_id: str) -> tuple[str, bool]:
         """Starter for a future tasks multi-step flow (placeholder)."""
@@ -246,9 +252,13 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
         )
         resp = _im.handle_user_message(user_id, "show my tasks", "discord")
         return (resp.message, True)
+
     @handle_errors(
         "starting profile flow",
-        default_return=("I'm having trouble starting the profile flow.", True),
+        default_return=(
+            "I could not open the profile view. This view request did not change your saved data. Try 'show my profile' again later.",
+            True,
+        ),
     )
     def start_profile_flow(self, user_id: str) -> tuple[str, bool]:
         _im = importlib.import_module(
@@ -256,9 +266,13 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
         )
         resp = _im.handle_user_message(user_id, "show profile", "discord")
         return (resp.message, True)
+
     @handle_errors(
         "starting schedule flow",
-        default_return=("I'm having trouble starting the schedule flow.", True),
+        default_return=(
+            "I could not open the schedule view. This view request did not change your saved data. Try 'show my schedule' again later.",
+            True,
+        ),
     )
     def start_schedule_flow(self, user_id: str) -> tuple[str, bool]:
         _im = importlib.import_module(
@@ -266,9 +280,13 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
         )
         resp = _im.handle_user_message(user_id, "show schedule", "discord")
         return (resp.message, True)
+
     @handle_errors(
         "starting messages flow",
-        default_return=("I'm having trouble starting the messages flow.", True),
+        default_return=(
+            "I could not open the messages view. This view request did not change your saved data. Try 'show messages' again later.",
+            True,
+        ),
     )
     def start_messages_flow(self, user_id: str) -> tuple[str, bool]:
         """
@@ -288,9 +306,13 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
         )
         resp = _im.handle_user_message(user_id, "show messages", "discord")
         return (resp.message, True)
+
     @handle_errors(
         "starting analytics flow",
-        default_return=("I'm having trouble starting the analytics flow.", True),
+        default_return=(
+            "I could not open the analytics view. This view request did not change your saved data. Try 'show analytics' again later.",
+            True,
+        ),
     )
     def start_analytics_flow(self, user_id: str) -> tuple[str, bool]:
         """
@@ -310,9 +332,10 @@ class ConversationManager(CheckinFlowMixin, TaskFlowMixin, NoteFlowMixin):
         )
         resp = _im.handle_user_message(user_id, "show analytics", "discord")
         return (resp.message, True)
+
     @handle_errors(
         "handling contextual question",
-        default_return="I'm having trouble accessing your context right now. Please try again later.",
+        default_return="I could not load enough context to answer that question. This question did not request a change to your saved settings. Try asking again later, or send 'help' to use a specific command.",
     )
     def handle_contextual_question(self, user_id: str, message_text: str) -> str:
         """

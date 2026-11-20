@@ -70,7 +70,7 @@
     });
   }
 
-  async function api(path, method = 'GET', payload, recoveryMessage = 'MHM could not update your notebook. Please try again.') {
+  async function api(path, method = 'GET', payload, recoveryMessage = 'MHM could not confirm that the notebook request finished. Keep a copy of any new text, then use Refresh to check the entry before submitting it again.') {
     let response;
     try {
       response = await fetch(path, {
@@ -94,6 +94,8 @@
     if (!response.ok) {
       const serverMessage = result.error;
       const message = !serverMessage || serverMessage === 'MHM could not complete this request. Please try again.'
+        || serverMessage.startsWith('MHM could not confirm that this request finished.')
+        || serverMessage.startsWith('MHM could not load this view.')
         ? recoveryMessage
         : serverMessage;
       const error = new Error(message);

@@ -7,7 +7,6 @@ Task Settings Widget
 Task settings widget implementation.
 """
 
-
 from PySide6.QtWidgets import QWidget, QMessageBox
 from ui.generated.task_settings_widget_pyqt import Ui_Form_task_settings
 from tasks import get_user_task_stats
@@ -344,7 +343,7 @@ class TaskSettingsWidget(QWidget):
                 f"Error loading recurring task settings for user {self.user_id}: {e}"
             )
 
-    @handle_errors("saving recurring task settings")
+    @handle_errors("saving recurring task settings", default_return=False)
     def save_recurring_task_settings(self):
         """Save recurring defaults and custom templates to task preferences."""
         if not self.user_id:
@@ -364,9 +363,10 @@ class TaskSettingsWidget(QWidget):
             preferences["task_settings"] = task_settings
 
             # Save back to user data
-            update_user_preferences(self.user_id, preferences)
+            return bool(update_user_preferences(self.user_id, preferences))
 
         except Exception as e:
             logger.error(
                 f"Error saving recurring task settings for user {self.user_id}: {e}"
             )
+            return False

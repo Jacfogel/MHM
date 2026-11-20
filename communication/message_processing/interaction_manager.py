@@ -75,7 +75,7 @@ class InteractionManager:
     @handle_errors(
         "handling user interaction",
         default_return=InteractionResponse(
-            "I'm having trouble processing your request right now. Please try again in a moment.",
+            "I could not confirm that your request finished. Some changes may already be saved. Check the relevant task list, profile, or schedule before repeating a change; send 'help' for commands.",
             True,
         ),
     )
@@ -230,7 +230,7 @@ class InteractionManager:
     @handle_errors(
         "handling structured command",
         default_return=InteractionResponse(
-            "I encountered an error while processing your request. Please try again or ask for help.",
+            "I could not confirm that your command finished. Some changes may already be saved. Check the relevant task list, profile, or schedule before repeating a change; send 'help' for commands.",
             True,
         ),
     )
@@ -249,7 +249,7 @@ class InteractionManager:
     @handle_errors(
         "handling contextual chat",
         default_return=InteractionResponse(
-            "I'm having trouble processing your message right now. Please try again.",
+            "I could not finish responding to your message. Keep a copy of any text you want to keep. Before repeating a requested change, check the relevant task list, profile, or schedule; send 'help' for commands.",
             True,
         ),
     )
@@ -379,7 +379,7 @@ def get_interaction_manager() -> InteractionManager:
 @handle_errors(
     operation="handling user message",
     default_return=InteractionResponse(
-        message="I'm having trouble processing your request right now. Please try again in a moment.",
+        message="I could not confirm that your request finished. Some changes may already be saved. Check the relevant task list, profile, or schedule before repeating a change; send 'help' for commands.",
         completed=True,
     ),
 )

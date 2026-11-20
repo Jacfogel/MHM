@@ -48,12 +48,12 @@ if (creating) {
 
 const socialMessages = {
   cancelled: 'Social sign-in was canceled. You can try again whenever you are ready.',
-  unavailable: 'That sign-in provider is not available right now.',
+  unavailable: 'That sign-in provider is unavailable. Use your account email to sign in; this attempt has not completed sign-in.',
   'not-linked': 'No active MHM account matches that social account. Create an account or use your account email first.',
   'no-email': 'Facebook did not share an email address, so MHM could not start your account. Use Google, or create an account with your email.',
   expired: 'That sign-in attempt expired. Please start again.',
   'in-use': 'That social account is already connected to another MHM account.',
-  error: 'Social sign-in could not be completed. Please try again.',
+  error: 'MHM could not confirm social sign-in. Try signing in with your account email to check account status before starting account creation again.',
 };
 if (socialResult && socialMessages[socialResult]) {
   status.textContent = socialMessages[socialResult];
@@ -64,13 +64,14 @@ if (socialResult && socialMessages[socialResult]) {
 }
 
 async function api(path, data) {
+  const recoveryMessage = 'MHM could not confirm that the sign-in or verification request finished. Keep this page open and check your connection and email for a code. If you already submitted a code, try signing in before starting account creation or password reset again.';
   const response = await fetch(path, {
     method: data === undefined ? 'GET' : 'POST', credentials: 'same-origin', cache: 'no-store',
     headers: data === undefined ? {} : { 'Content-Type': 'application/json' },
     body: data === undefined ? undefined : JSON.stringify(data),
-  });
+  }).catch(() => { throw new Error(recoveryMessage); });
   const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result.error || 'MHM could not connect. Please try again shortly.');
+  if (!response.ok) throw new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : recoveryMessage));
   return result;
 }
 

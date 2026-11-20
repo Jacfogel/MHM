@@ -92,13 +92,16 @@ def get_task_reminder_view(
             if internal_user_id:
                 from tasks.task_breakdown import next_open_step_id
 
-                target_id = next_open_step_id(internal_user_id, self.task_id) or self.task_id
+                target_id = (
+                    next_open_step_id(internal_user_id, self.task_id) or self.task_id
+                )
                 message = f"complete task {target_id}"
                 response = handle_user_message(internal_user_id, message, "discord")
                 await interaction.followup.send(response.message, ephemeral=True)
             else:
                 await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
+                    "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                    ephemeral=True,
                 )
 
         @discord.ui.button(
@@ -106,7 +109,9 @@ def get_task_reminder_view(
             style=discord.ButtonStyle.secondary,
             custom_id=f"task_remind_later_{user_id}_{task_id}",
         )
-        @handle_errors("opening task reminder snooze choices", context={"component": "discord"})
+        @handle_errors(
+            "opening task reminder snooze choices", context={"component": "discord"}
+        )
         async def remind_later_button(
             self, interaction: discord.Interaction, button: discord.ui.Button
         ):
@@ -121,7 +126,8 @@ def get_task_reminder_view(
             internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
             if not internal_user_id:
                 await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
+                    "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                    ephemeral=True,
                 )
                 return
 
@@ -181,7 +187,9 @@ def get_task_reminder_view(
             custom_id=f"task_simplify_{user_id}_{task_id}",
             row=0,
         )
-        @handle_errors("suggesting smaller task steps", context={"component": "discord"})
+        @handle_errors(
+            "suggesting smaller task steps", context={"component": "discord"}
+        )
         async def simplify_button(
             self, interaction: discord.Interaction, button: discord.ui.Button
         ):
@@ -195,7 +203,8 @@ def get_task_reminder_view(
             internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
             if not internal_user_id:
                 await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
+                    "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                    ephemeral=True,
                 )
                 return
             response = handle_user_message(
@@ -258,7 +267,8 @@ def get_task_snooze_choice_view(
             internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
             if not internal_user_id:
                 await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
+                    "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                    ephemeral=True,
                 )
                 return
             response = handle_user_message(internal_user_id, command, "discord")
@@ -327,7 +337,9 @@ class _TaskSnoozeCustomModal(discord.ui.Modal, title="Remind me when?"):
         self.task_id = task_id
         self.task_title = task_title
 
-    @handle_errors("submitting custom task reminder snooze", context={"component": "discord"})
+    @handle_errors(
+        "submitting custom task reminder snooze", context={"component": "discord"}
+    )
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Snooze the reminder until the typed time."""
         await interaction.response.defer(ephemeral=True)
@@ -339,7 +351,8 @@ class _TaskSnoozeCustomModal(discord.ui.Modal, title="Remind me when?"):
         internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
         if not internal_user_id:
             await interaction.followup.send(
-                "❌ Could not find your account. Please try again.", ephemeral=True
+                "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                ephemeral=True,
             )
             return
         when = str(self.when_input.value or "").strip()
@@ -417,7 +430,8 @@ def get_task_simplify_view(
             internal_user_id = get_user_id_by_identifier(str(interaction.user.id))
             if internal_user_id != self.user_id:
                 await interaction.followup.send(
-                    "❌ Could not find your account. Please try again.", ephemeral=True
+                    "❌ MHM could not find an account linked to your Discord profile, so this button did not submit a change. Send /start to create or link an account, then try the command again.",
+                    ephemeral=True,
                 )
                 return
             result = add_task_subtasks(internal_user_id, self.task_id, titles)

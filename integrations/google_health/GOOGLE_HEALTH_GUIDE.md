@@ -6,6 +6,8 @@
 
 For channel adapter boundaries and health-command delivery, see [COMMUNICATION_GUIDE.md](../../communication/COMMUNICATION_GUIDE.md). Website setup and deployment live in [WEBSITE_GUIDE.md](../../website/WEBSITE_GUIDE.md); the optional Twilio delivery pilot is documented in [SMS_GUIDE.md](../../communication/communication_channels/sms/SMS_GUIDE.md).
 
+Desktop pause and deletion failures refresh status and show an explicit unconfirmed result; deletion may be partial. Failed personalization saves retain selections. Missing authorization links explain that browser approval has not started and point to administrator configuration. A failed status load disables actions and asks the user to reopen the panel; it does not mean health data was deleted.
+
 ## 1. Overview
 
 MHM reads **wellness data only** from the [Google Health API](https://developers.google.com/health/migration) (not the legacy Fitbit Web API). Data is normalized into daily summaries and derived **message guidance** tokens. AI prompts may receive **rounded sleep hours, step counts, and active minutes**, categorical bands, and **multi-day streak phrases**; resting HR / HRV stay band-only (no bpm/ms), and other raw metrics are never sent.

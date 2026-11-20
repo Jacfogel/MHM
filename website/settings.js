@@ -414,10 +414,13 @@ const MHMSettingsInput = Object.freeze({
     return payload;
   }
   async function api(method, payload) {
+    const recoveryMessage = method === 'GET'
+      ? 'MHM could not load your settings. This view request did not save changes. Check your connection, then use Retry.'
+      : 'MHM could not confirm that these settings were saved. Your entries are still here. Keep a copy, then use Reload this section to check saved values before retrying.';
     const response = await fetch('/api/settings', {
       method, credentials: 'same-origin', cache: 'no-store',
       ...(payload ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload.section === 'messages' || payload.section === 'tasks' || payload.section === 'checkins' ? { ...payload, complete_setup: true } : payload) } : {}),
-    });
+    }).catch(() => { throw new Error(recoveryMessage); });
     if (response.status === 401) {
       window.dispatchEvent(new Event('mhm:signed-out'));
       document.getElementById('account-content').hidden = true;
@@ -426,7 +429,7 @@ const MHMSettingsInput = Object.freeze({
     }
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const error = new Error(data.error || 'MHM could not load your settings. Please try again.');
+      const error = new Error((data.error && !data.error.startsWith('MHM could not confirm that this request finished.') && !data.error.startsWith('MHM could not load this view.') ? data.error : recoveryMessage));
       error.status = response.status;
       throw error;
     }
@@ -474,7 +477,7 @@ const MHMSettingsInput = Object.freeze({
             }
             if (!response.ok) {
               const result = await response.json().catch(() => ({}));
-              throw new Error(result.error || 'Discord could not be disconnected.');
+              throw new Error(result.error || 'MHM could not confirm that Discord was disconnected. Reload the Account section to check connections before retrying.');
             }
             location.assign('app.html');
           } catch (error) {
@@ -691,8 +694,7 @@ const MHMSettingsInput = Object.freeze({
       } catch (error) {
         feedback.textContent = error.message;
         feedback.classList.add('is-error');
-        reload.hidden = true;
-        if (error.status === 409 || error.status === 503) reload.hidden = false;
+        reload.hidden = false;
       } finally {
         saving = false;
         for (const [input, disabled] of controls) input.disabled = disabled;

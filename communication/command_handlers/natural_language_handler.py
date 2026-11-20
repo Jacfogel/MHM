@@ -43,7 +43,8 @@ class NaturalLanguageHandler(InteractionHandler):
     @handle_errors(
         "handling natural language interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with phrase settings right now. Please try again.", True
+            "I could not confirm that your phrase-settings request finished. Some changes may already be saved. Send 'show phrase settings' and check the saved values before retrying a change.",
+            True,
         ),
     )
     def handle(
@@ -65,7 +66,8 @@ class NaturalLanguageHandler(InteractionHandler):
     @handle_errors(
         "showing phrase settings",
         default_return=InteractionResponse(
-            "I'm having trouble loading phrase settings. Please try again.", True
+            "I could not load phrase settings. This view request did not change your saved preferences. Try 'show phrase settings' again later.",
+            True,
         ),
     )
     def _handle_show(self, user_id: str) -> InteractionResponse:

@@ -42,7 +42,7 @@ class AccountManagementHandler(InteractionHandler):
     @handle_errors(
         "handling account interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with account management right now. Please try again.",
+            "I could not confirm that the account request finished. Some changes may already be saved. Reopen account setup and check account status before trying again.",
             True,
         ),
     )

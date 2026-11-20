@@ -514,34 +514,30 @@ class ErrorHandler:
         self, error: Exception, context: dict[str, Any]
     ) -> str:
         """Convert technical error to user-friendly message."""
-        operation = context.get("operation", "operation")
-
         if isinstance(error, FileNotFoundError):
-            return "Could not find required file. The system will try to create it automatically."
+            return "MHM could not find a required file. The operation is not confirmed; check saved state before retrying. If this continues, ask your administrator to check the installation and error log."
         elif isinstance(error, PermissionError):
-            return "Permission denied. Please check file permissions and try again."
+            return "MHM could not access a required file or folder. Some changes may already be saved. Keep your draft and ask your administrator to check data-folder permissions before retrying."
         elif isinstance(error, ConnectionError):
-            return "Connection failed. Please check your internet connection and try again."
+            return "MHM could not reach the service. The request may already have been received. Check your connection and saved state before sending it again."
         elif isinstance(error, TimeoutError):
-            return "Operation timed out. Please try again."
+            return "MHM did not receive a result in time. The operation may still have completed. Check saved state or delivery status before retrying."
         elif type(error).__name__ == "SMTPServerDisconnected" or (
             "connection unexpectedly closed" in str(error).lower()
         ):
-            return "The email server closed the connection. Please try again."
+            return "The email server closed the connection before MHM could confirm delivery. The email may already have been sent. Check your inbox before retrying; if this continues, ask your administrator to check email settings."
         elif isinstance(error, ValueError):
-            return "Invalid data format. Please check your input and try again."
+            return "MHM could not use the supplied value. Keep your entries, check the required format, and check saved state before submitting the corrected request."
         elif isinstance(error, KeyError):
-            return (
-                "Missing required information. Please check your input and try again."
-            )
+            return "MHM could not find information needed to finish the request. Keep your entries, check required fields, and check saved state before retrying; if all fields are filled in, ask your administrator for help."
         elif isinstance(error, TypeError):
-            return "Data type error. Please check your input format and try again."
+            return "MHM received a value it could not process. Keep your entries and check saved state before retrying. If this continues, ask your administrator to check the error log."
         elif isinstance(error, OSError):
-            return "System error occurred. Please try again or contact support."
+            return "MHM could not finish a system operation. Some changes may already be saved. Keep your draft, check saved state, and ask your administrator to check the error log before retrying."
         elif isinstance(error, MemoryError):
-            return "System is low on memory. Please try again later."
+            return "MHM ran out of available memory. The operation is not confirmed. Keep a copy of your draft, close unused applications, and check saved state before retrying."
         else:
-            return f"An unexpected error occurred during {operation}. Please try again or contact support."
+            return "MHM could not confirm that the operation finished. Some changes may already be saved. Keep your draft and check saved state before retrying; if this continues, ask your administrator to check the error log."
 
 
 # ============================================================================

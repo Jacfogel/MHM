@@ -37,7 +37,8 @@ class CheckinHandler(InteractionHandler):
     @handle_errors(
         "handling check-in interaction",
         default_return=InteractionResponse(
-            "I'm having trouble with check-ins right now. Please try again.", True
+            "I could not confirm that your check-in request finished. Your latest answer may already be saved. Send 'checkin status' to check completed check-ins, then use 'start checkin' to resume or start a check-in.",
+            True,
         ),
     )
     def handle(
@@ -62,7 +63,8 @@ class CheckinHandler(InteractionHandler):
     @handle_errors(
         "starting check-in",
         default_return=InteractionResponse(
-            "I'm having trouble starting your check-in. Please try again.", True
+            "I could not finish opening your check-in. A check-in may already be in progress. Send 'start checkin' again to check for an open check-in; send 'checkin status' to check completed check-ins.",
+            True,
         ),
     )
     def _handle_start_checkin(self, user_id: str) -> InteractionResponse:
@@ -97,14 +99,15 @@ class CheckinHandler(InteractionHandler):
         except Exception as e:
             logger.error(f"Error starting check-in for user {user_id}: {e}")
             return InteractionResponse(
-                "I'm having trouble starting your check-in. Please try again or use /checkin directly.",
+                "I could not finish opening your check-in. A check-in may already be in progress. Send 'start checkin' again to check for an open check-in; send 'checkin status' to check completed check-ins.",
                 True,
             )
 
     @handle_errors(
         "continuing check-in",
         default_return=InteractionResponse(
-            "I'm having trouble continuing your check-in. Please try again.", True
+            "I could not show how to continue your check-in. This help request did not save an answer. Reply to the latest question, or send 'start checkin' to check for an open check-in.",
+            True,
         ),
     )
     def _handle_continue_checkin(
@@ -120,7 +123,8 @@ class CheckinHandler(InteractionHandler):
     @handle_errors(
         "checking check-in status",
         default_return=InteractionResponse(
-            "I'm having trouble checking your check-in status. Please try again.", True
+            "I could not load check-in status. This status request did not change your recorded check-ins. Try 'checkin status' again later; if this continues, ask your MHM administrator for help.",
+            True,
         ),
     )
     def _handle_checkin_status(self, user_id: str) -> InteractionResponse:

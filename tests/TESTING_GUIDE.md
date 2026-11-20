@@ -516,7 +516,7 @@ Development-tools Tier 3 audits use `development_tools/tests/run_test_suite.py` 
 
 Coverage is used to understand how much of the codebase is exercised by tests, not as a rigid target.
 
-Coverage is separate from development-tools Tier 3 audits. Run `python development_tools/run_development_tools.py coverage` when you need refreshed coverage metrics, marker analysis, and `development_docs/TEST_COVERAGE_REPORT.md`; run it less frequently than normal pytest or `audit --full` checks.
+Coverage is separate from development-tools Tier 3 audits. Run `python development_tools/run_development_tools.py coverage` when you need refreshed coverage metrics, marker analysis, and `development_tools/reports/TEST_COVERAGE_REPORT.md`; run it less frequently than normal pytest or `audit --full` checks.
 
 To run tests with coverage:
 

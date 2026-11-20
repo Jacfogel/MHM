@@ -191,7 +191,7 @@ class WebMessageRoutes:
                 for message in existing
             ):
                 raise web.HTTPNotFound(
-                    text="That message could not be found."
+                    text="MHM could not find the selected message, so no change was submitted. Reload the category message list and select the message again."
                 )
             if request.method == "PATCH":
                 values = clean(await self.gateway.body(request))
@@ -229,7 +229,7 @@ class WebMessageRoutes:
         )
         if not message:
             raise web.HTTPServiceUnavailable(
-                text="MHM could not finish saving that message."
+                text="MHM could not confirm that the message was saved. Keep a copy of your text, then reload the message list to check before saving again."
             )
         return web.json_response(
             {"message": view(message)},

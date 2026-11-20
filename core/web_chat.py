@@ -8,9 +8,7 @@ from core.error_handling import handle_errors
 
 WEBSITE_CHANNEL = "website"
 MAX_SUGGESTIONS = 8
-FALLBACK_REPLY = (
-    "I'm having trouble processing your request right now. Please try again in a moment."
-)
+FALLBACK_REPLY = "MHM could not confirm that your message was processed. Keep a copy of your text and reload the conversation or relevant task list before repeating a change; it may already be saved."
 
 
 @handle_errors("shaping website chat reply", default_return=None)
@@ -18,7 +16,7 @@ def chat_payload(response) -> dict | None:
     """Return the plain reply and suggestion buttons a browser can render."""
     message = getattr(response, "message", "")
     if not isinstance(message, str) or not message.strip():
-        message = "MHM could not answer that just now. Please try again."
+        message = "MHM could not return a reply. Your message or requested change may already be saved. Keep a copy of your text and reload the conversation or relevant task list before submitting it again."
     raw = getattr(response, "suggestions", None) or []
     suggestions = []
     if isinstance(raw, list):

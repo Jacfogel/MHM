@@ -27,7 +27,7 @@ from communication.message_processing.flows.flow_constants import (
 @pytest.mark.communication
 class TestConversationManagerBehavior:
     """Test ConversationManager real behavior and side effects."""
-    
+
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.file_io
@@ -42,7 +42,7 @@ class TestConversationManagerBehavior:
         assert hasattr(manager, 'user_states'), "Should have user_states attribute"
         assert isinstance(manager.user_states, dict), "user_states should be a dict"
         assert len(manager.user_states) == 0, "user_states should be empty initially"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -69,7 +69,7 @@ class TestConversationManagerBehavior:
             assert reply is not None, "Should return a reply"
             assert isinstance(completed, bool), "Should return completion status"
             assert "hi there" in reply.lower(), "Should include AI response"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -102,7 +102,7 @@ class TestConversationManagerBehavior:
             assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should preserve flow"
             assert manager.user_states[test_user_id]['state'] == CHECKIN_MOOD, "Should preserve state"
             assert manager.user_states[test_user_id]['data']['mood'] == "good", "Should preserve data"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -151,7 +151,7 @@ class TestConversationManagerBehavior:
             assert len(manager.user_states[test_user_id]['question_order']) == 2, "Should have correct question count"
             assert reply is not None, "Should return a reply"
             assert not completed, "Should not be completed initially"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -173,7 +173,7 @@ class TestConversationManagerBehavior:
             assert test_user_id not in manager.user_states, "Should not create user state"
             assert "not enabled" in reply.lower(), "Should mention check-ins not enabled"
             assert completed, "Should be completed immediately"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -208,7 +208,7 @@ class TestConversationManagerBehavior:
             assert manager.user_states[test_user_id]['data']['mood'] == 'good', "Should store response data"
             assert manager.user_states[test_user_id]['state'] > CHECKIN_MOOD, "Should progress to next state"
             assert not completed, "Should not be completed yet"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -248,7 +248,7 @@ class TestConversationManagerBehavior:
             assert completed, "Should be completed"
             assert test_user_id not in manager.user_states, "Should remove user state after completion"
             assert "complete" in reply.lower(), "Should indicate completion"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -272,7 +272,7 @@ class TestConversationManagerBehavior:
         invalid_result = manager._validate_response("mood", "invalid_mood")
         assert not invalid_result['valid'], "Should reject invalid mood"
         assert "number between 1 and 5" in invalid_result['message'], "Should provide helpful message"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -295,7 +295,7 @@ class TestConversationManagerBehavior:
         # Test special characters
         special_result = manager._validate_response("daily_reflection", "Today was great! 😊")
         assert special_result['valid'], "Should accept special characters"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -320,7 +320,7 @@ class TestConversationManagerBehavior:
             "energy": 5  # Use integer for energy
         })
         assert "reflection" in reflection_question.lower(), "Should ask for reflection"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -345,31 +345,39 @@ class TestConversationManagerBehavior:
             assert response is not None, "Should return a response"
             assert "doing great" in response, "Should include AI-generated content"
             mock_chatbot.generate_contextual_response.assert_called_once()
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_conversation_manager_error_handling_preserves_system_stability(self, test_data_dir):
+    def test_conversation_manager_error_handling_preserves_system_stability(
+        self, test_data_dir
+    ):
         """Test that ConversationManager error handling preserves system stability."""
         # Arrange
         manager = ConversationManager()
         test_user_id = "test-user-error"
-        
+
         # Mock AI chatbot to raise an exception
-        with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
+        with patch(
+            "communication.message_processing.conversation_flow_manager.get_ai_chatbot"
+        ) as mock_get_ai_chatbot:
             mock_chatbot = MagicMock()
-            mock_chatbot.generate_contextual_response.side_effect = Exception("Test error")
+            mock_chatbot.generate_contextual_response.side_effect = Exception(
+                "Test error"
+            )
             mock_get_ai_chatbot.return_value = mock_chatbot
-            
+
             # Act - Should not raise exception due to error handling
             reply, completed = manager.handle_inbound_message(test_user_id, "Hello")
-            
+
             # Assert - Verify graceful error handling
             assert reply is not None, "Should return error message"
-            assert "trouble" in reply.lower(), "Should indicate trouble processing"
+            assert "could not confirm" in reply.lower()
+            assert "may already be saved" in reply
+            assert "before sending it again" in reply
             assert completed, "Should complete to prevent hanging"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -402,7 +410,7 @@ class TestConversationManagerBehavior:
             )
             # Verify all messages were processed successfully
             assert all(reply is not None for reply, completed in responses), "Should process all messages"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -428,7 +436,7 @@ class TestConversationManagerBehavior:
         # Assert - Verify cleanup
         assert test_user_id not in manager.user_states, "User state should be cleaned up"
         assert len(manager.user_states) == 0, "Should have no remaining user states"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -483,7 +491,7 @@ class TestConversationManagerBehavior:
                 # Assert - Verify integration
                 assert completed, "Should complete check-in"
                 mock_store.assert_called()
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical
@@ -517,7 +525,7 @@ class TestConversationManagerBehavior:
             assert test_user_id in manager.user_states, "Should create user state for command"
             assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should start check-in flow"
             assert "feeling" in reply.lower(), "Should ask first question"
-    
+
     @pytest.mark.communication
     @pytest.mark.file_io
     @pytest.mark.critical

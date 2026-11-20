@@ -18,7 +18,7 @@ dialog_logger = logger
 from core.schedule_runtime import set_schedule_periods, clear_schedule_periods_cache
 from core import update_user_preferences, update_user_account
 from core import get_user_data
-from core.error_handling import handle_errors
+from core.error_handling import FileOperationError, handle_errors
 from storage.user_data_validation import validate_schedule_periods
 from checkins.checkin_schemas import DEFAULT_MAX_QUESTIONS, DEFAULT_MIN_QUESTIONS
 
@@ -150,8 +150,12 @@ class CheckinManagementDialog(QDialog):
                     return
 
                 # Validate min/max question counts
-                min_questions = checkin_settings.get("min_questions", DEFAULT_MIN_QUESTIONS)
-                max_questions = checkin_settings.get("max_questions", DEFAULT_MAX_QUESTIONS)
+                min_questions = checkin_settings.get(
+                    "min_questions", DEFAULT_MIN_QUESTIONS
+                )
+                max_questions = checkin_settings.get(
+                    "max_questions", DEFAULT_MAX_QUESTIONS
+                )
 
                 # Count always and sometimes questions
                 questions = checkin_settings.get("questions", {})
@@ -172,8 +176,10 @@ class CheckinManagementDialog(QDialog):
                     )
                     return
 
-                min_required, _min_allowed, max_floor, max_allowed = compute_question_count_bounds(
-                    always_count, sometimes_count, total_enabled
+                min_required, _min_allowed, max_floor, max_allowed = (
+                    compute_question_count_bounds(
+                        always_count, sometimes_count, total_enabled
+                    )
                 )
 
                 if min_questions < min_required:
@@ -239,7 +245,8 @@ class CheckinManagementDialog(QDialog):
             logger.info(
                 f"Saving check-in time periods for user {self.user_id}: {time_periods}"
             )
-            set_schedule_periods(self.user_id, "checkin", time_periods)
+            if not set_schedule_periods(self.user_id, "checkin", time_periods):
+                raise FileOperationError("Settings write was not confirmed")
             clear_schedule_periods_cache(self.user_id, "checkin")
 
             # Get current preferences and update check-in settings
@@ -253,12 +260,17 @@ class CheckinManagementDialog(QDialog):
             prefs["checkin_settings"] = {
                 "questions": checkin_settings.get("questions", {}),
                 "custom_questions": custom_questions,  # Preserve custom questions
-                "min_questions": checkin_settings.get("min_questions", DEFAULT_MIN_QUESTIONS),
-                "max_questions": checkin_settings.get("max_questions", DEFAULT_MAX_QUESTIONS),
+                "min_questions": checkin_settings.get(
+                    "min_questions", DEFAULT_MIN_QUESTIONS
+                ),
+                "max_questions": checkin_settings.get(
+                    "max_questions", DEFAULT_MAX_QUESTIONS
+                ),
             }
 
             # Save updated preferences
-            update_user_preferences(self.user_id, prefs)
+            if not update_user_preferences(self.user_id, prefs):
+                raise FileOperationError("Settings write was not confirmed")
 
             # Update user account features
             user_data_result = get_user_data(self.user_id, "account")
@@ -268,7 +280,8 @@ class CheckinManagementDialog(QDialog):
             account["features"]["checkins"] = (
                 "enabled" if checkins_enabled else "disabled"
             )
-            update_user_account(self.user_id, account)
+            if not update_user_account(self.user_id, account):
+                raise FileOperationError("Settings write was not confirmed")
 
             QMessageBox.information(
                 self, "Check-in Settings Saved", "Check-in settings saved successfully."
@@ -279,7 +292,9 @@ class CheckinManagementDialog(QDialog):
         except Exception as e:
             logger.error(f"Error saving check-in settings for user {self.user_id}: {e}")
             QMessageBox.critical(
-                self, "Error", f"Failed to save check-in settings: {str(e)}"
+                self,
+                "Error",
+                "MHM could not finish saving check-in settings. Time periods or question preferences may already be saved. Your entries are still here. Save again; if this continues, ask your administrator to check the error log.",
             )
 
     @handle_errors("getting checkin settings", default_return={})

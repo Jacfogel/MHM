@@ -372,13 +372,13 @@ class TestErrorHandlingImprovements:
         assert result == UNCLEAR_USER_INPUT_REPLY
 
         result = chatbot.generate_response(123)
-        assert "I'm having trouble generating a response" in result
+        assert "could not" in result
 
         result = chatbot.generate_response("prompt", user_id=123)
-        assert "I'm having trouble generating a response" in result
+        assert "could not" in result
 
         result = chatbot.generate_response("prompt", timeout="invalid")
-        assert "I'm having trouble generating a response" in result
+        assert "could not" in result
         
     def test_task_management_validation(self):
         """Test task management with improved validation."""

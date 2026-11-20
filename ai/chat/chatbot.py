@@ -281,7 +281,7 @@ class AIChatBotSingleton:
     # not_duplicate: generate_response_pair
     @handle_errors(
         "generating AI response",
-        default_return="I'm having trouble generating a response right now. Please try again in a moment.",
+        default_return="I could not generate a reply right now. Keep a copy of any text you want to keep, then try again later. If you requested a task or settings change, check its saved state before repeating it.",
     )
     def generate_response(
         self,
@@ -296,7 +296,7 @@ class AIChatBotSingleton:
         """
         if not self._is_valid_timeout(timeout):
             logger.error(f"Invalid timeout parameter: {timeout} (expected int)")
-            return "I'm having trouble generating a response. Please check your input and try again."
+            return "MHM could not start AI generation because its response timeout setting is invalid. Keep your message and ask your administrator to check AI configuration before retrying."
 
         timeout = (
             timeout
@@ -330,7 +330,7 @@ class AIChatBotSingleton:
             logger.error(
                 f"Invalid inputs provided to generate_response: mode={mode}, user_prompt={user_prompt}, user_id={user_id}"
             )
-            return "I'm having trouble generating a response. Please check your input and try again."
+            return "MHM could not prepare a prompt from that message, so no AI reply was generated. Send a nonempty message; if this continues, keep a copy and ask your administrator for help."
 
         cached_response = self._get_cached_non_chat_response(
             mode, prompt_for_key, uid_for_key, ptype, user_prompt, user_id
@@ -521,7 +521,7 @@ class AIChatBotSingleton:
 
     @handle_errors(
         "getting fallback response for unavailable OpenAI",
-        default_return="I'm having trouble generating a response right now. Please try again in a moment.",
+        default_return="I could not generate a reply right now. Keep a copy of any text you want to keep, then try again later. If you requested a task or settings change, check its saved state before repeating it.",
     )
     def _fallback_response_for_unavailable_lm(
         self, user_prompt: str, user_id: str | None, mode: str
@@ -668,7 +668,7 @@ class AIChatBotSingleton:
     # not_duplicate: finalize_contextual_response_pair
     @handle_errors(
         "finalizing contextual response",
-        default_return="I'm having trouble generating a contextual response right now. Please try again in a moment.",
+        default_return="I could not generate a reply right now. Keep a copy of any text you want to keep, then try again later. If you requested a task or settings change, check its saved state before repeating it.",
     )
     def _finalize_contextual_response(
         self,
@@ -1001,7 +1001,7 @@ class AIChatBotSingleton:
 
     @handle_errors(
         "generating quick response",
-        default_return="I'm having trouble responding right now. Please try again in a moment.",
+        default_return="I could not generate a reply right now. Keep a copy of any text you want to keep, then try again later. If you requested a task or settings change, check its saved state before repeating it.",
     )
     def generate_quick_response(
         self, user_prompt: str, user_id: str | None = None
@@ -1018,7 +1018,7 @@ class AIChatBotSingleton:
     # not_duplicate: generate_response_pair
     @handle_errors(
         "generating contextual response",
-        default_return="I'm having trouble generating a contextual response right now. Please try again in a moment.",
+        default_return="I could not generate a reply right now. Keep a copy of any text you want to keep, then try again later. If you requested a task or settings change, check its saved state before repeating it.",
     )
     def generate_contextual_response(
         self, user_id: str, user_prompt: str, timeout: int | None = None

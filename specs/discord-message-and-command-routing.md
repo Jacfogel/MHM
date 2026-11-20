@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for routing Discord messages, slash commands, classic commands, and suggestion buttons into the channel-agnostic interaction system  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-05-16  
+> **Last Updated**: 2026-11-19
 > **Implementation**: `communication/communication_channels/discord/bot.py`, `communication/communication_channels/discord/events/message_handler.py`, `communication/communication_channels/discord/events/interaction_router.py`, `communication/communication_channels/discord/events/command_registration.py`, `communication/message_processing/interaction_manager.py`, `communication/message_processing/command_parser.py`, `communication/command_handlers/interaction_handlers.py`, `communication/command_handlers/shared_types.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)  
 > **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_communication_interaction_manager_behavior.py`, `tests/behavior/test_message_route_classifier_behavior.py`  
@@ -162,6 +162,10 @@ Discord-specific errors SHALL be logged and surfaced as practical user-facing fa
 - **THEN** the system logs the failure  
 - **AND** sends a generic retry-later message to the Discord channel  
 - **AND** does not fall back to legacy conversation-manager behavior  
+
+### Requirement: Routing failures explain state and recovery
+
+When a button cannot be decoded, the response SHALL say no command was submitted and offer typed commands or help. When execution may have started, the response SHALL explain that changes may already be saved and ask the user to inspect the relevant view before retrying. Planned-action preparation failures SHALL retain earlier action results and identify unexecuted actions.
 
 ## 3. Out of scope
 

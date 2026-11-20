@@ -260,8 +260,8 @@ class WebNotesRoutes:
                 }.get(kind, "note")
                 raise web.HTTPServiceUnavailable(
                     text=(
-                        f"MHM could not save that {entry_name}. Nothing was added. "
-                        "Please try again."
+                        f"MHM could not confirm that the {entry_name} was saved. Keep a copy of your text, "
+                        "then refresh the notebook to check before submitting it again."
                     )
                 )
             return web.json_response({"note": note_view(entry)}, status=201)

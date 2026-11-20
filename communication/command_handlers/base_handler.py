@@ -42,7 +42,8 @@ class InteractionHandler(ABC):
     @handle_errors(
         "handling interaction",
         default_return=InteractionResponse(
-            "I'm having trouble processing your request. Please try again.", True
+            "I could not confirm that your request finished. Some changes may already be saved. Check the relevant task list, profile, or schedule before repeating a change; send 'help' for commands.",
+            True,
         ),
     )
     def handle(

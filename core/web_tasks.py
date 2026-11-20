@@ -19,7 +19,6 @@ class WebTaskRoutes:
         """Keep the shared gateway services used by task endpoints."""
         self.gateway = gateway
 
-
     # ERROR_HANDLING_EXCLUDE: Pure serializer is called only by guarded website routes.
     @staticmethod
     def task_view(task):
@@ -78,7 +77,6 @@ class WebTaskRoutes:
             "created_at": task.get("created_at"),
             "updated_at": task.get("updated_at"),
         }
-
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def tasks_api(self, request):
@@ -368,7 +366,7 @@ class WebTaskRoutes:
         )
         if not created_id:
             raise web.HTTPServiceUnavailable(
-                text="That task was not added. Please wait a moment and try again."
+                text="MHM could not confirm that the task was added. Your draft is still here. Keep a copy and refresh the task list before creating it again to avoid a duplicate."
             )
         return web.json_response(
             {"task": self.task_view(self._require_task(uid, created_id))}, status=201
@@ -708,8 +706,8 @@ class WebTaskRoutes:
         if not await asyncio.to_thread(update_task, uid, task_id, data):
             raise web.HTTPServiceUnavailable(
                 text=(
-                    "Your task changes were not saved. The original task is unchanged. "
-                    "Check your connection and try again."
+                    "MHM could not confirm that your task changes were saved. Keep a copy of your edits, "
+                    "then refresh the task to check its saved values before trying again."
                 )
             )
         return self._task_response(uid, task_id)
@@ -728,7 +726,6 @@ class WebTaskRoutes:
                 )
             )
         return web.json_response({"ok": True})
-
 
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def tasks_bulk(self, request):
@@ -776,7 +773,7 @@ class WebTaskRoutes:
             )
             if changed is None:
                 raise web.HTTPServiceUnavailable(
-                    text="MHM could not save those tags. Refresh your tasks and try again."
+                    text="MHM could not confirm that all task tags were saved. Some tag changes may already be saved. Refresh your tasks and check their current tags before applying the change again."
                 )
             if not changed:
                 raise web.HTTPNotFound(text="None of those active tasks could be tagged.")
@@ -868,7 +865,6 @@ class WebTaskRoutes:
             }
         )
 
-
     # ERROR_HANDLING_EXCLUDE: Route failures are translated by the gateway middleware.
     async def task_templates(self, request):
         """Return safe built-in and account-owned templates for quick creation."""
@@ -948,6 +944,7 @@ class WebTaskRoutes:
             }
         )
 
+
 # ERROR_HANDLING_EXCLUDE: Shared serializer also supports account exports.
 def task_view(task):
     """Return the stable, browser-safe task shape used by the website."""
@@ -976,4 +973,3 @@ def register_task_routes(app, gateway):
         "/api/tasks/{task_id}/{action:complete|restore|snooze|skip|simplify|breakdown|subtasks|detach}",
         routes.tasks_api,
     )
-
