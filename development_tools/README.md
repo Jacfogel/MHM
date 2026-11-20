@@ -113,6 +113,7 @@ Coverage worker config (`coverage` section):
 - `decision-support` - generates decision support insights.
 - `flaky-detector` - runs repeated parallel pytest passes to identify intermittent failures/flaky tests. **Not** part of `audit --full` (nested pytest would fight the Tier 3 suite); invoke manually when investigating flakes.
 - `verify-process-cleanup` - checks for potential orphaned pytest/python worker processes (included in Tier 3 full audit).
+  The standalone checker resolves its package root from its own file location; it does not require `PYTHONPATH` or an installed development-tools package. To check this final audit step alone, run `python development_tools/tests/verify_process_cleanup.py --json`.
 - `duplicate-functions` - detects possible duplicate or similar functions (analysis only).
 - `unused-functions` - detects unused/uncalled functions and methods via AST cross-referencing (analysis only, advisory).
 - `facade-shims` - detects named/documented facade, shim, alias, re-export, and compatibility bridge candidates (analysis only; filters plain low-signal thin wrappers by default).

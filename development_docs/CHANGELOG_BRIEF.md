@@ -35,6 +35,8 @@ Guidelines:
 
 - Registered background connect/sync callbacks as Qt slots to keep window updates on the UI thread after the nightly bus error. Added thread-affinity regression coverage; Linux nightly confirmation remains pending.
 - Updated stale message-editor/process-watcher recovery assertions and Qt metadata typing; all 78 affected dialog tests passed with two workers.
+- The Linux rerun found no native crash but exposed a missing Twilio package declaration and health/SMS test domain markers. Added the dependency to editable installs and supplied the communication markers; all 39 affected tests and policy checks passed, plus six packaging/domain checks.
+- Fixed the final audit process-cleanup checker's package import when launched as a script; two startup regressions and the standalone JSON probe pass.
 
 ### 2026-11-19 - Helpful failures and audit fixes **COMPLETED**
 

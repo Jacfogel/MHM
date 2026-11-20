@@ -4,6 +4,8 @@ import pytest
 from communication.command_handlers.health_handler import HealthHandler
 from communication.command_handlers.shared_types import ParsedCommand
 
+pytestmark = pytest.mark.communication
+
 
 @pytest.mark.behavior
 @pytest.mark.parametrize("intent,dependency,result,expected", [

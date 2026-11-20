@@ -6,7 +6,7 @@ from communication.communication_channels.sms.bot import SmsBot
 from communication.command_handlers.shared_types import InteractionResponse
 from communication.delivery.recipient_resolver import RecipientResolver
 
-pytestmark = pytest.mark.behavior
+pytestmark = [pytest.mark.behavior, pytest.mark.communication]
 
 
 @pytest.mark.asyncio

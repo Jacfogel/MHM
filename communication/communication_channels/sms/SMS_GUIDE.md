@@ -13,7 +13,7 @@ contacts Twilio. Public self-service signup and additional recipients are not en
 
 ## 1. Connect the Twilio pilot
 
-1. Install the project requirements in `.venv`. The Twilio SDK is required for live mode.
+1. Install MHM in `.venv` with `python -m pip install -e .` (or `python -m pip install -e ".[dev,ui]"` for contributors). The Twilio SDK is a declared project dependency, included in these installs and in the requirements inventory. It is required for live mode and the offline provider-boundary tests; installing it does not enable live SMS.
 2. Obtain a two-way SMS-capable Twilio number and complete the provider registration
    applicable to that number and destination. See [Twilio sender setup](https://www.twilio.com/docs/messaging/tutorials/how-to-send-sms-messages).
 3. On your existing MHM account, save your own international phone number (for example

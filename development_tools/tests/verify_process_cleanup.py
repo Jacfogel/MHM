@@ -15,7 +15,14 @@ import json
 import subprocess
 import sys
 import time
+from pathlib import Path
 from typing import Any
+
+# Direct script execution puts this directory, rather than the project root,
+# on sys.path. Match the other standalone development-tool entry points.
+project_root = Path(__file__).resolve().parents[2]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from development_tools.shared.logging import get_dev_tools_logger
 
