@@ -607,6 +607,8 @@ class DiscordBot(
             return False
         return await self.send_message(user_id, message)
 
+    # devtools: intentional[duplicate-functions]: push-channel-receive
+    # Push-driven adapters satisfy the channel interface without polling an inbox.
     @handle_errors("receiving Discord messages", default_return=[])
     async def receive_messages(self) -> list[dict[str, Any]]:
         return []

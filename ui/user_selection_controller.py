@@ -172,11 +172,15 @@ class UserSelectionController:
         self.ui.pushButton_send_test_message.setEnabled(has_category)
         return actual_category if has_category else None
 
+    # devtools: intentional[duplicate-functions]: content-management-delegation
+    # UI delegates to the controller; enabling and disabling have different effects.
     @handle_errors("enabling content management", default_return=None)
     def enable_content_management(self) -> None:
         """Enable content management controls."""
         self._set_content_controls_enabled(True)
 
+    # devtools: intentional[duplicate-functions]: content-management-delegation
+    # UI delegates to the controller; enabling and disabling have different effects.
     @handle_errors("disabling content management", default_return=None)
     def disable_content_management(self) -> None:
         """Disable content management controls and reset the category combo."""

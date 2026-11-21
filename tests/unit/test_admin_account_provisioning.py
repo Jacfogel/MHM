@@ -105,13 +105,15 @@ class TestProvisionAdminAccount:
         account = get_user_data(user_id, "account")
         assert account["account"]["user_id"] == user_id
         assert "test_label" not in account["account"]
+        assert account["account"]["subscription_status"] == "trialing"
+        assert account["account"]["trial_ends_at"]
 
     def test_provision_admin_account_uses_uuid_when_preferred_name_missing(
         self, test_data_dir
     ):
         account_data = {
             "timezone": "America/Regina",
-            "channel": {"type": "email"},
+            "channel": {"type": "discord"},
             "contact_info": {
                 "email": f"no-username-{uuid.uuid4().hex[:8]}@example.com",
                 "phone": "",
@@ -150,7 +152,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Create User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": ["motivational", "health"],
             "features_enabled": {"messages": True, "tasks": False, "checkins": False},
@@ -178,7 +180,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Categories User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": test_categories,
             "features_enabled": {"messages": True, "tasks": False, "checkins": False},
@@ -239,7 +241,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Tasks User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": ["motivational"],
             "features_enabled": {"messages": True, "tasks": True, "checkins": False},
@@ -278,7 +280,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Checkins User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": ["motivational"],
             "features_enabled": {"messages": True, "tasks": False, "checkins": True},
@@ -310,7 +312,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Index User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": ["motivational"],
             "features_enabled": {"messages": True, "tasks": False, "checkins": False},
@@ -346,7 +348,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Tags User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": ["motivational"],
             "features_enabled": {"messages": True, "tasks": True, "checkins": False},
@@ -375,7 +377,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Custom Tags User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": ["motivational"],
             "features_enabled": {"messages": True, "tasks": True, "checkins": False},
@@ -405,7 +407,7 @@ class TestProvisionAdminAccountBehavior:
             "username": unique_username,
             "preferred_name": "Test Features User",
             "timezone": "America/New_York",
-            "channel": {"type": "email", "contact": "test@example.com"},
+            "channel": {"type": "discord", "contact": "123456789012345678"},
             "contact_info": {"email": "test@example.com", "phone": "", "discord": ""},
             "categories": ["motivational", "health"],
             "features_enabled": {"messages": True, "tasks": True, "checkins": True},

@@ -92,7 +92,7 @@ Each of these controls where a specific component writes logs:
 
 ### 3.3. SMS pilot configuration
 
-SMS is configured separately with `SMS_SIMULATION_ENABLED` or `SMS_TWILIO_ENABLED` (both default false; enable only one). The Twilio pilot requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `SMS_PUBLIC_BASE_URL` (HTTPS origin only), `SMS_WEBHOOK_PORT` (default 8082), `SMS_PILOT_USER_ID`, `SMS_PILOT_PHONE_NUMBER`, and `SMS_PILOT_CONSENT=true`. The recipient must match the existing account's saved phone. See [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md) for callback setup, channel preference, and recovery. Restart after configuration changes.
+SMS is configured separately with `SMS_SIMULATION_ENABLED` or `SMS_TWILIO_ENABLED` (both default false; enable only one). Live SMS requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `SMS_PUBLIC_BASE_URL` (HTTPS origin only), and `SMS_WEBHOOK_PORT` (default 8082). Per-account verified phone enrollment and consent replace the retired global pilot settings. Only active paid Discord + SMS subscriptions ($20 CAD/month) can use SMS; trial accounts use Discord only. See [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md) for connection, callbacks, and recovery. Restart after configuration changes.
 
 ## 4. Email configuration
 
@@ -133,13 +133,16 @@ Optional social login credentials are `GOOGLE_OAUTH_CLIENT_ID`,
 `FACEBOOK_OAUTH_*` values. Blank redirect URIs default to
 `${WEB_PUBLIC_ORIGIN}/api/auth/oauth/<provider>/callback`.
 
-Stripe monthly billing uses `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and
-`STRIPE_WEBHOOK_SECRET` on the gateway. The Stripe webhook URL is
-`${WEB_PUBLIC_ORIGIN}/api/billing/webhook`; use snapshot events for Checkout,
-subscription changes/deletion, and invoice paid/payment-failed events.
-`BILLING_GRACE_PERIOD_DAYS` defaults to `3`. If the Stripe values are blank,
-existing service behavior remains available for complimentary accounts and the
-website does not offer Checkout.
+Stripe billing uses `STRIPE_SECRET_KEY`, `STRIPE_DISCORD_PRICE_ID` ($10 CAD/month),
+`STRIPE_PHONE_PRICE_ID` ($20 CAD/month, Discord + SMS),
+`STRIPE_PORTAL_CONFIGURATION_ID`, and `STRIPE_WEBHOOK_SECRET`.
+`BILLING_PLANS` in `core/config.py` owns the public CAD catalog amounts and names.
+Use separate Stripe Products for the two monthly prices so the dedicated customer
+portal supports switching. Configure prorated upgrades and period-end downgrades.
+Both the subscription status and reconciled price tier control SMS access;
+checkout metadata alone never grants a tier. Test-mode subscriptions cannot unlock real SMS, and public test-mode Checkout/Portal actions are disabled. The retired `STRIPE_PRICE_ID` is no
+longer read. Test and live Stripe objects must be configured together in the same
+mode. Restart MHM after changing these values.
 
 The secret key, Price, and webhook signing secret must all belong to the same
 Stripe mode. Test-mode values cannot be mixed with live-mode values. Restart the

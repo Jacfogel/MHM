@@ -205,6 +205,9 @@ class AccountV2EnvelopeModel(BaseModel):
     ] = "comped"
     stripe_customer_id: str = ""
     stripe_subscription_id: str = ""
+    subscription_plan: Literal["", "discord", "phone"] = ""
+    stripe_price_id: str = ""
+    billing_livemode: bool = False
     billing_grace_ends_at: str = ""
     billing_processed_event_ids: list[str] = Field(default_factory=list)
     billing_notice_keys: list[str] = Field(default_factory=list)

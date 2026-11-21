@@ -518,6 +518,10 @@ def _create_user_files__account_file(
                 "task_management": "enabled" if tasks_enabled else "disabled",
             },
         }
+        if user_prefs.get("start_trial") is True:
+            from core.billing import new_account_billing
+
+            account_data.update(new_account_billing(current_time))
         from core.profile_v2_io import wrap_profile_document_for_save
 
         save_json_data(

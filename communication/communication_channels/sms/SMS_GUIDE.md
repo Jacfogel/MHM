@@ -7,47 +7,54 @@
 
 For shared delivery boundaries, see [COMMUNICATION_GUIDE.md](../../COMMUNICATION_GUIDE.md). Browser/gateway deployment is covered by [WEBSITE_GUIDE.md](../../../website/WEBSITE_GUIDE.md), and health OAuth/sync setup by [GOOGLE_HEALTH_GUIDE.md](../../../integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
 
-Live SMS is implemented for one explicitly approved account and phone number.
-It remains disabled until configured. Simulation is a separate mode and never
-contacts Twilio. Public self-service signup and additional recipients are not enabled.
+Live SMS supports verified, consenting accounts with an active paid Discord + SMS plan.
+The phone tier is $20 CAD/month and includes Discord; the $10 Discord tier does not include SMS. Test-mode Stripe subscriptions cannot unlock real SMS. Trial accounts use Discord only. Complimentary, past-due, canceled, and trial accounts
+cannot send SMS, even if an SMS preference was saved earlier. Email login and recovery
+codes remain available independently of delivery-channel access.
 
-## 1. Connect the Twilio pilot
+## 1. Connect SMS
 
-1. Install MHM in `.venv` with `python -m pip install -e .` (or `python -m pip install -e ".[dev,ui]"` for contributors). The Twilio SDK is a declared project dependency, included in these installs and in the requirements inventory. It is required for live mode and the offline provider-boundary tests; installing it does not enable live SMS.
-2. Obtain a two-way SMS-capable Twilio number and complete the provider registration
-   applicable to that number and destination. See [Twilio sender setup](https://www.twilio.com/docs/messaging/tutorials/how-to-send-sms-messages).
-3. On your existing MHM account, save your own international phone number (for example
-   `+15555550101`). Use the existing account settings; do not create a second account.
-4. Configure the following private `.env` fields, then restart MHM:
-   - `SMS_SIMULATION_ENABLED=false`
-   - `SMS_TWILIO_ENABLED=true`
-   - `TWILIO_ACCOUNT_SID`: the account that owns the sending number
-   - `TWILIO_AUTH_TOKEN`: that account's Auth Token, used for both API calls and signatures
-   - `TWILIO_PHONE_NUMBER`: your Twilio sending number, in international format
-   - `SMS_PILOT_USER_ID`: your existing internal MHM account ID
-   - `SMS_PILOT_PHONE_NUMBER`: your recipient number, matching the saved account phone
-   - `SMS_PILOT_CONSENT=true`: your explicit approval to receive MHM texts on that number
-   - `SMS_PUBLIC_BASE_URL`: your public HTTPS origin, for example `https://sms.example.com`
-   - `SMS_WEBHOOK_PORT=8082`: the local listener port
-5. Forward that HTTPS origin's `/sms/incoming` and `/sms/status` paths to
-   `http://127.0.0.1:8082`. Use a tunnel for development or a stable HTTPS reverse
-   proxy for ongoing operation. The application binds only to loopback; it does
-   not obtain certificates or start a tunnel automatically. MHM must remain running.
-6. In Twilio's number configuration, set **A message comes in** to **POST**
-   `https://your-host/sms/incoming`. MHM supplies the `/sms/status` callback address
-   on each outgoing API request. Keep the default Auth Token webhook signatures.
-   The exact public origin must match `.env`; forwarded headers are never trusted.
-7. Select SMS as the existing account's preferred channel for scheduled reminders.
-   If the current settings screen does not expose SMS, the supported storage API is
-   `update_user_preferences(user_id, {"channel": {"type": "sms"}}, auto_create=False)`
-   in `storage.user_data_write`; check its returned boolean before treating it as saved.
-   Changing the preference redirects future scheduled messages. Restore the previous
-   channel to return to Discord or email.
+### 1.1. Operator configuration
 
-Only the configured pilot account/number can send commands or receive texts.
-The saved account phone is rechecked for each operation. Configuring another
-number requires restarting and explicit consent. This pilot is manually approved
-by its owner; it is not an automated phone-ownership verification flow.
+Install the declared Twilio dependency in the project environment. Configure these
+private `.env` fields, then restart MHM:
+
+- `SMS_SIMULATION_ENABLED=false`
+- `SMS_TWILIO_ENABLED=true`
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_PHONE_NUMBER`
+- `SMS_PUBLIC_BASE_URL`: public HTTPS origin, with no path or query
+- `SMS_WEBHOOK_PORT=8082`
+
+Forward `/sms/incoming` and `/sms/status` on that origin to `http://127.0.0.1:8082`.
+In Twilio's number configuration, set **A message comes in** to **POST**
+`https://your-host/sms/incoming`. MHM supplies the status callback on each send.
+Complete applicable Twilio sender/destination registration before enrolling users.
+MHM and the HTTPS tunnel must remain running.
+
+The former global pilot-account, pilot-phone, and pilot-consent settings are retired.
+The existing owner's previously verified and approved phone/consent were migrated
+into the account enrollment table. Billing eligibility is checked separately; migration
+does not mark a complimentary account as paid.
+
+### 1.2. Account connection
+
+Website users can connect SMS in the first-run delivery step or Account > Delivery.
+Desktop administrators use Channel Settings. New accounts are Discord-only trials;
+after an active paid Discord + SMS plan is recorded, SMS becomes available in management
+and in any unfinished website setup.
+
+1. Enter the recipient's international mobile number and record explicit consent.
+2. Select **Get connection code**.
+3. From that phone, text the displayed `LINK <code>` to the MHM Twilio number.
+4. Select **verify phone**. Website verification saves the enrollment immediately;
+   desktop verification stages it until Channel Settings is saved.
+5. Select SMS delivery and save. Connection alone does not redirect scheduled messages.
+
+The code expires in 15 minutes, is phone/account-bound, and cannot be reused after
+connection. Wait one minute before requesting another code. The server stores its
+hash rather than the displayed secret. One phone can belong to only one account.
+Disconnect SMS to revoke consent; opt-out and receipt history are retained. A stopped
+number must send START to resume, even after reconnection.
 
 ## 2. Using SMS
 
@@ -93,7 +100,9 @@ live MHM instances against separate databases for the same Twilio account/number
 
 ## 4. Simulation
 
-Set `SMS_TWILIO_ENABLED=false`, `SMS_SIMULATION_ENABLED=true`, and restart. The
+Set `SMS_TWILIO_ENABLED=false`, `SMS_SIMULATION_ENABLED=true`, and restart.
+Simulator tests explicitly disable live Twilio mode regardless of the host `.env`;
+they must never start the live listener or contact the provider. The
 `SmsBot` development API supports `await bot.initialize()`,
 `await bot.send_message(number, text)`, and `await bot.simulate_incoming(number, text)`.
 Captured messages are in `bot.outbox`; they are volatile and never delivered.
@@ -107,10 +116,18 @@ and a loopback HTTP listener with mocked paid API calls. They do not establish l
 carrier delivery. Before enabling regular reminders, verify one outbound text, a task
 reply, a check-in, STOP/START, and the Twilio delivery callback from your own phone.
 
-For additional people, replace the one-account pilot allowlist with verified
-per-account phone enrollment and recorded consent, add onboarding/management UI,
-and validate provider registration for the expanded use. Existing receipt and
-opt-out handling can be reused. Never simply remove the allowlist.
+Owner pilot evidence (2026-11-20): the connection test and `sms status` response
+were delivered to the owner's phone. MHM accepted the signed inbound reply and
+stored the signed delivery callbacks through the HTTPS tunnel. Scheduled reminders
+remain on Discord. A later live task reminder accepted `done`, completed the labeled
+test task, and cleared its reply context. STOP persisted the opt-out and blocked a
+production-transport test before any Twilio API submission; START cleared it and
+a final text received a delivered callback. The owner confirmed both provider
+keyword confirmations. `start checkin` correctly refused a second completed
+check-in that day, preserving history. A full SMS question/answer/save exchange
+remains unverified until the next eligible check-in.
+
+Before enrolling additional people, validate provider registration and live delivery for their destinations. Automated multi-account tests do not establish carrier delivery.
 
 Run with the project environment active:
 

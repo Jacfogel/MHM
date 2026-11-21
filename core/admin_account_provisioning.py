@@ -237,8 +237,11 @@ def provision_admin_account(account_data: dict[str, Any]) -> str | None:
 
     Returns the new user_id on success, or None on failure.
     """
+    if account_data.get("channel", {}).get("type") != "discord":
+        return None  # New accounts start as Discord-only trials.
     user_id = str(uuid.uuid4())
     user_preferences = build_user_preferences_from_account_data(account_data)
+    user_preferences["start_trial"] = True
 
     create_user_files(user_id, account_data["categories"], user_preferences)
 

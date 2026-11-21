@@ -38,6 +38,7 @@ class ChannelManagementDialog(QDialog):
                 if w:
                     w.setParent(None)
             layout.addWidget(self.channel_widget)
+            self.channel_widget.sms_owner = self.user_id or ""
             if self.user_id:
 
                 @handle_errors(
@@ -52,22 +53,39 @@ class ChannelManagementDialog(QDialog):
                     prefs = prefs_result.get("preferences") or {}
                     channel = prefs.get("channel", {}).get("type", "email")
                     channel_lc = channel.lower()
-                    channel_cap = channel_lc.capitalize()
+                    channel_cap = "SMS" if channel_lc == "sms" else channel_lc.capitalize()
                     # Always prepopulate all contact fields
                     email = account.get("email", "")
                     discord_id = account.get("discord_user_id", "")
                     timezone = account.get("timezone", "America/Regina")
 
                     self.channel_widget.set_contact_info(
-                        email=email, discord_id=discord_id, timezone=timezone
+                        email=email, discord_id=discord_id, timezone=timezone, phone=account.get("phone", "")
                     )
                     # Set the selected channel radio button
                     value = ""
                     if channel_lc == "email":
                         value = email
+                    elif channel_lc == "sms":
+                        value = account.get("phone", "")
                     elif channel_lc == "discord":
                         value = discord_id
                     self.channel_widget.set_selected_channel(channel_cap, value)
+                    from core.channel_access import channel_allowed
+                    self.channel_widget.ui.radioButton_SMS.setEnabled(channel_allowed(account, "sms"))
+                    self.channel_widget.ui.radioButton_Email.setEnabled(channel_allowed(account, "email"))
+                    self.channel_widget.ui.button_sms_connect.setEnabled(channel_allowed(account, "sms"))
+                    self.channel_widget.ui.button_sms_verify.setEnabled(channel_allowed(account, "sms"))
+                    from core.sms_enrollment import sms_user_for_phone
+                    self.channel_widget.ui.button_sms_disconnect.setEnabled(
+                        sms_user_for_phone(account.get("phone", ""), require_paid=False) == self.user_id
+                    )
+                    self.channel_widget.ui.checkBox_sms_consent.setChecked(
+                        self.channel_widget.ui.button_sms_disconnect.isEnabled()
+                    )
+                    if not channel_allowed(account, "sms"):
+                        self.channel_widget.ui.label_sms_status.setText("SMS requires an active paid Discord + SMS plan. Trial accounts use Discord.")
+
 
                 load_user_channel_data()
 
@@ -115,6 +133,11 @@ class ChannelManagementDialog(QDialog):
         # Get all contact info from widget
         contact_info = self.channel_widget.get_all_contact_info()
 
+        from core.channel_access import channel_allowed
+        if not channel_allowed(account, (channel or "").lower()):
+            QMessageBox.warning(self, "Channel unavailable", "Trial accounts use Discord. SMS requires an active paid Discord + SMS plan.")
+            return None
+
         # Collect validation errors
         validation_errors = []
 
@@ -137,6 +160,18 @@ class ChannelManagementDialog(QDialog):
             QMessageBox.warning(self, "Validation Errors", error_message)
             return None  # Validation already explains the problem; keep the draft open.
 
+        if channel == "SMS":
+            from core.sms_enrollment import connect_sms, sms_user_for_phone
+            from communication.communication_channels.sms.phone import normalize_phone
+            if not self.channel_widget.sms_selection_valid():
+                QMessageBox.warning(self, "Verify phone", "Verify phone ownership and consent before choosing SMS.")
+                return None
+            phone = normalize_phone(contact_info["phone"])
+            if sms_user_for_phone(phone) != self.user_id:
+                connect_sms(self.user_id, phone, self.channel_widget.sms_token,
+                            self.channel_widget.ui.checkBox_sms_consent.isChecked(), self.user_id)
+            account["phone"] = phone
+
         # Save channel type to preferences (lowercase for consistency)
         channel_type = channel.lower()
         # Ensure channel structure exists in preferences
@@ -148,6 +183,8 @@ class ChannelManagementDialog(QDialog):
         chat_id = ""
         if channel == "Email":
             chat_id = contact_info["email"]
+        elif channel == "SMS":
+            chat_id = account["phone"]
         elif channel == "Discord":
             chat_id = contact_info["discord_id"]
 

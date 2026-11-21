@@ -350,6 +350,8 @@ class MHMManagerUI(QMainWindow):
         self.user_selection.refresh_user_list(self)
         _copy_user_selection_state(self)
 
+    # devtools: intentional[duplicate-functions]: selection-signal-delegation
+    # Distinct Qt signals delegate user and category selection to different controller actions.
     @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, user_display):
         """Handle user selection with validation."""
@@ -362,16 +364,22 @@ class MHMManagerUI(QMainWindow):
         self.user_selection.load_user_categories(user_id)
         _copy_user_selection_state(self)
 
+    # devtools: intentional[duplicate-functions]: selection-signal-delegation
+    # Distinct Qt signals delegate user and category selection to different controller actions.
     @handle_errors("handling category selection", default_return=None)
     def on_category_selected(self, category):
         """Handle category selection"""
         self.user_selection.on_category_selected()
 
+    # devtools: intentional[duplicate-functions]: content-management-delegation
+    # UI delegates to the controller; enabling and disabling have different effects.
     @handle_errors("enabling content management", default_return=None)
     def enable_content_management(self):
         """Enable content management buttons"""
         self.user_selection.enable_content_management()
 
+    # devtools: intentional[duplicate-functions]: content-management-delegation
+    # UI delegates to the controller; enabling and disabling have different effects.
     @handle_errors("disabling content management", default_return=None)
     def disable_content_management(self):
         """Disable content management buttons"""

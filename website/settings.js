@@ -459,7 +459,12 @@ const MHMSettingsInput = Object.freeze({
     } else if (section === 'delivery') {
       const timezone = select(form, 'Time zone', 'timezone', MHMSettingsInput.list(data.options.timezones).map(zone => [zone, zone.replaceAll('_', ' ')]), values.timezone);
       timezone.required = true;
-      const channel = select(form, 'Deliver reminders through', 'delivery-channel', [['email', 'Email'], ...(data.discord_linked ? [['discord', 'Discord']] : [])], values.channel);
+      const channel = select(form, 'Deliver reminders through', 'delivery-channel', [['email', 'Email'], ...(data.discord_linked ? [['discord', 'Discord']] : []), ['sms', 'SMS (paid subscription)']], values.channel);
+      channel.querySelector('option[value="email"]').disabled = Boolean(data.trial_account);
+      if (window.MHMSms) window.MHMSms.mount(form, info => {
+        channel.querySelector('option[value="sms"]').disabled = !(info.eligible && info.connected);
+        channel.querySelector('option[value="email"]').disabled = Boolean(info.trial);
+      });
       if (data.discord_linked) {
         const disconnect = el('button', 'Disconnect Discord', { className: 'plain-button', type: 'button' });
         disconnect.addEventListener('click', async () => {

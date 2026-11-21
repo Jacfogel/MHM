@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="styles.css?v=billing-setup-1" />
   <script src="script.js?v=dialog-1" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
+  <script src="sms-enrollment.js" defer></script>
   <script src="setup.js?v=billing-setup-1" defer></script>
 </head>
 <body class="account-body">
@@ -40,9 +41,12 @@
           </div>
         </div>
         <div id="step-discord" hidden>
-          <h2>Connect Discord?</h2>
-          <p class="panel-description">Connect Discord if you want MHM there. You can also do this later in Account.</p>
-          <p class="field-hint">If you do not connect Discord, MHM uses email. Reminders and check-ins can still arrive by email, and you can reply to those messages. You can also answer a check-in on this website. A scheduled message in Talk to MHM can be marked More like this or Not for me. Discord reactions do the same thing.</p>
+          <h2>Choose your delivery channel</h2>
+          <label for="setup-delivery-channel">Delivery channel</label>
+          <select id="setup-delivery-channel"><option value="">Choose automatically</option><option value="discord">Discord</option><option value="email">Email</option><option value="sms" disabled>SMS (paid subscription)</option></select>
+          <div id="setup-sms-connection"></div>
+          <p class="panel-description">Trial accounts use Discord. Active paid subscribers can also choose email or connect a verified phone for SMS.</p>
+          <p class="field-hint">Trial accounts use Discord. SMS requires an active paid subscription and a verified phone. Active paid subscribers can receive and reply to email reminders and check-ins. You can also answer a check-in on this website. A scheduled message in Talk to MHM can be marked More like this or Not for me. Discord reactions do the same thing.</p>
           <p id="discord-setup-state" class="field-hint"></p>
           <button id="setup-connect-discord" class="button" type="button">Connect Discord →</button>
         </div>
@@ -92,10 +96,13 @@
         </div>
         <div id="step-billing" hidden>
           <h2>Your first 30 days are free.</h2>
-          <p class="panel-description">Use every part of MHM during your trial. After 30 days, continued service is CA$8.99 CAD per month. Cancel anytime.</p>
+          <p id="setup-billing-test-mode" class="field-hint" hidden>Billing is in test mode. These plans are not collecting real payments yet.</p>
+          <p class="panel-description">Your 30-day trial includes Discord. Afterward, choose Discord for $10 CAD/month or Discord + SMS for $20 CAD/month. SMS begins only with an active paid phone plan and verified consent. Cancel anytime.</p>
+          <label for="setup-billing-plan">Monthly plan (CAD)</label>
+          <select id="setup-billing-plan"><option value="discord">Discord — $10 CAD/month</option><option value="phone">Discord + SMS — $20 CAD/month</option></select>
           <div class="setup-billing-summary">
             <strong id="setup-billing-charge-heading">No charge today</strong>
-            <span id="setup-billing-charge-detail">CA$8.99 CAD/month when your free trial ends.</span>
+            <span id="setup-billing-charge-detail">Your selected monthly plan starts when the free trial ends.</span>
           </div>
           <p id="setup-billing-status" class="form-status" role="status" aria-live="polite"></p>
           <div class="billing-actions">

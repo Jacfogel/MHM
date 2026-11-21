@@ -363,6 +363,7 @@ def settings_snapshot(documents, options):
         "options": effective_options,
         "available_message_periods": available_message_periods,
         "discord_linked": bool(account.get("discord_user_id")),
+        "trial_account": account.get("subscription_status") == "trialing",
     }
 
 
@@ -385,6 +386,96 @@ def _legal_question_counts(always, sometimes, total_enabled, minimum, maximum):
     maximum_ceiling = max(total_enabled or 100, maximum_floor)
     maximum = min(max(int(maximum), maximum_floor), maximum_ceiling)
     return minimum, maximum
+
+
+@handle_errors("validating website reminder windows", user_friendly=False, re_raise=True)
+def _validated_reminder_schedule(category, periods, enabled, previous):
+    """Validate one category and preserve its saved metadata and reserved window."""
+    if not isinstance(periods, dict) or len(periods) > 20:
+        raise ValidationError("Use at most 20 reminder windows per category.")
+    for name, period in periods.items():
+        if (
+            not isinstance(name, str)
+            or not name.strip()
+            or len(name) > 80
+            or name.upper() == "ALL"
+        ):
+            raise ValidationError(
+                "Give each reminder window a unique name other than ALL."
+            )
+        if not isinstance(period, dict) or set(period) != {
+            "active",
+            "days",
+            "start_time",
+            "end_time",
+        }:
+            raise ValidationError(
+                "Each reminder window needs a start time, end time, days, and enabled state."
+            )
+        if type(period["active"]) is not bool or not isinstance(
+            period["days"], list
+        ):
+            raise ValidationError(
+                "Check the days and enabled state for each reminder window."
+            )
+        if any(
+            not isinstance(period[key], str)
+            or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", period[key])
+            for key in ("start_time", "end_time")
+        ):
+            raise ValidationError(
+                "Use valid start and end times for each reminder window."
+            )
+        if period["start_time"] >= period["end_time"]:
+            raise ValidationError("Each reminder window must start before it ends.")
+        days = period["days"]
+        if (
+            any(
+                not isinstance(day, str)
+                or day
+                not in (
+                    "ALL",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
+                )
+                for day in days
+            )
+            or len(set(days)) != len(days)
+            or ("ALL" in days and len(days) != 1)
+            or (period["active"] and not days)
+        ):
+            raise ValidationError(
+                "Choose valid days for each enabled reminder window."
+            )
+    if periods:
+        valid, errors = validate_schedule_periods(periods, category)
+        # The admin console permits all windows to be disabled when a feature is off.
+        if not valid and (
+            enabled
+            or errors
+            != [f"At least one time period must be enabled for {category}."]
+        ):
+            raise ValidationError(errors[0])
+    elif enabled:
+        raise ValidationError(
+            "Add at least one enabled reminder window before enabling this feature."
+        )
+    stored_periods = dict(periods)
+    if category_uses_all_day_window(category):
+        old_all = previous.get("periods", {}).get("ALL")
+        stored_periods = {
+            "ALL": old_all or create_default_schedule_periods(category)["ALL"],
+            **periods,
+        }
+    return {
+        **previous,
+        "periods": stored_periods,
+    }
 
 
 @handle_errors(
@@ -417,92 +508,10 @@ def build_settings_updates(documents, options, section, values):
 
     # ERROR_HANDLING_EXCLUDE: Validation helper protected by the decorated caller.
     def save_periods(category, periods):
-        """Validate and stage named reminder windows for one category."""
-        if not isinstance(periods, dict) or len(periods) > 20:
-            raise ValidationError("Use at most 20 reminder windows per category.")
-        for name, period in periods.items():
-            if (
-                not isinstance(name, str)
-                or not name.strip()
-                or len(name) > 80
-                or name.upper() == "ALL"
-            ):
-                raise ValidationError(
-                    "Give each reminder window a unique name other than ALL."
-                )
-            if not isinstance(period, dict) or set(period) != {
-                "active",
-                "days",
-                "start_time",
-                "end_time",
-            }:
-                raise ValidationError(
-                    "Each reminder window needs a start time, end time, days, and enabled state."
-                )
-            if type(period["active"]) is not bool or not isinstance(
-                period["days"], list
-            ):
-                raise ValidationError(
-                    "Check the days and enabled state for each reminder window."
-                )
-            if any(
-                not isinstance(period[key], str)
-                or not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", period[key])
-                for key in ("start_time", "end_time")
-            ):
-                raise ValidationError(
-                    "Use valid start and end times for each reminder window."
-                )
-            if period["start_time"] >= period["end_time"]:
-                raise ValidationError("Each reminder window must start before it ends.")
-            days = period["days"]
-            if (
-                any(
-                    not isinstance(day, str)
-                    or day
-                    not in (
-                        "ALL",
-                        "Monday",
-                        "Tuesday",
-                        "Wednesday",
-                        "Thursday",
-                        "Friday",
-                        "Saturday",
-                        "Sunday",
-                    )
-                    for day in days
-                )
-                or len(set(days)) != len(days)
-                or ("ALL" in days and len(days) != 1)
-                or (period["active"] and not days)
-            ):
-                raise ValidationError(
-                    "Choose valid days for each enabled reminder window."
-                )
-        if periods:
-            valid, errors = validate_schedule_periods(periods, category)
-            # The admin console permits all windows to be disabled when a feature is off.
-            if not valid and (
-                values["enabled"]
-                or errors
-                != [f"At least one time period must be enabled for {category}."]
-            ):
-                raise ValidationError(errors[0])
-        elif values["enabled"]:
-            raise ValidationError(
-                "Add at least one enabled reminder window before enabling this feature."
-            )
-        stored_periods = dict(periods)
-        if category_uses_all_day_window(category):
-            old_all = schedules.get(category, {}).get("periods", {}).get("ALL")
-            stored_periods = {
-                "ALL": old_all or create_default_schedule_periods(category)["ALL"],
-                **periods,
-            }
-        schedules[category] = {
-            **schedules.get(category, {}),
-            "periods": stored_periods,
-        }
+        """Stage a validated schedule without changing the original documents."""
+        schedules[category] = _validated_reminder_schedule(
+            category, periods, values["enabled"], schedules.get(category, {})
+        )
 
     if section == "profile":
         name = values["preferred_name"]
@@ -580,19 +589,29 @@ def build_settings_updates(documents, options, section, values):
         ):
             raise ValidationError("Choose a valid time zone.")
         channel = values["channel"]
+        from core.channel_access import channel_allowed
+        if not channel_allowed(account, channel):
+            raise ValidationError("Trial accounts use Discord. SMS requires the active Discord + SMS plan.")
         if (
             not isinstance(channel, str)
-            or channel not in {"email", "discord"}
-            or (channel == "discord" and not account.get("discord_user_id"))
+            or channel not in {"email", "discord", "sms"}
+            or (channel == "discord" and not account.get("discord_user_id")
+                and not (account.get("subscription_status") == "trialing"
+                         and current["delivery"]["channel"] == "discord"))
         ):
             raise ValidationError(
                 "Link your Discord account before selecting Discord delivery."
             )
+        if channel == "sms":
+            from core.sms_enrollment import sms_available, sms_user_for_phone
+
+            if not sms_available() or not account.get("user_id") or sms_user_for_phone(account.get("phone", "")) != account.get("user_id"):
+                raise ValidationError("Connect and verify your phone before choosing SMS delivery.")
         account["timezone"] = values["timezone"]
         account["chat_id"] = (
             account.get("discord_user_id")
             if channel == "discord"
-            else account.get("email")
+            else account.get("phone") if channel == "sms" else account.get("email")
         )
         prefs["channel"] = {"type": channel}
         return {"account": account, "preferences": prefs}

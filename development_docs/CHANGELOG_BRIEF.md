@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-20 - Paid SMS tiers, website refactors, and reminder validation **COMPLETED**
+
+- Added verified SMS enrollment plus $10 CAD/month Discord and $20 CAD/month Discord + SMS plans. Trials remain Discord-only; only the active phone tier grants SMS. Preserved existing account data and billing status. Published both plan choices; switched to matching live Stripe prices, portal, and signed webhook on 2026-11-21 and restarted MHM. Verified and expired unpaid live checkouts; no payment was taken. Test payments cannot unlock real SMS. Tier regressions: 184 Python and 62 website checks passed.
+- Refactored settings/OAuth handling and tested reminder restart recovery. Regression batches passed: 330 broad Python checks, 140 overlapping follow-ups, and 54 website checks; type/style/documentation checks passed. Audit follow-up fixed all seven reported failures (64 focused tests passed), protected billing-mode detection, documented eight intentional duplicate groups, and corrected SMS heading numbers.
+- Earlier live tests confirmed Discord check-in saving and SMS delivery, callbacks, task replies, and STOP/START. Scheduled delivery remains Discord; full SMS check-in saving and expanded paid-user carrier validation remain open.
+
 ### 2026-11-19 - Google Health nightly native crash **COMPLETED**
 
 - Registered background connect/sync callbacks as Qt slots to keep window updates on the UI thread after the nightly bus error. Added thread-affinity regression coverage; Linux nightly confirmation remains pending.
@@ -89,9 +95,3 @@ Guidelines:
 - Saved snoozes and skipped-occurrence reminders recover at startup and during five-minute checks. Delivery attempts survive a restart. Explicit failures can retry, while unconfirmed attempts suppress automatic replay.
 - Fixed browser task saving and moved save errors into the editor. Removed task blocking from the website, Discord, and the API. Existing task files still load, and recurring parent tasks retain their child steps.
 - Documented the reminder storage callbacks, corrected the scheduler test, and regenerated the function registry. All 142 website tests, 111 focused task and API tests, and 74 scheduler follow-up tests passed in their respective runs.
-
-### 2026-11-16 - Task, schedule, and account recovery **COMPLETED**
-
-- Website and Discord close the snooze interaction after a saved snooze even if the alert fails. Task setup checks saved reminder windows, and partial subtask saves identify the steps that saved.
-- Schedule commands validate windows before saving. Website Settings distinguishes saved changes from failed follow-ups, and website setup lets users retry delivery after Discord connects.
-- Repaired relocated report links, regenerated the function registry, and fixed the stale reminder test assertion. The 118 focused audit tests passed, and `doc-sync` and Pyright reported zero issues.

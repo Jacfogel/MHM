@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-19 02:23:14
+> **Last Generated**: 2026-11-21 16:05:17
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -241,6 +241,7 @@ C:.
 |   |   auto_cleanup.py
 |   |   billing.py
 |   |   billing_notices.py
+|   |   channel_access.py
 |   |   chat_interactions_document.py
 |   |   config.py
 |   |   delivery.py
@@ -270,6 +271,7 @@ C:.
 |   |   service.py
 |   |   service_requests.py
 |   |   service_utilities.py
+|   |   sms_enrollment.py
 |   |   tags.py
 |   |   time_format_constants.py
 |   |   time_utilities.py
@@ -287,6 +289,7 @@ C:.
 |   |   web_messages.py
 |   |   web_notes.py
 |   |   web_settings.py
+|   |   web_sms.py
 |   |   web_tasks.py
 |   |   web_user_settings.py
 |   |   __init__.py
@@ -297,7 +300,6 @@ C:.
 |   |   LEGACY_COMPATIBILITY_GUIDE.md
 |   |   PLANS.md
 |   |   PRODUCT_LIST_OF_LISTS.md
-|   |   TEST_COVERAGE_REPORT.md
 |   |   TEST_PLAN.md
 |   |
 |   +---changelog_history
@@ -558,6 +560,7 @@ C:.
 |   |   |   test_service_behavior.py
 |   |   |   test_service_utilities_behavior.py
 |   |   |   test_settings_task_boundary_recovery.py
+|   |   |   test_sms_enrollment.py
 |   |   |   test_sms_simulation.py
 |   |   |   test_static_logging_check.py
 |   |   |   test_task_behavior.py
@@ -613,6 +616,7 @@ C:.
 |   |   |   test_task_cleanup_real_bug_verification.py
 |   |   |   test_task_cleanup_silent_failure.py
 |   |   |   test_task_reminder_integration.py
+|   |   |   test_task_reminder_restart.py
 |   |   |   test_user_creation.py
 |   |   |
 |   +---notebook
@@ -753,6 +757,7 @@ C:.
 |   |   |   test_conversation_flow_reminder_helpers.py
 |   |   |   test_core_ids.py
 |   |   |   test_core_ui_import_policy.py
+|   |   |   test_devtools_process_cleanup_entrypoint.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_account_flow.py
 |   |   |   test_discord_api_client.py
@@ -1014,6 +1019,8 @@ C:.
 |   |   setup.html
 |   |   setup.js
 |   |   setup.test.mjs
+|   |   sms-enrollment.js
+|   |   sms-enrollment.test.mjs
 |   |   styles.css
 |   |   tasks.html
 |   |   tasks.js

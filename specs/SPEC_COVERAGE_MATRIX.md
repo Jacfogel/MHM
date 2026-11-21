@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Map behavior-spec scenarios to current automated/manual coverage and known gaps  
 > **Style**: Coverage reference for planning and review  
-> **Last Updated**: 2026-09-23 
+> **Last Updated**: 2026-11-20
 
 This matrix is a lightweight test roadmap for the scenarios in the Discord behavior specs.
 
@@ -122,7 +122,9 @@ Spec: [discord-task-reminder-flow.md](discord-task-reminder-flow.md)
 | Completed task is skipped | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py), [tests/unit/test_channel_orchestrator.py](../tests/unit/test_channel_orchestrator.py) |
 | Deleted task reminder cleanup | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py), [tests/integration/test_orphaned_reminder_cleanup.py](../tests/integration/test_orphaned_reminder_cleanup.py) |
 | Updated reminder schedule | Automated | [tests/integration/test_task_reminder_integration.py](../tests/integration/test_task_reminder_integration.py) |
-| Scheduler marks reminder attempted after dispatch handoff | Partial | Current behavior is documented; add direct scheduler-level assertion that `reminder_sent` does not depend on `MessageSendResult`. |
+| Scheduler marks accepted or uncertain dispatch handoff | Automated | [tests/unit/test_scheduler_task_reminder_weights.py](../tests/unit/test_scheduler_task_reminder_weights.py), [tests/integration/test_task_reminder_restart.py](../tests/integration/test_task_reminder_restart.py). Explicit failure does not mark sent; uncertain handoff suppresses replay. |
+| Saved snoozes and skipped occurrences recover after restart | Automated | [tests/integration/test_task_reminder_restart.py](../tests/integration/test_task_reminder_restart.py), [tests/unit/test_schedule_task_reminder_at_datetime.py](../tests/unit/test_schedule_task_reminder_at_datetime.py). Persisted storage and rebuilt scheduler; live service restart remains unverified. |
+| Restart does not replay an uncertain reminder | Automated | [tests/integration/test_task_reminder_restart.py](../tests/integration/test_task_reminder_restart.py). Covers interrupted attempts, confirmed/unconfirmed outcomes, channel exceptions, and explicit-failure retry. |
 | Task reminder view creation | Partial | Custom view attachment is tested; add direct `communication/communication_channels/discord/ui/task_reminder_view.py` button-shape coverage. |
 | Shared focus policy selects the reminder task | Automated | [tests/unit/test_task_focus.py](../tests/unit/test_task_focus.py), [tests/unit/test_scheduler_task_reminder_weights.py](../tests/unit/test_scheduler_task_reminder_weights.py) |
 | Low energy changes effort preference but not urgency | Automated | [tests/unit/test_task_focus.py](../tests/unit/test_task_focus.py) |

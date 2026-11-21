@@ -4,7 +4,8 @@ import re
 import threading
 from urllib.parse import urlsplit
 
-from core import config, get_user_data
+from core import config
+from core.sms_enrollment import sms_user_for_phone
 from core.error_handling import ConfigurationError, handle_errors
 from core.logger import get_component_logger
 from storage.sms_state import SmsState
@@ -23,22 +24,16 @@ class TwilioTransport:
         from communication.communication_channels.sms.phone import normalize_phone
 
         public = urlsplit(config.SMS_PUBLIC_BASE_URL)
-        number = normalize_phone(config.SMS_PILOT_PHONE_NUMBER)
-        account = get_user_data(config.SMS_PILOT_USER_ID, "account").get("account") or {}
         if (config.SMS_SIMULATION_ENABLED or not config.SMS_TWILIO_ENABLED
                 or not config.TWILIO_ACCOUNT_SID.startswith("AC")
                 or not config.TWILIO_AUTH_TOKEN
                 or not normalize_phone(config.TWILIO_PHONE_NUMBER)
                 or public.scheme != "https" or not public.netloc
                 or public.query or public.fragment or public.username or public.password
-                or public.path not in {"", "/"}
-                or not number or not config.SMS_PILOT_USER_ID or not config.SMS_PILOT_CONSENT
-                or normalize_phone(account.get("phone", "")) != number):
-            raise ConfigurationError("Complete the Twilio pilot settings, matching saved account phone, HTTPS URL, and consent; disable simulation before enabling live SMS.")
+                or public.path not in {"", "/"}):
+            raise ConfigurationError("Complete the Twilio credentials, sending number, and HTTPS URL; disable simulation before enabling live SMS.")
         self.bot = bot
-        self.number = number
         self.sender = normalize_phone(config.TWILIO_PHONE_NUMBER)
-        self.user_id = config.SMS_PILOT_USER_ID
         self.state = SmsState()
         self.lock = threading.RLock()
         self.client = Client(config.TWILIO_ACCOUNT_SID, config.TWILIO_AUTH_TOKEN,
@@ -46,12 +41,9 @@ class TwilioTransport:
 
     @handle_errors("checking SMS pilot recipient", default_return=False, user_friendly=False, retry_after_recovery=False)
     def allowed(self, number):
-        """Confirm that this recipient still belongs to the configured consenting pilot."""
-        from communication.communication_channels.sms.phone import normalize_phone
+        """Confirm a verified recipient still belongs to an eligible paid account."""
 
-        account = get_user_data(self.user_id, "account").get("account") or {}
-        return (number == self.number and normalize_phone(account.get("phone", "")) == number
-                and config.SMS_PILOT_CONSENT)
+        return sms_user_for_phone(number) is not None
 
     @handle_errors("sending Twilio SMS", default_return="unconfirmed", retry_after_recovery=False)
     def send(self, recipient, message, **kwargs):
@@ -68,7 +60,7 @@ class TwilioTransport:
         self.bot.last_outbound_message_id = None
         number = normalize_phone(recipient)
         if (not self.bot.is_ready() or not number or not self.allowed(number)
-                or kwargs.get("user_id", self.user_id) != self.user_id
+                or kwargs.get("user_id", sms_user_for_phone(number)) != sms_user_for_phone(number)
                 or self.state.stopped(number) or not isinstance(message, str)
                 or not message.strip() or len(message) > 1600):
             self.bot.error_message = "Text not submitted. Check SMS status, consent, recipient, and the 1,600-character message limit."
@@ -131,7 +123,16 @@ class TwilioTransport:
                 return 403
 
             number = normalize_phone(params.get("From", ""))
-            if not self.allowed(number):
+            # LINK only proves ownership; account binding requires the original UI secret and consent.
+            link = re.fullmatch(r"LINK ([0-9a-fA-F]{32})", params.get("Body", "").strip(), re.IGNORECASE)
+            if link:
+                if not self.state.claim(sid):
+                    return 200
+                self.state.verify_enrollment(number, link[1].lower())
+                self.state.finish(sid, "handled")
+                return 200
+            user_id = sms_user_for_phone(number, require_paid=False)
+            if not user_id:
                 return 403
             if not self.state.claim(sid):
                 return 200
@@ -145,11 +146,11 @@ class TwilioTransport:
                     elif opt == "START" or keyword in {"START", "UNSTOP"}:
                         self.state.set_stopped(number, False)
                     # Twilio sends keyword confirmations. Never send a duplicate.
-                elif not self.state.stopped(number) and text and len(text) <= 1600:
-                    reply = self.route(text)
+                elif not self.state.stopped(number) and sms_user_for_phone(number) == user_id and text and len(text) <= 1600:
+                    reply = self.route(text, user_id, number)
                     if len(reply) > 1600:
                         reply = reply[:1500] + "\n[Reply shortened for SMS. Open MHM for the full details.]"
-                    result = self.send(number, reply)
+                    result = self.send(number, reply, user_id=user_id)
                     self.state.finish(sid, "handled" if result is True else "reply_unconfirmed")
                     return 200
                 self.state.finish(sid, "handled")
@@ -162,7 +163,7 @@ class TwilioTransport:
                 return 200
 
     @handle_errors("routing SMS command", re_raise=True, user_friendly=False, retry_after_recovery=False)
-    def route(self, text):
+    def route(self, text, user_id, number):
         """Route an explicit command or an unambiguous short reply through shared handlers."""
         from communication.message_processing.email_reply_routing import (
             build_task_reply_command, route_checkin_reply, route_task_reply,
@@ -172,11 +173,11 @@ class TwilioTransport:
         if text.lower() == "sms status":
             return "MHM SMS is connected. Reply STOP to stop texts; START to resume."
         if text.lower().startswith("checkin "):
-            response = route_checkin_reply(self.user_id, text[8:].strip())
+            response = route_checkin_reply(user_id, text[8:].strip())
             if response is None or response.completed:
-                self.state.clear_context(self.number, "checkin", "")
+                self.state.clear_context(number, "checkin", "")
             return response.message if response else "No check-in is open. Send start checkin to begin."
-        contexts = self.state.contexts(self.number)
+        contexts = self.state.contexts(number)
         qualified = re.match(r"^(?:complete|snooze|skip|simplify|update|delete)\s+task\b", text, re.IGNORECASE)
         short = not qualified and (text.isdigit() or build_task_reply_command(text, "probe") is not None)
         if short and not contexts:
@@ -185,19 +186,19 @@ class TwilioTransport:
             return "More than one prompt may need a reply. Use complete task <task name or ID> for a task, or checkin <answer> for your check-in. No action was taken."
         if short and len(contexts) == 1:
             kind, task_id = contexts[0]
-            response = (route_task_reply(self.user_id, text, task_id) if kind == "task_reminder"
-                        else route_checkin_reply(self.user_id, text))
+            response = (route_task_reply(user_id, text, task_id) if kind == "task_reminder"
+                        else route_checkin_reply(user_id, text))
             if kind == "task_reminder":
                 from tasks.task_data_manager import get_task_by_id
 
-                task = get_task_by_id(self.user_id, task_id)
+                task = get_task_by_id(user_id, task_id)
                 if task and task.get("status") == "completed":
-                    self.state.clear_context(self.number, kind, task_id)
+                    self.state.clear_context(number, kind, task_id)
             elif response is None or response.completed:
-                self.state.clear_context(self.number, kind, task_id)
+                self.state.clear_context(number, kind, task_id)
             if response:
                 return response.message
-        response = handle_user_message(self.user_id, text, "sms")
+        response = handle_user_message(user_id, text, "sms")
         if not response.completed and text.lower() in {"start checkin", "start check-in", "checkin", "check-in"}:
-            self.state.add_context(self.number, "checkin")
+            self.state.add_context(number, "checkin")
         return response.message or "I couldn't confirm that action. Check its current state before retrying."

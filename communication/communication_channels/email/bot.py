@@ -318,6 +318,11 @@ class EmailBot(BaseChannel):
 
         user_id = kwargs.get("user_id")
         context_user_id = user_id.strip() if isinstance(user_id, str) else ""
+        if context_user_id:
+            from core import get_user_data
+            from core.channel_access import channel_allowed
+            if not channel_allowed(get_user_data(context_user_id, "account").get("account") or {}, "email"):
+                return False
         if context_user_id and not record_outbound_email(
             context_user_id,
             message_id,

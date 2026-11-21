@@ -53,6 +53,19 @@ def test_get_selected_channel_when_none_checked(qapp):
     widget.deleteLater()
 
 
+def test_sms_selection_retains_phone_and_requires_verification(qapp, monkeypatch):
+    widget = ChannelSelectionWidget()
+    widget.set_selected_channel("SMS", "+13065550101")
+    assert widget.get_selected_channel() == ("SMS", "+13065550101")
+    assert widget.get_all_contact_info()["phone"] == "+13065550101"
+    monkeypatch.setattr("core.sms_enrollment.sms_available", lambda: True)
+    assert not widget.sms_selection_valid()
+    widget.ui.checkBox_sms_consent.setChecked(True)
+    monkeypatch.setattr("storage.sms_state.SmsState.enrollment_verified", lambda *args: True)
+    assert widget.sms_selection_valid()
+    widget.deleteLater()
+
+
 def test_set_contact_info_and_timezone(qapp):
     widget = ChannelSelectionWidget()
     widget.set_contact_info(

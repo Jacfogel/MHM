@@ -31,6 +31,12 @@ class ChannelSelectionWidget(QWidget):
         super().__init__(parent)
         self.ui = Ui_Form_channel_selection()
         self.ui.setupUi(self)
+        self.sms_owner = ""
+        self.sms_token = ""
+        self.ui.button_sms_connect.clicked.connect(self._begin_sms)
+        self.ui.button_sms_verify.clicked.connect(self._verify_sms)
+        self.ui.button_sms_disconnect.clicked.connect(self._disconnect_sms)
+        self.ui.button_sms_disconnect.setEnabled(False)
 
         # Populate timezone options
         self.populate_timezones()
@@ -66,6 +72,8 @@ class ChannelSelectionWidget(QWidget):
 
     @handle_errors("getting selected channel")
     def get_selected_channel(self):
+        if self.ui.radioButton_SMS.isChecked():
+            return "SMS", self.ui.lineEdit_phone.text().strip()
         if self.ui.radioButton_Discord.isChecked():
             discord_id = self.ui.lineEdit_discordID.text()
             logger.debug(f"Selected Discord channel with ID: {discord_id}")
@@ -84,6 +92,7 @@ class ChannelSelectionWidget(QWidget):
         return {
             "email": self.ui.lineEdit_email.text().strip(),
             "discord_id": self.ui.lineEdit_discordID.text().strip(),
+            "phone": self.ui.lineEdit_phone.text().strip(),
         }
 
     @handle_errors("getting timezone")
@@ -95,6 +104,9 @@ class ChannelSelectionWidget(QWidget):
 
     @handle_errors("setting selected channel")
     def set_selected_channel(self, channel, value):
+        if channel.lower() == "sms":
+            self.ui.radioButton_SMS.setChecked(True)
+            self.ui.lineEdit_phone.setText(value)
         if channel == "Discord":
             self.ui.radioButton_Discord.setChecked(True)
             self.ui.lineEdit_discordID.setText(value)
@@ -133,10 +145,75 @@ class ChannelSelectionWidget(QWidget):
                     self.ui.comboBox_timezone.setCurrentIndex(utc_idx)
 
     # ERROR_HANDLING_EXCLUDE: Simple setter method that only updates UI elements
-    def set_contact_info(self, email=None, discord_id=None, timezone=None):
+    def set_contact_info(self, email=None, discord_id=None, timezone=None, phone=None):
+        if phone is not None:
+            self.ui.lineEdit_phone.setText(phone)
         if email is not None:
             self.ui.lineEdit_email.setText(email)
         if discord_id is not None:
             self.ui.lineEdit_discordID.setText(discord_id)
         if timezone is not None:
             self.set_timezone(timezone)
+
+    @handle_errors("preparing SMS connection", user_friendly=False, default_return=None)
+    def _begin_sms(self):
+        """Show a phone ownership challenge without sending a paid text."""
+        from core import config
+        from core.sms_enrollment import begin_sms_enrollment
+        from core.error_handling import ValidationError
+
+        try:
+            self.sms_token = begin_sms_enrollment(
+                self.ui.lineEdit_phone.text(), self.ui.checkBox_sms_consent.isChecked(), self.sms_owner
+            )
+            self.ui.label_sms_status.setText(
+                f"From this phone, text LINK {self.sms_token} to {config.TWILIO_PHONE_NUMBER}. "
+                "Then press verify. The code expires in 15 minutes."
+            )
+        except ValidationError as exc:
+            self.ui.label_sms_status.setText(str(exc))
+
+    @handle_errors("checking SMS phone proof", user_friendly=False, default_return=False)
+    def sms_selection_valid(self):
+        """Require an existing enrollment or a new phone-bound proof and explicit consent."""
+        from core.sms_enrollment import sms_available, sms_user_for_phone
+        from communication.communication_channels.sms.phone import normalize_phone
+        from storage.sms_state import SmsState
+
+        phone = normalize_phone(self.ui.lineEdit_phone.text())
+        if not sms_available() or not phone or not self.ui.checkBox_sms_consent.isChecked():
+            return False
+        if self.sms_owner and sms_user_for_phone(phone) == self.sms_owner:
+            return True
+        return self.ui.checkBox_sms_consent.isChecked() and SmsState().enrollment_verified(
+            phone, self.sms_token, self.sms_owner
+        )
+
+    @handle_errors("showing SMS verification result", user_friendly=False, default_return=None)
+    def _verify_sms(self):
+        """Show whether the signed incoming text proved ownership."""
+        self.ui.label_sms_status.setText(
+            "Phone verified. Save the account/channel settings to finish connecting SMS."
+            if self.sms_selection_valid() else "Not verified yet. Check the phone and connection code, send it, then verify again."
+        )
+
+    @handle_errors("disconnecting desktop SMS", user_friendly=True, default_return=None)
+    def _disconnect_sms(self):
+        """Revoke SMS consent without deleting opt-out or delivery history."""
+        from core import get_user_data, update_user_preferences
+        from core.channel_access import channel_allowed
+        from core.error_handling import DataError
+        from storage.sms_state import SmsState
+
+        if not self.sms_owner:
+            return
+        account = get_user_data(self.sms_owner, "account").get("account") or {}
+        fallback = "email" if channel_allowed(account, "email") else "discord"
+        if not update_user_preferences(self.sms_owner, {"channel": {"type": fallback}}, auto_create=False):
+            raise DataError("Could not confirm delivery settings. Reload the account before retrying.")
+        SmsState().disconnect_enrollment(self.sms_owner)
+        self.sms_token = ""
+        self.ui.checkBox_sms_consent.setChecked(False)
+        self.set_selected_channel(fallback.capitalize(), account.get("email" if fallback == "email" else "discord_user_id", ""))
+        self.ui.label_sms_status.setText("SMS disconnected. Delivery changed to " + fallback + ".")
+        self.ui.button_sms_disconnect.setEnabled(False)

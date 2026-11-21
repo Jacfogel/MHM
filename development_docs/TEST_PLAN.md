@@ -5,7 +5,7 @@
 > **Status**: **ACTIVE**  
 > **Owner**: Human developer + AI collaborators  
 > **Created**: 2026-02-22  
-> **Last Updated**: 2026-11-12
+> **Last Updated**: 2026-11-21
 > **Parent**: [PLANS.md](PLANS.md)  
 > This plan is subordinate to `development_docs/PLANS.md` and must remain consistent with its standards and terminology.
 
@@ -131,6 +131,25 @@ Use generated reports for current metrics. Copy metrics into this plan only when
 - [ ] Treat shared log/temp-path failures as harness-isolation issues first.
 - [ ] Revisit `development_tools/tool_tests/test_tool_wrappers_cache_helpers.py` only if its historical intermittent failure recurs under the same execution mode.
 - [ ] Keep each new suspect's node, observation date, reproducer, execution mode, and hypothesis; close stale entries with evidence.
+
+---
+
+### 2.9 Live billing customer validation
+
+**Status**: **PLANNED**
+**Priority**: High
+**Created**: 2026-11-21
+
+**Scope**: Complete the controlled customer check after the live Stripe cutover.
+Configuration checks verified both unpaid CAD Checkout sessions and the public
+signature boundary; they did not create a payment or subscription.
+
+**Next steps / acceptance**:
+- [ ] With the owner's explicit payment authorization, complete one real customer Checkout and verify Stripe-origin webhook deliveries return 200 and MHM reconciles the current plan/status.
+- [ ] Open the hosted portal and verify payment management, plan switching, and cancellation behavior.
+- [ ] Confirm paid phone-tier SMS eligibility and verify cancellation/downgrade removes access when effective, while STOP/START remains available.
+
+**Effort**: One supervised live customer session. Preserve the customer's data and do not silently alter complimentary or trial accounts.
 
 ---
 

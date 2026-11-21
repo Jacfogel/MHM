@@ -721,6 +721,10 @@ class CommunicationManager:
         self, channel_name: str, recipient: str, message: str, **kwargs
     ) -> bool | str:
         """Send message via specified channel using unified interface"""
+        from core.channel_access import delivery_channel_allowed
+        if not delivery_channel_allowed(kwargs.get("user_id"), channel_name):
+            logger.info("Message skipped: selected channel is not included in the account plan")
+            return False
         queue_on_failure = bool(kwargs.pop("_queue_on_failure", True))
         logger.debug(f"Preparing to send message to {recipient} via {channel_name}")
 
@@ -896,6 +900,10 @@ class CommunicationManager:
         self, channel_name: str, recipient: str, message: str, **kwargs
     ) -> bool | str:
         """Synchronous wrapper with logging health check"""
+        from core.channel_access import delivery_channel_allowed
+        if not delivery_channel_allowed(kwargs.get("user_id"), channel_name):
+            logger.info("Message skipped: selected channel is not included in the account plan")
+            return False
         queue_on_failure = bool(kwargs.pop("_queue_on_failure", True))
         # Check logging health periodically
         self._check_logging_health()

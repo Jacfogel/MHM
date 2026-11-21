@@ -91,7 +91,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
     account_data = {
         "user_id": user_id,
         "account_status": "active",
-        "chat_id": user_data.get("chat_id", ""),
+        "chat_id": user_data.get("discord_user_id", ""),
         "phone": user_data.get("phone", ""),
         "email": user_data.get("email", ""),
         "discord_user_id": user_data.get("discord_user_id", ""),
@@ -122,7 +122,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
 
     preferences_data = {
         "categories": user_data.get("categories", []),
-        "channel": {"type": user_data.get("channel", {}).get("type", "email")},
+        "channel": {"type": "discord"},
         "checkin_settings": user_data.get("checkin_settings", {}),
         "task_settings": user_data.get("task_settings", {}),
     }

@@ -63,6 +63,7 @@ async function page({ account = {
     ['step-checkin-questions', node()],
     ['step-checkin-windows', node()],
     ['step-billing', node()],
+    ['setup-billing-plan', node({value: 'discord'})],
     ['preferred-name', node({ value: '' })],
     ['timezone', node({ value: '' })],
     ['enable-messages', node({ checked: false })],
@@ -226,7 +227,15 @@ test('near-expiry setup explains that subscribing charges immediately', async ()
 
   assert.equal(view.nodes.get('setup-billing-charge-heading').textContent, 'Billing starts when you subscribe');
   assert.match(view.nodes.get('setup-billing-charge-detail').textContent, /begins immediately/);
-  assert.match(view.nodes.get('setup-billing-charge-hint').textContent, /charges the first CA\$8\.99 CAD payment/);
+  assert.match(view.nodes.get('setup-billing-charge-hint').textContent, /charges the first payment for your selected plan/);
+});
+
+test('setup checkout sends the selected phone plan without a client-supplied price', async () => {
+  const view = await page();
+  view.nodes.get('setup-billing-plan').value = 'phone';
+  await view.subscribe();
+  const checkout = view.requests.find(request => request.url === '/api/billing/checkout');
+  assert.deepEqual(JSON.parse(checkout.body), {plan: 'phone'});
 });
 
 test('Discord setup opens the Android app with a browser fallback', async () => {

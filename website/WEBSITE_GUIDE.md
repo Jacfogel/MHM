@@ -11,7 +11,7 @@ Marketing site, password and social login/create-account page, signed-in home,
 first-run setup, account settings, task workspace, notebook, personal message
 library, and private insights.
 New website-created accounts receive a 30-day trial. Account settings shows the
-remaining trial, opens Stripe-hosted Checkout for the single monthly plan, and
+remaining trial, offers Discord ($10 CAD/month) or Discord + SMS ($20 CAD/month), and opens Stripe-hosted Checkout for the selected plan. It
 uses Stripe's hosted Customer Portal for billing management. MHM stores Stripe
 customer/subscription identifiers and lifecycle status, never card details.
 The Python gateway uses the **same account store as MHM**. It never stores browser
@@ -71,10 +71,15 @@ any of those features enabled skip setup. First-run also uses the same enabled
 flags as Account settings, so a user with messages, tasks, and check-ins all off
 still gets setup even if the account summary is missing `needs_setup`. Users can still change everything later
 on the signed-in settings page. Account creation completes without
-requiring a communication channel connection. Email is available immediately. First-run
-setup can connect Discord, and it explains that skipping Discord keeps email delivery
-and leaves Discord-only actions unavailable. Discord can also be connected later from
-the account page. SMS can be added as another channel later.
+requiring a communication channel connection. New accounts are Discord-only trials;
+email sign-in and recovery codes remain available, but email is not a trial delivery
+channel. First-run setup connects Discord before trial delivery is enabled. After
+an active paid MHM subscription is recorded, users can choose paid delivery channels; connecting SMS additionally requires the Discord + SMS tier
+in first-run delivery or Account > Delivery. SMS requires explicit consent and a
+phone ownership code sent from the recipient phone; disconnecting revokes the
+connection. Complimentary, past-due, canceled, and trial accounts cannot use SMS.
+The server checks plan access again on every send and incoming SMS command;
+STOP/START remain available for an enrolled number after a downgrade.
 The gateway exchanges the one-time
 authorization code server-side, verifies the Discord identity, and stores only the Discord ID
 and username in the existing MHM account. A Discord account already linked to another MHM
@@ -85,6 +90,17 @@ categories and reminder windows, task recurrence defaults, and check-in windows,
 question selection, and counts. Each section saves to the same profile documents
 used by the admin console, preserving other fields. Invalid input is rejected,
 and edits made elsewhere require reloading the affected section.
+
+Reminder-window validation is shared by the message, task, and check-in settings
+sections. It stages updates without changing the loaded documents, preserves
+category metadata and applicable reserved all-day windows, and requires an enabled
+window before enabling a feature.
+
+Social sign-in callbacks separately validate the linking browser session and
+resolve new accounts. Expired or revoked sessions return users to sign-in;
+identities belonging to another account return a connection conflict. New-account
+creation rechecks ownership under the identity-link lock. Failures retain safe
+redirects and log the failed stage without authorization codes or provider secrets.
 
 Users can disconnect Discord or optional social sign-ins (while retaining at
 least one sign-in method) and download a secret-scrubbed JSON data export,
@@ -139,9 +155,7 @@ To enable live accounts:
    `npx wrangler secret put MHM_API_SECRET`. Never put it in client JavaScript.
 4. Deploy the Worker, then test creation and login with a controlled email.
 
-To enable monthly billing, create one recurring monthly Price in Stripe and set
-`STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and `STRIPE_WEBHOOK_SECRET` on the Python
-gateway. Register `${WEB_PUBLIC_ORIGIN}/api/billing/webhook` as a snapshot-event
+To enable billing, create separate Stripe Products and monthly CAD Prices for Discord ($10) and Discord + SMS ($20). Set `STRIPE_SECRET_KEY`, `STRIPE_DISCORD_PRICE_ID`, `STRIPE_PHONE_PRICE_ID`, `STRIPE_PORTAL_CONFIGURATION_ID`, and `STRIPE_WEBHOOK_SECRET` on the Python gateway. Register `${WEB_PUBLIC_ORIGIN}/api/billing/webhook` as a snapshot-event
 webhook for `checkout.session.completed`, `customer.subscription.created`,
 `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`,
 `invoice.payment_succeeded`, and `invoice.payment_failed`. Configure Stripe's
@@ -154,13 +168,10 @@ are treated as complimentary accounts; new accounts get the trial explicitly.
 Do the live cutover as one controlled change. Never mix test-mode and live-mode
 Stripe objects.
 
-1. In Stripe live mode, create the recurring **CA$8.99 CAD monthly** Price and
-   configure the Customer Portal cancellation and payment-method options.
+1. In Stripe live mode, create the separate **Discord $10 CAD/month** and **Discord + SMS $20 CAD/month** products/prices. Configure a dedicated Customer Portal with both products, prorated upgrades, and period-end downgrades/cancellations.
 2. Create a live snapshot-event webhook for the public URL and the seven events
    listed above. Keep the live signing secret with that endpoint.
-3. Back up the current `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and
-   `STRIPE_WEBHOOK_SECRET`, then replace all three with the matching live-mode
-   values in one maintenance window.
+3. Back up the current Stripe key, both price IDs, portal configuration ID, and webhook secret, then replace all five with the matching live-mode values in one maintenance window.
 4. Restart the running MHM service. A configuration-file edit alone does not
    update the gateway or scheduler process.
 5. Confirm the public webhook still rejects an invalid signature with HTTP 400.
@@ -171,8 +182,7 @@ Stripe objects.
    event changes MHM to canceled and prevents newly scheduled activity. Restore
    the canary only after this end-to-end check succeeds.
 
-For rollback, restore the backed-up three test-mode values together (or blank all
-three to disable new Checkout sessions), restart MHM, and confirm the account page
+For rollback, restore the backed-up five test-mode values together (or disable Checkout by removing its secret key), restart MHM, and confirm the account page
 no longer offers an unintended live Checkout. Rolling back credentials does not
 cancel live Stripe subscriptions; manage those separately in Stripe.
 
@@ -256,3 +266,30 @@ node --test $websiteJavaScriptTests
 
 Tests inject isolated account and email adapters; they do not send real email or
 write to production accounts.
+
+## 5. Subscription tiers and entitlements
+
+Trials last 30 days and deliver through Discord. Discord costs $10 CAD/month. The
+Discord + SMS tier costs $20 CAD/month and includes Discord; SMS also requires a
+verified, consenting phone. Complimentary status is not the phone tier. A trial
+subscription to the phone price still cannot use SMS until billing becomes active.
+
+Checkout accepts only a named plan; amounts and price IDs come from the server.
+Signed webhook handling retrieves the current Stripe subscription and resolves
+`subscription_plan` and `stripe_price_id` from its actual item price. Unknown or
+multiple-item subscriptions do not grant SMS. Plan changes use the dedicated
+Stripe portal: upgrades invoice the proration, and cheaper-plan changes take effect
+at period end. Reconciliation follows the current item, not stale event metadata.
+
+The two-tier catalog and portal were configured and checkout-verified in Stripe
+test mode on 2026-11-20. No real payments or subscriptions were created by validation.
+Public Checkout and Portal actions are disabled while test keys are configured,
+and the website displays a test-mode notice. `billing_livemode` must be true before
+a phone subscription can unlock real SMS. The live-mode cutover was completed on
+2026-11-21: both live CAD prices, the dedicated portal, and the seven-event webhook
+are configured, and MHM was restarted. Unpaid live Checkout sessions for both plans
+were verified and expired; the public webhook rejected an invalid signature and
+accepted a harmless probe signed with the live secret. No payment or subscription
+was created. Customer payment, Stripe-origin event delivery, portal operation, and
+cancellation reconciliation still need the controlled customer check above.
+Existing subscriptions are not repriced automatically.

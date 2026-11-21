@@ -9,6 +9,12 @@ from communication.delivery.recipient_resolver import RecipientResolver
 pytestmark = [pytest.mark.behavior, pytest.mark.communication]
 
 
+@pytest.fixture(autouse=True)
+def isolate_sms_simulation(monkeypatch):
+    """Never start the live transport when running simulator scenarios."""
+    monkeypatch.setattr("core.config.SMS_TWILIO_ENABLED", False)
+
+
 @pytest.mark.asyncio
 async def test_sms_requires_opt_in_and_ready_state(monkeypatch):
     monkeypatch.setattr("core.config.SMS_SIMULATION_ENABLED", False)

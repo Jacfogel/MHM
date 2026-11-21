@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for Discord task reminder delivery and task reminder action buttons  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-11-19
+> **Last Updated**: 2026-11-20
 > **Implementation**: `communication/communication_channels/discord/ui/task_reminder_view.py`, `tasks/task_focus.py`, `tasks/task_reminder_deferrals.py`, `tasks/task_reminder_snooze.py`, `tasks/task_occurrence_skip.py`, `tasks/task_simplify.py`, `core/message_pressure.py`, `communication/command_handlers/task_handler.py`, `communication/communication_channels/discord/bot.py`, `communication/reminders/reminder_dispatcher.py`, `scheduler/task_reminders.py`, `tasks/task_service.py`, `communication/message_processing/interaction_manager.py`
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-message-and-command-routing.md](discord-message-and-command-routing.md)  
 > **Automated tests**: `tests/unit/test_task_focus.py`, `tests/unit/test_task_reminder_deferrals.py`, `tests/unit/test_task_reminder_snooze.py`, `tests/unit/test_task_occurrence_skip.py`, `tests/unit/test_task_simplify.py`, `tests/unit/test_task_reminder_view.py`, `tests/unit/test_message_pressure.py`, `tests/behavior/test_task_handler_behavior.py`, `tests/behavior/test_discord_task_reminder_followup.py`, `tests/behavior/test_task_reminder_followup_behavior.py`, `tests/integration/test_task_reminder_integration.py`, `tests/behavior/test_discord_bot_behavior.py`, `tests/unit/test_task_service.py`
@@ -48,15 +48,37 @@ Task reminder delivery SHALL respect task state and reminder scheduling rules be
 - **THEN** old reminder jobs are replaced or ignored  
 - **AND** future Discord reminders follow the updated task reminder settings  
 
-#### Scenario: Scheduler marks reminder attempted after dispatch handoff
+#### Scenario: Scheduler marks accepted or uncertain dispatch handoff
 
 - **GIVEN** `scheduler/task_reminders.py` hands a task reminder to the delivery interface  
-- **WHEN** the delivery call returns without raising an exception  
+- **WHEN** delivery returns `sent` or `unconfirmed`, or raises after the persisted attempt begins
 - **THEN** the scheduler sets `reminder_sent` and `reminder_sent_on` to the user's local date  
 - **AND** another reminder for that same task is skipped for the rest of that local date  
 - **AND** a later local date can send a reminder for that task again  
 - **AND** the lower-level `TaskReminderDispatcher` still returns a `MessageSendResult` that records whether Discord delivery actually succeeded, failed, or was skipped  
-- **AND** `reminder_sent_on` is written only when delivery returns `sent` or `unconfirmed`  
+- **AND** an explicit `failed` or `skipped` result does not mark the task as sent
+
+#### Scenario: Saved snoozes and skipped occurrences recover after restart
+
+- **GIVEN** a snooze, one-off skip, or recurring skip saved its reminder time
+- **WHEN** startup or the five-minute recovery scan rebuilds reminder jobs
+- **THEN** the saved time, including seconds, is preserved
+- **AND** repeated recovery scans create only one job for that deferral
+- **AND** a reminder that became due during downtime is eligible for delivery after recovery
+- **AND** snoozes and one-off skips retain the due date; recurring skips retain the advanced next-occurrence date
+- **AND** recovery does not complete the task
+
+#### Scenario: Restart does not replay an uncertain reminder
+
+- **GIVEN** a reminder attempt was persisted before channel dispatch
+- **WHEN** the process exits before its outcome or task settlement is saved
+- **THEN** the replacement process treats an unfinished attempt as unconfirmed
+- **AND** a saved `sent` or `unconfirmed` outcome also suppresses another channel send
+- **AND** the recovered occurrence is settled without clearing a newer deferral
+- **AND** an explicit failed outcome remains eligible for retry, reusing its saved message identifier when present
+- **AND** suppressing a duplicate does not establish that the original message was delivered
+
+Regression evidence: `tests/integration/test_task_reminder_restart.py` exercises persisted task and delivery state with a replacement process identity and rebuilt scheduler. Channel delivery and abrupt exits are simulated; it does not establish live Discord delivery across an actual service restart.
 
 ### 2.2. Requirement: Task reminder view provides persistent action buttons
 

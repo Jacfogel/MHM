@@ -63,7 +63,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Test program | **ACTIVE** | High | [TEST_PLAN.md](TEST_PLAN.md) | Full-suite reliability, test isolation, and coverage growth |
 | Deterministic mood and energy rules | **MONITORING** | Low | This file Section 5.3 | Observe health-derived pressure transitions; additional timer awaits usage evidence |
 | Appropriate coupling reductions | **MONITORING** | Medium | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) | Revisit when triage confirms a wrong-layer dependency or a private API dependency causes maintenance problems (2026-11-16) |
-| SMS channel | **ACTIVE** | Medium | This file Section 7.1 | Twilio owner pilot implemented; provider setup and live phone validation remain |
+| SMS channel | **ACTIVE** | Medium | This file Section 7.1 | Paid-account SMS enrollment deployed; expanded paid-user live validation remains |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 
 ---
@@ -81,6 +81,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 **Remaining work**:
 
+- Live baseline (2026-11-20): requested Discord check-in delivered and saved five replies, included every Always question within the configured count range, and closed its flow. The 11:00-12:00 automatic window was outside the session; timer firing, live cooldown deferral, and forced reconnect recovery remain unverified.
 - Optional live Discord observation of active-flow deferral, 10-minute cooldown, and retry behavior when delivery/flow behavior changes. Use the [manual Discord guide](../tests/MANUAL_DISCORD_TEST_GUIDE.md) for visual checks and the focused automated tests for behavior validation.
 - [ ] Monitor logs for legacy warnings in check-in flow paths.
 - [ ] Monitor `MESSAGE_SELECTION` diagnostics.
@@ -132,6 +133,8 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 
 Keep task workflows easy to use from a phone, with Discord as the primary interface. When UI or parsing changes, validate the picker and details, creation follow-ups, parsed titles and dates, template modals, and create-hub buttons as applicable. Keep task behavior in task or shared modules and reuse the shared tag and ID helpers. The [2026-11-15 validation](CHANGELOG_DETAIL.md#2026-11-15---task-dependency-relationships) covered task, browser, and authenticated website-route tests. Live Discord and website rendering remain unverified. See the [testing guide](../tests/MANUAL_TESTING_GUIDE.md#64-focused-task-and-notebook-regression-tests).
 
+- Restart validation (2026-11-20): 15 integration scenarios verify persisted snooze/skip recovery, overdue job deduplication, and suppression of uncertain delivery replay with a rebuilt scheduler and replacement process identity. All 98 focused reminder tests passed. Live Discord delivery across an actual service restart remains unverified.
+
 - **File and image attachments (deferred, medium)** require a storage, retention, and Discord upload design. **Batch archive (deferred, low/medium)** depends on introducing task archiving.
 - **Context-aware reminders (deferred)** include location- and calendar-linked reminders. Revisit once foundational task usage is stronger and coordinate with the [mood and energy rules](#53-deterministic-mood-and-energy-rules).
 - **Task suggestions (deferred)** include pattern-based suggestions, ordering, and conflict detection. Select a concrete use case first. **Advanced views and analytics (deferred)** include calendar and Kanban views, additional focus views, completion trends, recurring-task streaks, and overdue priority escalation. Revisit once Discord task creation is reliable.
@@ -156,7 +159,7 @@ Accepted integration work. SMS has an active owner pilot; Apple Health remains p
 
 ### 7.1 SMS channel
 
-**Implementation (2026-11-18)**: Simulation and an explicitly enabled Twilio owner pilot are implemented. Live transport includes signed loopback webhooks, durable inbound receipts, provider status tracking, STOP/START, and shared task/check-in reply routing. Credentials and HTTPS forwarding remain unconfigured; no real text has been sent. See [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md) and [pilot spec](../specs/sms-twilio-pilot.md).
+**Implementation (2026-11-18)**: Simulation and an explicitly enabled Twilio owner pilot are implemented. Live transport includes signed loopback webhooks, durable inbound receipts, provider status tracking, STOP/START, and shared task/check-in reply routing. The owner pilot was configured on 2026-11-20: a real test text and `sms status` reply exchange were delivered, and signed status callbacks reached MHM through the HTTPS tunnel. Scheduled reminders remain on Discord. See [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md) and [pilot spec](../specs/sms-twilio-pilot.md).
 
 **Status**: **ACTIVE**
 **Added**: 2026-09-22
@@ -166,8 +169,8 @@ Accepted integration work. SMS has an active owner pilot; Apple Health remains p
 
 **Remaining work**:
 
-1. Configure the owner pilot's Twilio number/registration, credentials, consent, account phone, preferred channel, and HTTPS forwarding. Verify live sending, replies, callbacks, and STOP/START before routine use.
-2. Add verified phone ownership, per-account consent, and onboarding/management UI before allowing other people. Do not remove the pilot allowlist as a shortcut.
+1. Owner sending, signed callbacks, `sms status`, task completion by `done`, and STOP/START were verified live on 2026-11-20. STOP blocked submission locally; a post-START text was delivered. A second check-in was correctly refused because one was already completed that day. Validate a full SMS question/answer/save exchange for an active paid account at its next eligible check-in before treating the pilot checklist as complete. Preferred scheduled delivery remains Discord.
+2. Verified phone ownership, per-account consent, paid-plan enforcement, and website/desktop management are implemented. Validate the deployed enrollment flow with an active paid account before enrolling additional people; trial accounts remain Discord-only.
 3. Define receipt retention and operator recovery/status UI from pilot experience. Keep unconfirmed mutations out of automatic retries.
 
 **Provider**: Twilio. Free cloud SMS and carrier email-to-SMS are out of scope. iMessage is out of scope.

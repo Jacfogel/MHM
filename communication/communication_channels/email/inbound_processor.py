@@ -294,6 +294,13 @@ class EmailInboundProcessor:
 
             inbound_message_id = str(email_msg.get("message_id") or "")
             user_id = get_user_id_by_identifier(sender_email)
+            if user_id:
+                from core import get_user_data
+                from core.channel_access import channel_allowed
+                account = get_user_data(user_id, "account").get("account") or {}
+                if not channel_allowed(account, "email"):
+                    mark_inbound_handled(user_id, inbound_message_id)
+                    return True
             if user_id and inbound_already_handled(user_id, inbound_message_id):
                 logger.info(
                     f"Inbound email {inbound_message_id} was already handled for user {user_id}"

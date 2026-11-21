@@ -25,6 +25,9 @@ def test_new_accounts_receive_a_30_day_trial():
         "subscription_status": "trialing",
         "stripe_customer_id": "",
         "stripe_subscription_id": "",
+        "subscription_plan": "",
+        "stripe_price_id": "",
+        "billing_livemode": False,
         "billing_grace_ends_at": "",
     }
 
@@ -109,11 +112,12 @@ def test_stripe_webhook_verification_uses_raw_body_signature_and_tolerance():
 
 
 @pytest.mark.asyncio
-async def test_checkout_reuses_customer_and_carries_trial_and_mhm_identity(monkeypatch):
+@pytest.mark.parametrize("plan,expected_price", [("discord", "price_monthly"), ("phone", "price_phone")])
+async def test_checkout_reuses_customer_and_carries_trial_and_mhm_identity(monkeypatch, plan, expected_price):
     captured = {}
     client = StripeBillingClient(
         secret_key="sk_test",
-        price_id="price_monthly",
+        price_ids={"discord": "price_monthly", "phone": "price_phone"},
         wall_clock=lambda: 1_000_000,
     )
 
@@ -124,6 +128,7 @@ async def test_checkout_reuses_customer_and_carries_trial_and_mhm_identity(monke
     monkeypatch.setattr(client, "_post", fake_post)
     result = await client.create_checkout_session(
         user_id="user-1",
+        plan=plan,
         email="person@example.com",
         customer_id="cus_1",
         success_url="https://mhm.example/app.html?billing=success",
@@ -133,10 +138,28 @@ async def test_checkout_reuses_customer_and_carries_trial_and_mhm_identity(monke
     assert result["url"].startswith("https://checkout.stripe.com/")
     assert captured["path"] == "/v1/checkout/sessions"
     assert captured["fields"]["mode"] == "subscription"
+    assert captured["fields"]["line_items[0][price]"] == expected_price
+    assert captured["fields"]["metadata[mhm_plan]"] == plan
+    assert f"-{plan}-" in captured["key"]
     assert captured["fields"]["customer"] == "cus_1"
     assert captured["fields"]["client_reference_id"] == "user-1"
     assert captured["fields"]["subscription_data[metadata][mhm_user_id]"] == "user-1"
     assert "subscription_data[trial_end]" in captured["fields"]
+
+
+@pytest.mark.parametrize("price,expected", [("price_discord", "discord"), ("price_phone", "phone"), ("price_unknown", "")])
+def test_plan_comes_from_subscription_price_not_requested_metadata(monkeypatch, price, expected):
+    from core import config
+    from core.billing import subscription_price_plan
+
+    monkeypatch.setattr(config, "STRIPE_DISCORD_PRICE_ID", "price_discord")
+    monkeypatch.setattr(config, "STRIPE_PHONE_PRICE_ID", "price_phone")
+    subscription = {"metadata": {"mhm_plan": "phone"}, "items": {"data": [
+        {"price": {"id": price}, "quantity": 1},
+    ]}}
+    assert subscription_price_plan(subscription) == (expected, price)
+    subscription["items"]["data"].append({"price": {"id": "price_phone"}})
+    assert subscription_price_plan(subscription) == ("", "")
 
 
 @pytest.mark.asyncio
@@ -152,3 +175,35 @@ async def test_subscription_retrieval_uses_an_encoded_stripe_resource_path(monke
     subscription = await client.retrieve_subscription("sub_1")
     assert subscription["status"] == "active"
     assert captured["path"] == "/v1/subscriptions/sub_1"
+
+
+@pytest.mark.asyncio
+async def test_portal_session_uses_the_mhm_two_plan_configuration(monkeypatch):
+    captured = {}
+    client = StripeBillingClient(secret_key="sk_test", portal_configuration_id="bpc_mhm_tiers")
+
+    async def fake_post(path, fields):
+        captured.update(path=path, fields=dict(fields))
+        return {"url": "https://billing.stripe.test/session"}
+
+    monkeypatch.setattr(client, "_post", fake_post)
+    await client.create_portal_session(customer_id="cus_1", return_url="https://mhm.example/app.html")
+    assert captured["fields"]["configuration"] == "bpc_mhm_tiers"
+
+
+@pytest.mark.parametrize("key, expected", [("sk_test_example", True), ("rk_test_example", True), ("sk_live_example", False), ("", False)])
+def test_billing_mode_detection(key, expected):
+    assert StripeBillingClient(secret_key=key).test_mode is expected
+
+
+def test_billing_mode_failure_is_reported_and_not_misclassified(monkeypatch):
+    from unittest.mock import Mock
+    from core.error_handling import error_handler
+
+    report = Mock(return_value=False)
+    monkeypatch.setattr(error_handler, "handle_error", report)
+    client = StripeBillingClient()
+    monkeypatch.setattr(client, "secret_key", None)
+    with pytest.raises(AttributeError):
+        _ = client.test_mode
+    report.assert_called_once()

@@ -46,6 +46,7 @@ class WebAssetRoutes:
             "home.js",
             "setup.js",
             "settings.js",
+            "sms-enrollment.js",
             "tasks.js",
             "notes.js",
             "insights.js",

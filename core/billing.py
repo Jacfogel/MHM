@@ -47,7 +47,7 @@ class StripeWebhookError(ValueError):
 
 
 @handle_errors("creating new-account billing state", user_friendly=False, re_raise=True)
-def new_account_billing(created_at: str) -> dict[str, str]:
+def new_account_billing(created_at: str) -> dict[str, Any]:
     """Return the explicit 30-day billing state for a new account."""
     created = parse_timestamp_full(created_at) or now_datetime_full()
     return {
@@ -57,6 +57,9 @@ def new_account_billing(created_at: str) -> dict[str, str]:
         "subscription_status": "trialing",
         "stripe_customer_id": "",
         "stripe_subscription_id": "",
+        "subscription_plan": "",
+        "stripe_price_id": "",
+        "billing_livemode": False,
         "billing_grace_ends_at": "",
     }
 
@@ -93,7 +96,7 @@ def has_service_access(account: dict[str, Any], *, now: datetime | None = None) 
 
 @handle_errors("building account billing summary", user_friendly=False, re_raise=True)
 def account_billing_summary(
-    account: dict[str, Any], *, configured: bool, now: datetime | None = None
+    account: dict[str, Any], *, configured: bool, now: datetime | None = None, test_mode: bool = False
 ) -> dict[str, Any]:
     """Build the non-sensitive billing view returned to the signed-in website."""
     current = now or now_datetime_full()
@@ -106,6 +109,9 @@ def account_billing_summary(
         )
     return {
         "status": status,
+        "test_mode": test_mode,
+        "plan": account.get("subscription_plan") or "",
+        "plans": [{"id": key, **value} for key, value in config.BILLING_PLANS.items()],
         "access_active": has_service_access(account, now=current),
         "trial_ends_at": str(account.get("trial_ends_at") or ""),
         "trial_days_remaining": days_remaining,
@@ -139,6 +145,18 @@ def local_status_for_stripe(status: str) -> str:
     return "canceled"
 
 
+@handle_errors("resolving subscribed price tier", user_friendly=False, default_return=("", ""))
+def subscription_price_plan(subscription):
+    """Grant a tier only from the reconciled subscription's configured Stripe price."""
+    items = subscription.get("items", {}).get("data", [])
+    if len(items) != 1 or items[0].get("quantity", 1) != 1:
+        return "", ""
+    price = items[0].get("price") or {}
+    price_id = price.get("id", "") if isinstance(price, dict) else str(price)
+    prices = {config.STRIPE_DISCORD_PRICE_ID: "discord", config.STRIPE_PHONE_PRICE_ID: "phone"}
+    return (prices.get(price_id, "") if price_id else ""), price_id
+
+
 class StripeBillingClient:
     """Minimal async client for Stripe-hosted Checkout, Portal, and webhooks."""
 
@@ -151,14 +169,25 @@ class StripeBillingClient:
         self,
         *,
         secret_key: str = "",
-        price_id: str = "",
+        price_ids: dict[str, str] | None = None,
+        portal_configuration_id: str = "",
         webhook_secret: str = "",
         wall_clock: Callable[[], float] = time.time,
     ) -> None:
         self.secret_key = secret_key.strip()
-        self.price_id = price_id.strip()
+        self.price_ids = dict(price_ids or {})
+        self.portal_configuration_id = portal_configuration_id
         self.webhook_secret = webhook_secret.strip()
         self.wall_clock = wall_clock
+
+    @property
+    @handle_errors(
+        "checking Stripe billing mode", user_friendly=False, re_raise=True,
+        retry_after_recovery=False,
+    )
+    def test_mode(self) -> bool:
+        """Expose mode without exposing the Stripe secret."""
+        return self.secret_key.startswith(("sk_test", "rk_test"))
 
     @classmethod
     @handle_errors(
@@ -168,7 +197,8 @@ class StripeBillingClient:
         """Build a Stripe client from the configured secret values."""
         return cls(
             secret_key=str(getattr(config, "STRIPE_SECRET_KEY", "") or ""),
-            price_id=str(getattr(config, "STRIPE_PRICE_ID", "") or ""),
+            price_ids={"discord": config.STRIPE_DISCORD_PRICE_ID, "phone": config.STRIPE_PHONE_PRICE_ID},
+            portal_configuration_id=config.STRIPE_PORTAL_CONFIGURATION_ID,
             webhook_secret=str(getattr(config, "STRIPE_WEBHOOK_SECRET", "") or ""),
         )
 
@@ -177,9 +207,9 @@ class StripeBillingClient:
         user_friendly=False,
         default_return=False,
     )
-    def checkout_configured(self) -> bool:
+    def checkout_configured(self, plan: str | None = None) -> bool:
         """Return whether Checkout has both required Stripe identifiers."""
-        return bool(self.secret_key and self.price_id)
+        return bool(self.secret_key and (self.price_ids.get(plan) if plan else any(self.price_ids.values())))
 
     async def _post(
         self,
@@ -249,6 +279,7 @@ class StripeBillingClient:
         self,
         *,
         user_id: str,
+        plan: str,
         email: str,
         customer_id: str,
         success_url: str,
@@ -256,14 +287,15 @@ class StripeBillingClient:
         trial_end: datetime | None,
     ) -> dict[str, Any]:
         """Create one hosted monthly-subscription Checkout Session."""
-        if not self.checkout_configured():
+        if plan not in config.BILLING_PLANS or not self.checkout_configured(plan):
             raise StripeAPIError("Stripe Checkout is not configured")
         fields = [
             ("mode", "subscription"),
-            ("line_items[0][price]", self.price_id),
+            ("line_items[0][price]", self.price_ids[plan]),
             ("line_items[0][quantity]", "1"),
             ("client_reference_id", user_id),
             ("metadata[mhm_user_id]", user_id),
+            ("metadata[mhm_plan]", plan),
             ("subscription_data[metadata][mhm_user_id]", user_id),
             ("success_url", success_url),
             ("cancel_url", cancel_url),
@@ -287,7 +319,7 @@ class StripeBillingClient:
         return await self._post(
             "/v1/checkout/sessions",
             fields,
-            idempotency_key=f"mhm-checkout-{user_id}-{bucket}",
+            idempotency_key=f"mhm-checkout-{user_id}-{plan}-{bucket}",
         )
 
     @handle_errors(
@@ -297,10 +329,10 @@ class StripeBillingClient:
         self, *, customer_id: str, return_url: str
     ) -> dict[str, Any]:
         """Create a short-lived Stripe Customer Portal session."""
-        return await self._post(
-            "/v1/billing_portal/sessions",
-            [("customer", customer_id), ("return_url", return_url)],
-        )
+        fields = [("customer", customer_id), ("return_url", return_url)]
+        if self.portal_configuration_id:
+            fields.append(("configuration", self.portal_configuration_id))
+        return await self._post("/v1/billing_portal/sessions", fields)
 
     def verify_webhook(self, payload: bytes, signature_header: str) -> dict[str, Any]:
         """Verify Stripe's signed raw body and return its snapshot event."""

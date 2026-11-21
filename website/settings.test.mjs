@@ -61,6 +61,8 @@ function element(tagName = 'div') {
       const matchesSelector = node => selectors.some(item => {
         if (item === 'input' || item === 'select' || item === 'textarea' || item === 'button') return node.tagName === item.toUpperCase();
         if (item === '[data-settings-static]') return Object.hasOwn(node.dataset, 'settingsStatic');
+        const option = item.match(/^option\[value="([^"]+)"\]$/);
+        if (option) return node.tagName === 'OPTION' && node.getAttribute('value') === option[1];
         const attribute = item.match(/^\[([^=]+)="([^"]+)"\]$/);
         return attribute ? node.getAttribute(attribute[1]) === attribute[2] : false;
       });

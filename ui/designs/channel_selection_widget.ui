@@ -14,6 +14,14 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item><widget class="QRadioButton" name="radioButton_SMS"><property name="text"><string>SMS (text messages)</string></property></widget></item>
+   <item><widget class="QLineEdit" name="lineEdit_phone"><property name="placeholderText"><string>Mobile number, including country code (e.g. +13065550101)</string></property></widget></item>
+   <item><widget class="QCheckBox" name="checkBox_sms_consent"><property name="text"><string>I consent to MHM SMS messages on this number.</string></property></widget></item>
+   <item><widget class="QLabel" name="label_sms_consent_info"><property name="text"><string>Message/data rates may apply. Text STOP to opt out and START to resume. SMS requires the active $20 CAD/month Discord + SMS plan.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+   <item><widget class="QPushButton" name="button_sms_connect"><property name="text"><string>Get SMS connection code</string></property></widget></item>
+   <item><widget class="QLabel" name="label_sms_status"><property name="maximumSize"><size><width>16777215</width><height>90</height></size></property><property name="text"><string>Verify ownership before selecting SMS.</string></property><property name="wordWrap"><bool>true</bool></property><property name="textInteractionFlags"><set>Qt::TextInteractionFlag::TextSelectableByMouse</set></property></widget></item>
+   <item><widget class="QPushButton" name="button_sms_verify"><property name="text"><string>I sent the text - verify phone</string></property></widget></item>
+   <item><widget class="QPushButton" name="button_sms_disconnect"><property name="text"><string>Disconnect SMS</string></property></widget></item>
    <item>
     <layout class="QGridLayout" name="gridLayout_4">
      <property name="sizeConstraint">

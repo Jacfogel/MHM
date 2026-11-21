@@ -121,6 +121,12 @@ class AccountCreatorDialog(QDialog):
         """Load the message service selection widget."""
         # Add the channel selection widget to the placeholder
         self.channel_widget = ChannelSelectionWidget(self)
+        self.channel_widget.ui.radioButton_Discord.setChecked(True)
+        self.channel_widget.ui.radioButton_SMS.setEnabled(False)
+        self.channel_widget.ui.radioButton_Email.setEnabled(False)
+        self.channel_widget.ui.button_sms_connect.setEnabled(False)
+        self.channel_widget.ui.button_sms_verify.setEnabled(False)
+        self.channel_widget.ui.label_sms_status.setText("New trial accounts use Discord. After activating the Discord + SMS plan, connect SMS in Channel Settings.")
         layout = self.ui.widget_placeholder_channel_selection.layout()
 
         # Remove any existing widgets
@@ -466,7 +472,6 @@ class AccountCreatorDialog(QDialog):
     def validate_input(self) -> tuple[bool, str]:
         """Validate the input and return (is_valid, error_message)."""
         logger.info("validate_input() called - starting validation")
-
         # Check timezone from channel widget
         if hasattr(self, "channel_widget"):
             timezone = self.channel_widget.get_timezone()
@@ -603,6 +608,11 @@ class AccountCreatorDialog(QDialog):
                 logger.warning("Validation failed: Check-in widget not loaded")
                 return False, "Check-in widget not loaded."
 
+        if hasattr(self, "channel_widget"):
+            selected, _contact = self.channel_widget.get_selected_channel()
+            if selected != "Discord":
+                return False, "New trial accounts use Discord. After activating the Discord + SMS plan, SMS can be connected in Channel Settings."
+
         logger.info("Validation successful.")
         return True, ""
 
@@ -728,7 +738,7 @@ class AccountCreatorDialog(QDialog):
                 "checkins": checkins_enabled,
             },
         }
-        logger.info(f"Account data built: {account_data}")
+        logger.info("Account data prepared")
         return account_data
 
     @handle_errors("showing error dialog")
@@ -872,6 +882,8 @@ class AccountCreatorDialog(QDialog):
         contact_info = {}
         if selected_service == "Email":
             contact_info["email"] = contact_value
+        elif selected_service == "SMS":
+            contact_info["phone"] = contact_value
         elif selected_service == "Discord":
             contact_info["discord"] = contact_value
 

@@ -67,6 +67,7 @@ class Accounts:
 
 
 class Billing:
+    test_mode = False
     def __init__(self):
         self.checkout = None
         self.portal = None
@@ -75,6 +76,7 @@ class Billing:
                 "id": "sub_1",
                 "customer": "cus_1",
                 "status": "active",
+                "livemode": True,
                 "metadata": {"mhm_user_id": "trial-user"},
             }
         }
@@ -82,7 +84,7 @@ class Billing:
             webhook_secret="whsec_test", wall_clock=lambda: 1000
         )
 
-    def checkout_configured(self):
+    def checkout_configured(self, plan=None):
         return True
 
     async def create_checkout_session(self, **kwargs):
@@ -149,7 +151,7 @@ async def test_signed_in_trial_can_open_checkout_and_sees_safe_billing_summary()
         assert account["billing"]["status"] == "trialing"
         assert "stripe_customer_id" not in account["billing"]
         response = await client.post(
-            "/api/billing/checkout", json={}, headers={"Origin": ORIGIN}
+            "/api/billing/checkout", json={"plan": "discord"}, headers={"Origin": ORIGIN}
         )
         assert response.status == 200
         assert (await response.json())["url"].startswith("https://checkout.stripe.com/")
@@ -191,7 +193,7 @@ async def test_billing_failures_explain_unchanged_state_and_recovery():
 
         billing.create_checkout_session = fail_checkout
         checkout = await client.post(
-            "/api/billing/checkout", json={}, headers={"Origin": ORIGIN}
+            "/api/billing/checkout", json={"plan": "discord"}, headers={"Origin": ORIGIN}
         )
         assert checkout.status == 503
         checkout_message = (await checkout.json())["error"]
@@ -231,6 +233,63 @@ def signed_payload(event):
     payload = json.dumps(event, separators=(",", ":")).encode()
     digest = hmac.new(b"whsec_test", b"1000." + payload, hashlib.sha256).hexdigest()
     return payload, f"t=1000,v1={digest}"
+
+
+@pytest.mark.parametrize("requested,price,expected", [("phone", "price_phone", "phone"), ("phone", "price_discord", "discord"), ("phone", "unknown", "")])
+async def test_webhook_plan_is_reconciled_from_current_price(monkeypatch, requested, price, expected):
+    from core import config
+    from core.channel_access import channel_allowed
+
+    monkeypatch.setattr(config, "STRIPE_DISCORD_PRICE_ID", "price_discord")
+    monkeypatch.setattr(config, "STRIPE_PHONE_PRICE_ID", "price_phone")
+    accounts, billing = Accounts(), Billing()
+    billing.subscriptions["sub_1"].update({
+        "metadata": {"mhm_user_id": "trial-user", "mhm_plan": requested},
+        "items": {"data": [{"price": {"id": price}, "quantity": 1}]},
+    })
+    app = create_web_app(accounts=accounts, billing=billing, mailer=lambda *_: None, origin=ORIGIN, proxy_secret="")
+    async with web_client(app) as client:
+        body, signature = signed_payload({"id": "evt_plan", "type": "customer.subscription.updated",
+                                          "data": {"object": {"id": "sub_1", "metadata": {"mhm_plan": "phone"}}}})
+        response = await client.post("/api/billing/webhook", data=body,
+                                    headers={"Content-Type": "application/json", "Stripe-Signature": signature})
+        assert response.status == 200
+        account = accounts.users["trial-user"]
+        assert account["subscription_plan"] == expected
+        assert account["stripe_price_id"] == price
+        assert channel_allowed(account, "sms") is (expected == "phone")
+
+
+@pytest.mark.parametrize("plan", ["discord", "phone"])
+async def test_checkout_accepts_only_the_named_server_plan(plan):
+    accounts, billing = Accounts(), Billing()
+    context, client = await signed_in_client(accounts, billing)
+    try:
+        response = await client.post("/api/billing/checkout", json={"plan": plan}, headers={"Origin": ORIGIN})
+        assert response.status == 200
+        assert billing.checkout is not None
+        assert billing.checkout["plan"] == plan
+        for payload in [{}, {"plan": "free"}, {"plan": []}, {"plan": plan, "price": "cheap"}]:
+            assert (await client.post("/api/billing/checkout", json=payload, headers={"Origin": ORIGIN})).status == 400
+    finally:
+        await context.__aexit__(None, None, None)
+
+
+async def test_public_test_mode_checkout_is_disabled(monkeypatch):
+    from core.web_account_service import WebGateway
+
+    accounts, billing = Accounts(), Billing()
+    billing.test_mode = True
+    async def authenticated(_self, _request):
+        return "trial-user", accounts.users["trial-user"]
+    monkeypatch.setattr(WebGateway, "authenticated_account", authenticated)
+    app = create_web_app(accounts=accounts, billing=billing, mailer=lambda *_: None,
+                         origin="https://mhm.example", proxy_secret="s" * 32)
+    async with web_client(app) as client:
+        response = await client.post("/api/billing/checkout", json={"plan": "phone"},
+                                     headers={"Origin": "https://mhm.example", "X-MHM-Proxy-Secret": "s" * 32})
+        assert response.status == 503
+        assert billing.checkout is None
 
 
 async def test_signed_webhooks_reconcile_current_state_and_ignore_replays():

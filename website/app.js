@@ -23,9 +23,17 @@ function renderBilling(billing) {
   const subscribe = document.getElementById('start-subscription');
   const manage = document.getElementById('manage-billing');
   if (!message || !subscribe || !manage || !billing) return;
+  const modeHint = document.getElementById('billing-test-mode');
+  if (modeHint) modeHint.hidden = !billing.test_mode;
   subscribe.hidden = true;
   manage.hidden = true;
   const days = Number(billing.trial_days_remaining || 0);
+  const planChoice = document.getElementById('billing-plan');
+  if (planChoice && billing.subscription_exists && ['trialing', 'active', 'past_due'].includes(billing.status)) {
+    planChoice.value = billing.plan || 'discord';
+    planChoice.disabled = true;
+  }
+
   if (billing.status === 'comped') {
     message.textContent = 'Your account has complimentary access.';
   } else if (billing.status === 'trialing') {
@@ -35,7 +43,9 @@ function renderBilling(billing) {
     if (billing.subscription_exists || billing.customer_exists) manage.hidden = false;
     else if (billing.checkout_available) subscribe.hidden = false;
   } else if (billing.status === 'active') {
-    message.textContent = 'Your monthly MHM subscription is active.';
+    message.textContent = billing.plan === 'phone' ? 'Your Discord + SMS plan is active ($20 CAD/month).'
+      : billing.plan === 'discord' ? 'Your Discord plan is active ($10 CAD/month).'
+      : 'Your existing MHM subscription is active. Manage billing to review its price.';
     manage.hidden = !billing.customer_exists;
   } else if (billing.status === 'past_due') {
     message.textContent = billing.access_active
@@ -59,7 +69,7 @@ async function openBilling(endpoint, button) {
   try {
     const response = await fetch(endpoint, {
       method: 'POST', credentials: 'same-origin', cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' }, body: '{}',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(endpoint === '/api/billing/checkout' ? {plan: document.getElementById('billing-plan')?.value || 'discord'} : {}),
     }).catch(() => { throw new Error('MHM could not open secure billing. Your current access remains available. Check your connection, then try opening billing again.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }

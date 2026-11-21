@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-19 02:22:22
+> **Last Generated**: 2026-11-21 16:04:36
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -15,17 +15,17 @@
 ## Overview
 
 ### **Function Documentation Coverage: 89.6% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 322
-- **Functions Found**: 3305
-- **Methods Found**: 1692
+- **Files Scanned**: 325
+- **Functions Found**: 3328
+- **Methods Found**: 1705
 - **Classes Found**: 298
-- **Total Items**: 4997
-- **Functions Documented**: 2957
-- **Methods Documented**: 1518
+- **Total Items**: 5033
+- **Functions Documented**: 2980
+- **Methods Documented**: 1531
 - **Classes Documented**: 228
-- **Total Documented**: 4475
+- **Total Documented**: 4511
 - **Template-Generated**: 74
-- **Last Updated**: 2026-11-19
+- **Last Updated**: 2026-11-21
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (692)
+### **Core System Functions** (705)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (934)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (563)
+### **User Interface Functions** (567)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (29)
@@ -2834,17 +2834,17 @@ Never expose this entry point as an unauthenticated network endpoint.
 **Functions:**
 - [OK] `__init__(self, bot)` - Validate owner consent and pilot settings before creating the provider client.
 - [OK] `_send(self, recipient, message)` - Submit once, distinguishing provider rejection from uncertain acceptance.
-- [OK] `allowed(self, number)` - Confirm that this recipient still belongs to the configured consenting pilot.
+- [OK] `allowed(self, number)` - Confirm a verified recipient still belongs to an eligible paid account.
 - [OK] `process(self, path, params, signature)` - Validate the fixed public URL; never trust forwarded/Host headers.
-- [OK] `route(self, text)` - Route an explicit command or an unambiguous short reply through shared handlers.
+- [OK] `route(self, text, user_id, number)` - Route an explicit command or an unambiguous short reply through shared handlers.
 - [OK] `send(self, recipient, message)` - Serialize one submission and preserve uncertain outcomes without automatic retry.
 **Classes:**
 - [OK] `TwilioTransport` - Own provider boundaries; keep task/check-in mutations in shared handlers.
   - [OK] `TwilioTransport.__init__(self, bot)` - Validate owner consent and pilot settings before creating the provider client.
   - [OK] `TwilioTransport._send(self, recipient, message)` - Submit once, distinguishing provider rejection from uncertain acceptance.
-  - [OK] `TwilioTransport.allowed(self, number)` - Confirm that this recipient still belongs to the configured consenting pilot.
+  - [OK] `TwilioTransport.allowed(self, number)` - Confirm a verified recipient still belongs to an eligible paid account.
   - [OK] `TwilioTransport.process(self, path, params, signature)` - Validate the fixed public URL; never trust forwarded/Host headers.
-  - [OK] `TwilioTransport.route(self, text)` - Route an explicit command or an unambiguous short reply through shared handlers.
+  - [OK] `TwilioTransport.route(self, text, user_id, number)` - Route an explicit command or an unambiguous short reply through shared handlers.
   - [OK] `TwilioTransport.send(self, recipient, message)` - Serialize one submission and preserve uncertain outcomes without automatic retry.
 
 #### `communication/communication_channels/website/__init__.py`
@@ -4100,7 +4100,7 @@ This is separate from production data cleanup.
 - [MISSING] `_post(self, path, fields)` - No description
 - [OK] `account_billing_summary(account)` - Build the non-sensitive billing view returned to the signed-in website.
 - [OK] `billing_status(account)` - Return a safe local status; accounts without one retain complimentary access.
-- [OK] `checkout_configured(self)` - Return whether Checkout has both required Stripe identifiers.
+- [OK] `checkout_configured(self, plan)` - Return whether Checkout has both required Stripe identifiers.
 - [OK] `create_checkout_session(self)` - Create one hosted monthly-subscription Checkout Session.
 - [OK] `create_portal_session(self)` - Create a short-lived Stripe Customer Portal session.
 - [OK] `from_config(cls)` - Build a Stripe client from the configured secret values.
@@ -4108,6 +4108,8 @@ This is separate from production data cleanup.
 - [OK] `local_status_for_stripe(status)` - Map Stripe's richer subscription lifecycle to MHM's access states.
 - [OK] `new_account_billing(created_at)` - Return the explicit 30-day billing state for a new account.
 - [OK] `retrieve_subscription(self, subscription_id)` - Return Stripe's current Subscription state for entitlement reconciliation.
+- [OK] `subscription_price_plan(subscription)` - Grant a tier only from the reconciled subscription's configured Stripe price.
+- [OK] `test_mode(self)` - Expose mode without exposing the Stripe secret.
 - [OK] `verify_webhook(self, payload, signature_header)` - Verify Stripe's signed raw body and return its snapshot event.
 **Classes:**
 - [OK] `StripeAPIError` - Raised when Stripe cannot create a hosted billing session.
@@ -4115,11 +4117,12 @@ This is separate from production data cleanup.
   - [OK] `StripeBillingClient.__init__(self)` - Special Python method
   - [OK] `StripeBillingClient._get(self, path)` - Read one Stripe object through the authenticated API boundary.
   - [MISSING] `StripeBillingClient._post(self, path, fields)` - No description
-  - [OK] `StripeBillingClient.checkout_configured(self)` - Return whether Checkout has both required Stripe identifiers.
+  - [OK] `StripeBillingClient.checkout_configured(self, plan)` - Return whether Checkout has both required Stripe identifiers.
   - [OK] `StripeBillingClient.create_checkout_session(self)` - Create one hosted monthly-subscription Checkout Session.
   - [OK] `StripeBillingClient.create_portal_session(self)` - Create a short-lived Stripe Customer Portal session.
   - [OK] `StripeBillingClient.from_config(cls)` - Build a Stripe client from the configured secret values.
   - [OK] `StripeBillingClient.retrieve_subscription(self, subscription_id)` - Return Stripe's current Subscription state for entitlement reconciliation.
+  - [OK] `StripeBillingClient.test_mode(self)` - Expose mode without exposing the Stripe secret.
   - [OK] `StripeBillingClient.verify_webhook(self, payload, signature_header)` - Verify Stripe's signed raw body and return its snapshot event.
 - [OK] `StripeWebhookError` - Raised when a webhook payload is invalid or unauthenticated.
 
@@ -4127,6 +4130,11 @@ This is separate from production data cleanup.
 **Functions:**
 - [OK] `pending_billing_notice(account)` - Return the next unsent billing notice identity and customer-facing text.
 - [OK] `process_billing_notices(delivery)` - Deliver and persist each account's next one-time billing notice.
+
+#### `core/channel_access.py`
+**Functions:**
+- [OK] `channel_allowed(account, channel)` - Trials use Discord; SMS requires an active paid subscription.
+- [OK] `delivery_channel_allowed(user_id, channel)` - Apply account rules to both synchronous and asynchronous send entry points.
 
 #### `core/chat_interactions_document.py`
 **Functions:**
@@ -5574,6 +5582,13 @@ IMPORTANT:
 - Uses monotonic time (safe for measuring intervals).
 - Does NOT update last_run when returning False.
 
+#### `core/sms_enrollment.py`
+**Functions:**
+- [OK] `begin_sms_enrollment(phone, consent, owner)` - Prepare a code the owner must text from the requested number.
+- [OK] `connect_sms(user_id, phone, token, consent, owner)` - Save a verified phone and consent without changing the preferred channel.
+- [OK] `sms_available()` - Report whether the operator configured live SMS.
+- [OK] `sms_user_for_phone(phone, require_paid)` - Recheck account state and saved phone on every outbound or inbound operation.
+
 #### `core/tags.py`
 **Functions:**
 - [OK] `_load_default_tags_from_resources()` - Load default tags from resources/default_tags.json.
@@ -5762,7 +5777,9 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `_feature_enabled(features, key)` - True when a support feature is stored as enabled.
 - [OK] `_fetch_discord_identity(code)` - Exchange a Discord OAuth code and return the verified user identity.
 - [OK] `_fetch_oauth_identity(provider, code)` - Exchange an authorization code and read a verified provider identity.
+- [OK] `_oauth_create_account(self, provider, identity, pending)` - Recheck identity ownership and create an account while the caller holds the link lock.
 - [OK] `_oauth_email_verified(provider, identity)` - Return whether this provider identity includes an email MHM can trust.
+- [OK] `_oauth_link_session(self, pending)` - Resolve a still-active browser session before connecting an identity.
 - [OK] `_password_hash(password)` - Hash a password with scrypt and a per-password random salt.
 - [OK] `_password_matches(password, encoded)` - Verify an MHM scrypt hash without exposing parsing failures.
 - [OK] `_reconciled_billing_update(self, current, subscription)` - Map Stripe's current Subscription object to one idempotent local patch.
@@ -5850,6 +5867,8 @@ its methods as routes.
   - [OK] `WebGateway.__init__(self, accounts, test_mailer, mailer, origin, proxy_secret, clock, local, challenges, sessions, limits, verification_lock, settings_lock, health_lock, discord_link_lock, oauth_link_lock, billing_lock, discord_states, oauth_states, health_connecting, discord_identity, oauth_identity, billing)` - Remember the account store and in-memory session state for this process.
   - [OK] `WebGateway._billing_subscription_id(self, event_type, payload)` - Return the Subscription identifier carried by a supported snapshot event.
   - [OK] `WebGateway._billing_target(self, event_type, payload, subscription)` - Resolve a signed Stripe event to exactly one canonical MHM account.
+  - [OK] `WebGateway._oauth_create_account(self, provider, identity, pending)` - Recheck identity ownership and create an account while the caller holds the link lock.
+  - [OK] `WebGateway._oauth_link_session(self, pending)` - Resolve a still-active browser session before connecting an identity.
   - [OK] `WebGateway._reconciled_billing_update(self, current, subscription)` - Map Stripe's current Subscription object to one idempotent local patch.
   - [OK] `WebGateway.account(self, request)` - Return the signed-in account summary used by website pages.
   - [OK] `WebGateway.account_connections(self, request)` - Disconnect one optional sign-in or communication provider.
@@ -5988,6 +6007,11 @@ its methods as routes.
   - [OK] `WebSettingsRoutes.insights(self, request)` - Return authenticated wellness, habit, and check-in analytics.
   - [OK] `WebSettingsRoutes.settings(self, request)` - Read or atomically save one allowlisted self-service settings section.
 
+#### `core/web_sms.py`
+**Functions:**
+- [OK] `enrollment(request)` - Create a connection proof or consume it after signed phone verification.
+- [OK] `register_sms_routes(app, gateway)` - Keep connection proofs scoped to the authenticated account.
+
 #### `core/web_tasks.py`
 **Functions:**
 - [OK] `__init__(self, gateway)` - Keep the shared gateway services used by task endpoints.
@@ -6053,11 +6077,12 @@ its methods as routes.
 - [OK] `_editable_custom_questions(checkin_settings)` - Return browser-editable custom question definitions from saved preferences.
 - [OK] `_legal_question_counts(always, sometimes, total_enabled, minimum, maximum)` - Return question counts that include every Always question and can vary.
 - [OK] `_schedule_categories_to_reschedule(user_id, updates)` - Return schedule categories whose saved windows differ from disk.
+- [OK] `_validated_reminder_schedule(category, periods, enabled, previous)` - Validate one category and preserve its saved metadata and reserved window.
 - [OK] `build_settings_updates(documents, options, section, values)` - Validate all input before producing updates; preserve unrelated saved fields.
 - [OK] `flag(key)` - Apply a validated website feature flag to the account document.
 - [OK] `periods(category)` - Return editable named periods for one schedule category.
 - [OK] `remember_setup_complete(account)` - Mark one in-memory account document as finished with first-run setup.
-- [OK] `save_periods(category, periods)` - Validate and stage named reminder windows for one category.
+- [OK] `save_periods(category, periods)` - Stage a validated schedule without changing the original documents.
 - [OK] `save_settings(user_id, updates)` - Persist validated settings and refresh dependent caches and defaults.
 - [OK] `settings_options(user_id)` - Return the time zones, message categories, and check-in choices for a user.
 - [OK] `settings_snapshot(documents, options)` - Build browser-safe settings sections and optimistic-lock revisions.
@@ -6973,28 +6998,40 @@ for tests and callers that isolate a specific file.
 **Functions:**
 - [OK] `__init__(self, path)` - Open the SMS state database and create its receipt tables.
 - [OK] `add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
+- [OK] `begin_enrollment(self, phone, owner)` - Issue a short-lived random connection secret without sending an SMS.
+- [OK] `bind_enrollment(self, user_id, phone, token, owner)` - Atomically consume a proof and bind one phone to one consenting account.
 - [OK] `claim(self, sid)` - Atomically claim an inbound ID; return false when it was already claimed.
 - [OK] `clear_context(self, phone, kind, task_id)` - Remove only the prompt context whose completion was confirmed.
 - [OK] `connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
 - [OK] `contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
+- [OK] `disconnect_enrollment(self, user_id)` - Revoke account enrollment while retaining phone opt-out and receipt history.
+- [OK] `enrolled_user(self, phone)` - Return the consenting account bound to a verified number.
+- [OK] `enrollment_verified(self, phone, token, owner)` - Check a phone-bound proof without consuming it.
 - [OK] `finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
 - [OK] `record_outbound(self, sid, status, error)` - Record provider acceptance without overwriting an earlier status callback.
 - [OK] `set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
 - [OK] `stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
 - [OK] `update_status(self, sid, status, error)` - Apply a known delivery state without regressing a terminal status.
+- [OK] `verify_enrollment(self, phone, token)` - Accept proof only from a signature-validated incoming phone number.
 **Classes:**
 - [OK] `SmsState` - Durable claim-before-mutation receipts; a crash never replays a command.
   - [OK] `SmsState.__init__(self, path)` - Open the SMS state database and create its receipt tables.
   - [OK] `SmsState.add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
+  - [OK] `SmsState.begin_enrollment(self, phone, owner)` - Issue a short-lived random connection secret without sending an SMS.
+  - [OK] `SmsState.bind_enrollment(self, user_id, phone, token, owner)` - Atomically consume a proof and bind one phone to one consenting account.
   - [OK] `SmsState.claim(self, sid)` - Atomically claim an inbound ID; return false when it was already claimed.
   - [OK] `SmsState.clear_context(self, phone, kind, task_id)` - Remove only the prompt context whose completion was confirmed.
   - [OK] `SmsState.connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
   - [OK] `SmsState.contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
+  - [OK] `SmsState.disconnect_enrollment(self, user_id)` - Revoke account enrollment while retaining phone opt-out and receipt history.
+  - [OK] `SmsState.enrolled_user(self, phone)` - Return the consenting account bound to a verified number.
+  - [OK] `SmsState.enrollment_verified(self, phone, token, owner)` - Check a phone-bound proof without consuming it.
   - [OK] `SmsState.finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
   - [OK] `SmsState.record_outbound(self, sid, status, error)` - Record provider acceptance without overwriting an earlier status callback.
   - [OK] `SmsState.set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
   - [OK] `SmsState.stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
   - [OK] `SmsState.update_status(self, sid, status, error)` - Apply a known delivery state without regressing a terminal status.
+  - [OK] `SmsState.verify_enrollment(self, phone, token)` - Accept proof only from a signature-validated incoming phone number.
 
 #### `storage/user_data_backup.py`
 **Functions:**
@@ -8641,7 +8678,7 @@ Returns:
 - [OK] `on_user_selected(self, user_display, parent_window)` - Handle user combo selection and return the selected user id.
 - [OK] `populate_active_users(self)` - Populate user combo box from active user metadata.
 - [OK] `refresh_user_list(self, parent_window)` - Refresh the user combo box while preserving selection when possible.
-- [OK] `refresh_user_list_fallback(self, parent_window, original_error)` - Fallback user list refresh using minimal account/context reads.
+- [OK] `refresh_user_list_fallback(self, parent_window)` - Fallback user list refresh using minimal account/context reads.
 - [OK] `reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
 - [OK] `reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
 **Classes:**
@@ -8655,7 +8692,7 @@ Returns:
   - [OK] `UserSelectionController.on_user_selected(self, user_display, parent_window)` - Handle user combo selection and return the selected user id.
   - [OK] `UserSelectionController.populate_active_users(self)` - Populate user combo box from active user metadata.
   - [OK] `UserSelectionController.refresh_user_list(self, parent_window)` - Refresh the user combo box while preserving selection when possible.
-  - [OK] `UserSelectionController.refresh_user_list_fallback(self, parent_window, original_error)` - Fallback user list refresh using minimal account/context reads.
+  - [OK] `UserSelectionController.refresh_user_list_fallback(self, parent_window)` - Fallback user list refresh using minimal account/context reads.
   - [OK] `UserSelectionController.reselect_user_if_present(self, current_user_id)` - Reselect prior active user if still present in combo list.
   - [OK] `UserSelectionController.reset_user_combo_box(self)` - Clear user combo and add placeholder entry.
 
@@ -8685,13 +8722,17 @@ timezone to America/Regina.
 
 Args:
     parent: Parent widget (optional)
+- [OK] `_begin_sms(self)` - Show a phone ownership challenge without sending a paid text.
+- [OK] `_disconnect_sms(self)` - Revoke SMS consent without deleting opt-out or delivery history.
+- [OK] `_verify_sms(self)` - Show whether the signed incoming text proved ownership.
 - [OK] `get_all_contact_info(self)` - Get all contact info fields from the widget.
 - [MISSING] `get_selected_channel(self)` - No description
 - [OK] `get_timezone(self)` - Get the selected timezone.
 - [OK] `populate_timezones(self)` - Populate the timezone combo box with options.
-- [MISSING] `set_contact_info(self, email, discord_id, timezone)` - No description
+- [MISSING] `set_contact_info(self, email, discord_id, timezone, phone)` - No description
 - [MISSING] `set_selected_channel(self, channel, value)` - No description
 - [OK] `set_timezone(self, timezone)` - Set the timezone.
+- [OK] `sms_selection_valid(self)` - Require an existing enrollment or a new phone-bound proof and explicit consent.
 **Classes:**
 - [MISSING] `ChannelSelectionWidget` - No description
   - [OK] `ChannelSelectionWidget.__init__(self, parent)` - Initialize the ChannelSelectionWidget.
@@ -8702,13 +8743,17 @@ timezone to America/Regina.
 
 Args:
     parent: Parent widget (optional)
+  - [OK] `ChannelSelectionWidget._begin_sms(self)` - Show a phone ownership challenge without sending a paid text.
+  - [OK] `ChannelSelectionWidget._disconnect_sms(self)` - Revoke SMS consent without deleting opt-out or delivery history.
+  - [OK] `ChannelSelectionWidget._verify_sms(self)` - Show whether the signed incoming text proved ownership.
   - [OK] `ChannelSelectionWidget.get_all_contact_info(self)` - Get all contact info fields from the widget.
   - [MISSING] `ChannelSelectionWidget.get_selected_channel(self)` - No description
   - [OK] `ChannelSelectionWidget.get_timezone(self)` - Get the selected timezone.
   - [OK] `ChannelSelectionWidget.populate_timezones(self)` - Populate the timezone combo box with options.
-  - [MISSING] `ChannelSelectionWidget.set_contact_info(self, email, discord_id, timezone)` - No description
+  - [MISSING] `ChannelSelectionWidget.set_contact_info(self, email, discord_id, timezone, phone)` - No description
   - [MISSING] `ChannelSelectionWidget.set_selected_channel(self, channel, value)` - No description
   - [OK] `ChannelSelectionWidget.set_timezone(self, timezone)` - Set the timezone.
+  - [OK] `ChannelSelectionWidget.sms_selection_valid(self)` - Require an existing enrollment or a new phone-bound proof and explicit consent.
 
 #### `ui/widgets/checkin_settings_widget.py`
 **Functions:**

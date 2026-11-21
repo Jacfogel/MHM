@@ -77,6 +77,8 @@ def _format_rounded_sleep_hours(hours: Any) -> str:
     return f"{text} hours of sleep"
 
 
+# devtools: intentional[duplicate-functions]: health-unit-rounding
+# Steps and active minutes use different rounding units, thresholds, and display formats.
 @handle_errors("formatting rounded steps", default_return="")
 def _format_rounded_steps(steps: Any) -> str:
     """Return '2,400 steps' or empty when unavailable."""
@@ -89,6 +91,8 @@ def _format_rounded_steps(steps: Any) -> str:
     return f"{rounded:,} steps"
 
 
+# devtools: intentional[duplicate-functions]: health-unit-rounding
+# Steps and active minutes use different rounding units, thresholds, and display formats.
 @handle_errors("formatting rounded active minutes", default_return="")
 def _format_rounded_active_minutes(active_minutes: Any) -> str:
     """Return '45 active minutes' or empty when unavailable."""

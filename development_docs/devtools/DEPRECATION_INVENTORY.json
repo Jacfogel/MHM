@@ -77,7 +77,30 @@
       "status": "active_bridge",
       "search_terms": [],
       "exit_criteria": "Portability acceptance criteria met; root .ruff.toml deprecated or documented.",
-      "notes": "2026-03-28: search_terms emptied while bridge remains — LEGACY_REFERENCE_REPORT uses inventory metadata only for this entry; grep-style hits duplicated module docstrings/CLI help and implied remediation work when none is required (V5 Phase 1). Re-add discrete terms only if a second mirror implementation must be detected. Bridge module: development_tools/config/sync_ruff_toml.py. Prior: 2026-03-26 phrase-only terms; 2026-03-27 logger migration."
+      "notes": "2026-03-28: search_terms emptied while bridge remains \u2014 LEGACY_REFERENCE_REPORT uses inventory metadata only for this entry; grep-style hits duplicated module docstrings/CLI help and implied remediation work when none is required (V5 Phase 1). Re-add discrete terms only if a second mirror implementation must be detected. Bridge module: development_tools/config/sync_ruff_toml.py. Prior: 2026-03-26 phrase-only terms; 2026-03-27 logger migration."
+    },
+    {
+      "id": "sms_global_pilot_allowlist",
+      "removed_at": "2026-11-20",
+      "status": "removed",
+      "search_terms": [
+        "SMS_PILOT_USER_ID",
+        "SMS_PILOT_PHONE_NUMBER",
+        "SMS_PILOT_CONSENT"
+      ],
+      "replacement": "Verified per-account SMS enrollment in storage/sms_state.py and core/sms_enrollment.py",
+      "note": "Retired global one-person configuration. Migrated the explicitly approved active pilot phone and consent to enrollment storage; paid-plan eligibility remains independent. No compatibility fallback."
+    },
+    {
+      "id": "stripe_single_monthly_price",
+      "removed_at": "2026-11-20",
+      "status": "removed",
+      "search_terms": [
+        "STRIPE_PRICE_ID",
+        "StripeBillingClient.price_id"
+      ],
+      "replacement": "STRIPE_DISCORD_PRICE_ID, STRIPE_PHONE_PRICE_ID, and STRIPE_PORTAL_CONFIGURATION_ID",
+      "note": "Replaced the single checkout price and constructor argument with named CAD tiers. Current callers/tests/configuration migrated. Existing external Stripe prices and subscriptions were not repriced."
     }
   ],
   "removed_inventory": [
@@ -510,17 +533,17 @@
     {
       "id": "legacy_flat_tool_json_and_unscoped_aggregate_read_bridges",
       "removed_at": "2026-04-06",
-      "note": "Removed read fallbacks: flat development_tools/<domain>/jsons/*_results.json and dot-caches; unscoped analysis_detailed_results.json and reports/jsons/tool_timings.json loads in orchestration/timings. Loaders use jsons/scopes/** and reports/scopes/** only (V5 §7.16). legacy_flat_jsons_dir() retained for cleanup; --clear-cache still deletes orphan unscoped files."
+      "note": "Removed read fallbacks: flat development_tools/<domain>/jsons/*_results.json and dot-caches; unscoped analysis_detailed_results.json and reports/jsons/tool_timings.json loads in orchestration/timings. Loaders use jsons/scopes/** and reports/scopes/** only (V5 \u00a77.16). legacy_flat_jsons_dir() retained for cleanup; --clear-cache still deletes orphan unscoped files."
     },
     {
       "id": "scripts_flaky_detector_path",
       "removed_at": "2026-04-09",
-      "note": "Historical scripts/flaky_detector.py path retired after migration to tracked development_tools/tests/flaky_detector.py and CLI command flaky-detector (V5 §3.12)."
+      "note": "Historical scripts/flaky_detector.py path retired after migration to tracked development_tools/tests/flaky_detector.py and CLI command flaky-detector (V5 \u00a73.12)."
     },
     {
       "id": "scripts_verify_process_cleanup_path",
       "removed_at": "2026-04-09",
-      "note": "Historical scripts/testing/verify_process_cleanup.py path retired after migration to tracked development_tools/tests/verify_process_cleanup.py and CLI command verify-process-cleanup (V5 §3.13)."
+      "note": "Historical scripts/testing/verify_process_cleanup.py path retired after migration to tracked development_tools/tests/verify_process_cleanup.py and CLI command verify-process-cleanup (V5 \u00a73.13)."
     },
     {
       "id": "scripts_cleanup_project_path",
@@ -555,7 +578,7 @@
     {
       "id": "scripts_user_data_migration_module",
       "removed_at": "2026-04-30",
-      "note": "Removed scripts/user_data_migration.py (migrate_user_data_root, per-domain migrate_* helpers). v1→v2 transforms are no longer shipped; use backups and core.user_data_v2_envelopes.validate_v2_document. 2026-05-01: scripts/migrate_user_data_v2.py stub also deleted. 2026-05-01: redundant FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT pre-scan removed; validate_v2_document uses Pydantic extra=forbid only."
+      "note": "Removed scripts/user_data_migration.py (migrate_user_data_root, per-domain migrate_* helpers). v1\u2192v2 transforms are no longer shipped; use backups and core.user_data_v2_envelopes.validate_v2_document. 2026-05-01: scripts/migrate_user_data_v2.py stub also deleted. 2026-05-01: redundant FORBIDDEN_V1_FIELD_NAMES_BY_DOCUMENT pre-scan removed; validate_v2_document uses Pydantic extra=forbid only."
     },
     {
       "id": "schemas_validate_messages_file_dict",
@@ -575,7 +598,7 @@
     {
       "id": "scripts_repair_checkins_offline",
       "removed_at": "2026-05-01",
-      "note": "scripts/repair_checkins_offline.py deleted. Bad checkins.json: restore from backup or hand-edit to v2 + validate_v2_document + save_json_data (USER_DATA_MODEL.md §2.7). 2026-05-01: normalize_checkins_envelope_for_repair removed from core (no shipped repair path)."
+      "note": "scripts/repair_checkins_offline.py deleted. Bad checkins.json: restore from backup or hand-edit to v2 + validate_v2_document + save_json_data (USER_DATA_MODEL.md \u00a72.7). 2026-05-01: normalize_checkins_envelope_for_repair removed from core (no shipped repair path)."
     },
     {
       "id": "response_tracking_normalize_checkins_envelope_for_repair",
@@ -767,7 +790,9 @@
       "id": "user_list_fallback_original_error_argument",
       "removed_at": "2026-11-19",
       "status": "removed",
-      "search_terms": ["refresh_user_list_fallback original_error"],
+      "search_terms": [
+        "refresh_user_list_fallback original_error"
+      ],
       "replacement": "refresh_user_list_fallback(parent_window)",
       "note": "Removed the unused original exception argument after moving technical details out of the user-facing failure. Updated the caller and tests; Vulture confirmed the unused argument."
     }

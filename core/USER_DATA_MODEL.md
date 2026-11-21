@@ -316,3 +316,15 @@ AI-related components are expected to:
 AI components must not assume exclusive access to user files and must tolerate concurrent updates.
 
 ---
+
+## 10. SMS account enrollment
+
+`BASE_DATA_DIR/sms_state.sqlite3` stores phone-to-account enrollment, verification
+and consent timestamps, hashed expiring connection challenges, opt-outs, receipts,
+and prompt references through `storage/sms_state.py`. One phone maps to one account
+and one account maps to one phone. The account document retains its canonical
+`phone`; every send rechecks that it matches the enrollment and that the account
+has an active paid `phone` subscription plan. The account also stores `stripe_price_id` from the reconciled subscription; `subscription_plan` is empty, `discord`, or `phone`. The reconciled `billing_livemode` flag must also be true for live SMS access. Disconnecting removes the enrollment and its prompt
+contexts but retains opt-out and delivery history. Expired challenges are removed
+when a new challenge is issued. Raw connection secrets and message bodies are not
+stored in the SMS database. Back up the database with application data.

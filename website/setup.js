@@ -422,13 +422,13 @@
     if (plan[index] === 'discord') {
       connectDiscord.hidden = discordLinked || !discordAvailable;
       discordState.textContent = discordLinked
-        ? 'Discord is connected. MHM can send reminders there. You can switch to email later in Account.'
+        ? 'Discord is connected. MHM can send reminders there. Active paid accounts can also choose email or verified SMS in Account.'
         : discordAvailable
           ? 'Discord is not connected yet.'
-          : 'Discord connection is not available right now, so email will be used.';
+          : settings && settings.trial_account ? 'Discord connection is unavailable. Trial delivery requires Discord; ask your MHM administrator for help.' : 'Discord connection is not available right now.';
     }
     continueButton.textContent = plan[index] === 'discord' && !discordLinked
-      ? 'Use email instead'
+      ? settings && settings.trial_account ? 'Connect Discord to continue' : 'Continue with selected channel'
       : plan[index] === 'billing' ? 'Continue with free trial →'
       : index === plan.length - 1 ? 'Finish →' : 'Continue →';
     skipButton.hidden = !current.skip;
@@ -475,7 +475,11 @@
   }
 
   async function saveDiscordChoice() {
-    await saveDeliveryChannel(account && account.discord_linked ? 'discord' : 'email');
+    if (settings && settings.trial_account && !(account && account.discord_linked)) {
+      throw new Error('Connect Discord to continue with trial delivery.');
+    }
+    const choice = document.getElementById('setup-delivery-channel');
+    await saveDeliveryChannel(choice && choice.value ? choice.value : account && account.discord_linked || settings && settings.trial_account ? 'discord' : 'email');
   }
 
   async function saveYou() {
@@ -594,6 +598,8 @@
 
   function renderBillingStep() {
     const billing = account && account.billing ? account.billing : {};
+    const modeHint = document.getElementById('setup-billing-test-mode');
+    if (modeHint) modeHint.hidden = !billing.test_mode;
     const billingStatus = document.getElementById('setup-billing-status');
     const subscribe = document.getElementById('setup-subscribe');
     const chargeHeading = document.getElementById('setup-billing-charge-heading');
@@ -602,22 +608,22 @@
     const days = Number(billing.trial_days_remaining || 30);
     subscribe.hidden = true;
     chargeHeading.textContent = 'No charge today';
-    chargeDetail.textContent = 'CA$8.99 CAD/month when your free trial ends.';
+    chargeDetail.textContent = 'Your selected monthly plan starts when your free trial ends.';
     chargeHint.textContent = 'Subscribing now securely saves your payment method with Stripe. Your trial continues, and you will not be charged until it ends. You can also continue without subscribing yet.';
     if (billing.status === 'comped') {
       billingStatus.textContent = 'This account has complimentary access, so no subscription is needed.';
       return;
     }
     if (billing.subscription_exists || billing.customer_exists) {
-      billingStatus.textContent = `You are subscribed. Your ${days}-day free trial continues before the first CA$8.99 CAD payment.`;
+      billingStatus.textContent = `You are subscribed. Your ${days}-day free trial continues before the first payment for your selected plan.`;
       return;
     }
     billingStatus.textContent = `Your free trial is active with ${days} day${days === 1 ? '' : 's'} remaining.`;
     subscribe.hidden = !billing.checkout_available;
     if (!billing.checkout_defers_charge) {
       chargeHeading.textContent = 'Billing starts when you subscribe';
-      chargeDetail.textContent = 'CA$8.99 CAD/month begins immediately because fewer than 48 hours remain in your trial.';
-      chargeHint.textContent = 'Stripe securely saves your payment method and charges the first CA$8.99 CAD payment when you confirm. You can also continue without subscribing yet.';
+      chargeDetail.textContent = 'Your selected monthly plan begins immediately because fewer than 48 hours remain in your trial.';
+      chargeHint.textContent = 'Stripe securely saves your payment method and charges the first payment for your selected plan when you confirm. You can also continue without subscribing yet.';
     }
     if (!billing.checkout_available) billingStatus.textContent += ' Secure subscription setup is temporarily unavailable.';
   }
@@ -629,7 +635,7 @@
     showStatus('Opening secure Stripe checkout…');
     try {
       await api('/api/account/setup-complete', 'POST', {});
-      const result = await api('/api/billing/checkout', 'POST', {});
+      const result = await api('/api/billing/checkout', 'POST', {plan: document.getElementById('setup-billing-plan')?.value || 'discord'});
       if (!result.url) throw new Error('Secure billing could not open.');
       location.assign(result.url);
     } catch (error) {
@@ -808,5 +814,12 @@
     });
   }
 
+  const smsSetup = document.getElementById('setup-sms-connection');
+  if (smsSetup && window.MHMSms) window.MHMSms.mount(smsSetup, info => {
+    const choice = document.getElementById('setup-delivery-channel');
+    choice.querySelector('option[value="sms"]').disabled = !(info.eligible && info.connected);
+    choice.querySelector('option[value="email"]').disabled = Boolean(info.trial);
+    if (info.trial) choice.value = 'discord';
+  });
   if (setupContent) loadSetup();
 })();

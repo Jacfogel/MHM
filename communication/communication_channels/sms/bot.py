@@ -49,7 +49,7 @@ class SmsBot(BaseChannel):
                     self.webhook_server.server.server_close()
                     self.webhook_server = None
                 self.transport = None
-                self._set_status(ChannelStatus.ERROR, "SMS could not start. Check Twilio credentials, pilot consent/account phone, HTTPS URL, and local webhook port. Enable exactly one SMS mode.")
+                self._set_status(ChannelStatus.ERROR, "SMS could not start. Check Twilio credentials, the HTTPS URL, and the local webhook port. Enable exactly one SMS mode.")
                 return False
             self._set_status(ChannelStatus.READY)
             return True
@@ -90,6 +90,8 @@ class SmsBot(BaseChannel):
         return True
 
     # error_handling_exclude: pure framework accessor/no-op; no I/O or mutation.
+    # devtools: intentional[duplicate-functions]: push-channel-receive
+    # Push-driven adapters satisfy the channel interface without polling an inbox.
     async def receive_messages(self) -> list[dict[str, Any]]:
         """No external inbox; use simulate_incoming for explicit local input."""
         return []

@@ -417,6 +417,8 @@ class TaskCrudDialog(QDialog):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.refresh_active_tasks()
 
+    # devtools: intentional[duplicate-functions]: task-lifecycle-actions
+    # Completion and restoration use distinct confirmations and task mutations.
     @handle_errors("completing task", user_friendly=True, default_return=None)
     def complete_selected_task(self):
         """Mark the selected task(s) as completed."""
@@ -576,6 +578,8 @@ class TaskCrudDialog(QDialog):
             self.ui.tableWidget_active_tasks, permanent=False
         )
 
+    # devtools: intentional[duplicate-functions]: task-lifecycle-actions
+    # Completion and restoration use distinct confirmations and task mutations.
     @handle_errors("restoring task", user_friendly=True, default_return=None)
     def restore_selected_task(self):
         """Restore selected completed task(s) to active status."""

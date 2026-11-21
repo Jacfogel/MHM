@@ -27,12 +27,16 @@ def live(monkeypatch, tmp_path):
         "SMS_SIMULATION_ENABLED": False, "SMS_TWILIO_ENABLED": True,
         "TWILIO_ACCOUNT_SID": "AC" + "a" * 32, "TWILIO_AUTH_TOKEN": "test-secret",
         "TWILIO_PHONE_NUMBER": SENDER, "SMS_PUBLIC_BASE_URL": "https://sms.example.test",
-        "SMS_PILOT_USER_ID": "pilot-test", "SMS_PILOT_PHONE_NUMBER": PHONE,
-        "SMS_PILOT_CONSENT": True,
     }
     for name, value in settings.items():
         monkeypatch.setattr(config, name, value)
-    monkeypatch.setattr("communication.communication_channels.sms.twilio_transport.get_user_data", lambda *a: {"account": {"phone": PHONE}})
+    monkeypatch.setattr("core.sms_enrollment.get_user_data", lambda *a: {"account": {
+        "phone": PHONE, "account_status": "active", "subscription_status": "active", "subscription_plan": "phone", "billing_livemode": True}})
+    state = SmsState(tmp_path / "sms.sqlite3")
+    token = state.begin_enrollment(PHONE)
+    assert state.verify_enrollment(PHONE, token)
+    assert state.bind_enrollment("pilot-test", PHONE, token)
+    monkeypatch.setattr("core.sms_enrollment.SmsState", lambda: state)
     monkeypatch.setattr("communication.communication_channels.sms.twilio_transport.SmsState", lambda: SmsState(tmp_path / "sms.sqlite3"))
     bot = SmsBot()
     bot.status = ChannelStatus.READY
@@ -143,14 +147,14 @@ def test_ambiguous_or_missing_short_reply_takes_no_action(live, monkeypatch):
     _, transport = live
     route = Mock()
     monkeypatch.setattr("communication.message_processing.email_reply_routing.route_task_reply", route)
-    assert "No action was taken" in transport.route("done")
+    assert "No action was taken" in transport.route("done", "pilot-test", PHONE)
     transport.state.add_context(PHONE, "task_reminder", "task-1")
     transport.state.add_context(PHONE, "checkin")
-    assert "More than one prompt" in transport.route("done")
+    assert "More than one prompt" in transport.route("done", "pilot-test", PHONE)
     route.assert_not_called()
     shared = Mock(return_value=SimpleNamespace(message="Task completed", completed=True))
     monkeypatch.setattr("communication.message_processing.interaction_manager.handle_user_message", shared)
-    assert transport.route("complete task task-1") == "Task completed"
+    assert transport.route("complete task task-1", "pilot-test", PHONE) == "Task completed"
     shared.assert_called_once_with("pilot-test", "complete task task-1", "sms")
 
 
@@ -159,7 +163,7 @@ def test_checkin_replies_use_shared_flow_and_clear_completed_context(live, monke
     transport.state.add_context(PHONE, "checkin")
     answer = Mock(return_value=SimpleNamespace(message="Check-in saved", completed=True))
     monkeypatch.setattr("communication.message_processing.email_reply_routing.route_checkin_reply", answer)
-    assert transport.route("3") == "Check-in saved"
+    assert transport.route("3", "pilot-test", PHONE) == "Check-in saved"
     answer.assert_called_once_with("pilot-test", "3")
     assert transport.state.contexts(PHONE) == []
 
@@ -174,7 +178,7 @@ def test_real_task_completion_through_signed_webhook(live, test_data_dir, monkey
     assert TestUserFactory.create_basic_user("pilot-test", test_data_dir=test_data_dir)
     user_id = TestUserFactory.get_test_user_id_by_label("pilot-test", test_data_dir)
     assert user_id
-    transport.user_id = user_id
+    monkeypatch.setattr("communication.communication_channels.sms.twilio_transport.sms_user_for_phone", lambda number, **kwargs: user_id if number == PHONE else None)
     assert update_user_preferences(user_id, {"channel": {"type": "sms"}}, auto_create=False)
     assert get_user_data(user_id, "preferences")["preferences"]["channel"]["type"] == "sms"
     task_id = create_task(user_id, "SMS test task")
@@ -221,7 +225,7 @@ async def test_live_listener_lifecycle_and_signed_http(live, monkeypatch):
     assert not await bot.health_check()
 
 
-@pytest.mark.parametrize("setting,value", [("SMS_PILOT_CONSENT", False), ("SMS_SIMULATION_ENABLED", True), ("SMS_PUBLIC_BASE_URL", "http://example.test")])
+@pytest.mark.parametrize("setting,value", [("TWILIO_AUTH_TOKEN", ""), ("SMS_SIMULATION_ENABLED", True), ("SMS_PUBLIC_BASE_URL", "http://example.test")])
 def test_live_configuration_fails_closed(live, monkeypatch, setting, value):
     bot, _ = live
     monkeypatch.setattr(config, setting, value)

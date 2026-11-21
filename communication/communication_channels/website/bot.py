@@ -41,6 +41,8 @@ class WebsiteBot(BaseChannel):
         category = kwargs.get("category", "")
         return deliver_to_website(recipient, message, category if isinstance(category, str) else "")
 
+    # devtools: intentional[duplicate-functions]: push-channel-receive
+    # Push-driven adapters satisfy the channel interface without polling an inbox.
     @handle_errors("receiving website messages", default_return=[])
     async def receive_messages(self) -> list[dict[str, Any]]:
         return []

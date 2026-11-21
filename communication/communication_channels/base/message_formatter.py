@@ -23,6 +23,8 @@ class MessageFormatter(ABC):
         """Format a message with optional rich data"""
         pass
 
+    # devtools: intentional[duplicate-functions]: channel-rich-content
+    # Channel-specific formatting and diagnostics implement the abstract formatter contract.
     @abstractmethod
     @handle_errors("creating rich content", default_return=None)
     def create_rich_content(self, message: str, rich_data: dict[str, Any]) -> Any:
@@ -78,6 +80,8 @@ class TextMessageFormatter(MessageFormatter):
             logger.error(f"Error formatting message with rich data: {e}")
             raise DataError(f"Invalid rich data format: {e}") from e
 
+    # devtools: intentional[duplicate-functions]: channel-rich-content
+    # Channel-specific formatting and diagnostics implement the abstract formatter contract.
     @handle_errors("creating rich text content", default_return="")
     def create_rich_content(self, message: str, rich_data: dict[str, Any]) -> str:
         """Create rich text content"""
@@ -152,6 +156,8 @@ class EmailMessageFormatter(MessageFormatter):
             logger.error(f"Error formatting email message with rich data: {e}")
             raise DataError(f"Invalid rich data format for email: {e}") from e
 
+    # devtools: intentional[duplicate-functions]: channel-rich-content
+    # Channel-specific formatting and diagnostics implement the abstract formatter contract.
     @handle_errors("creating rich email content", default_return="")
     def create_rich_content(self, message: str, rich_data: dict[str, Any]) -> str:
         """Create rich email content"""

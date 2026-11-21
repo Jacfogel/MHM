@@ -111,6 +111,19 @@ def test_checkin_defaults_are_two_and_three(documents):
     assert checkins["max_questions"] == 3
 
 
+def test_trial_can_save_timezone_before_linking_discord_but_cannot_select_email(documents):
+    documents["account"]["subscription_status"] = "trialing"
+    documents["preferences"]["channel"] = {"type": "discord"}
+    draft = values(documents, "delivery")
+    draft["timezone"] = "Europe/London"
+    updates = build_settings_updates(documents, OPTIONS, "delivery", draft)
+    assert updates["account"]["timezone"] == "Europe/London"
+    assert updates["preferences"]["channel"]["type"] == "discord"
+    draft["channel"] = "email"
+    with pytest.raises(ValidationError, match="Trial accounts use Discord"):
+        build_settings_updates(documents, OPTIONS, "delivery", draft)
+
+
 def test_support_controls_round_trip_without_changing_other_preferences(documents):
     draft = values(documents, "support")
     assert draft == {

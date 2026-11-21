@@ -31,6 +31,7 @@ from core.billing import (
     StripeWebhookError,
     account_billing_summary,
     local_status_for_stripe,
+    subscription_price_plan,
 )
 from core.error_handling import (
     CommunicationError,
@@ -200,6 +201,9 @@ class MHMAccounts:
         allowed = {
             "trial_ends_at",
             "subscription_status",
+            "subscription_plan",
+            "stripe_price_id",
+            "billing_livemode",
             "stripe_customer_id",
             "stripe_subscription_id",
             "billing_grace_ends_at",
@@ -367,11 +371,11 @@ class MHMAccounts:
         return create_new_user(
             {
                 "email": email,
-                "chat_id": email,
+                "chat_id": "",
                 "timezone": timezone,
                 "preferred_name": preferred_name,
                 "password_hash": password_hash,
-                "channel": {"type": "email"},
+                "channel": {"type": "discord"},
                 "categories": [],
                 "messages_enabled": False,
                 "task_settings": {"enabled": False},
@@ -1197,7 +1201,8 @@ class WebGateway:
                 "tasks_enabled": flags["tasks_enabled"],
                 "checkins_enabled": flags["checkins_enabled"],
                 "billing": account_billing_summary(
-                    current, configured=self.billing.checkout_configured()
+                    current, configured=self.billing.checkout_configured() and (self.local or not self.billing.test_mode),
+                    test_mode=self.billing.test_mode,
                 ),
                 "oauth": {
                     provider: {
@@ -1218,8 +1223,13 @@ class WebGateway:
     async def billing_checkout(self, request):
         """Create a Stripe-hosted monthly subscription Checkout Session."""
         uid, current = await self.authenticated_account(request)
-        await self.body(request)
-        if not self.billing.checkout_configured():
+        data = await self.body(request)
+        if set(data) != {"plan"} or not isinstance(data.get("plan"), str) or data["plan"] not in config.BILLING_PLANS:
+            raise web.HTTPBadRequest(text="Choose the Discord or Discord + SMS plan.")
+        plan = data["plan"]
+        if not self.local and self.billing.test_mode:
+            raise web.HTTPServiceUnavailable(text="Billing is in test mode. Real subscriptions are not available yet; your existing access has not changed.")
+        if not self.billing.checkout_configured(plan):
             raise web.HTTPServiceUnavailable(
                 text="Subscriptions are not configured, so checkout has not started. Your existing access has not changed. Contact your MHM administrator for billing setup."
             )
@@ -1237,6 +1247,7 @@ class WebGateway:
         try:
             session = await self.billing.create_checkout_session(
                 user_id=uid,
+                plan=plan,
                 email=str(current.get("email") or ""),
                 customer_id=str(current.get("stripe_customer_id") or ""),
                 success_url=self.website_redirect("/app.html", billing="success"),
@@ -1265,6 +1276,8 @@ class WebGateway:
     async def billing_portal(self, request):
         """Open Stripe's hosted subscription-management portal."""
         _uid, current = await self.authenticated_account(request)
+        if not self.local and self.billing.test_mode:
+            raise web.HTTPServiceUnavailable(text="Billing is in test mode. Real subscription changes are not available yet.")
         await self.body(request)
         customer_id = str(current.get("stripe_customer_id") or "")
         if not customer_id:
@@ -1360,7 +1373,11 @@ class WebGateway:
     def _reconciled_billing_update(self, current, subscription):
         """Map Stripe's current Subscription object to one idempotent local patch."""
         status = local_status_for_stripe(str(subscription.get("status") or ""))
+        plan, price_id = subscription_price_plan(subscription)
         updates = {
+            "subscription_plan": plan,
+            "stripe_price_id": price_id,
+            "billing_livemode": subscription.get("livemode") is True,
             "stripe_customer_id": str(subscription.get("customer") or "")
             or str(current.get("stripe_customer_id") or ""),
             "stripe_subscription_id": str(subscription.get("id") or "")
@@ -1618,6 +1635,54 @@ class WebGateway:
             {"url": f"{OAUTH_AUTHORIZE_URLS[provider]}?{urlencode(query)}"}
         )
 
+    # ERROR_HANDLING_EXCLUDE: OAuth callback translates failures to safe redirects.
+    async def _oauth_link_session(self, pending):
+        """Resolve a still-active browser session before connecting an identity."""
+        saved_session = self.sessions.get(pending["session_key"])
+        if (
+            not saved_session
+            or saved_session[1] <= self.clock()
+            or saved_session[0] != pending["linked_uid"]
+        ):
+            return None
+        current = await asyncio.to_thread(self.accounts.get, saved_session[0])
+        if (
+            current.get("account_status") != "active"
+            or current.get("email", "").casefold() != saved_session[2]
+        ):
+            return None
+        return saved_session[0], current
+
+    # ERROR_HANDLING_EXCLUDE: OAuth callback translates failures to safe redirects.
+    async def _oauth_create_account(self, provider, identity, pending):
+        """Recheck identity ownership and create an account while the caller holds the link lock."""
+        linked_match = await asyncio.to_thread(
+            self.accounts.by_oauth, provider, identity.subject
+        )
+        if linked_match and linked_match[1].get("account_status") == "active":
+            return linked_match
+        if not await asyncio.to_thread(self.accounts.email_exists, identity.email):
+            uid = await asyncio.to_thread(
+                self.accounts.create,
+                identity.email,
+                identity.display_name.strip()[:100],
+                pending.get("timezone") or "America/Regina",
+                "",
+            )
+            if not uid:
+                raise DataError("OAuth account could not be created")
+            created_account = await asyncio.to_thread(self.accounts.get, uid)
+            result = await asyncio.to_thread(
+                self.accounts.link_oauth,
+                uid,
+                provider,
+                identity.subject,
+            )
+            if result not in {"linked", "already_linked"}:
+                raise DataError("OAuth account could not be linked")
+            return uid, created_account
+        return None
+
     # ERROR_HANDLING_EXCLUDE: OAuth callback intentionally maps all failures to safe redirects.
     async def oauth_callback(self, request):
         """Validate a social callback, link its identity, and start a session."""
@@ -1656,24 +1721,11 @@ class WebGateway:
             )
             target = None
             if pending.get("linked_uid"):
-                saved_session = self.sessions.get(pending["session_key"])
-                if (
-                    not saved_session
-                    or saved_session[1] <= self.clock()
-                    or saved_session[0] != pending["linked_uid"]
-                ):
+                target = await self._oauth_link_session(pending)
+                if target is None:
                     return web.HTTPFound(
                         self.website_redirect("/login.html", social="expired")
                     )
-                current = await asyncio.to_thread(self.accounts.get, saved_session[0])
-                if (
-                    current.get("account_status") != "active"
-                    or current.get("email", "").casefold() != saved_session[2]
-                ):
-                    return web.HTTPFound(
-                        self.website_redirect("/login.html", social="expired")
-                    )
-                target = (saved_session[0], current)
                 if linked_match and linked_match[0] != target[0]:
                     return web.HTTPFound(
                         self.website_redirect("/app.html", social="in-use")
@@ -1692,36 +1744,11 @@ class WebGateway:
             ):
                 async with self.oauth_link_lock:
                     oauth_stage = "account_creation"
-                    linked_match = await asyncio.to_thread(
-                        self.accounts.by_oauth, provider, identity.subject
+                    created_target = await self._oauth_create_account(
+                        provider, identity, pending
                     )
-                    if (
-                        linked_match
-                        and linked_match[1].get("account_status") == "active"
-                    ):
-                        target = linked_match
-                    elif not await asyncio.to_thread(
-                        self.accounts.email_exists, identity.email
-                    ):
-                        uid = await asyncio.to_thread(
-                            self.accounts.create,
-                            identity.email,
-                            identity.display_name.strip()[:100],
-                            pending.get("timezone") or "America/Regina",
-                            "",
-                        )
-                        if not uid:
-                            raise DataError("OAuth account could not be created")
-                        created_account = await asyncio.to_thread(self.accounts.get, uid)
-                        result = await asyncio.to_thread(
-                            self.accounts.link_oauth,
-                            uid,
-                            provider,
-                            identity.subject,
-                        )
-                        if result not in {"linked", "already_linked"}:
-                            raise DataError("OAuth account could not be linked")
-                        target = (uid, created_account)
+                    if created_target:
+                        target = created_target
                         linked_match = target
             if (
                 not target
@@ -1883,7 +1910,7 @@ class WebGateway:
         features = account_data.get("features") or {}
         preferences = documents.get("preferences") or {}
         channel = (preferences.get("channel") or {}).get("type")
-        if channel not in {"email", "discord"}:
+        if channel not in {"email", "discord", "sms"}:
             raise web.HTTPBadRequest(text="Choose a delivery channel in your settings first.")
 
         from core.service_utilities import get_flags_dir
@@ -2061,6 +2088,9 @@ def create_web_app(
     app.router.add_post("/api/billing/checkout", gateway.billing_checkout)
     app.router.add_post("/api/billing/portal", gateway.billing_portal)
     app.router.add_post("/api/billing/webhook", gateway.billing_webhook)
+    from core.web_sms import register_sms_routes
+
+    register_sms_routes(app, gateway)
     register_settings_routes(app, gateway)
     register_health_routes(app, gateway)
 

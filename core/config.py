@@ -43,10 +43,16 @@ WEB_PROXY_SECRET = os.getenv("WEB_PROXY_SECRET", "")
 WEB_GATEWAY_ENABLED = os.getenv("WEB_GATEWAY_ENABLED", "true").lower() in {"1", "true", "yes"}
 WEB_GATEWAY_HOST = os.getenv("WEB_GATEWAY_HOST", "127.0.0.1")
 WEB_GATEWAY_PORT = int(os.getenv("WEB_GATEWAY_PORT", "8080"))
-# Stripe-hosted monthly billing. All three are server-side secrets/configuration;
+# Stripe-hosted monthly tiers. These values stay server-side;
 # only hosted session URLs are returned to the browser.
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
-STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")
+STRIPE_DISCORD_PRICE_ID = os.getenv("STRIPE_DISCORD_PRICE_ID", "")
+STRIPE_PHONE_PRICE_ID = os.getenv("STRIPE_PHONE_PRICE_ID", "")
+STRIPE_PORTAL_CONFIGURATION_ID = os.getenv("STRIPE_PORTAL_CONFIGURATION_ID", "")
+BILLING_PLANS = {
+    "discord": {"name": "Discord", "amount": 1000, "currency": "cad"},
+    "phone": {"name": "Discord + SMS", "amount": 2000, "currency": "cad"},
+}
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 BILLING_GRACE_PERIOD_DAYS = int(os.getenv("BILLING_GRACE_PERIOD_DAYS", "3"))
 # Optional browser sign-in providers. Redirect URIs default to the matching
@@ -359,9 +365,6 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER", "")
 SMS_PUBLIC_BASE_URL = os.getenv("SMS_PUBLIC_BASE_URL", "").rstrip("/")
 SMS_WEBHOOK_PORT = int(os.getenv("SMS_WEBHOOK_PORT", "8082"))
-SMS_PILOT_USER_ID = os.getenv("SMS_PILOT_USER_ID", "")
-SMS_PILOT_PHONE_NUMBER = os.getenv("SMS_PILOT_PHONE_NUMBER", "")
-SMS_PILOT_CONSENT = os.getenv("SMS_PILOT_CONSENT", "false").lower() in ("true", "1", "yes")
 
 
 @handle_errors("getting available channels", default_return=[])

@@ -754,7 +754,7 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
         "America/Regina",
         "$mhm$scrypt$16384$8$1$salt$digest",
     ) == "new-id"
-    assert captured[0]["channel"] == {"type": "email"}
+    assert captured[0]["channel"] == {"type": "discord"}
     assert captured[0]["preferred_name"] == "New User"
     assert "test_label" not in captured[0]
     assert not captured[0]["messages_enabled"]
@@ -861,6 +861,61 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
         assert accounts.users["existing"]["oauth_identities"][provider] == f"{provider}-subject"
         assert calls[0][0:2] == (provider, "oauth-code")
         assert (await client.get("/api/account")).status == 200
+
+
+@pytest.mark.parametrize("change", ["logout", "expiry", "session_expiry", "suspension", "email", "conflict", "none"])
+async def test_social_connection_rechecks_session_and_identity_ownership(monkeypatch, change):
+    """A provider round trip must not bypass session expiry or identity ownership."""
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_REDIRECT_URI", "")
+    accounts, sent, now = Accounts(), [], [100.0]
+
+    async def identity(*_args, **_kwargs):
+        return OAuthIdentity("connecting-subject", "river@example.com", True)
+
+    app = service.create_web_app(
+        accounts=accounts, mailer=lambda _email, code: sent.append(code),
+        origin=ORIGIN, proxy_secret="", oauth_identity=identity, clock=lambda: now[0],
+    )
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        token = (await (await request_code(client)).json())["challenge"]
+        assert (await verify(client, token, sent[-1])).status == 200
+        if change == "session_expiry":
+            now[0] += service.SESSION_TTL - 100
+        url = (await (await client.get("/api/auth/oauth/google/start")).json())["url"]
+        state = parse_qs(urlsplit(url).query)["state"][0]
+        if change == "logout":
+            assert (await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})).status == 200
+        elif change == "expiry":
+            now[0] += service.SESSION_TTL + 1
+        elif change == "session_expiry":
+            now[0] += 101
+        elif change == "suspension":
+            accounts.users["existing"]["account_status"] = "suspended"
+        elif change == "email":
+            accounts.users["existing"]["email"] = "changed@example.com"
+        elif change == "conflict":
+            accounts.users["other"] = {
+                "email": "other@example.com", "account_status": "active",
+                "oauth_identities": {"google": "connecting-subject"},
+            }
+        callback = await client.get(
+            f"/api/auth/oauth/google/callback?code=code&state={state}", allow_redirects=False,
+        )
+        expected = {
+            "none": "/app.html?social=google-connected",
+            "conflict": "/app.html?social=in-use",
+            "expiry": "/login.html?social=cancelled",
+        }.get(change, "/login.html?social=expired")
+        assert callback.headers["Location"].endswith(expected)
+        assert bool(accounts.users["existing"].get("oauth_identities")) is (change == "none")
+        replay = await client.get(
+            f"/api/auth/oauth/google/callback?code=code&state={state}", allow_redirects=False,
+        )
+        assert replay.headers["Location"].endswith("/login.html?social=cancelled")
 
 
 async def test_social_sign_in_failure_logs_stage_without_oauth_secrets(monkeypatch):

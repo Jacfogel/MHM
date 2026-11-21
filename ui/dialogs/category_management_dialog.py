@@ -187,6 +187,8 @@ class CategoryManagementDialog(QDialog):
                 "MHM could not finish saving category settings. Some changes may already be saved. Your selections are still here. Save again; if this continues, ask your administrator to check the error log.",
             )
 
+    # devtools: intentional[duplicate-functions]: category-accessors
+    # Getter returns selections; setter mutates them and propagates failures.
     @handle_errors("getting selected categories", default_return=[])
     def get_selected_categories(self):
         try:
@@ -195,6 +197,8 @@ class CategoryManagementDialog(QDialog):
             logger.error(f"Error getting selected categories: {e}")
             return []
 
+    # devtools: intentional[duplicate-functions]: category-accessors
+    # Getter returns selections; setter mutates them and propagates failures.
     @handle_errors("setting selected categories", default_return=None)
     def set_selected_categories(self, categories):
         try:

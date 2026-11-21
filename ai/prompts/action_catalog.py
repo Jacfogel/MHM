@@ -99,6 +99,8 @@ class AIActionCatalog:
         """Return a catalog action by canonical action name."""
         return self.actions.get(action_name)
 
+    # devtools: intentional[duplicate-functions]: action-prompt-formats
+    # Detailed action metadata and priority-ordered planning names serve different prompt contracts.
     @handle_errors(
         "building AI action prompt summary", default_return="Actions: none available."
     )
@@ -114,6 +116,8 @@ class AIActionCatalog:
             )
         return "Actions: " + "; ".join(parts)
 
+    # devtools: intentional[duplicate-functions]: action-prompt-formats
+    # Detailed action metadata and priority-ordered planning names serve different prompt contracts.
     @handle_errors(
         "building AI action planning prompt summary",
         default_return="none",

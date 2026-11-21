@@ -6,6 +6,12 @@
 
 ## Archived Entries
 
+### 2026-11-16 - Task, schedule, and account recovery **COMPLETED**
+
+- Website and Discord close the snooze interaction after a saved snooze even if the alert fails. Task setup checks saved reminder windows, and partial subtask saves identify the steps that saved.
+- Schedule commands validate windows before saving. Website Settings distinguishes saved changes from failed follow-ups, and website setup lets users retry delivery after Discord connects.
+- Repaired relocated report links, regenerated the function registry, and fixed the stale reminder test assertion. The 118 focused audit tests passed, and `doc-sync` and Pyright reported zero issues.
+
 ### 2026-11-16 - Published tools update and report links **COMPLETED**
 
 - Updated MHM's tools to published revision `74e5284`. MHM keeps its host configuration, and published scans exclude the tools directory.
