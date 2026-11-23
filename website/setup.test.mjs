@@ -47,6 +47,7 @@ async function page({ account = {
   billing: { status: 'trialing', trial_days_remaining: 30, checkout_available: true, checkout_defers_charge: true, customer_exists: false, subscription_exists: false },
 }, userAgent = '', platform = '', maxTouchPoints = 0, search = '', failDeliveryOnce = false } = {}) {
   const nodes = new Map([
+    ...['setup-delivery-channel', 'setup-delivery-summary', 'setup-paid-delivery', 'setup-pay-delivery', 'setup-discord-connection', 'setup-sms-connection', 'setup-whatsapp-connection'].map(id => [id, node()]),
     ['setup-status', node()],
     ['setup-content', node()],
     ['setup-continue', node({ textContent: 'Continue →' })],
@@ -94,7 +95,7 @@ async function page({ account = {
       createElement() { return node(); },
       querySelectorAll() { return []; },
     },
-    window: { dispatchEvent() {} },
+    window: { dispatchEvent() {}, MHMSms: {mount(_parent, callback) {callback({eligible: false, connected: false, available: true});}}, MHMWhatsApp: {mount(_parent, callback) {callback({eligible: false, connected: false, available: true});}} },
     Event,
     URL,
     URLSearchParams,
@@ -296,4 +297,29 @@ test('setup locks the active step while it is being saved', () => {
   assert.match(source, /if \(panel\) setPanelEnabled\(panel, !busy\)/);
   assert.match(source, /setupForm\.setAttribute\('aria-busy', 'true'\)/);
   assert.match(source, /setupForm\.removeAttribute\('aria-busy'\)/);
+});
+
+test('delivery shows only the selected connection and explains automatic email', async () => {
+  const view = await page(); await view.continue();
+  assert.match(view.nodes.get('setup-delivery-summary').textContent, /Automatic delivery: Email/);
+  assert.equal(view.nodes.get('setup-discord-connection').hidden, true);
+  assert.equal(view.nodes.get('setup-sms-connection').hidden, true);
+  const choice = view.nodes.get('setup-delivery-channel');
+  choice.value = 'whatsapp'; choice.listeners.change();
+  assert.equal(view.nodes.get('setup-whatsapp-connection').hidden, false);
+  assert.equal(view.nodes.get('setup-paid-delivery').hidden, false);
+  await view.continue();
+  assert.equal(view.nodes.get('step-discord').hidden, false);
+  assert.match(view.nodes.get('setup-status').textContent, /verify your phone/);
+  await view.nodes.get('setup-pay-delivery').listeners.click();
+  const checkout = view.requests.find(request => request.url === '/api/billing/checkout');
+  assert.deepEqual(JSON.parse(checkout.body), {plan: 'whatsapp', setup_channel: 'whatsapp'});
+  assert.equal(view.requests.some(request => request.url === '/api/account/setup-complete'), false);
+});
+
+test('checkout returns to the selected phone channel', async () => {
+  const view = await page({search: '?setup_channel=sms&billing=success'});
+  assert.equal(view.nodes.get('step-discord').hidden, false);
+  assert.equal(view.nodes.get('setup-delivery-channel').value, 'sms');
+  assert.equal(view.nodes.get('setup-sms-connection').hidden, false);
 });

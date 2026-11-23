@@ -72,7 +72,16 @@ flags as Account settings, so a user with messages, tasks, and check-ins all off
 still gets setup even if the account summary is missing `needs_setup`. Users can still change everything later
 on the signed-in settings page. Account creation completes without
 requiring a communication channel connection. New trial accounts can deliver through
-Email immediately or connect Discord during first-run setup. After
+Email immediately or connect Discord during first-run setup. The Delivery step
+also offers SMS (Discord + SMS, $20 CAD/month) and WhatsApp ($20 CAD/month).
+Selecting a phone channel shows only that connection and offers matching paid
+checkout. This checkout explicitly charges immediately instead of deferring to
+the trial end, then returns to Delivery for phone consent and ownership verification;
+it does not mark setup complete. Access waits for the confirmed live-paid billing
+state. Existing subscribers use Account billing management to change plans.
+Automatic delivery means linked Discord, otherwise Email, and the page names the
+resolved channel before saving. Connection failures show recovery guidance and a
+Refresh connection action; disabled enrollment remains disabled across setup steps. After
 an active paid MHM subscription is recorded, users can choose paid delivery channels; connecting SMS additionally requires the Discord + SMS tier
 in first-run delivery or Account > Delivery. SMS requires explicit consent and a
 phone ownership code sent from the recipient phone; disconnecting revokes the

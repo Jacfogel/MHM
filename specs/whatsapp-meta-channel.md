@@ -1,7 +1,7 @@
 # WhatsApp through Meta Cloud API
 
 > **File**: `specs/whatsapp-meta-channel.md`
-> **Last Updated**: 2026-11-21
+> **Last Updated**: 2026-11-23
 > **Implementation**: `communication/communication_channels/whatsapp/`, `core/whatsapp_enrollment.py`, `core/web_whatsapp.py`, `storage/whatsapp_state.py`, `core/channel_access.py`, `core/billing.py`
 > **Automated tests**: `tests/behavior/test_whatsapp.py`
 
@@ -22,6 +22,12 @@ Provide WhatsApp delivery and replies directly through Meta, with its own $20 CA
 - Missing template configuration SHALL reject out-of-window sends before any provider submission. Templates SHALL NOT substitute arbitrary wellness content into an unrestricted placeholder.
 - Provider acceptance SHALL be distinct from delivery. Network/server failures SHALL return unconfirmed with no automatic resend. Callbacks SHALL NOT regress delivery status.
 - Website setup/account delivery and desktop Channel Settings SHALL offer separate WhatsApp connection, selection, and disconnection. Disconnecting SHALL revoke enrollment and pending messages while retaining receipt/opt-out history.
+
+### Requirement: Paid delivery during website setup
+
+- Delivery SHALL offer both paid phone channels for selection during setup. It SHALL show only the resolved channel connection and explain automatic selection (linked Discord, otherwise Email).
+- Selecting an unpaid phone channel SHALL offer its matching subscription with an explicit immediate $20 CAD/month charge. Checkout SHALL return to the selected setup channel without completing setup. Verification and live-paid access SHALL remain required before saving phone delivery.
+- A missing enrollment route SHALL show recovery guidance and a refresh action rather than raw server errors. Setup transitions SHALL preserve unavailable enrollment controls.
 
 ## Manual test checklist
 

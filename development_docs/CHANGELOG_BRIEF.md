@@ -31,6 +31,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-23 - Setup delivery and paid phone enrollment **COMPLETED**
+- Audit follow-up corrected the outdated website assertion and five billing-test type findings; all 44 affected tests passed and full-project Pyright is clean.
+- Fixed setup delivery layout, conditional connection controls, recovery errors, and paid phone checkout returning to verification.
+
 ### 2026-11-21 - Direct Meta WhatsApp channel and separate plan **COMPLETED**
 
 - Added direct Meta Cloud API delivery, signed webhook verification, independent WhatsApp phone consent/LINK proof, STOP/START, durable inbound deduplication, delivery/read receipts, shared task/check-in reply routing, and website/desktop channel selection.

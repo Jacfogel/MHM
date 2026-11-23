@@ -270,6 +270,13 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
         "setup-back",
         "setup-connect-discord",
         "setup-progress",
+        "setup-delivery-channel",
+        "setup-delivery-summary",
+        "setup-paid-delivery",
+        "setup-pay-delivery",
+        "setup-sms-connection",
+        "setup-whatsapp-connection",
+        "setup-discord-connection",
     } <= setup.ids
     for step_id in (
         "step-discord",
@@ -284,7 +291,11 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
         assert "hidden" in setup.controls[step_id]
     assert setup.controls["first-task"]["maxlength"] == "500"
     html = (WEBSITE / "setup.html").read_text(encoding="utf-8")
-    assert "New accounts can use Email or Discord." in html
+    assert {"email", "discord", "sms", "whatsapp"} <= setup.option_values
+    assert "Payment starts immediately for phone delivery" in html
+    assert "the free trial applies to Email or Discord." in html
+    for connection_id in ("setup-paid-delivery", "setup-sms-connection", "setup-whatsapp-connection", "setup-discord-connection"):
+        assert "hidden" in setup.controls[connection_id]
     assert "Custom questions can be added in Account after this setup." in html
     assert "Categories personalized from check-ins or Google Health can be turned on in Account after this setup." in html
 

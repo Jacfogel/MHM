@@ -14,7 +14,7 @@
   };
   const steps = {
     you: { label: 'You', panel: 'step-1', skip: false },
-    discord: { label: 'Discord', panel: 'step-discord', skip: false },
+    discord: { label: 'Delivery', panel: 'step-discord', skip: false },
     features: { label: 'Features', panel: 'step-2', skip: false },
     'message-categories': { label: 'Categories', panel: 'step-message-categories', skip: false },
     'message-windows': { label: 'Message times', panel: 'step-message-windows', skip: true },
@@ -431,6 +431,7 @@
       ? 'Continue with selected channel'
       : plan[index] === 'billing' ? 'Continue with free trial →'
       : index === plan.length - 1 ? 'Finish →' : 'Continue →';
+    if (plan[index] === 'discord') renderDelivery();
     skipButton.hidden = !current.skip;
     skipButton.textContent = plan[index].endsWith('windows') ? 'Keep these windows' : 'Skip this step';
     backButton.hidden = index === 0;
@@ -481,6 +482,9 @@
       : (account && account.discord_linked ? 'discord' : 'email');
     if (channel === 'discord' && !(account && account.discord_linked)) {
       throw new Error('Connect Discord before selecting Discord delivery, or choose Email.');
+    }
+    if (['sms', 'whatsapp'].includes(channel) && (!enrollmentState[channel]?.connected || !enrollmentState[channel]?.eligible)) {
+      throw new Error('Subscribe to the matching plan and verify your phone before continuing, or choose Email or Discord.');
     }
     await saveDeliveryChannel(channel);
   }
@@ -617,6 +621,13 @@
       billingStatus.textContent = 'This account has complimentary access, so no subscription is needed.';
       return;
     }
+    if (billing.subscription_exists && billing.status === 'active') {
+      chargeHeading.textContent = 'Subscription active';
+      chargeDetail.textContent = 'Your paid plan is active. Manage renewal or cancellation in Account.';
+      chargeHint.textContent = 'No additional subscription is needed to finish setup.';
+      billingStatus.textContent = 'Your subscription is active.';
+      return;
+    }
     if (billing.subscription_exists || billing.customer_exists) {
       billingStatus.textContent = `You are subscribed. Your ${days}-day free trial continues before the first payment for your selected plan.`;
       return;
@@ -681,6 +692,7 @@
       setupForm.setAttribute('aria-busy', 'true');
       continueButton.setAttribute('aria-busy', 'true');
     } else {
+      if (plan[index] === 'discord') renderDelivery();
       setupForm.removeAttribute('aria-busy');
       continueButton.removeAttribute('aria-busy');
     }
@@ -714,6 +726,12 @@
       else messagesToggle.dataset.unavailable = 'true';
       messagesToggle.disabled = !canMessage;
       messagesToggle.checked = canMessage;
+      const requestedChannel = new URLSearchParams(location.search).get('setup_channel');
+      const returnChannel = ['sms', 'whatsapp'].includes(requestedChannel) ? requestedChannel : null;
+      if (['sms', 'whatsapp'].includes(returnChannel)) {
+        document.getElementById('setup-delivery-channel').value = returnChannel;
+        index = plan.indexOf('discord');
+      }
       const discordResult = new URLSearchParams(location.search).get('discord');
       let deliveryWarning = '';
       if (discordResult) {
@@ -729,6 +747,10 @@
       }
       setupContent.hidden = false;
       showCurrent();
+      if (returnChannel) {
+        const billingResult = new URLSearchParams(location.search).get('billing');
+        showStatus(billingResult === 'cancelled' ? 'Checkout was canceled. Choose a channel to continue.' : 'Check your connection below. Payment confirmation can take a moment; refresh the connection if access has not updated yet.');
+      }
       if (discordResult === 'connected' && account.discord_linked) {
         showStatus(deliveryWarning || 'Discord is connected.', Boolean(deliveryWarning));
       } else if (discordResult === 'cancelled') {
@@ -817,15 +839,43 @@
     });
   }
 
-  const smsSetup = document.getElementById('setup-sms-connection');
-  if (smsSetup && window.MHMSms) window.MHMSms.mount(smsSetup, info => {
+  const enrollmentState = {};
+  const mountedChannels = new Set();
+  function renderDelivery() {
     const choice = document.getElementById('setup-delivery-channel');
-    choice.querySelector('option[value="sms"]').disabled = !(info.eligible && info.connected);
-  });
-  const whatsappSetup = document.getElementById('setup-whatsapp-connection');
-  if (whatsappSetup && window.MHMWhatsApp) window.MHMWhatsApp.mount(whatsappSetup, info => {
-    const choice = document.getElementById('setup-delivery-channel');
-    choice.querySelector('option[value="whatsapp"]').disabled = !(info.available !== false && info.eligible && info.connected);
+    if (!choice || !account) return;
+    const channel = choice.value || (account.discord_linked ? 'discord' : 'email');
+    const paid = ['sms', 'whatsapp'].includes(channel);
+    document.getElementById('setup-delivery-summary').textContent = `${choice.value ? 'Selected' : 'Automatic delivery'}: ${channel === 'sms' ? 'SMS' : channel === 'whatsapp' ? 'WhatsApp' : channel === 'discord' ? 'Discord' : 'Email'}.`;
+    document.getElementById('setup-discord-connection').hidden = channel !== 'discord';
+    const info = enrollmentState[channel];
+    document.getElementById('setup-paid-delivery').hidden = !(paid && info && !info.eligible && !info.failed);
+    const pay = document.getElementById('setup-pay-delivery');
+    pay.textContent = `Subscribe to ${channel === 'sms' ? 'Discord + SMS' : 'WhatsApp'} — $20 CAD/month →`;
+    pay.disabled = !account.billing?.checkout_available || Boolean(account.billing?.subscription_exists);
+    for (const name of ['sms', 'whatsapp']) {
+      const parent = document.getElementById(`setup-${name}-connection`);
+      parent.hidden = channel !== name;
+      if (channel === name && !mountedChannels.has(name)) {
+        mountedChannels.add(name);
+        const widget = name === 'sms' ? window.MHMSms : window.MHMWhatsApp;
+        if (widget) widget.mount(parent, state => { enrollmentState[name] = state; renderDelivery(); });
+      }
+    }
+  }
+  const deliveryChoice = document.getElementById('setup-delivery-channel');
+  if (deliveryChoice) deliveryChoice.addEventListener('change', renderDelivery);
+  const payDelivery = document.getElementById('setup-pay-delivery');
+  if (payDelivery) payDelivery.addEventListener('click', async () => {
+    const channel = deliveryChoice.value;
+    if (!['sms', 'whatsapp'].includes(channel) || payDelivery.disabled) return;
+    setBusy(true);
+    try {
+      const result = await api('/api/billing/checkout', 'POST', {plan: channel === 'sms' ? 'phone' : 'whatsapp', setup_channel: channel});
+      if (!result.url) throw new Error('Secure checkout could not open. Please try again.');
+      location.assign(result.url);
+    } catch (error) { showStatus(error.message, true); }
+    finally { setBusy(false); renderDelivery(); }
   });
   if (setupContent) loadSetup();
 })();

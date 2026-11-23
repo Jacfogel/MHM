@@ -431,3 +431,20 @@ test('password and social auth routes proxy and Apple callbacks stay closed', as
     ]);
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test('phone enrollment routes reach the gateway for reads and connection changes', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (target, options) => {
+    calls.push([target.pathname, options.method]);
+    return Response.json({available: true});
+  };
+  try {
+    for (const channel of ['sms', 'whatsapp']) {
+      const path = `/api/${channel}/enrollment`;
+      assert.equal((await worker.fetch(new Request(url + path), env)).status, 200);
+      assert.equal((await worker.fetch(post(path), env)).status, 200);
+    }
+    assert.deepEqual(calls, [['/api/sms/enrollment', 'GET'], ['/api/sms/enrollment', 'POST'], ['/api/whatsapp/enrollment', 'GET'], ['/api/whatsapp/enrollment', 'POST']]);
+  } finally { globalThis.fetch = originalFetch; }
+});

@@ -6,12 +6,12 @@
   <meta name="robots" content="noindex" />
   <title>Get started — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=billing-setup-1" />
+  <link rel="stylesheet" href="styles.css?v=delivery-setup-2" />
   <script src="script.js?v=dialog-1" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="sms-enrollment.js" defer></script>
-  <script src="whatsapp-enrollment.js" defer></script>
-  <script src="setup.js?v=billing-setup-1" defer></script>
+  <script src="sms-enrollment.js?v=delivery-setup-2" defer></script>
+  <script src="whatsapp-enrollment.js?v=delivery-setup-2" defer></script>
+  <script src="setup.js?v=delivery-setup-2" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -43,14 +43,22 @@
         </div>
         <div id="step-discord" hidden>
           <h2>Choose your delivery channel</h2>
-          <label for="setup-delivery-channel">Delivery channel</label>
-          <select id="setup-delivery-channel"><option value="">Choose automatically</option><option value="discord">Discord</option><option value="email">Email</option><option value="sms" disabled>SMS (paid subscription)</option><option value="whatsapp" disabled>WhatsApp ($20 CAD/month plan)</option></select>
-          <div id="setup-sms-connection"></div>
-          <div id="setup-whatsapp-connection"></div>
-          <p class="panel-description">New accounts can use Email or Discord. SMS and WhatsApp require their matching active paid plan and a verified phone.</p>
-          <p class="field-hint">Email is available immediately. Connect Discord if you prefer it. You can also answer a check-in on this website. A scheduled message in Talk to MHM can be marked More like this or Not for me. Discord reactions do the same thing.</p>
-          <p id="discord-setup-state" class="field-hint"></p>
-          <button id="setup-connect-discord" class="button" type="button">Connect Discord →</button>
+          <div class="settings-field">
+            <label for="setup-delivery-channel">Delivery channel</label>
+            <select id="setup-delivery-channel"><option value="">Choose automatically</option><option value="email">Email</option><option value="discord">Discord</option><option value="sms">SMS — Discord + SMS ($20 CAD/month)</option><option value="whatsapp">WhatsApp ($20 CAD/month)</option></select>
+          </div>
+          <p id="setup-delivery-summary" class="field-hint" role="status"></p>
+          <div id="setup-paid-delivery" hidden>
+            <p>Subscribe to the matching plan, then verify your phone. Payment starts immediately for phone delivery; the free trial applies to Email or Discord.</p>
+            <button id="setup-pay-delivery" class="button" type="button">Subscribe and connect</button>
+            <p class="field-hint">Already subscribed? Manage your plan in <a href="app.html">Account</a>. After payment, refresh the connection below to check access.</p>
+          </div>
+          <div id="setup-sms-connection" hidden></div>
+          <div id="setup-whatsapp-connection" hidden></div>
+          <div id="setup-discord-connection" hidden>
+            <p id="discord-setup-state" class="field-hint"></p>
+            <button id="setup-connect-discord" class="button" type="button">Connect Discord →</button>
+          </div>
         </div>
         <div id="step-2" hidden>
           <h2>How should MHM show up?</h2>

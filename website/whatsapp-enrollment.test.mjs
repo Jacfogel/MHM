@@ -17,6 +17,7 @@ async function screen(info) {
     fetch: async (_url, options) => {
       const data = options.body ? JSON.parse(options.body) : null;
       calls.push(data);
+      if (!data && info instanceof Response) return info.clone();
       return Response.json(data?.action === 'start' ? {token: 'a'.repeat(32), sender: '+15555550100'}
         : data?.action === 'connect' ? {connected: true} : info);
     }});
@@ -52,5 +53,16 @@ test('changing the phone invalidates the displayed connection code', async () =>
   await view.start.listeners.click(); view.phone.value = '+15555550188';
   await view.verify.listeners.click();
   assert.match(view.status.textContent, /phone changed/);
+  assert.equal(view.calls.length, 2);
+});
+
+test('missing enrollment route shows recovery guidance and keeps the request disabled', async () => {
+  const view = await screen(Response.json({error: '404: Not Found'}, {status: 404}));
+  assert.doesNotMatch(view.status.textContent, /404|Not Found/);
+  assert.match(view.status.textContent, /Refresh the connection/);
+  assert.equal(view.status.className, 'form-status is-error');
+  assert.equal(view.start.disabled, true);
+  assert.equal(view.start.dataset.unavailable, 'true');
+  await view.box.children.at(-1).listeners.click();
   assert.equal(view.calls.length, 2);
 });

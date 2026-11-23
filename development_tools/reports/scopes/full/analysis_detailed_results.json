@@ -1,10 +1,10 @@
 {
   "generated_by": "run_development_tools.py - AI Development Tools Runner",
-  "last_generated": "2026-11-23 00:33:53",
+  "last_generated": "2026-11-23 01:12:07",
   "source": "python development_tools/run_development_tools.py audit --full",
   "audit_tier": 3,
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2026-11-23T00:33:53.004117",
+  "timestamp": "2026-11-23T01:12:07.349366",
   "successful": [
     "analyze_ai_work",
     "analyze_config",
@@ -54,7 +54,7 @@
           "work_type": "documentation"
         }
       },
-      "timestamp": "2026-11-23T00:26:27"
+      "timestamp": "2026-11-23T01:04:23"
     },
     "analyze_config": {
       "success": true,
@@ -99,7 +99,7 @@
           }
         }
       },
-      "timestamp": "2026-11-23T00:26:26"
+      "timestamp": "2026-11-23T01:04:23"
     },
     "analyze_ascii_compliance": {
       "success": true,
@@ -117,14 +117,25 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-11-23T00:25:39"
+      "timestamp": "2026-11-23T01:03:28"
     },
     "analyze_documentation": {
       "success": true,
       "data": {
         "details": {
           "artifacts": [],
-          "consolidation_recommendations": [],
+          "consolidation_recommendations": [
+            {
+              "category": "High Section Overlap",
+              "files": [
+                "development_docs/CHANGELOG_BRIEF.md",
+                "development_docs/CHANGELOG_DETAIL.md"
+              ],
+              "overlap_count": 3,
+              "priority": "medium",
+              "suggestion": "These files share 3 sections - consider consolidating or clearly differentiating their purposes"
+            }
+          ],
           "documents": [
             "AGENTS.md",
             "ARCHITECTURE.md",
@@ -423,26 +434,26 @@
               ]
             },
             "development_docs/CHANGELOG_BRIEF.md": {
-              "content_length": 12287,
+              "content_length": 12652,
               "header_info": "# Changelog Brief\n> **File**: `development_docs/CHANGELOG_BRIEF.md`\n> **Audience**: Developers and AI collaborators\n> **Purpose**: Lightweight summary of recent changes\n> **Style**: Concise, essential",
-              "section_count": 15,
+              "section_count": 16,
               "sections": [
                 "Introduction",
                 "Overview",
                 "How to Update This File",
                 "YYYY-MM-DD - Brief Title **COMPLETED**",
                 "Recent Changes (Most Recent First)",
+                "2026-11-23 - Setup delivery and paid phone enrollment **COMPLETED**",
                 "2026-11-21 - Direct Meta WhatsApp channel and separate plan **COMPLETED**",
                 "2026-11-20 - Paid SMS tiers, website refactors, and reminder validation **COMPLETED**",
                 "2026-11-19 - Google Health nightly native crash **COMPLETED**",
-                "2026-11-19 - Helpful failures and audit fixes **COMPLETED**",
-                "2026-11-19 - Shared documentation consolidation **COMPLETED**"
+                "2026-11-19 - Helpful failures and audit fixes **COMPLETED**"
               ]
             },
             "development_docs/CHANGELOG_DETAIL.md": {
-              "content_length": 1156998,
+              "content_length": 1158540,
               "header_info": "# CHANGELOG_DETAIL.md - Complete Detailed Changelog History\n\n> **File**: `development_docs/CHANGELOG_DETAIL.md`\n> **Audience**: Developers and contributors  \n> **Purpose**: Full historical record of p",
-              "section_count": 416,
+              "section_count": 417,
               "sections": [
                 "Introduction",
                 "Overview",
@@ -450,10 +461,10 @@
                 "How to Add Changes",
                 "YYYY-MM-DD - Brief Title",
                 "Recent Changes (Most Recent First)",
+                "2026-11-23 - Setup delivery and paid phone enrollment **COMPLETED**",
                 "2026-11-21 - Direct Meta WhatsApp channel and separate plan **COMPLETED**",
                 "2026-11-20 - SMS pilot, website validation, and reminder recovery",
-                "2026-11-19 - Google Health nightly native crash",
-                "2026-11-19 - Helpful failures and audit fixes"
+                "2026-11-19 - Google Health nightly native crash"
               ]
             },
             "development_docs/LEGACY_COMPATIBILITY_GUIDE.md": {
@@ -672,13 +683,14 @@
               ]
             },
             "specs/whatsapp-meta-channel.md": {
-              "content_length": 3292,
-              "header_info": "# WhatsApp through Meta Cloud API\n\n> **File**: `specs/whatsapp-meta-channel.md`\n> **Last Updated**: 2026-11-21\n> **Implementation**: `communication/communication_channels/whatsapp/`, `core/whatsapp_en",
-              "section_count": 5,
+              "content_length": 4003,
+              "header_info": "# WhatsApp through Meta Cloud API\n\n> **File**: `specs/whatsapp-meta-channel.md`\n> **Last Updated**: 2026-11-23\n> **Implementation**: `communication/communication_channels/whatsapp/`, `core/whatsapp_en",
+              "section_count": 6,
               "sections": [
                 "Introduction",
                 "Purpose",
                 "Requirements",
+                "Requirement: Paid delivery during website setup",
                 "Manual test checklist",
                 "Related documentation"
               ]
@@ -766,7 +778,7 @@
               ]
             },
             "website/WEBSITE_GUIDE.md": {
-              "content_length": 20670,
+              "content_length": 21412,
               "header_info": "# MHM Website Guide\n\n\n> **File**: `website/WEBSITE_GUIDE.md`\n> **Audience**: Developers and maintainers\n> **Purpose**: Website features, gateway setup, deployment, billing, and verification\n\nFor share",
               "section_count": 7,
               "sections": [
@@ -789,6 +801,10 @@
               "development_docs/CHANGELOG_BRIEF.md",
               "development_docs/CHANGELOG_DETAIL.md"
             ],
+            "2026-11-23 - Setup delivery and paid phone enrollment **COMPLETED**": [
+              "development_docs/CHANGELOG_BRIEF.md",
+              "development_docs/CHANGELOG_DETAIL.md"
+            ],
             "How to Update This File": [
               "development_docs/CHANGELOG_BRIEF.md",
               "development_docs/CHANGELOG_DETAIL.md"
@@ -800,7 +816,7 @@
           "total_issues": 1
         }
       },
-      "timestamp": "2026-11-23T00:26:27"
+      "timestamp": "2026-11-23T01:04:24"
     },
     "analyze_documentation_sync": {
       "success": true,
@@ -883,7 +899,7 @@
           "example_marker_findings": {}
         }
       },
-      "timestamp": "2026-11-23T00:26:47"
+      "timestamp": "2026-11-23T01:04:44"
     },
     "analyze_heading_numbering": {
       "success": true,
@@ -898,7 +914,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-11-23T00:25:39"
+      "timestamp": "2026-11-23T01:03:28"
     },
     "analyze_missing_addresses": {
       "success": true,
@@ -913,7 +929,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-11-23T00:26:00"
+      "timestamp": "2026-11-23T01:03:52"
     },
     "analyze_path_drift": {
       "success": true,
@@ -928,7 +944,7 @@
           "markdown_link_target_files": {}
         }
       },
-      "timestamp": "2026-11-23T00:25:38"
+      "timestamp": "2026-11-23T01:03:27"
     },
     "analyze_unconverted_links": {
       "success": true,
@@ -943,7 +959,7 @@
           "detailed_issues": {}
         }
       },
-      "timestamp": "2026-11-23T00:26:03"
+      "timestamp": "2026-11-23T01:03:55"
     },
     "analyze_error_handling": {
       "success": true,
@@ -1024,7 +1040,7 @@
           ]
         }
       },
-      "timestamp": "2026-11-23T00:26:44"
+      "timestamp": "2026-11-23T01:04:42"
     },
     "analyze_duplicate_functions": {
       "success": true,
@@ -2406,7 +2422,7 @@
           "body_similarity_min_name_threshold": 0.35
         }
       },
-      "timestamp": "2026-11-23T00:26:54"
+      "timestamp": "2026-11-23T01:04:52"
     },
     "analyze_facade_shims": {
       "success": true,
@@ -2422,7 +2438,7 @@
           "low_signal_filter": "Plain one-line delegating wrappers and generic import aliases are filtered unless they also have facade/shim/compatibility naming, compatibility documentation, or active deprecation-inventory terms. Use --include-low-signal for the exhaustive advisory list."
         }
       },
-      "timestamp": "2026-11-23T00:26:43"
+      "timestamp": "2026-11-23T01:04:40"
     },
     "analyze_functions": {
       "success": true,
@@ -2627,7 +2643,7 @@
           "utilities": 0
         }
       },
-      "timestamp": "2026-11-23T00:26:39"
+      "timestamp": "2026-11-23T01:04:37"
     },
     "analyze_function_patterns": {
       "success": true,
@@ -5927,7 +5943,7 @@
           ]
         }
       },
-      "timestamp": "2026-11-23T00:26:43"
+      "timestamp": "2026-11-23T01:04:41"
     },
     "analyze_function_registry": {
       "success": true,
@@ -6754,6 +6770,12 @@
                 "has_docstring": true
               },
               {
+                "file": "core/web_account_service.py",
+                "name": "billing_checkout",
+                "complexity": 427,
+                "has_docstring": true
+              },
+              {
                 "file": "core/headless_service.py",
                 "name": "start_headless_service",
                 "complexity": 424,
@@ -7146,12 +7168,6 @@
               {
                 "file": "communication/communication_channels/website/inbox.py",
                 "name": "_outbound_turns",
-                "complexity": 369,
-                "has_docstring": true
-              },
-              {
-                "file": "storage/user_data_index.py",
-                "name": "build_user_index",
                 "complexity": 369,
                 "has_docstring": true
               }
@@ -9802,7 +9818,7 @@
           "errors": []
         }
       },
-      "timestamp": "2026-11-23T00:26:47"
+      "timestamp": "2026-11-23T01:04:44"
     },
     "analyze_module_refactor_candidates": {
       "success": true,
@@ -9826,11 +9842,11 @@
             },
             {
               "file": "core/web_account_service.py",
-              "lines": 2109,
+              "lines": 2122,
               "function_count": 66,
               "class_count": 4,
               "reasons": [
-                "2109 lines (max 1500)",
+                "2122 lines (max 1500)",
                 "66 functions (max 40)"
               ]
             },
@@ -9901,7 +9917,7 @@
           }
         }
       },
-      "timestamp": "2026-11-23T00:26:43"
+      "timestamp": "2026-11-23T01:04:41"
     },
     "analyze_package_exports": {
       "success": true,
@@ -28038,1057 +28054,6 @@
               "package_api_items": [],
               "registry_items": []
             },
-            "scheduler": {
-              "package": "scheduler",
-              "current_exports_count": 12,
-              "should_export_count": 3,
-              "already_exported": [],
-              "missing_exports": [
-                "jobs",
-                "maintenance",
-                "task_reminders"
-              ],
-              "potentially_unnecessary": [
-                "SchedulerManager",
-                "clear_all_accumulated_jobs_standalone",
-                "clear_scheduler_manager",
-                "get_scheduler_manager",
-                "process_category_schedule",
-                "process_user_schedules",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "set_scheduler_delivery_factory",
-                "set_scheduler_manager"
-              ],
-              "cross_module_usage": {
-                "localized_now_for_user": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "scheduler/health_sync_schedule.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "resolve_user_timezone_str": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "user_local_date": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "checkins/checkin_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "user_local_now_naive": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "communication/reminders/reminder_dispatcher.py",
-                    "core/message_pressure.py",
-                    "core/message_pressure.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_reminder_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "get_scheduler_manager": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "core/admin_account_provisioning.py",
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_reminder_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "SchedulerManager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "set_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "clear_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                }
-              },
-              "import_usage_details": {
-                "localized_now_for_user": {
-                  "import_count": 5,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "scheduler/health_sync_schedule.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "resolve_user_timezone_str": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "scheduler/manager.py",
-                    "scheduler/task_reminders.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "user_local_date": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "checkins/checkin_service.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "user_local_now_naive": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "communication/reminders/reminder_dispatcher.py",
-                    "core/message_pressure.py",
-                    "core/message_pressure.py",
-                    "scheduler/task_reminders.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_reminder_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.user_timezone",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "get_scheduler_manager": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "core/admin_account_provisioning.py",
-                    "core/service.py",
-                    "scheduler/__init__.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_data_manager.py",
-                    "tasks/task_reminder_state.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "SchedulerManager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "set_scheduler_delivery_factory": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "set_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "clear_scheduler_manager": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/service.py",
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.runtime_access",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "get_due_sync_slot_key": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "integrations/google_health/sync_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.health_sync_schedule",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "recover_deferred_task_reminders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/jobs.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.task_reminders",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "register_health_sync_jobs": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/jobs.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.health_sync_jobs",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "jobs": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/manager.py"
-                  ],
-                  "import_types": [
-                    "package_import"
-                  ],
-                  "module_path": "scheduler",
-                  "external_import_count": 0,
-                  "package_import_count": 1
-                },
-                "maintenance": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/manager.py"
-                  ],
-                  "import_types": [
-                    "package_import"
-                  ],
-                  "module_path": "scheduler",
-                  "external_import_count": 0,
-                  "package_import_count": 1
-                },
-                "task_reminders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/manager.py"
-                  ],
-                  "import_types": [
-                    "package_import"
-                  ],
-                  "module_path": "scheduler",
-                  "external_import_count": 0,
-                  "package_import_count": 1
-                },
-                "clear_all_accumulated_jobs_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "process_category_schedule": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "process_user_schedules": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "run_category_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "run_full_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "run_user_scheduler_standalone": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "schedule_all_task_reminders": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "scheduler/__init__.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "scheduler.manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                }
-              },
-              "package_api_items": [
-                "SchedulerManager",
-                "build_sync_slot_key",
-                "calculate_due_date_weight",
-                "calculate_priority_weight",
-                "calculate_task_weights",
-                "check_and_perform_weekly_backup",
-                "cleanup_orphaned_task_reminders",
-                "cleanup_scheduler_wake_tasks",
-                "cleanup_task_reminders",
-                "clear_all_accumulated_jobs_standalone",
-                "clear_scheduler_manager",
-                "get_due_sync_slot_key",
-                "get_random_time_within_task_period",
-                "get_scheduler_manager",
-                "handle_task_reminder",
-                "handle_task_selection_edge_cases",
-                "localized_now_for_user",
-                "perform_daily_log_archival",
-                "process_category_schedule",
-                "process_user_schedules",
-                "recover_deferred_task_reminders",
-                "register_full_daily_maintenance_jobs",
-                "register_health_sync_jobs",
-                "register_system_daily_jobs",
-                "reschedule_snoozed_task_reminders",
-                "resolve_user_timezone_str",
-                "run_category_scheduler_standalone",
-                "run_full_scheduler_standalone",
-                "run_scheduled_health_sync",
-                "run_user_scheduler_standalone",
-                "schedule_all_task_reminders",
-                "schedule_task_reminder_at_datetime",
-                "schedule_task_reminder_at_time",
-                "scheduled_job_user_and_category",
-                "select_task_by_weight",
-                "select_task_for_reminder",
-                "set_scheduler_delivery_factory",
-                "set_scheduler_manager",
-                "task_reminder_already_sent_today",
-                "task_selection_key",
-                "user_local_date",
-                "user_local_now_naive"
-              ],
-              "registry_items": [
-                "__init__",
-                "_is_weekly_backup_entry",
-                "_run_one_time_task_reminder",
-                "_slot_datetime_local",
-                "_sorted_sync_times",
-                "check_and_perform_weekly_backup",
-                "cleanup_scheduler_wake_tasks",
-                "clear_scheduler_manager",
-                "get_scheduler_manager",
-                "localized_now_for_user",
-                "register_full_daily_maintenance_jobs",
-                "register_health_sync_jobs",
-                "register_system_daily_jobs",
-                "resolve_user_timezone_str",
-                "run_scheduled_health_sync"
-              ]
-            },
-            "messages": {
-              "package": "messages",
-              "current_exports_count": 21,
-              "should_export_count": 0,
-              "already_exported": [],
-              "missing_exports": [],
-              "potentially_unnecessary": [
-                "MessageAnalytics",
-                "add_message",
-                "archive_old_messages",
-                "create_message_file_from_defaults",
-                "delete_message",
-                "edit_message",
-                "ensure_user_message_files",
-                "get_message_categories",
-                "get_personalized_message_source",
-                "get_predefined_message_preview_text",
-                "get_recent_messages",
-                "get_timestamp_for_sorting",
-                "is_ai_generated_message_category",
-                "is_automated_messages_enabled",
-                "is_personalized_message_category_available",
-                "load_default_messages",
-                "load_user_messages",
-                "message_schedule_matches_current_window",
-                "message_template_schedule_lists",
-                "store_sent_message",
-                "update_message"
-              ],
-              "cross_module_usage": {
-                "get_recent_messages": {
-                  "import_count": 11,
-                  "import_locations": [
-                    "ai/chat/profile_message_variety.py",
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "ai/fallback/personalized.py",
-                    "communication/delivery/message_dispatcher.py",
-                    "communication/communication_channels/website/inbox.py",
-                    "messages/message_analytics.py",
-                    "messages/message_reactions.py",
-                    "messages/message_service.py",
-                    "scheduler/manager.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 8,
-                  "package_import_count": 0
-                },
-                "is_automated_messages_enabled": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "core/response_tracking.py",
-                    "scheduler/manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "load_user_messages": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "ai/context/service.py",
-                    "communication/delivery/message_dispatcher.py",
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "messages/message_service.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "store_sent_message": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/delivery/message_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "is_ai_generated_message_category": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "core/service.py",
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "ui/request_actions.py",
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "apply_message_reaction": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/communication_channels/discord/events/message_reactions.py",
-                    "core/web_chat.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_reactions",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "add_message": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "delete_message": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/web_messages.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "edit_message": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "get_message_categories": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/web_user_settings.py",
-                    "storage/user_data_validation.py",
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 3,
-                  "package_import_count": 0
-                },
-                "ensure_user_message_files": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/web_user_settings.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                }
-              },
-              "import_usage_details": {
-                "get_recent_messages": {
-                  "import_count": 11,
-                  "import_locations": [
-                    "ai/chat/profile_message_variety.py",
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "ai/fallback/personalized.py",
-                    "communication/delivery/message_dispatcher.py",
-                    "communication/communication_channels/website/inbox.py",
-                    "messages/message_analytics.py",
-                    "messages/message_reactions.py",
-                    "messages/message_service.py",
-                    "scheduler/manager.py",
-                    "storage/user_data_summaries.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 8,
-                  "package_import_count": 0
-                },
-                "is_automated_messages_enabled": {
-                  "import_count": 4,
-                  "import_locations": [
-                    "ai/context/phraser.py",
-                    "ai/context/service.py",
-                    "core/response_tracking.py",
-                    "scheduler/manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "load_user_messages": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "ai/context/service.py",
-                    "communication/delivery/message_dispatcher.py",
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "messages/message_service.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 4,
-                  "package_import_count": 0
-                },
-                "store_sent_message": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "communication/delivery/message_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "get_personalized_message_source": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "is_ai_generated_message_category": {
-                  "import_count": 6,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py",
-                    "core/service.py",
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "ui/request_actions.py",
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 5,
-                  "package_import_count": 0
-                },
-                "is_personalized_message_category_available": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "personalized_reaction_instructions": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_reactions",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "text_is_retired": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/core/channel_orchestrator.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_reactions",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "exclude_retired_messages": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/delivery/message_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_reactions",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "message_schedule_matches_current_window": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "communication/delivery/message_dispatcher.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_service",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "apply_message_reaction": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "communication/communication_channels/discord/events/message_reactions.py",
-                    "core/web_chat.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_reactions",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "archive_old_messages": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "core/auto_cleanup.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "add_message": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "delete_message": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/web_messages.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "edit_message": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/web_messages.py",
-                    "messages/message_reactions.py",
-                    "ui/dialogs/message_editor_dialog.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "get_message_categories": {
-                  "import_count": 3,
-                  "import_locations": [
-                    "core/web_user_settings.py",
-                    "storage/user_data_validation.py",
-                    "ui/widgets/category_selection_widget.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 3,
-                  "package_import_count": 0
-                },
-                "ensure_user_message_files": {
-                  "import_count": 2,
-                  "import_locations": [
-                    "core/web_user_settings.py",
-                    "storage/user_data_write.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 2,
-                  "package_import_count": 0
-                },
-                "MessageTemplateV2Model": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "messages/message_data_manager.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_schemas",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "update_sent_message_metadata": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "messages/message_reactions.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_data_manager",
-                  "external_import_count": 0,
-                  "package_import_count": 0
-                },
-                "validate_deliveries_v2_document": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_schemas",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                },
-                "validate_messages_v2_document": {
-                  "import_count": 1,
-                  "import_locations": [
-                    "storage/user_data_v2_envelopes.py"
-                  ],
-                  "import_types": [
-                    "from_import"
-                  ],
-                  "module_path": "messages.message_schemas",
-                  "external_import_count": 1,
-                  "package_import_count": 0
-                }
-              },
-              "package_api_items": [
-                "MessageAnalytics",
-                "MessageDeliveryCollectionV2Model",
-                "MessageDeliveryV2Model",
-                "MessageTemplateCollectionV2Model",
-                "MessageTemplateV2Model",
-                "ScheduleModel",
-                "add_message",
-                "apply_message_reaction",
-                "archive_old_messages",
-                "create_message_file_from_defaults",
-                "delete_message",
-                "edit_message",
-                "ensure_user_message_files",
-                "exclude_retired_messages",
-                "generate_similar_message_texts",
-                "get_message_categories",
-                "get_personalized_message_source",
-                "get_predefined_message_preview_text",
-                "get_recent_messages",
-                "get_timestamp_for_sorting",
-                "is_ai_generated_message_category",
-                "is_automated_messages_enabled",
-                "is_personalized_message_category_available",
-                "load_default_messages",
-                "load_message_feedback",
-                "load_user_messages",
-                "message_schedule_matches_current_window",
-                "message_template_schedule_lists",
-                "parse_similar_messages",
-                "personalized_reaction_instructions",
-                "save_message_feedback",
-                "store_sent_message",
-                "text_is_retired",
-                "update_message",
-                "update_sent_message_metadata",
-                "validate_deliveries_v2_document",
-                "validate_messages_v2_document"
-              ],
-              "registry_items": [
-                "__init__",
-                "_add_similar_library_messages",
-                "_canonical_message_timestamp",
-                "_delivery_to_runtime_message",
-                "get_delivery_success_rate",
-                "get_predefined_message_preview_text",
-                "validate_deliveries_v2_document",
-                "validate_messages_v2_document"
-              ]
-            },
             "storage": {
               "package": "storage",
               "current_exports_count": 0,
@@ -30367,6 +29332,1057 @@
                 "v2_schema_validation_error",
                 "validate_v2_document",
                 "write_service_flag_json"
+              ]
+            },
+            "messages": {
+              "package": "messages",
+              "current_exports_count": 21,
+              "should_export_count": 0,
+              "already_exported": [],
+              "missing_exports": [],
+              "potentially_unnecessary": [
+                "MessageAnalytics",
+                "add_message",
+                "archive_old_messages",
+                "create_message_file_from_defaults",
+                "delete_message",
+                "edit_message",
+                "ensure_user_message_files",
+                "get_message_categories",
+                "get_personalized_message_source",
+                "get_predefined_message_preview_text",
+                "get_recent_messages",
+                "get_timestamp_for_sorting",
+                "is_ai_generated_message_category",
+                "is_automated_messages_enabled",
+                "is_personalized_message_category_available",
+                "load_default_messages",
+                "load_user_messages",
+                "message_schedule_matches_current_window",
+                "message_template_schedule_lists",
+                "store_sent_message",
+                "update_message"
+              ],
+              "cross_module_usage": {
+                "get_recent_messages": {
+                  "import_count": 11,
+                  "import_locations": [
+                    "ai/chat/profile_message_variety.py",
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "ai/fallback/personalized.py",
+                    "communication/delivery/message_dispatcher.py",
+                    "communication/communication_channels/website/inbox.py",
+                    "messages/message_analytics.py",
+                    "messages/message_reactions.py",
+                    "messages/message_service.py",
+                    "scheduler/manager.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 8,
+                  "package_import_count": 0
+                },
+                "is_automated_messages_enabled": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "core/response_tracking.py",
+                    "scheduler/manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "load_user_messages": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "ai/context/service.py",
+                    "communication/delivery/message_dispatcher.py",
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "messages/message_service.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "store_sent_message": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/delivery/message_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "is_ai_generated_message_category": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "core/service.py",
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "ui/request_actions.py",
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "apply_message_reaction": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/events/message_reactions.py",
+                    "core/web_chat.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_reactions",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "add_message": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "delete_message": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/web_messages.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "edit_message": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "get_message_categories": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/web_user_settings.py",
+                    "storage/user_data_validation.py",
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 3,
+                  "package_import_count": 0
+                },
+                "ensure_user_message_files": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/web_user_settings.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                }
+              },
+              "import_usage_details": {
+                "get_recent_messages": {
+                  "import_count": 11,
+                  "import_locations": [
+                    "ai/chat/profile_message_variety.py",
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "ai/fallback/personalized.py",
+                    "communication/delivery/message_dispatcher.py",
+                    "communication/communication_channels/website/inbox.py",
+                    "messages/message_analytics.py",
+                    "messages/message_reactions.py",
+                    "messages/message_service.py",
+                    "scheduler/manager.py",
+                    "storage/user_data_summaries.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 8,
+                  "package_import_count": 0
+                },
+                "is_automated_messages_enabled": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "core/response_tracking.py",
+                    "scheduler/manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "load_user_messages": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "ai/context/service.py",
+                    "communication/delivery/message_dispatcher.py",
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "messages/message_service.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 4,
+                  "package_import_count": 0
+                },
+                "store_sent_message": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "communication/delivery/message_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "get_personalized_message_source": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "is_ai_generated_message_category": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py",
+                    "core/service.py",
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "ui/request_actions.py",
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "is_personalized_message_category_available": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "personalized_reaction_instructions": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_reactions",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "text_is_retired": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/core/channel_orchestrator.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_reactions",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "exclude_retired_messages": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/delivery/message_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_reactions",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "message_schedule_matches_current_window": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "communication/delivery/message_dispatcher.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_service",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "apply_message_reaction": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "communication/communication_channels/discord/events/message_reactions.py",
+                    "core/web_chat.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_reactions",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "archive_old_messages": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "core/auto_cleanup.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "add_message": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "delete_message": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/web_messages.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "edit_message": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/web_messages.py",
+                    "messages/message_reactions.py",
+                    "ui/dialogs/message_editor_dialog.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "get_message_categories": {
+                  "import_count": 3,
+                  "import_locations": [
+                    "core/web_user_settings.py",
+                    "storage/user_data_validation.py",
+                    "ui/widgets/category_selection_widget.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 3,
+                  "package_import_count": 0
+                },
+                "ensure_user_message_files": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/web_user_settings.py",
+                    "storage/user_data_write.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "MessageTemplateV2Model": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "messages/message_data_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_schemas",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "update_sent_message_metadata": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "messages/message_reactions.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_data_manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "validate_deliveries_v2_document": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_schemas",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "validate_messages_v2_document": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "storage/user_data_v2_envelopes.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "messages.message_schemas",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                }
+              },
+              "package_api_items": [
+                "MessageAnalytics",
+                "MessageDeliveryCollectionV2Model",
+                "MessageDeliveryV2Model",
+                "MessageTemplateCollectionV2Model",
+                "MessageTemplateV2Model",
+                "ScheduleModel",
+                "add_message",
+                "apply_message_reaction",
+                "archive_old_messages",
+                "create_message_file_from_defaults",
+                "delete_message",
+                "edit_message",
+                "ensure_user_message_files",
+                "exclude_retired_messages",
+                "generate_similar_message_texts",
+                "get_message_categories",
+                "get_personalized_message_source",
+                "get_predefined_message_preview_text",
+                "get_recent_messages",
+                "get_timestamp_for_sorting",
+                "is_ai_generated_message_category",
+                "is_automated_messages_enabled",
+                "is_personalized_message_category_available",
+                "load_default_messages",
+                "load_message_feedback",
+                "load_user_messages",
+                "message_schedule_matches_current_window",
+                "message_template_schedule_lists",
+                "parse_similar_messages",
+                "personalized_reaction_instructions",
+                "save_message_feedback",
+                "store_sent_message",
+                "text_is_retired",
+                "update_message",
+                "update_sent_message_metadata",
+                "validate_deliveries_v2_document",
+                "validate_messages_v2_document"
+              ],
+              "registry_items": [
+                "__init__",
+                "_add_similar_library_messages",
+                "_canonical_message_timestamp",
+                "_delivery_to_runtime_message",
+                "get_delivery_success_rate",
+                "get_predefined_message_preview_text",
+                "validate_deliveries_v2_document",
+                "validate_messages_v2_document"
+              ]
+            },
+            "scheduler": {
+              "package": "scheduler",
+              "current_exports_count": 12,
+              "should_export_count": 3,
+              "already_exported": [],
+              "missing_exports": [
+                "jobs",
+                "maintenance",
+                "task_reminders"
+              ],
+              "potentially_unnecessary": [
+                "SchedulerManager",
+                "clear_all_accumulated_jobs_standalone",
+                "clear_scheduler_manager",
+                "get_scheduler_manager",
+                "process_category_schedule",
+                "process_user_schedules",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "set_scheduler_delivery_factory",
+                "set_scheduler_manager"
+              ],
+              "cross_module_usage": {
+                "localized_now_for_user": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "scheduler/health_sync_schedule.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "resolve_user_timezone_str": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "user_local_date": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "checkins/checkin_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "user_local_now_naive": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "communication/reminders/reminder_dispatcher.py",
+                    "core/message_pressure.py",
+                    "core/message_pressure.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_reminder_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "get_scheduler_manager": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "core/admin_account_provisioning.py",
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_reminder_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "SchedulerManager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "set_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "clear_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                }
+              },
+              "import_usage_details": {
+                "localized_now_for_user": {
+                  "import_count": 5,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "scheduler/health_sync_schedule.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "resolve_user_timezone_str": {
+                  "import_count": 4,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "ai/context/service.py",
+                    "scheduler/manager.py",
+                    "scheduler/task_reminders.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "user_local_date": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "ai/context/phraser.py",
+                    "checkins/checkin_service.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 2,
+                  "package_import_count": 0
+                },
+                "user_local_now_naive": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "communication/reminders/reminder_dispatcher.py",
+                    "core/message_pressure.py",
+                    "core/message_pressure.py",
+                    "scheduler/task_reminders.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_reminder_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.user_timezone",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "get_scheduler_manager": {
+                  "import_count": 6,
+                  "import_locations": [
+                    "core/admin_account_provisioning.py",
+                    "core/service.py",
+                    "scheduler/__init__.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_data_manager.py",
+                    "tasks/task_reminder_state.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access",
+                  "external_import_count": 5,
+                  "package_import_count": 0
+                },
+                "SchedulerManager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "set_scheduler_delivery_factory": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "set_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "clear_scheduler_manager": {
+                  "import_count": 2,
+                  "import_locations": [
+                    "core/service.py",
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.runtime_access",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "get_due_sync_slot_key": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "integrations/google_health/sync_manager.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.health_sync_schedule",
+                  "external_import_count": 1,
+                  "package_import_count": 0
+                },
+                "recover_deferred_task_reminders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/jobs.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.task_reminders",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "register_health_sync_jobs": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/jobs.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.health_sync_jobs",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "jobs": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/manager.py"
+                  ],
+                  "import_types": [
+                    "package_import"
+                  ],
+                  "module_path": "scheduler",
+                  "external_import_count": 0,
+                  "package_import_count": 1
+                },
+                "maintenance": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/manager.py"
+                  ],
+                  "import_types": [
+                    "package_import"
+                  ],
+                  "module_path": "scheduler",
+                  "external_import_count": 0,
+                  "package_import_count": 1
+                },
+                "task_reminders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/manager.py"
+                  ],
+                  "import_types": [
+                    "package_import"
+                  ],
+                  "module_path": "scheduler",
+                  "external_import_count": 0,
+                  "package_import_count": 1
+                },
+                "clear_all_accumulated_jobs_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "process_category_schedule": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "process_user_schedules": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "run_category_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "run_full_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "run_user_scheduler_standalone": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                },
+                "schedule_all_task_reminders": {
+                  "import_count": 1,
+                  "import_locations": [
+                    "scheduler/__init__.py"
+                  ],
+                  "import_types": [
+                    "from_import"
+                  ],
+                  "module_path": "scheduler.manager",
+                  "external_import_count": 0,
+                  "package_import_count": 0
+                }
+              },
+              "package_api_items": [
+                "SchedulerManager",
+                "build_sync_slot_key",
+                "calculate_due_date_weight",
+                "calculate_priority_weight",
+                "calculate_task_weights",
+                "check_and_perform_weekly_backup",
+                "cleanup_orphaned_task_reminders",
+                "cleanup_scheduler_wake_tasks",
+                "cleanup_task_reminders",
+                "clear_all_accumulated_jobs_standalone",
+                "clear_scheduler_manager",
+                "get_due_sync_slot_key",
+                "get_random_time_within_task_period",
+                "get_scheduler_manager",
+                "handle_task_reminder",
+                "handle_task_selection_edge_cases",
+                "localized_now_for_user",
+                "perform_daily_log_archival",
+                "process_category_schedule",
+                "process_user_schedules",
+                "recover_deferred_task_reminders",
+                "register_full_daily_maintenance_jobs",
+                "register_health_sync_jobs",
+                "register_system_daily_jobs",
+                "reschedule_snoozed_task_reminders",
+                "resolve_user_timezone_str",
+                "run_category_scheduler_standalone",
+                "run_full_scheduler_standalone",
+                "run_scheduled_health_sync",
+                "run_user_scheduler_standalone",
+                "schedule_all_task_reminders",
+                "schedule_task_reminder_at_datetime",
+                "schedule_task_reminder_at_time",
+                "scheduled_job_user_and_category",
+                "select_task_by_weight",
+                "select_task_for_reminder",
+                "set_scheduler_delivery_factory",
+                "set_scheduler_manager",
+                "task_reminder_already_sent_today",
+                "task_selection_key",
+                "user_local_date",
+                "user_local_now_naive"
+              ],
+              "registry_items": [
+                "__init__",
+                "_is_weekly_backup_entry",
+                "_run_one_time_task_reminder",
+                "_slot_datetime_local",
+                "_sorted_sync_times",
+                "check_and_perform_weekly_backup",
+                "cleanup_scheduler_wake_tasks",
+                "clear_scheduler_manager",
+                "get_scheduler_manager",
+                "localized_now_for_user",
+                "register_full_daily_maintenance_jobs",
+                "register_health_sync_jobs",
+                "register_system_daily_jobs",
+                "resolve_user_timezone_str",
+                "run_scheduled_health_sync"
               ]
             },
             "ui": {
@@ -33610,7 +33626,7 @@
           }
         }
       },
-      "timestamp": "2026-11-23T00:26:41"
+      "timestamp": "2026-11-23T01:04:39"
     },
     "analyze_unused_functions": {
       "success": true,
@@ -33632,7 +33648,7 @@
           "by_file": {}
         }
       },
-      "timestamp": "2026-11-23T00:26:49"
+      "timestamp": "2026-11-23T01:04:47"
     },
     "analyze_dependency_patterns": {
       "success": true,
@@ -38270,7 +38286,7 @@
           ]
         }
       },
-      "timestamp": "2026-11-23T00:26:47"
+      "timestamp": "2026-11-23T01:04:44"
     },
     "analyze_module_dependencies": {
       "success": true,
@@ -38281,7 +38297,7 @@
         },
         "details": {}
       },
-      "timestamp": "2026-11-23T00:26:54"
+      "timestamp": "2026-11-23T01:04:52"
     },
     "analyze_module_imports": {
       "success": true,
@@ -64052,7 +64068,7 @@
           }
         }
       },
-      "timestamp": "2026-11-23T00:26:46"
+      "timestamp": "2026-11-23T01:04:44"
     },
     "analyze_legacy_references": {
       "success": true,
@@ -64081,20 +64097,20 @@
             "check_passed": true
           },
           "cache": {
-            "cache_mode": "cache_only",
-            "hits": 763,
-            "misses": 0,
+            "cache_mode": "partial_cache",
+            "hits": 761,
+            "misses": 2,
             "total_cache_checks": 763,
-            "hit_rate": 100.0
+            "hit_rate": 99.7
           }
         }
       },
-      "timestamp": "2026-11-23T00:27:14"
+      "timestamp": "2026-11-23T01:05:17"
     },
     "analyze_backup_health": {
       "success": true,
       "data": {
-        "generated_at": "2026-11-23T00:33:51",
+        "generated_at": "2026-11-23T01:12:06",
         "project_root": "C:\\Users\\Julie\\projects\\MHM\\MHM",
         "summary": {
           "status": "PASS",
@@ -64139,7 +64155,7 @@
               "name": "weekly_backup_recent_enough",
               "success": true,
               "details": {
-                "recent_cutoff": "2026-11-09T00:33:51",
+                "recent_cutoff": "2026-11-09T01:12:05",
                 "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-11-18_01-00-00",
                 "latest_weekly_created_at": "2026-11-18 01:00:00"
               }
@@ -64150,7 +64166,7 @@
               "details": {
                 "latest_backup_path": "data\\backups\\weekly_backup_2026-11-18_01-00-00",
                 "latest_created_at": "2026-11-18 01:00:00",
-                "recent_cutoff": "2026-11-09T00:33:51"
+                "recent_cutoff": "2026-11-09T01:12:05"
               }
             },
             {
@@ -64205,7 +64221,7 @@
             "name": "weekly_backup_recent_enough",
             "success": true,
             "details": {
-              "recent_cutoff": "2026-11-09T00:33:51",
+              "recent_cutoff": "2026-11-09T01:12:05",
               "latest_weekly_backup_path": "data\\backups\\weekly_backup_2026-11-18_01-00-00",
               "latest_weekly_created_at": "2026-11-18 01:00:00"
             }
@@ -64216,7 +64232,7 @@
             "details": {
               "latest_backup_path": "data\\backups\\weekly_backup_2026-11-18_01-00-00",
               "latest_created_at": "2026-11-18 01:00:00",
-              "recent_cutoff": "2026-11-09T00:33:51"
+              "recent_cutoff": "2026-11-09T01:12:05"
             }
           },
           {
@@ -64239,20 +64255,20 @@
           }
         ]
       },
-      "timestamp": "2026-11-23T00:33:51"
+      "timestamp": "2026-11-23T01:12:06"
     },
     "analyze_system_signals": {
       "success": true,
       "data": {
         "summary": {
-          "total_issues": 0,
+          "total_issues": 2,
           "files_affected": 0,
-          "status": "OK"
+          "status": "CRITICAL"
         },
         "details": {
-          "timestamp": "2026-11-23T00:26:26.498177",
+          "timestamp": "2026-11-23T01:04:23.291245",
           "system_health": {
-            "overall_status": "OK",
+            "overall_status": "CRITICAL",
             "core_files": {
               "run_mhm.py": "OK",
               "run_tests.py": "OK",
@@ -64275,39 +64291,45 @@
               "ui": "OK",
               "user": "OK"
             },
-            "last_audit": "2026-11-23T00:24:08.141591",
+            "last_audit": "2026-11-23T00:59:56.122610",
             "audit_freshness": "<1 hour",
             "test_coverage_status": "Unknown",
             "health_indicators": [
               "Audit data is very recent (<1 hour)"
             ],
-            "recommendations": [],
+            "recommendations": [
+              "Review logs/errors.log for recent error details"
+            ],
             "warnings": [],
             "errors": [],
             "severity_levels": {
               "INFO": [],
               "WARNING": [],
-              "CRITICAL": []
+              "CRITICAL": [
+                "Recent errors detected in logs/errors.log (last hour)"
+              ]
             }
           },
           "recent_activity": {
             "recent_changes": [
-              "tests/behavior/test_sms_simulation.py",
-              "communication/core/channel_orchestrator.py",
-              "core/web_sms.py",
-              "tests/behavior/test_twilio_sms.py",
+              "tests/unit/test_web_billing.py",
               "core/user_management.py",
-              "tests/unit/test_admin_account_provisioning.py",
-              "ui/dialogs/account_creator_dialog.py",
-              "communication/communication_channels/sms/bot.py",
-              "tests/unit/test_website_pages.py",
-              "core/web_account_service.py"
+              "core/admin_account_provisioning.py",
+              "core/profile_v2_schemas.py",
+              "tests/unit/test_web_account_service.py",
+              "core/billing.py",
+              "communication/communication_channels/whatsapp/bot.py",
+              "core/sms_enrollment.py",
+              "communication/core/channel_orchestrator.py",
+              "tests/behavior/test_whatsapp_enrollment.py"
             ],
             "git_status": "Modified",
             "last_commit": null,
             "uncommitted_changes": true
           },
-          "critical_alerts": [],
+          "critical_alerts": [
+            "CRITICAL: Recent errors detected in logs/errors.log (last hour)"
+          ],
           "performance_indicators": {
             "log_file_sizes": {
               "ai.log": "0.0MB",
@@ -64316,7 +64338,7 @@
               "discord.log": "0.0MB",
               "email.log": "0.0MB",
               "errors.log": "0.0MB",
-              "file_ops.log": "0.1MB",
+              "file_ops.log": "0.0MB",
               "google_health.log": "0.0MB",
               "message.log": "0.0MB",
               "scheduler.log": "0.5MB",
@@ -64328,7 +64350,7 @@
           }
         }
       },
-      "timestamp": "2026-11-23T00:26:26"
+      "timestamp": "2026-11-23T01:04:23"
     },
     "decision_support": {
       "success": true,
@@ -64493,7 +64515,7 @@
           ]
         }
       },
-      "timestamp": "2026-11-23T00:26:44"
+      "timestamp": "2026-11-23T01:04:41"
     },
     "run_test_suite": {
       "success": true,
@@ -64514,7 +64536,7 @@
               "log_file": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\parallel.xml",
               "return_code_hex": "0x0",
               "return_code": 0,
-              "passed_count": 6772,
+              "passed_count": 6774,
               "failed_count": 0,
               "error_count": 0,
               "skipped_count": 1,
@@ -64551,7 +64573,7 @@
                 "-m",
                 "not no_parallel and not e2e and not slow",
                 "--basetemp",
-                "tests\\data\\tmp\\pytest_runner\\20261123_002654\\parallel",
+                "tests\\data\\tmp\\pytest_runner\\20261123_010453\\parallel",
                 "-o",
                 "cache_dir=tests\\data\\tmp\\pytest_cache",
                 "--ignore=tests/data",
@@ -64564,10 +64586,10 @@
                 "tests"
               ],
               "return_code": 0,
-              "duration_seconds": 330.826,
+              "duration_seconds": 347.62,
               "counts": {
-                "total": 6773,
-                "passed": 6772,
+                "total": 6775,
+                "passed": 6774,
                 "failed": 0,
                 "errors": 0,
                 "skipped": 1
@@ -64575,7 +64597,7 @@
               "classification": "passed",
               "failed_node_ids": [],
               "junit_xml": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\parallel.xml",
-              "output_tail": "bringing up nodes...\nbringing up nodes...\n\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33ms\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m [ 74%]\n\u001b[33m============================== warnings summary ===============================\u001b[0m\ntests/unit/test_web_account_service.py: 21 warnings\n  C:\\Users\\Julie\\projects\\MHM\\MHM\\.venv\\Lib\\site-packages\\aiohttp\\web_protocol.py:595: DeprecationWarning: returning HTTPException object is deprecated (#2415) and will be removed, please raise the exception instead\n    warnings.warn(\ntests/unit/test_web_account_service.py::test_facebook_email_is_trusted_only_when_facebook_shares_one\n  tests\\unit\\test_web_account_service.py:1045: PytestWarning: The test <Function test_facebook_email_is_trusted_only_when_facebook_shares_one> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_facebook_email_is_trusted_only_when_facebook_shares_one():\ntests/unit/test_web_chat.py::test_missing_website_inbox_stays_missing\n  tests\\unit\\test_web_chat.py:224: PytestWarning: The test <Function test_missing_website_inbox_stays_missing> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_missing_website_inbox_stays_missing(tmp_path, monkeypatch):\ntests/unit/test_web_chat.py::test_repeated_message_text_keeps_each_exact_delivery_reaction\n  tests\\unit\\test_web_chat.py:305: PytestWarning: The test <Function test_repeated_message_text_keeps_each_exact_delivery_reaction> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_repeated_message_text_keeps_each_exact_delivery_reaction(monkeypatch):\ntests/unit/test_web_chat.py::test_website_inbox_stores_a_copy_without_replacing_the_primary_channel\n  tests\\unit\\test_web_chat.py:199: PytestWarning: The test <Function test_website_inbox_stores_a_copy_without_replacing_the_primary_channel> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_path, monkeypatch):\ntests/unit/test_web_chat.py::test_inbox_read_failure_returns_an_empty_inbox\n  tests\\unit\\test_web_chat.py:245: PytestWarning: The test <Function test_inbox_read_failure_returns_an_empty_inbox> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_inbox_read_failure_returns_an_empty_inbox(monkeypatch):\ntests/unit/test_web_chat.py::test_home_conversation_orders_website_discord_and_email_together\n  tests\\unit\\test_web_chat.py:358: PytestWarning: The test <Function test_home_conversation_orders_website_discord_and_email_together> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_home_conversation_orders_website_discord_and_email_together(monkeypatch):\ntests/unit/test_web_chat.py::test_chat_payload_keeps_plain_text_and_unique_suggestions\n  tests\\unit\\test_web_chat.py:143: PytestWarning: The test <Function test_chat_payload_keeps_plain_text_and_unique_suggestions> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_chat_payload_keeps_plain_text_and_unique_suggestions():\ntests/unit/test_web_chat.py::test_website_chat_reply_uses_the_website_channel\n  tests\\unit\\test_web_chat.py:158: PytestWarning: The test <Function test_website_chat_reply_uses_the_website_channel> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_website_chat_reply_uses_the_website_channel(monkeypatch):\ntests/unit/test_web_chat.py::test_home_conversation_marks_scheduled_messages_for_reactions\n  tests\\unit\\test_web_chat.py:259: PytestWarning: The test <Function test_home_conversation_marks_scheduled_messages_for_reactions> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_home_conversation_marks_scheduled_messages_for_reactions(monkeypatch):\ntests/unit/test_web_chat.py::test_predefined_send_also_keeps_a_website_copy\n  tests\\unit\\test_web_chat.py:433: PytestWarning: The test <Function test_predefined_send_also_keeps_a_website_copy> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_predefined_send_also_keeps_a_website_copy(monkeypatch):\ntests/unit/test_web_checkins.py::test_current_checkin_prompt_drops_an_idle_checkin\n  tests\\unit\\test_web_checkins.py:204: PytestWarning: The test <Function test_current_checkin_prompt_drops_an_idle_checkin> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_current_checkin_prompt_drops_an_idle_checkin():\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n============================ slowest 10 durations =============================\n10.03s teardown tests/unit/test_user_data_presets.py::test_load_presets_json_falls_back_when_file_missing\n8.24s call     tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementIntegration::test_user_data_concurrent_access_real_behavior\n7.54s call     tests/behavior/test_communication_manager_behavior.py::TestCommunicationManagerBehavior::test_start_all_initializes_channels\n7.26s call     tests/behavior/test_response_tracking_behavior.py::TestResponseTrackingBehavior::test_response_tracking_performance_under_load\n6.00s call     tests/behavior/test_headless_service_behavior.py::TestHeadlessServiceManagerBehavior::test_start_headless_service_stops_ui_services\n5.01s call     tests/communication/test_channel_monitor.py::TestChannelMonitor::test_stop_restart_monitor\n2.89s call     tests/unit/test_time_api_policy.py::test_product_uses_canonical_time_helpers\n2.84s call     tests/behavior/test_retained_message_memory.py::test_repeated_message_retention\n2.62s call     tests/unit/test_user_data_json_policy.py::test_product_json_stream_access_uses_approved_storage\n2.43s call     tests/unit/test_email_reply_loop.py::TestReplyContext::test_concurrent_context_updates_preserve_threads_and_handled_ids\n\u001b[33m\u001b[32m6772 passed\u001b[0m, \u001b[33m\u001b[1m1 skipped\u001b[0m, \u001b[33m\u001b[1m32 warnings\u001b[0m\u001b[33m in 327.53s (0:05:27)\u001b[0m\u001b[0m",
+              "output_tail": "bringing up nodes...\nbringing up nodes...\n\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33ms\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33m [ 75%]\n\u001b[33m============================== warnings summary ===============================\u001b[0m\ntests/unit/test_web_account_service.py: 21 warnings\n  C:\\Users\\Julie\\projects\\MHM\\MHM\\.venv\\Lib\\site-packages\\aiohttp\\web_protocol.py:595: DeprecationWarning: returning HTTPException object is deprecated (#2415) and will be removed, please raise the exception instead\n    warnings.warn(\ntests/unit/test_web_account_service.py::test_facebook_email_is_trusted_only_when_facebook_shares_one\n  tests\\unit\\test_web_account_service.py:1045: PytestWarning: The test <Function test_facebook_email_is_trusted_only_when_facebook_shares_one> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_facebook_email_is_trusted_only_when_facebook_shares_one():\ntests/unit/test_web_chat.py::test_home_conversation_marks_scheduled_messages_for_reactions\n  tests\\unit\\test_web_chat.py:259: PytestWarning: The test <Function test_home_conversation_marks_scheduled_messages_for_reactions> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_home_conversation_marks_scheduled_messages_for_reactions(monkeypatch):\ntests/unit/test_web_chat.py::test_missing_website_inbox_stays_missing\n  tests\\unit\\test_web_chat.py:224: PytestWarning: The test <Function test_missing_website_inbox_stays_missing> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_missing_website_inbox_stays_missing(tmp_path, monkeypatch):\ntests/unit/test_web_chat.py::test_chat_payload_keeps_plain_text_and_unique_suggestions\n  tests\\unit\\test_web_chat.py:143: PytestWarning: The test <Function test_chat_payload_keeps_plain_text_and_unique_suggestions> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_chat_payload_keeps_plain_text_and_unique_suggestions():\ntests/unit/test_web_chat.py::test_inbox_read_failure_returns_an_empty_inbox\n  tests\\unit\\test_web_chat.py:245: PytestWarning: The test <Function test_inbox_read_failure_returns_an_empty_inbox> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_inbox_read_failure_returns_an_empty_inbox(monkeypatch):\ntests/unit/test_web_chat.py::test_repeated_message_text_keeps_each_exact_delivery_reaction\n  tests\\unit\\test_web_chat.py:305: PytestWarning: The test <Function test_repeated_message_text_keeps_each_exact_delivery_reaction> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_repeated_message_text_keeps_each_exact_delivery_reaction(monkeypatch):\ntests/unit/test_web_chat.py::test_home_conversation_orders_website_discord_and_email_together\n  tests\\unit\\test_web_chat.py:358: PytestWarning: The test <Function test_home_conversation_orders_website_discord_and_email_together> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_home_conversation_orders_website_discord_and_email_together(monkeypatch):\ntests/unit/test_web_chat.py::test_website_inbox_stores_a_copy_without_replacing_the_primary_channel\n  tests\\unit\\test_web_chat.py:199: PytestWarning: The test <Function test_website_inbox_stores_a_copy_without_replacing_the_primary_channel> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_website_inbox_stores_a_copy_without_replacing_the_primary_channel(tmp_path, monkeypatch):\ntests/unit/test_web_chat.py::test_website_chat_reply_uses_the_website_channel\n  tests\\unit\\test_web_chat.py:158: PytestWarning: The test <Function test_website_chat_reply_uses_the_website_channel> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_website_chat_reply_uses_the_website_channel(monkeypatch):\ntests/unit/test_web_chat.py::test_predefined_send_also_keeps_a_website_copy\n  tests\\unit\\test_web_chat.py:433: PytestWarning: The test <Function test_predefined_send_also_keeps_a_website_copy> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_predefined_send_also_keeps_a_website_copy(monkeypatch):\ntests/unit/test_web_checkins.py::test_current_checkin_prompt_drops_an_idle_checkin\n  tests\\unit\\test_web_checkins.py:204: PytestWarning: The test <Function test_current_checkin_prompt_drops_an_idle_checkin> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove the asyncio mark. If the test is not marked explicitly, check for global marks applied via 'pytestmark'.\n    def test_current_checkin_prompt_drops_an_idle_checkin():\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n============================ slowest 10 durations =============================\n10.26s teardown tests/unit/test_user_data_presets.py::test_load_presets_json_falls_back_when_file_missing\n8.21s call     tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementIntegration::test_user_data_concurrent_access_real_behavior\n7.53s call     tests/behavior/test_communication_manager_behavior.py::TestCommunicationManagerBehavior::test_start_all_initializes_channels\n7.19s call     tests/behavior/test_response_tracking_behavior.py::TestResponseTrackingBehavior::test_response_tracking_performance_under_load\n6.31s setup    tests/ui/test_widget_behavior.py::TestCheckinSettingsWidgetBehavior::test_checkin_enablement_real_behavior\n6.00s call     tests/behavior/test_headless_service_behavior.py::TestHeadlessServiceManagerBehavior::test_start_headless_service_stops_ui_services\n5.01s call     tests/communication/test_channel_monitor.py::TestChannelMonitor::test_stop_restart_monitor\n3.28s call     tests/behavior/test_retained_message_memory.py::test_repeated_message_retention\n3.04s call     tests/unit/test_user_data_json_policy.py::test_product_json_stream_access_uses_approved_storage\n2.88s call     tests/behavior/test_action_planner_routing.py::test_planner_follow_up_updates_task_from_recent_chat\n\u001b[33m\u001b[32m6774 passed\u001b[0m, \u001b[33m\u001b[1m1 skipped\u001b[0m, \u001b[33m\u001b[1m32 warnings\u001b[0m\u001b[33m in 344.25s (0:05:44)\u001b[0m\u001b[0m",
               "interrupted": false
             },
             {
@@ -64591,7 +64613,7 @@
                 "-m",
                 "no_parallel and not e2e and not slow",
                 "--basetemp",
-                "tests\\data\\tmp\\pytest_runner\\20261123_002654\\serial",
+                "tests\\data\\tmp\\pytest_runner\\20261123_010453\\serial",
                 "-o",
                 "cache_dir=tests\\data\\tmp\\pytest_cache",
                 "--ignore=tests/data",
@@ -64601,7 +64623,7 @@
                 "tests"
               ],
               "return_code": 0,
-              "duration_seconds": 84.238,
+              "duration_seconds": 83.815,
               "counts": {
                 "total": 154,
                 "passed": 127,
@@ -64612,7 +64634,7 @@
               "classification": "passed",
               "failed_node_ids": [],
               "junit_xml": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_tools\\tests\\jsons\\test_suite_junit\\no_parallel.xml",
-              "output_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 46%]\n============================ slowest 10 durations =============================\n9.87s teardown tests/behavior/test_task_reminder_followup_behavior.py::TestTaskReminderFollowupBehavior::test_priority_flow_sets_priority_then_starts_reminder_flow\n1.88s setup    tests/behavior/test_message_behavior.py::TestMessageCRUD::test_add_message_success\n1.55s call     tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_multiple_users_same_features_real_behavior\n1.43s call     tests/unit/test_web_user_settings.py::test_saved_settings_use_existing_v2_profile_and_schedule_storage\n1.43s call     tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_full_account_lifecycle_real_behavior\n1.22s call     tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed\n1.21s call     tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order\n1.20s call     tests/behavior/test_user_data_flow_architecture.py::TestCrossFileInvariants::test_cross_file_invariant_simultaneous_account_preferences_save\n1.17s call     tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_add_schedule_period\n1.11s call     tests/unit/test_admin_account_provisioning.py::TestProvisionAdminAccountBehavior::test_provision_admin_account_persists_checkin_settings\n\u001b[32m\u001b[32m\u001b[1m127 passed\u001b[0m, \u001b[33m27 skipped\u001b[0m, \u001b[33m6871 deselected\u001b[0m\u001b[32m in 80.42s (0:01:20)\u001b[0m\u001b[0m",
+              "output_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[33ms\u001b[0m\u001b[32m [ 46%]\n\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[33ms\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 93%]\n============================ slowest 10 durations =============================\n9.87s teardown tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_load_schedules_data_real_behavior\n1.56s call     tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_multiple_users_same_features_real_behavior\n1.49s setup    tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_multiple_users_same_features_real_behavior\n1.44s call     tests/ui/test_account_creation_ui.py::TestAccountCreationIntegration::test_full_account_lifecycle_real_behavior\n1.40s call     tests/unit/test_web_user_settings.py::test_saved_settings_use_existing_v2_profile_and_schedule_storage\n1.23s call     tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_add_schedule_period\n1.22s call     tests/behavior/test_user_data_flow_architecture.py::TestAtomicOperations::test_atomic_operation_all_types_succeed\n1.22s call     tests/behavior/test_user_data_flow_architecture.py::TestProcessingOrder::test_processing_order_deterministic_regardless_of_input_order\n1.21s call     tests/behavior/test_user_data_flow_architecture.py::TestCrossFileInvariants::test_cross_file_invariant_simultaneous_account_preferences_save\n1.11s call     tests/unit/test_admin_account_provisioning.py::TestProvisionAdminAccountBehavior::test_provision_admin_account_persists_checkin_settings\n\u001b[32m\u001b[32m\u001b[1m127 passed\u001b[0m, \u001b[33m27 skipped\u001b[0m, \u001b[33m6873 deselected\u001b[0m\u001b[32m in 80.44s (0:01:20)\u001b[0m\u001b[0m",
               "interrupted": false
             }
           ],
@@ -64631,7 +64653,7 @@
           "invalidation_reason": "domain_cache_disabled"
         }
       },
-      "timestamp": "2026-11-23T00:33:50"
+      "timestamp": "2026-11-23T01:12:04"
     },
     "verify_process_cleanup": {
       "success": true,
@@ -64647,7 +64669,7 @@
           "orphaned_processes": []
         }
       },
-      "timestamp": "2026-11-23T00:33:52"
+      "timestamp": "2026-11-23T01:12:07"
     },
     "analyze_ruff": {
       "success": true,
@@ -64666,14 +64688,14 @@
           "top_rules": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 0,
+            "subprocesses": 1,
             "merged": true,
-            "fragment_cache_hits": 9,
-            "fragment_cache_misses": 0
+            "fragment_cache_hits": 8,
+            "fragment_cache_misses": 1
           }
         }
       },
-      "timestamp": "2026-11-23T00:33:53.004117"
+      "timestamp": "2026-11-23T01:12:07.349366"
     },
     "analyze_pyright": {
       "success": true,
@@ -64696,15 +64718,15 @@
           "top_warning_files": [],
           "shard_run": {
             "mode": "sharded",
-            "subprocesses": 0,
+            "subprocesses": 1,
             "merged": true,
-            "fragment_cache_hits": 8,
-            "fragment_cache_misses": 0,
+            "fragment_cache_hits": 7,
+            "fragment_cache_misses": 1,
             "parity_note": "Sharded Pyright may omit cross-package diagnostics; run a full-project Pyright periodically (e.g. pyright_shard_scan false or CI) for strict parity."
           }
         }
       },
-      "timestamp": "2026-11-23T00:33:53.004117"
+      "timestamp": "2026-11-23T01:12:07.349366"
     },
     "analyze_bandit": {
       "success": true,
@@ -64735,7 +64757,7 @@
           }
         }
       },
-      "timestamp": "2026-11-23T00:33:53.004117"
+      "timestamp": "2026-11-23T01:12:07.349366"
     },
     "analyze_pip_audit": {
       "success": true,
@@ -64757,7 +64779,7 @@
           "pip_audit_timing_note": "Requirements unchanged; reused pip-audit JSON from a prior run. Orchestration elapsed time reflects cache lookup only, not subprocess."
         }
       },
-      "timestamp": "2026-11-23T00:33:53.004117"
+      "timestamp": "2026-11-23T01:12:07.349366"
     },
     "analyze_vulture": {
       "success": true,
@@ -64776,7 +64798,7 @@
           "findings_sample": []
         }
       },
-      "timestamp": "2026-11-23T00:33:53.004117"
+      "timestamp": "2026-11-23T01:12:07.349366"
     }
   }
 }

@@ -5,9 +5,11 @@ window.MHMSms = {
     box.className = 'sms-connection';
     const heading = document.createElement('h3'); heading.textContent = 'SMS connection';
     const phoneLabel = document.createElement('label'); phoneLabel.textContent = 'Mobile number (including country code)';
+    phoneLabel.className = 'settings-field';
     const phone = document.createElement('input'); phone.type = 'tel'; phone.autocomplete = 'tel';
     phoneLabel.append(phone);
     const consentLabel = document.createElement('label');
+    consentLabel.className = 'phone-consent';
     const consent = document.createElement('input'); consent.type = 'checkbox';
     consentLabel.append(consent, document.createTextNode(' I consent to MHM texts on this number. Message/data rates may apply. Reply STOP to opt out; START to resume.'));
     const start = document.createElement('button'); start.type = 'button'; start.textContent = 'Get connection code';
@@ -15,55 +17,84 @@ window.MHMSms = {
     const disconnect = document.createElement('button'); disconnect.type = 'button'; disconnect.textContent = 'Disconnect SMS'; disconnect.hidden = true;
     const status = document.createElement('p'); status.setAttribute('role', 'status');
     box.append(heading, phoneLabel, consentLabel, start, verify, disconnect, status); parent.append(box);
+    for (const button of [start, verify, disconnect]) button.className = 'button button-small';
+    status.className = 'form-status';
     let token = ''; let pendingPhone = '';
     const api = async (data) => {
+      const recovery = data ? 'Could not confirm the phone connection change. Keep your entries and refresh the connection to check saved state before retrying.' : 'Could not load the phone connection. Refresh the connection to try again, or choose Email or Discord.';
       const response = await fetch('/api/sms/enrollment', {
         credentials: 'same-origin', cache: 'no-store',
         ...(data ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)} : {}),
-      });
+      }).catch(() => { throw new Error(recovery); });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || 'Could not confirm SMS connection. Check saved settings before retrying.');
+      if (!response.ok) throw new Error(response.status === 400 && result.error && !/^\d{3}[: ]/.test(result.error) ? result.error : recovery);
       return result;
     };
     start.addEventListener('click', async () => {
       start.disabled = true;
+      status.className = 'form-status';
       try {
         const result = await api({action: 'start', phone: phone.value, consent: consent.checked});
         token = result.token; pendingPhone = phone.value;
         status.textContent = `From this phone, text LINK ${token} to ${result.sender}. Then select verify. The code expires in 15 minutes.`;
         verify.hidden = false;
-      } catch (error) { status.textContent = error.message; }
+      } catch (error) { status.className = 'form-status is-error'; status.textContent = error.message; }
       finally { start.disabled = false; }
     });
     verify.addEventListener('click', async () => {
       verify.disabled = true;
+      status.className = 'form-status';
       try {
         if (phone.value !== pendingPhone) throw new Error('The phone changed. Request a new connection code.');
         await api({action: 'connect', phone: phone.value, consent: consent.checked, token});
         token = ''; verify.hidden = true; disconnect.hidden = false;
         status.textContent = 'Phone connected. Choose SMS delivery and save to use it.';
         onState({connected: true, eligible: true});
-      } catch (error) { status.textContent = error.message; }
+      } catch (error) { status.className = 'form-status is-error'; status.textContent = error.message; }
       finally { verify.disabled = false; }
     });
     disconnect.addEventListener('click', async () => {
       disconnect.disabled = true;
+      status.className = 'form-status';
       try {
         await api({action: 'disconnect'});
         status.textContent = 'SMS disconnected. Reload delivery settings to see your current channel.';
         disconnect.hidden = true; onState({connected: false});
-      } catch (error) { status.textContent = error.message; }
+      } catch (error) { status.className = 'form-status is-error'; status.textContent = error.message; }
       finally { disconnect.disabled = false; }
     });
-    try {
-      const info = await api(); phone.value = info.phone || '';
-      consent.checked = Boolean(info.connected);
-      onState(info);
-      disconnect.hidden = !info.connected;
-      start.disabled = !info.available || !info.eligible;
-      status.textContent = !info.eligible ? 'SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.'
-        : !info.available ? 'SMS is not configured yet.'
-        : info.connected ? 'Your verified phone is connected.' : 'Verify your phone before selecting SMS delivery.';
-    } catch (error) { start.disabled = true; status.textContent = error.message; }
+    async function refresh() {
+      try {
+        const info = await api();
+        if (info.phone || !phone.value) phone.value = info.phone || '';
+        consent.checked = Boolean(info.connected);
+        onState(info);
+        disconnect.hidden = !info.connected;
+        start.disabled = !info.available || !info.eligible;
+        if (!start.dataset) start.dataset = {};
+        start.dataset.unavailable = String(start.disabled);
+        for (const control of [phone, consent]) {
+          if (!control.dataset) control.dataset = {};
+          control.dataset.unavailable = String(!info.eligible || !info.available);
+          control.disabled = !info.eligible || !info.available;
+        }
+        status.className = 'form-status';
+        status.textContent = !info.eligible ? 'SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.'
+          : !info.available ? 'SMS is not configured yet.'
+          : info.connected ? 'Your verified phone is connected.' : 'Verify your phone before selecting SMS delivery.';
+      } catch (error) {
+        onState({failed: true});
+        if (!start.dataset) start.dataset = {};
+        start.dataset.unavailable = 'true';
+        start.disabled = true;
+        status.className = 'form-status is-error';
+        status.textContent = error.message;
+      }
+    }
+    const retry = document.createElement('button');
+    retry.type = 'button'; retry.className = 'plain-button'; retry.textContent = 'Refresh connection';
+    retry.addEventListener('click', async () => { retry.disabled = true; try { await refresh(); } finally { retry.disabled = false; } });
+    box.append(retry);
+    await refresh();
   },
 };

@@ -34,6 +34,11 @@ Retired document and rule names in historical entries refer to their Git history
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-23 - Setup delivery and paid phone enrollment **COMPLETED**
+- **Audit follow-up**: Updated `tests/unit/test_website_pages.py` to validate the current delivery/payment guidance and channel controls instead of removed copy. Added the missing non-null checkout assertion in `tests/unit/test_web_billing.py` so all five optional-access Pyright findings are resolved. The affected website/billing batch passed all 44 tests, targeted Ruff passed, and full-project Pyright reported zero errors and warnings. The prior Tier 3 JUnit and generated audit summaries remain historical evidence; no full Tier 3 rerun is claimed.
+- **Changes**: Setup now labels Delivery correctly, explains automatic selection, shows only the selected channel, and styles enrollment buttons and consent controls. Phone selections offer matching immediate-payment checkout that returns to setup without completing it; live-paid access and verification remain enforced. Enrollment errors provide safe recovery and refresh, and unavailable controls survive step transitions.
+- **Validation**: Added delivery selection/checkout-return, missing enrollment route, and immediate-payment checkout regression coverage; updated the website guide and WhatsApp spec. Validation passed: 52 isolated Python billing/enrollment tests, 43 browser/proxy tests, and doc-sync. The restricted Python run stalled creating Windows local sockets; rerunning with local networking passed. Live deployment, browser visual QA, and real payment verification remain operational follow-ups.
+
 ### 2026-11-21 - Direct Meta WhatsApp channel and separate plan **COMPLETED**
 
 - Added direct Meta Cloud API delivery, signed webhook verification, independent WhatsApp phone consent/LINK proof, STOP/START, durable inbound deduplication, delivery/read receipts, shared task/check-in reply routing, and website/desktop channel selection.

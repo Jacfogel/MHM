@@ -687,3 +687,10 @@ button[aria-busy="true"] { cursor: wait; }
   .talk-form { grid-template-columns: 1fr; }
   .talk-bubble { max-width: 100%; }
 }
+
+/* Shared phone enrollment controls in setup and account settings. */
+.account-panel .phone-consent { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; }
+.account-panel .phone-consent input[type="checkbox"] { width: 18px; height: 18px; padding: 0; margin: 3px 0 0; flex: 0 0 18px; accent-color: var(--purple); }
+.sms-connection, .whatsapp-connection { margin-top: 20px; }
+.sms-connection .button, .whatsapp-connection .button { margin: 8px 8px 8px 0; }
+button:disabled { box-shadow: none; transform: none; }

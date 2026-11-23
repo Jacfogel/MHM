@@ -500,3 +500,23 @@ async def test_invoice_parent_subscription_can_resolve_account_before_checkout_e
         assert response.status == 200
     assert accounts.users["trial-user"]["subscription_status"] == "active"
     assert accounts.users["trial-user"]["stripe_subscription_id"] == "sub_1"
+
+
+@pytest.mark.parametrize(("channel", "plan"), [("sms", "phone"), ("whatsapp", "whatsapp")])
+async def test_setup_phone_checkout_charges_now_and_returns_to_delivery(channel, plan):
+    accounts, billing = Accounts(), Billing()
+    context, client = await signed_in_client(accounts, billing)
+    try:
+        response = await client.post("/api/billing/checkout", json={"plan": plan, "setup_channel": channel}, headers={"Origin": ORIGIN})
+        assert response.status == 200
+        assert billing.checkout is not None
+        assert billing.checkout["trial_end"] is None
+        assert billing.checkout["plan"] == plan
+        assert "/setup.html?" in billing.checkout["success_url"]
+        assert f"setup_channel={channel}" in billing.checkout["success_url"]
+        assert f"setup_channel={channel}" in billing.checkout["cancel_url"]
+        for invalid in [None, [], "email", "discord", "whatsapp" if channel == "sms" else "sms"]:
+            response = await client.post("/api/billing/checkout", json={"plan": plan, "setup_channel": invalid}, headers={"Origin": ORIGIN})
+            assert response.status == 400
+    finally:
+        await context.__aexit__(None, None, None)

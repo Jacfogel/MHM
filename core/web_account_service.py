@@ -1224,9 +1224,20 @@ class WebGateway:
         """Create a Stripe-hosted monthly subscription Checkout Session."""
         uid, current = await self.authenticated_account(request)
         data = await self.body(request)
-        if set(data) != {"plan"} or not isinstance(data.get("plan"), str) or data["plan"] not in config.BILLING_PLANS:
-            raise web.HTTPBadRequest(text="Choose the Discord or Discord + SMS plan.")
+        if (
+            set(data) not in ({"plan"}, {"plan", "setup_channel"})
+            or not isinstance(data.get("plan"), str)
+            or data["plan"] not in config.BILLING_PLANS
+        ):
+            raise web.HTTPBadRequest(text="Choose the Discord, Discord + SMS, or WhatsApp plan.")
         plan = data["plan"]
+        setup_channel = data.get("setup_channel")
+        if "setup_channel" in data and (
+            not isinstance(setup_channel, str)
+            or setup_channel not in {"sms", "whatsapp"}
+            or plan != ("phone" if setup_channel == "sms" else "whatsapp")
+        ):
+            raise web.HTTPBadRequest(text="Choose the matching paid delivery plan.")
         if not self.local and self.billing.test_mode:
             raise web.HTTPServiceUnavailable(text="Billing is in test mode. Real subscriptions are not available yet; your existing access has not changed.")
         if not self.billing.checkout_configured(plan):
@@ -1244,15 +1255,17 @@ class WebGateway:
                 text="This account already has a subscription. Use Manage billing instead."
             )
         trial_end = parse_timestamp_full(str(current.get("trial_ends_at") or ""))
+        return_path = "/setup.html" if setup_channel else "/app.html"
+        return_query = {"setup_channel": setup_channel} if setup_channel else {}
         try:
             session = await self.billing.create_checkout_session(
                 user_id=uid,
                 plan=plan,
                 email=str(current.get("email") or ""),
                 customer_id=str(current.get("stripe_customer_id") or ""),
-                success_url=self.website_redirect("/app.html", billing="success"),
-                cancel_url=self.website_redirect("/app.html", billing="cancelled"),
-                trial_end=trial_end,
+                success_url=self.website_redirect(return_path, billing="success", **return_query),
+                cancel_url=self.website_redirect(return_path, billing="cancelled", **return_query),
+                trial_end=None if setup_channel else trial_end,
             )
         except StripeAPIError as exc:
             logger.error(f"Stripe Checkout session failed: {type(exc).__name__}")
