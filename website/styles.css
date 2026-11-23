@@ -694,3 +694,17 @@ button[aria-busy="true"] { cursor: wait; }
 .sms-connection, .whatsapp-connection { margin-top: 20px; }
 .sms-connection .button, .whatsapp-connection .button { margin: 8px 8px 8px 0; }
 button:disabled { box-shadow: none; transform: none; }
+
+/* First-run delivery choices */
+.delivery-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border: 0; padding: 12px 0; margin: 0 0 18px; min-width: 0; }
+.delivery-option { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px 16px; margin: 0; border: 2px solid var(--border); border-radius: 16px; background: var(--white); cursor: pointer; font-size: .875rem; font-weight: 400; color: var(--muted); }
+.delivery-option input { width: 18px; height: 18px; accent-color: var(--purple); margin: 0; }
+.delivery-option strong { font-size: 1.25rem; color: var(--ink); }
+.delivery-option .delivery-price { font-size: 1rem; font-weight: 700; color: var(--ink); }
+.delivery-badge { font-size: .75rem; font-weight: 700; color: var(--purple); }
+.delivery-recommended { border-color: var(--purple); background: var(--lavender); box-shadow: 0 8px 24px rgba(104, 70, 173, .16); }
+.delivery-recommended .delivery-badge { background: var(--purple); color: white; padding: 4px 8px; border-radius: 20px; }
+.delivery-option:has(input:checked) { outline: 2px solid var(--purple); outline-offset: 3px; }
+.delivery-option:has(input:focus-visible) { outline: 3px solid var(--purple-dark); outline-offset: 4px; }
+@media (max-width: 760px) { .delivery-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+@media (max-width: 440px) { .delivery-options { grid-template-columns: 1fr; } }

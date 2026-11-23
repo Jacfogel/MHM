@@ -15,6 +15,7 @@
   const steps = {
     you: { label: 'You', panel: 'step-1', skip: false },
     discord: { label: 'Delivery', panel: 'step-discord', skip: false },
+    connect: { label: 'Connect', panel: 'step-connect', skip: false },
     features: { label: 'Features', panel: 'step-2', skip: false },
     'message-categories': { label: 'Categories', panel: 'step-message-categories', skip: false },
     'message-windows': { label: 'Message times', panel: 'step-message-windows', skip: true },
@@ -139,7 +140,9 @@
 
   function buildPlan() {
     const chosen = selectedSupport();
-    const next = ['you', 'discord', 'features'];
+    const next = ['you', 'discord'];
+    if (document.getElementById('setup-delivery-channel').value && document.getElementById('setup-delivery-channel').value !== 'email') next.push('connect');
+    next.push('features');
     if (chosen.messages) next.push('message-categories', 'message-windows');
     if (chosen.tasks) next.push('task-create', 'task-windows');
     if (chosen.checkins) next.push('checkin-questions', 'checkin-windows');
@@ -419,7 +422,7 @@
     const discordAvailable = Boolean(account && account.discord_available);
     const connectDiscord = document.getElementById('setup-connect-discord');
     const discordState = document.getElementById('discord-setup-state');
-    if (plan[index] === 'discord') {
+    if (plan[index] === 'connect') {
       connectDiscord.hidden = discordLinked || !discordAvailable;
       discordState.textContent = discordLinked
         ? 'Discord is connected. MHM can send reminders there. Email is also available; SMS and WhatsApp require their matching paid plan.'
@@ -427,11 +430,11 @@
           ? 'Discord is not connected yet.'
           : 'Discord connection is not available right now. You can continue with Email.';
     }
-    continueButton.textContent = plan[index] === 'discord' && !discordLinked
+    continueButton.textContent = plan[index] === 'connect' && !discordLinked
       ? 'Continue with selected channel'
       : plan[index] === 'billing' ? 'Continue with free trial →'
       : index === plan.length - 1 ? 'Finish →' : 'Continue →';
-    if (plan[index] === 'discord') renderDelivery();
+    if (['discord', 'connect'].includes(plan[index])) renderDelivery();
     skipButton.hidden = !current.skip;
     skipButton.textContent = plan[index].endsWith('windows') ? 'Keep these windows' : 'Skip this step';
     backButton.hidden = index === 0;
@@ -660,7 +663,11 @@
 
   const actions = {
     you: saveYou,
-    discord: saveDiscordChoice,
+    discord: async () => {
+      buildPlan();
+      if (document.getElementById('setup-delivery-channel').value === 'email') await saveDeliveryChannel('email');
+    },
+    connect: saveDiscordChoice,
     features: saveFeatures,
     'message-categories': saveMessageCategories,
     'message-windows': saveMessageWindows,
@@ -692,7 +699,7 @@
       setupForm.setAttribute('aria-busy', 'true');
       continueButton.setAttribute('aria-busy', 'true');
     } else {
-      if (plan[index] === 'discord') renderDelivery();
+      if (['discord', 'connect'].includes(plan[index])) renderDelivery();
       setupForm.removeAttribute('aria-busy');
       continueButton.removeAttribute('aria-busy');
     }
@@ -730,12 +737,15 @@
       const returnChannel = ['sms', 'whatsapp'].includes(requestedChannel) ? requestedChannel : null;
       if (['sms', 'whatsapp'].includes(returnChannel)) {
         document.getElementById('setup-delivery-channel').value = returnChannel;
-        index = plan.indexOf('discord');
+        buildPlan();
+        index = plan.indexOf('connect');
       }
       const discordResult = new URLSearchParams(location.search).get('discord');
       let deliveryWarning = '';
       if (discordResult) {
-        index = plan.indexOf('discord');
+        document.getElementById('setup-delivery-channel').value = 'discord';
+        buildPlan();
+        index = plan.indexOf('connect');
         if (discordResult === 'connected' && account.discord_linked) {
           try {
             await saveDeliveryChannel('discord');
@@ -844,9 +854,12 @@
   function renderDelivery() {
     const choice = document.getElementById('setup-delivery-channel');
     if (!choice || !account) return;
-    const channel = choice.value || (account.discord_linked ? 'discord' : 'email');
+    const channel = choice.value || 'email';
+    choice.value = channel;
+    for (const radio of document.querySelectorAll('[name="setup_delivery"]')) radio.checked = radio.value === channel;
+    document.getElementById('setup-delivery-summary').textContent = `Selected: ${channel === 'sms' ? 'SMS' : channel === 'whatsapp' ? 'WhatsApp' : channel === 'discord' ? 'Discord' : 'Email'}.`;
+    if (plan[index] !== 'connect') return;
     const paid = ['sms', 'whatsapp'].includes(channel);
-    document.getElementById('setup-delivery-summary').textContent = `${choice.value ? 'Selected' : 'Automatic delivery'}: ${channel === 'sms' ? 'SMS' : channel === 'whatsapp' ? 'WhatsApp' : channel === 'discord' ? 'Discord' : 'Email'}.`;
     document.getElementById('setup-discord-connection').hidden = channel !== 'discord';
     const info = enrollmentState[channel];
     document.getElementById('setup-paid-delivery').hidden = !(paid && info && !info.eligible && !info.failed);
@@ -865,6 +878,11 @@
   }
   const deliveryChoice = document.getElementById('setup-delivery-channel');
   if (deliveryChoice) deliveryChoice.addEventListener('change', renderDelivery);
+  for (const radio of document.querySelectorAll('[name="setup_delivery"]')) {
+    radio.addEventListener('change', () => {
+      if (radio.checked) { deliveryChoice.value = radio.value; renderDelivery(); }
+    });
+  }
   const payDelivery = document.getElementById('setup-pay-delivery');
   if (payDelivery) payDelivery.addEventListener('click', async () => {
     const channel = deliveryChoice.value;

@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-23 - Resume interrupted account signup **COMPLETED**
+- Corrected two Tier 3 test failures and the changelog guide link; both affected Python files pass (82 tests).
+- Moved channel connection and paid signup to a subsequent Connect step; phone fields accept drafts and validate/normalize international numbers.
+- First-run delivery now uses responsive option cards, highlights Discord as recommended, and clarifies trial pricing and included Email/Discord.
+- Retrying account creation now emails a sign-in code for an existing active account, preserving its password and setup progress.
+
 ### 2026-11-23 - Setup delivery and paid phone enrollment **COMPLETED**
 - Audit follow-up corrected the outdated website assertion and five billing-test type findings; all 44 affected tests passed and full-project Pyright is clean.
 - Fixed setup delivery layout, conditional connection controls, recovery errors, and paid phone checkout returning to verification.

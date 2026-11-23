@@ -61,6 +61,7 @@ Suspended and inactive accounts cannot sign in. Delivery failures and skipped
 ambiguous logins are recorded in the main log without codes or email addresses.
 
 New accounts choose a password and are created **after email verification**, through `create_new_user`.
+Retrying Create account with an email belonging to a unique active account SHALL send an email sign-in code and resume that account after verification. This preserves its password, profile, and setup progress; it does not create another account or save the newly entered password. Suspended, inactive, and ambiguous accounts SHALL receive no code. Leaving before email verification SHALL allow a fresh signup code request, subject to the existing email rate limit.
 They start with messaging, tasks, and check-ins disabled and no categories.
 After sign-in they land on first-run setup for preferred name and time zone,
 then choose messages, task reminders, and/or check-ins. Each feature that stays
@@ -74,13 +75,11 @@ on the signed-in settings page. Account creation completes without
 requiring a communication channel connection. New trial accounts can deliver through
 Email immediately or connect Discord during first-run setup. The Delivery step
 also offers SMS (Discord + SMS, $20 CAD/month) and WhatsApp ($20 CAD/month).
-Selecting a phone channel shows only that connection and offers matching paid
-checkout. This checkout explicitly charges immediately instead of deferring to
+Channel selection is followed by a separate Connect step for Discord, SMS, or WhatsApp. Email skips that step. Connect shows only the selected connection and offers matching paid checkout for phone channels. Phone fields accept drafts before subscription, validate international format and consent before requests, remove spaces/parentheses/hyphens, and convert an explicit 00 prefix to +. Country codes are required rather than guessed; extensions and letters are rejected. Server-side validation and proof from the recipient phone are still required. This checkout explicitly charges immediately instead of deferring to
 the trial end, then returns to Delivery for phone consent and ownership verification;
 it does not mark setup complete. Access waits for the confirmed live-paid billing
 state. Existing subscribers use Account billing management to change plans.
-Automatic delivery means linked Discord, otherwise Email, and the page names the
-resolved channel before saving. Connection failures show recovery guidance and a
+First-run delivery uses horizontal radio cards that stack on small screens. Email is selected by default; Discord is visually highlighted as Recommended with $10 CAD/month and a 30-day free trial. All cards clarify that Email and Discord are included with every plan. There is no automatic-delivery option in first-run setup; the page names the selected channel before saving. Connection failures show recovery guidance and a
 Refresh connection action; disabled enrollment remains disabled across setup steps. After
 an active paid MHM subscription is recorded, users can choose paid delivery channels; connecting SMS additionally requires the Discord + SMS tier
 in first-run delivery or Account > Delivery. SMS requires explicit consent and a

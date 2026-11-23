@@ -19,6 +19,7 @@ class PageStructure(HTMLParser):
         self.scripts: set[str] = set()
         self.controls: dict[str, dict[str, str | None]] = {}
         self.option_values: set[str] = set()
+        self.radio_groups: dict[str, dict[str, dict[str, str | None]]] = {}
 
     def handle_starttag(self, tag, attrs):
         values = dict(attrs)
@@ -31,6 +32,10 @@ class PageStructure(HTMLParser):
             self.scripts.add(src)
         if tag == "option" and (value := values.get("value")):
             self.option_values.add(value)
+        if tag == "input" and values.get("type") == "radio":
+            name, value = values.get("name"), values.get("value")
+            if name and value:
+                self.radio_groups.setdefault(name, {})[value] = values
 
 
 def parse_page(name: str) -> PageStructure:
@@ -249,6 +254,7 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
     assert {
         "step-1",
         "step-discord",
+        "step-connect",
         "step-2",
         "step-message-categories",
         "step-message-windows",
@@ -280,6 +286,7 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
     } <= setup.ids
     for step_id in (
         "step-discord",
+        "step-connect",
         "step-2",
         "step-message-categories",
         "step-message-windows",
@@ -291,7 +298,9 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
         assert "hidden" in setup.controls[step_id]
     assert setup.controls["first-task"]["maxlength"] == "500"
     html = (WEBSITE / "setup.html").read_text(encoding="utf-8")
-    assert {"email", "discord", "sms", "whatsapp"} <= setup.option_values
+    channels = setup.radio_groups["setup_delivery"]
+    assert set(channels) == {"email", "discord", "sms", "whatsapp"}
+    assert {value for value, attrs in channels.items() if "checked" in attrs} == {"email"}
     assert "Payment starts immediately for phone delivery" in html
     assert "the free trial applies to Email or Discord." in html
     for connection_id in ("setup-paid-delivery", "setup-sms-connection", "setup-whatsapp-connection", "setup-discord-connection"):

@@ -7,12 +7,17 @@ window.MHMWhatsApp = {
     const phoneLabel = document.createElement('label'); phoneLabel.textContent = 'Mobile number (including country code)';
     phoneLabel.className = 'settings-field';
     const phone = document.createElement('input'); phone.type = 'tel'; phone.autocomplete = 'tel';
+    phone.inputMode = 'tel'; phone.maxLength = 40; phone.placeholder = '+1 306 555 0123';
+    phone.addEventListener('blur', () => {
+      const number = window.MHMPhoneInput.normalize(phone.value);
+      if (number) phone.value = number;
+    });
     phoneLabel.append(phone);
     const consentLabel = document.createElement('label');
     consentLabel.className = 'phone-consent';
     const consent = document.createElement('input'); consent.type = 'checkbox';
     consentLabel.append(consent, document.createTextNode(' I consent to MHM WhatsApp messages on this number. Reply STOP to opt out; START to resume.'));
-    const start = document.createElement('button'); start.type = 'button'; start.textContent = 'Get connection code';
+    const start = document.createElement('button'); start.type = 'button'; start.textContent = 'Get connection code'; start.disabled = true;
     const verify = document.createElement('button'); verify.type = 'button'; verify.textContent = 'I sent the WhatsApp message — verify phone'; verify.hidden = true;
     const disconnect = document.createElement('button'); disconnect.type = 'button'; disconnect.textContent = 'Disconnect WhatsApp'; disconnect.hidden = true;
     const status = document.createElement('p'); status.setAttribute('role', 'status');
@@ -34,7 +39,9 @@ window.MHMWhatsApp = {
       start.disabled = true;
       status.className = 'form-status';
       try {
-        const result = await api({action: 'start', phone: phone.value, consent: consent.checked});
+        const number = window.MHMPhoneInput.validate(phone);
+        if (!consent.checked) throw new Error('Please confirm your consent before requesting a connection code.');
+        const result = await api({action: 'start', phone: number, consent: consent.checked});
         token = result.token; pendingPhone = phone.value;
         status.textContent = `From this phone, send LINK ${token} in WhatsApp to ${result.sender}. Then select verify. The code expires in 15 minutes.`;
         verify.hidden = false;
@@ -45,8 +52,10 @@ window.MHMWhatsApp = {
       verify.disabled = true;
       status.className = 'form-status';
       try {
-        if (phone.value !== pendingPhone) throw new Error('The phone changed. Request a new connection code.');
-        await api({action: 'connect', phone: phone.value, consent: consent.checked, token});
+        const number = window.MHMPhoneInput.validate(phone);
+        if (number !== pendingPhone) throw new Error('The phone changed. Request a new connection code.');
+        if (!consent.checked) throw new Error('Please confirm your consent before connecting this phone.');
+        await api({action: 'connect', phone: number, consent: consent.checked, token});
         token = ''; verify.hidden = true; disconnect.hidden = false;
         status.textContent = 'Phone connected. Choose WhatsApp delivery and save to use it.';
         onState({connected: true, eligible: true});
@@ -66,22 +75,17 @@ window.MHMWhatsApp = {
     async function refresh() {
       try {
         const info = await api();
-        if (info.phone || !phone.value) phone.value = info.phone || '';
+        if (!phone.value) phone.value = info.phone || '';
         consent.checked = Boolean(info.connected);
-        onState(info);
         disconnect.hidden = !info.connected;
         start.disabled = !info.available || !info.eligible;
         if (!start.dataset) start.dataset = {};
         start.dataset.unavailable = String(start.disabled);
-        for (const control of [phone, consent]) {
-          if (!control.dataset) control.dataset = {};
-          control.dataset.unavailable = String(!info.eligible || !info.available);
-          control.disabled = !info.eligible || !info.available;
-        }
         status.className = 'form-status';
         status.textContent = !info.eligible ? 'WhatsApp requires an active paid WhatsApp plan ($20 CAD/month). Trial accounts can use Email or Discord.'
           : !info.available ? 'WhatsApp is not configured yet.'
           : info.connected ? 'Your verified phone is connected.' : 'Verify your phone before selecting WhatsApp delivery.';
+        onState(info);
       } catch (error) {
         onState({failed: true});
         if (!start.dataset) start.dataset = {};

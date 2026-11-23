@@ -1023,6 +1023,10 @@ class WebGateway:
                 text="Email sign-in is not configured, so MHM could not send a sign-in code. Use a connected sign-in provider or ask your MHM administrator to enable email sign-in."
             )
         existing = await asyncio.to_thread(self.accounts.by_email, email)
+        # Signup may already have verified the email before setup was abandoned.
+        # Resume through email sign-in without replacing credentials or profile data.
+        if mode == "create" and existing:
+            mode = "login"
         eligible = (
             bool(existing and existing[1].get("account_status") == "active")
             if mode in {"login", "reset"}

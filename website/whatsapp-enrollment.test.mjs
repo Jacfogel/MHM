@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 
+const phoneSource = await readFile(new URL('./phone-input.js', import.meta.url), 'utf8');
 const source = await readFile(new URL('./whatsapp-enrollment.js', import.meta.url), 'utf8');
 function node(tag = '') {
   return {tag, children: [], value: '', checked: false, hidden: false, disabled: false,
@@ -13,7 +14,7 @@ async function screen(info) {
   const calls = []; const states = [];
   const parent = node();
   const window = {};
-  vm.runInNewContext(source, {window, document: {createElement: node, createTextNode: text => text},
+  vm.runInNewContext(phoneSource + '\n' + source, {window, document: {createElement: node, createTextNode: text => text},
     fetch: async (_url, options) => {
       const data = options.body ? JSON.parse(options.body) : null;
       calls.push(data);
@@ -66,3 +67,32 @@ test('missing enrollment route shows recovery guidance and keeps the request dis
   await view.box.children.at(-1).listeners.click();
   assert.equal(view.calls.length, 2);
 });
+
+ test('phone fields accept drafts before subscribing and normalize international formatting', async () => {
+  const unpaid = await screen({available: true, eligible: false});
+  assert.equal(unpaid.phone.disabled, false);
+  assert.equal(unpaid.consent.disabled, false);
+  assert.equal(unpaid.start.disabled, true);
+  const view = await screen({available: true, eligible: true});
+  view.phone.value = '00 1 (306) 555-0123'; view.consent.checked = true;
+  await view.start.listeners.click();
+  assert.equal(view.calls[1].phone, '+13065550123');
+  assert.equal(view.phone.value, '+13065550123');
+  view.phone.value = '+1 (306) 555-0123';
+  await view.verify.listeners.click();
+  assert.equal(view.calls[2].phone, '+13065550123');
+ });
+ test('invalid numbers and missing consent never request a connection code', async () => {
+  for (const number of ['hello', '3065550123', '+1 306 555 0123 ext 4', '+0123456789', '+123', '+1234567890123456']) {
+    const view = await screen({available: true, eligible: true});
+    view.phone.value = number; view.consent.checked = true;
+    await view.start.listeners.click();
+    assert.equal(view.calls.length, 1);
+    assert.match(view.status.textContent, /country code/);
+  }
+  const view = await screen({available: true, eligible: true});
+  view.phone.value = '+13065550123';
+  await view.start.listeners.click();
+  assert.equal(view.calls.length, 1);
+  assert.match(view.status.textContent, /consent/);
+ });

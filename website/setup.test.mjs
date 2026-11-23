@@ -56,6 +56,7 @@ async function page({ account = {
     ['setup-progress', node()],
     ['step-1', node({ hidden: false })],
     ['step-discord', node()],
+    ['step-connect', node()],
     ['step-2', node()],
     ['step-message-categories', node()],
     ['step-message-windows', node()],
@@ -155,7 +156,7 @@ test('Discord connection leaves setup usable if delivery settings fail to save',
     search: '?discord=connected', failDeliveryOnce: true,
   });
   assert.equal(view.nodes.get('setup-content').hidden, false);
-  assert.equal(view.nodes.get('step-discord').hidden, false);
+  assert.equal(view.nodes.get('step-connect').hidden, false);
   assert.match(view.nodes.get('setup-status').textContent, /Discord is connected.*could not confirm/);
   await view.continue();
   assert.equal(view.nodes.get('step-2').hidden, false);
@@ -299,17 +300,21 @@ test('setup locks the active step while it is being saved', () => {
   assert.match(source, /setupForm\.removeAttribute\('aria-busy'\)/);
 });
 
-test('delivery shows only the selected connection and explains automatic email', async () => {
+test('delivery defaults to email and shows only the selected connection', async () => {
   const view = await page(); await view.continue();
-  assert.match(view.nodes.get('setup-delivery-summary').textContent, /Automatic delivery: Email/);
+  assert.match(view.nodes.get('setup-delivery-summary').textContent, /Selected: Email/);
   assert.equal(view.nodes.get('setup-discord-connection').hidden, true);
   assert.equal(view.nodes.get('setup-sms-connection').hidden, true);
   const choice = view.nodes.get('setup-delivery-channel');
   choice.value = 'whatsapp'; choice.listeners.change();
+  assert.equal(view.nodes.get('step-connect').hidden, true);
+  await view.continue();
+  assert.equal(view.nodes.get('step-discord').hidden, true);
+  assert.equal(view.nodes.get('step-connect').hidden, false);
   assert.equal(view.nodes.get('setup-whatsapp-connection').hidden, false);
   assert.equal(view.nodes.get('setup-paid-delivery').hidden, false);
   await view.continue();
-  assert.equal(view.nodes.get('step-discord').hidden, false);
+  assert.equal(view.nodes.get('step-connect').hidden, false);
   assert.match(view.nodes.get('setup-status').textContent, /verify your phone/);
   await view.nodes.get('setup-pay-delivery').listeners.click();
   const checkout = view.requests.find(request => request.url === '/api/billing/checkout');
@@ -319,7 +324,23 @@ test('delivery shows only the selected connection and explains automatic email',
 
 test('checkout returns to the selected phone channel', async () => {
   const view = await page({search: '?setup_channel=sms&billing=success'});
-  assert.equal(view.nodes.get('step-discord').hidden, false);
+  assert.equal(view.nodes.get('step-connect').hidden, false);
   assert.equal(view.nodes.get('setup-delivery-channel').value, 'sms');
   assert.equal(view.nodes.get('setup-sms-connection').hidden, false);
+});
+
+test('Discord connection is a subsequent step and Back returns to channel cards', async () => {
+  const view = await page();
+  await view.continue();
+  const choice = view.nodes.get('setup-delivery-channel');
+  choice.value = 'discord'; choice.listeners.change();
+  assert.equal(view.nodes.get('step-connect').hidden, true);
+  await view.continue();
+  assert.equal(view.nodes.get('step-discord').hidden, true);
+  assert.equal(view.nodes.get('step-connect').hidden, false);
+  assert.equal(view.nodes.get('setup-discord-connection').hidden, false);
+  assert.equal(view.requests.filter(request => request.url === '/api/settings' && request.method === 'POST').some(request => JSON.parse(request.body).values.channel === 'discord'), false);
+  await view.nodes.get('setup-back').listeners.click();
+  assert.equal(view.nodes.get('step-discord').hidden, false);
+  assert.equal(choice.value, 'discord');
 });

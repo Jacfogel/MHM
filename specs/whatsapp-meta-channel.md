@@ -25,7 +25,8 @@ Provide WhatsApp delivery and replies directly through Meta, with its own $20 CA
 
 ### Requirement: Paid delivery during website setup
 
-- Delivery SHALL offer both paid phone channels for selection during setup. It SHALL show only the resolved channel connection and explain automatic selection (linked Discord, otherwise Email).
+- Delivery SHALL offer horizontal channel cards with Email selected by default and Discord highlighted as Recommended. Connection and subscription controls SHALL appear on the subsequent Connect step for Discord, SMS, or WhatsApp; Email SHALL proceed directly to feature setup.
+- SMS and WhatsApp phone fields SHALL accept drafts before subscription. They SHALL reject invalid international formats and missing consent before submitting enrollment, strip display punctuation, and convert an explicit 00 international prefix to +. Requests SHALL use the canonical +country-code-and-digits format. Server-side eligibility, consent, and ownership verification SHALL remain required.
 - Selecting an unpaid phone channel SHALL offer its matching subscription with an explicit immediate $20 CAD/month charge. Checkout SHALL return to the selected setup channel without completing setup. Verification and live-paid access SHALL remain required before saving phone delivery.
 - A missing enrollment route SHALL show recovery guidance and a refresh action rather than raw server errors. Setup transitions SHALL preserve unavailable enrollment controls.
 

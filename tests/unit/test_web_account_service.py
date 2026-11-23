@@ -613,18 +613,56 @@ async def test_creation_rechecks_duplicates_after_verification(gateway):
     assert len(accounts.users) == 2
 
 
-async def test_unknown_email_and_duplicate_signup_are_not_signed_in(gateway):
+async def test_unknown_email_is_not_signed_in(gateway):
     client, _, sent, _ = gateway
     for email, mode in [
         ("missing@example.com", "login"),
         ("missing@example.com", "reset"),
-        ("river@example.com", "create"),
     ]:
         response = await request_code(client, email, mode)
         assert response.status == 200
         token = (await response.json())["challenge"]
         assert (await verify(client, token, "000000")).status == 401
     assert not sent
+
+
+async def test_signup_retry_resumes_verified_account_without_overwriting_it(gateway):
+    client, accounts, sent, _ = gateway
+    response = await request_code(client, "brook@example.com", "create")
+    token = (await response.json())["challenge"]
+    assert (await verify(client, token, sent[-1][1], "original secure password")).status == 200
+    uid, account = accounts.by_email("brook@example.com")
+    saved = dict(account)
+    context = dict(accounts.contexts[uid])
+    logout = await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})
+    assert logout.status == 200
+    assert (await client.get("/api/account")).status == 401
+
+    response = await request_code(client, "brook@example.com", "create", preferred_name="Changed")
+    token = (await response.json())["challenge"]
+    assert len(sent) == 2
+    assert (await client.get("/api/account")).status == 401
+    assert (await verify(client, token, sent[-1][1], "replacement password phrase")).status == 200
+    summary = await (await client.get("/api/account")).json()
+    assert summary["needs_setup"] is True
+    assert len(accounts.users) == 2
+    assert accounts.users[uid] == saved
+    assert accounts.contexts[uid] == context
+    assert (await verify(client, token, sent[-1][1])).status == 401
+
+
+@pytest.mark.parametrize("blocked", ["suspended", "inactive", "ambiguous"])
+async def test_signup_retry_does_not_send_codes_for_blocked_accounts(gateway, blocked):
+    client, accounts, sent, _ = gateway
+    if blocked == "ambiguous":
+        accounts.users["duplicate"] = dict(accounts.users["existing"])
+    else:
+        accounts.users["existing"]["account_status"] = blocked
+    response = await request_code(client, mode="create")
+    assert response.status == 200
+    assert not sent
+    token = (await response.json())["challenge"]
+    assert (await verify(client, token, "000000")).status == 401
 
 
 async def test_codes_expire_and_lock_after_five_wrong_attempts(gateway):

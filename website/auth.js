@@ -108,7 +108,9 @@ async function requestEmailCode(values) {
   challenge = result.challenge;
   entry.hidden = true;
   verification.hidden = false;
-  document.getElementById('code-description').textContent = creating || resetting
+  document.getElementById('code-description').textContent = creating
+    ? `Look for a code at ${values.email}. If you already have an account, this code signs you in to continue; your saved password and setup are kept. For a new account, your password is saved after verification.`
+    : resetting
     ? `Look for a code at ${values.email}. Your ${resetting ? 'new ' : ''}password is saved only after this verification succeeds.`
     : `Look for a code at ${values.email}. Codes are sent to the email saved on your MHM account.`;
   status.textContent = '';

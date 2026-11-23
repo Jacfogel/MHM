@@ -6,12 +6,13 @@
   <meta name="robots" content="noindex" />
   <title>Get started — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=delivery-setup-2" />
+  <link rel="stylesheet" href="styles.css?v=delivery-connect-4" />
   <script src="script.js?v=dialog-1" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
-  <script src="sms-enrollment.js?v=delivery-setup-2" defer></script>
-  <script src="whatsapp-enrollment.js?v=delivery-setup-2" defer></script>
-  <script src="setup.js?v=delivery-setup-2" defer></script>
+  <script src="phone-input.js?v=phone-input-1" defer></script>
+  <script src="sms-enrollment.js?v=delivery-connect-4" defer></script>
+  <script src="whatsapp-enrollment.js?v=delivery-connect-4" defer></script>
+  <script src="setup.js?v=delivery-connect-4" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -43,11 +44,47 @@
         </div>
         <div id="step-discord" hidden>
           <h2>Choose your delivery channel</h2>
-          <div class="settings-field">
-            <label for="setup-delivery-channel">Delivery channel</label>
-            <select id="setup-delivery-channel"><option value="">Choose automatically</option><option value="email">Email</option><option value="discord">Discord</option><option value="sms">SMS — Discord + SMS ($20 CAD/month)</option><option value="whatsapp">WhatsApp ($20 CAD/month)</option></select>
-          </div>
+          <p class="panel-description">Email and Discord are included with every plan. Choose where your messages arrive.</p>
+          <input id="setup-delivery-channel" type="hidden" value="email" />
+          <fieldset class="delivery-options">
+            <legend class="sr-only">Delivery channel</legend>
+            <label class="delivery-option">
+              <input type="radio" name="setup_delivery" value="email" checked />
+              <span class="delivery-badge">Default</span>
+              <strong>Email</strong>
+              <span class="delivery-price">Included</span>
+              <span>Receive messages in your inbox. No extra connection needed.</span>
+            </label>
+            <label class="delivery-option delivery-recommended">
+              <input type="radio" name="setup_delivery" value="discord" />
+              <span class="delivery-badge">Recommended</span>
+              <strong>Discord</strong>
+              <span class="delivery-price">$10 CAD/month</span>
+              <span>30-day free trial available</span>
+              <span>Email included. Connect Discord to receive messages and reply there.</span>
+            </label>
+            <label class="delivery-option">
+              <input type="radio" name="setup_delivery" value="sms" />
+              <span class="delivery-badge">Add SMS</span>
+              <strong>SMS</strong>
+              <span class="delivery-price">$20 CAD/month</span>
+              <span>Email + Discord included. Add text messages to your phone.</span>
+              <span>Paid plan and phone verification required.</span>
+            </label>
+            <label class="delivery-option">
+              <input type="radio" name="setup_delivery" value="whatsapp" />
+              <span class="delivery-badge">Add WhatsApp</span>
+              <strong>WhatsApp</strong>
+              <span class="delivery-price">$20 CAD/month</span>
+              <span>Email + Discord included. Add messages on WhatsApp.</span>
+              <span>Paid plan and phone verification required.</span>
+            </label>
+          </fieldset>
           <p id="setup-delivery-summary" class="field-hint" role="status"></p>
+        </div>
+        <div id="step-connect" hidden>
+          <h2>Connect your delivery channel</h2>
+          <p class="panel-description">Finish connecting your selected channel, then continue setup. Use Back to choose another channel.</p>
           <div id="setup-paid-delivery" hidden>
             <p>Subscribe to the matching plan, then verify your phone. Payment starts immediately for phone delivery; the free trial applies to Email or Discord.</p>
             <button id="setup-pay-delivery" class="button" type="button">Subscribe and connect</button>
@@ -107,7 +144,7 @@
         <div id="step-billing" hidden>
           <h2>Your first 30 days are free.</h2>
           <p id="setup-billing-test-mode" class="field-hint" hidden>Billing is in test mode. These plans are not collecting real payments yet.</p>
-          <p class="panel-description">Your 30-day trial includes Email or Discord delivery. Afterward, choose Discord for $10 CAD/month, Discord + SMS for $20 CAD/month, or WhatsApp for $20 CAD/month. SMS begins only with an active paid phone plan and verified consent. Cancel anytime.</p>
+          <p class="panel-description">Your 30-day trial includes Email and Discord delivery. Afterward, choose Discord for $10 CAD/month, Discord + SMS for $20 CAD/month, or WhatsApp for $20 CAD/month. Every plan includes Email and Discord. SMS begins only with an active paid phone plan and verified consent. Cancel anytime.</p>
           <label for="setup-billing-plan">Monthly plan (CAD)</label>
           <select id="setup-billing-plan"><option value="discord">Discord — $10 CAD/month</option><option value="phone">Discord + SMS — $20 CAD/month</option><option value="whatsapp">WhatsApp — $20 CAD/month</option></select>
           <div class="setup-billing-summary">
