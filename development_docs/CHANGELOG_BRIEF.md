@@ -31,6 +31,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-23 - Clearer website delivery choices **COMPLETED**
+- Corrected the Tier 3 website test that still expected the old free-trial wording.
+- Made Messages manage categories and delivery as well as editable default and custom messages, preserving libraries when paused.
+- Kept the Home chat welcome after replies and moved the full command list out of basic help into the existing commands request.
+- Simplified signup copy and delivery cards, labeled the phone plan SMS, and gated phone enrollment on paid access.
+- Added a profile-completion reminder under personalized messages, Email trial wording and made setup progress show feature details only from Features onward, with no Free trial step for SMS/WhatsApp.
+
+
 ### 2026-11-23 - Resume interrupted account signup **COMPLETED**
 - Corrected two Tier 3 test failures and the changelog guide link; both affected Python files pass (82 tests).
 - Moved channel connection and paid signup to a subsequent Connect step; phone fields accept drafts and validate/normalize international numbers.

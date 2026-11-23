@@ -146,14 +146,16 @@
     if (chosen.messages) next.push('message-categories', 'message-windows');
     if (chosen.tasks) next.push('task-create', 'task-windows');
     if (chosen.checkins) next.push('checkin-questions', 'checkin-windows');
-    next.push('billing');
+    if (!['sms', 'whatsapp'].includes(document.getElementById('setup-delivery-channel').value)) next.push('billing');
     plan = next;
   }
 
   function renderProgress() {
     const current = plan[index];
     progress.replaceChildren();
+    const featureDetails = ['message-categories', 'message-windows', 'task-create', 'task-windows', 'checkin-questions', 'checkin-windows'];
     for (const id of plan) {
+      if (index < plan.indexOf('features') && featureDetails.includes(id)) continue;
       const item = el('li', steps[id].label);
       item.classList.toggle('is-current', id === current);
       if (id === current) item.setAttribute('aria-current', 'step');
@@ -291,6 +293,9 @@
       input.checked = selected.has(category);
       const text = el('span');
       text.append(el('strong', categoryLabels[category] || category.replaceAll('_', ' ')));
+      if (category === 'personalized_profile') {
+        text.append(el('span', 'After setup, complete your profile in Account to help personalize your messages.'));
+      }
       label.append(input, text);
       root.append(label);
     }
@@ -864,7 +869,7 @@
     const info = enrollmentState[channel];
     document.getElementById('setup-paid-delivery').hidden = !(paid && info && !info.eligible && !info.failed);
     const pay = document.getElementById('setup-pay-delivery');
-    pay.textContent = `Subscribe to ${channel === 'sms' ? 'Discord + SMS' : 'WhatsApp'} — $20 CAD/month →`;
+    pay.textContent = `Subscribe to ${channel === 'sms' ? 'SMS' : 'WhatsApp'} — $20 CAD/month →`;
     pay.disabled = !account.billing?.checkout_available || Boolean(account.billing?.subscription_exists);
     for (const name of ['sms', 'whatsapp']) {
       const parent = document.getElementById(`setup-${name}-connection`);
@@ -877,10 +882,15 @@
     }
   }
   const deliveryChoice = document.getElementById('setup-delivery-channel');
-  if (deliveryChoice) deliveryChoice.addEventListener('change', renderDelivery);
+  function updateDeliveryChoice() {
+    buildPlan();
+    renderProgress();
+    renderDelivery();
+  }
+  if (deliveryChoice) deliveryChoice.addEventListener('change', updateDeliveryChoice);
   for (const radio of document.querySelectorAll('[name="setup_delivery"]')) {
     radio.addEventListener('change', () => {
-      if (radio.checked) { deliveryChoice.value = radio.value; renderDelivery(); }
+      if (radio.checked) { deliveryChoice.value = radio.value; updateDeliveryChoice(); }
     });
   }
   const payDelivery = document.getElementById('setup-pay-delivery');

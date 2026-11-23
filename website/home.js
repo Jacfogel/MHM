@@ -429,11 +429,10 @@
       talkLog.append(more);
     }
     const shown = visibleTurns();
-    if (!shown.length && !savedTurns().length) {
+    if (!hasOlderTurns()) {
       addBubble('mhm', 'Hi. Ask for help, tell me to add a task, or just say what’s on your mind.');
-    } else {
-      shown.forEach(turn => addBubble(turn.role, turn.text, turn.at, turn));
     }
+    shown.forEach(turn => addBubble(turn.role, turn.text, turn.at, turn));
     const last = shown[shown.length - 1];
     if (last && last.role === 'mhm') showSuggestions(last.suggestions);
     if (pin) pinTalkToLatest();

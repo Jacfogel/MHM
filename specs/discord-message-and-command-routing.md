@@ -4,7 +4,7 @@
 > **Audience**: Developers, AI collaborators, and reviewers  
 > **Purpose**: Behavior requirements for routing Discord messages, slash commands, classic commands, and suggestion buttons into the channel-agnostic interaction system  
 > **Style**: Behavior requirements and scenarios (see [SPECS_GUIDE.md](SPECS_GUIDE.md))  
-> **Last Updated**: 2026-11-19
+> **Last Updated**: 2026-11-23
 > **Implementation**: `communication/communication_channels/discord/bot.py`, `communication/communication_channels/discord/events/message_handler.py`, `communication/communication_channels/discord/events/interaction_router.py`, `communication/communication_channels/discord/events/command_registration.py`, `communication/message_processing/interaction_manager.py`, `communication/message_processing/command_parser.py`, `communication/command_handlers/interaction_handlers.py`, `communication/command_handlers/shared_types.py`  
 > **Related**: [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md), [DISCORD_GUIDE.md](../communication/communication_channels/discord/DISCORD_GUIDE.md), [discord-welcome-and-onboarding.md](discord-welcome-and-onboarding.md)  
 > **Automated tests**: `tests/behavior/test_discord_bot_behavior.py`, `tests/behavior/test_discord_automation_complete.py`, `tests/behavior/test_communication_interaction_manager_behavior.py`, `tests/behavior/test_message_route_classifier_behavior.py`  
@@ -17,6 +17,8 @@ Discord is an adapter around the channel-agnostic interaction pipeline. Discord-
 The Discord adapter SHALL NOT duplicate task, profile, schedule, notebook, check-in, or AI business logic that already belongs in command handlers or the interaction manager.
 
 ## 2. Requirements
+
+Basic shared help SHALL provide practical examples and point to the explicit 'commands' request for the full command list. It SHALL NOT append the registry's complete list of slash aliases.
 
 ### 2.1. Requirement: Discord user identity maps to an internal MHM user
 

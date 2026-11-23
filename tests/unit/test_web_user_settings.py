@@ -891,3 +891,36 @@ def test_save_settings_remains_saved_when_refresh_is_not_queued(monkeypatch, ser
 
     assert result.saved
     assert bool(result.warnings) is service_running
+
+
+def test_category_library_defaults_edits_and_pause_are_preserved(documents, tmp_path, monkeypatch):
+    """The website save path seeds only missing libraries and keeps edited content."""
+    from core.web_user_settings import save_settings
+    from messages import message_data_manager as libraries
+
+    monkeypatch.setattr(libraries, "get_user_data_dir", lambda _uid: str(tmp_path))
+    monkeypatch.setattr("storage.user_data_operations.update_user_index", lambda _uid: True)
+    monkeypatch.setattr("core.save_user_data_transaction", lambda *args, **kwargs: True)
+    monkeypatch.setattr("core.web_user_settings._schedule_categories_to_reschedule", lambda *args: [])
+    monkeypatch.setattr("core.schedule_runtime.clear_schedule_periods_cache", lambda _uid: None)
+    monkeypatch.setattr(libraries, "load_default_messages", lambda category: [
+        {"id": "default-1", "text": "One step is enough.", "active": True, "days": ["ALL"], "time_periods": ["ALL"]}
+    ])
+    enabled = values(documents, "messages")
+    enabled.update(enabled=True, categories=["motivational"])
+    enabled["periods"] = {"motivational": deepcopy(enabled["periods"]["motivational"])}
+    assert save_settings("test-library", build_settings_updates(documents, OPTIONS, "messages", enabled)).saved
+    seeded = libraries.load_user_messages("test-library", "motivational")
+    assert len(seeded) == 1
+    libraries.edit_message("test-library", "motivational", seeded[0]["id"], {"text": "My edited encouragement."})
+    libraries.add_message("test-library", "motivational", {"id": "personal-1", "text": "My own message.", "active": True})
+    kept = libraries.load_user_messages("test-library", "motivational")
+    assert {message["text"] for message in kept} == {"My edited encouragement.", "My own message."}
+    paused = {"enabled": False, "categories": [], "periods": {}}
+    updates = build_settings_updates(documents, OPTIONS, "messages", paused)
+    assert updates["preferences"]["categories"] == []
+    assert updates["account"]["features"]["automated_messages"] == "disabled"
+    assert save_settings("test-library", updates).saved
+    assert libraries.load_user_messages("test-library", "motivational") == kept
+    assert save_settings("test-library", build_settings_updates(documents, OPTIONS, "messages", enabled)).saved
+    assert libraries.load_user_messages("test-library", "motivational") == kept

@@ -25,6 +25,14 @@ window.MHMSms = {
     for (const button of [start, verify, disconnect]) button.className = 'button button-small';
     status.className = 'form-status';
     let token = ''; let pendingPhone = '';
+    function setPhoneControlsAvailable(available) {
+      for (const control of [phone, consent]) {
+        control.disabled = !available;
+        if (!control.dataset) control.dataset = {};
+        control.dataset.unavailable = String(!available);
+      }
+    }
+    setPhoneControlsAvailable(false);
     const api = async (data) => {
       const recovery = data ? 'Could not confirm the phone connection change. Keep your entries and refresh the connection to check saved state before retrying.' : 'Could not load the phone connection. Refresh the connection to try again, or choose Email or Discord.';
       const response = await fetch('/api/sms/enrollment', {
@@ -78,15 +86,17 @@ window.MHMSms = {
         if (!phone.value) phone.value = info.phone || '';
         consent.checked = Boolean(info.connected);
         disconnect.hidden = !info.connected;
+        setPhoneControlsAvailable(Boolean(info.available && info.eligible));
         start.disabled = !info.available || !info.eligible;
         if (!start.dataset) start.dataset = {};
         start.dataset.unavailable = String(start.disabled);
         status.className = 'form-status';
-        status.textContent = !info.eligible ? 'SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.'
+        status.textContent = !info.eligible ? 'SMS requires an active paid SMS plan. Trial accounts can use Email or Discord.'
           : !info.available ? 'SMS is not configured yet.'
           : info.connected ? 'Your verified phone is connected.' : 'Verify your phone before selecting SMS delivery.';
         onState(info);
       } catch (error) {
+        setPhoneControlsAvailable(false);
         onState({failed: true});
         if (!start.dataset) start.dataset = {};
         start.dataset.unavailable = 'true';

@@ -344,3 +344,26 @@ test('Discord connection is a subsequent step and Back returns to channel cards'
   assert.equal(view.nodes.get('step-discord').hidden, false);
   assert.equal(choice.value, 'discord');
 });
+
+ test('feature details stay hidden in progress until the Features page', async () => {
+  const view = await page();
+  const labels = () => view.nodes.get('setup-progress').children.map(item => item.textContent);
+  assert.equal(labels().includes('A task'), false);
+  await view.continue();
+  assert.equal(labels().includes('Task times'), false);
+  await view.continue();
+  assert.equal(labels().includes('A task'), true);
+  assert.equal(labels().includes('Task times'), true);
+ });
+ test('phone channel choices remove the free trial step immediately', async () => {
+  const view = await page();
+  await view.continue();
+  const choice = view.nodes.get('setup-delivery-channel');
+  for (const channel of ['sms', 'whatsapp', 'email', 'discord']) {
+    choice.value = channel;
+    choice.listeners.change();
+    const labels = view.nodes.get('setup-progress').children.map(item => item.textContent);
+    assert.equal(labels.includes('Free trial'), !['sms', 'whatsapp'].includes(channel));
+    assert.equal(labels.includes('A task'), false);
+  }
+ });

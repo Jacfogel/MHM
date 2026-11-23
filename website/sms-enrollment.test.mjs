@@ -31,12 +31,14 @@ async function screen(info) {
 test('trial accounts cannot begin SMS enrollment', async () => {
   const view = await screen({available: true, eligible: false, trial: true});
   assert.equal(view.start.disabled, true);
-  assert.match(view.status.textContent, /Discord \+ SMS plan/);
+  assert.match(view.status.textContent, /paid SMS plan/);
   assert.equal(view.calls.length, 1);
 });
 
 test('paid user sends proof and consent without changing delivery automatically', async () => {
   const view = await screen({available: true, eligible: true, phone: ''});
+  assert.equal(view.phone.disabled, false);
+  assert.equal(view.consent.disabled, false);
   view.phone.value = '+15555550199'; view.consent.checked = true;
   await view.start.listeners.click();
   assert.match(view.status.textContent, /LINK a{32}/);
@@ -68,10 +70,11 @@ test('missing enrollment route shows recovery guidance and keeps the request dis
   assert.equal(view.calls.length, 2);
 });
 
- test('phone fields accept drafts before subscribing and normalize international formatting', async () => {
+ test('phone controls require a subscription and normalize international formatting', async () => {
   const unpaid = await screen({available: true, eligible: false});
-  assert.equal(unpaid.phone.disabled, false);
-  assert.equal(unpaid.consent.disabled, false);
+  assert.equal(unpaid.phone.disabled, true);
+  assert.equal(unpaid.phone.dataset.unavailable, 'true');
+  assert.equal(unpaid.consent.disabled, true);
   assert.equal(unpaid.start.disabled, true);
   const view = await screen({available: true, eligible: true});
   view.phone.value = '00 1 (306) 555-0123'; view.consent.checked = true;
@@ -95,4 +98,17 @@ test('missing enrollment route shows recovery guidance and keeps the request dis
   await view.start.listeners.click();
   assert.equal(view.calls.length, 1);
   assert.match(view.status.textContent, /consent/);
+ });
+
+ test('refresh unlocks phone controls after payment eligibility arrives', async () => {
+  const info = {available: true, eligible: false};
+  const view = await screen(info);
+  assert.equal(view.phone.disabled, true);
+  assert.equal(view.consent.disabled, true);
+  info.eligible = true;
+  await view.box.children.at(-1).listeners.click();
+  assert.equal(view.phone.disabled, false);
+  assert.equal(view.consent.disabled, false);
+  assert.equal(view.start.disabled, false);
+  assert.equal(view.phone.dataset.unavailable, 'false');
  });

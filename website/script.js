@@ -48,7 +48,7 @@ if (featureLinks.length) {
     .then(account => {
       if (!account) return;
       const enabled = {
-        messages: Boolean(account.messages_enabled),
+        messages: true,
         checkins: Boolean(account.checkins_enabled),
       };
       for (const link of featureLinks) link.hidden = !enabled[link.dataset.feature];

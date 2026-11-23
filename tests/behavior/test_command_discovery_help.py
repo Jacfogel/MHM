@@ -404,3 +404,20 @@ class TestCommandDiscoveryHelp:
         assert "examples" in message.lower()
         assert "commands" in message.lower()
         assert "discord_guide.md" in message.lower()
+
+
+def test_basic_pipeline_help_keeps_full_alias_list_in_commands():
+    from unittest.mock import Mock
+    from communication.message_processing.help_responses import get_help_response, get_commands_response
+    from communication.message_processing.command_registry import build_command_definitions
+
+    definitions = build_command_definitions()
+    parser = Mock()
+    parser.get_suggestions.return_value = []
+    response = get_help_response("test_help", "help", command_parser=parser, command_definitions=definitions)
+    assert "send 'commands'" in response.message
+    assert "Quick commands:" not in response.message
+    assert "/showmoodgraphs" not in response.message
+    full = get_commands_response(definitions)
+    assert "/tasks" in full.message
+    assert "/showmoodgraphs" in full.message

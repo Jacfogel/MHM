@@ -54,7 +54,7 @@ test('nav toggle opens and closes the compact menu', () => {
   assert.equal(view.toggle.textContent, 'Menu');
 });
 
-test('feature tabs hide when that feature is off and the open page returns home', async () => {
+test('Messages stays accessible when delivery is off', async () => {
   const links = [
     { dataset: { feature: 'checkins' }, hidden: false, getAttribute() { return null; } },
     { dataset: { feature: 'messages' }, hidden: false, getAttribute() { return 'page'; } },
@@ -73,8 +73,8 @@ test('feature tabs hide when that feature is off and the open page returns home'
   await new Promise(resolve => setImmediate(resolve));
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(links[0].hidden, false);
-  assert.equal(links[1].hidden, true);
-  assert.deepEqual(navigation, ['home.html']);
+  assert.equal(links[1].hidden, false);
+  assert.deepEqual(navigation, []);
 });
 
 test('a click outside an open dialog closes it', () => {

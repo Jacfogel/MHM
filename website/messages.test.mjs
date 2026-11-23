@@ -62,11 +62,19 @@ function library({ category = 'motivation', messages = [] } = {}) {
   };
 }
 
-async function page(fetchImpl, { confirm = () => true } = {}) {
+function categorySnapshot() {
+  const window = {Morning: {active: true, days: ['ALL'], start_time: '09:00', end_time: '10:00'}};
+  return {sections: {messages: {enabled: true, categories: ['motivation', 'personalized_profile'], periods: {motivation: window, personalized_profile: window}}},
+    options: {categories: ['motivation', 'rest', 'focus', 'personalized_profile']}, revisions: {messages: 'revision-1'},
+    available_message_periods: {motivation: window, rest: window, focus: window, personalized_profile: window}};
+}
+
+async function page(fetchImpl, { confirm = () => true, settingsFetch } = {}) {
   const ids = [
     'message-category', 'messages-status', 'messages-workspace', 'message-form', 'message-text',
     'message-active', 'message-days', 'message-periods', 'message-list', 'messages-empty',
     'messages-summary', 'message-cancel', 'message-preview-text', 'message-preview-meta',
+    'message-category-form', 'message-category-choices', 'message-delivery-enabled', 'message-category-save', 'message-category-reload', 'message-category-status',
     'message-test', 'message-extra-fields', 'message-more-options', 'message-form-title',
   ];
   const nodes = new Map(ids.map(id => [id, element()]));
@@ -95,6 +103,10 @@ async function page(fetchImpl, { confirm = () => true } = {}) {
         body: options.body ? JSON.parse(options.body) : undefined,
       };
       requests.push(request);
+      if (path === '/api/settings') {
+        if (settingsFetch) return settingsFetch(request);
+        return Response.json(categorySnapshot());
+      }
       return fetchImpl(request);
     },
   }));
@@ -110,7 +122,7 @@ test('message library loads categories and renders personal messages', async () 
   assert.equal(screen.nodes.get('messages-workspace').hidden, false);
   assert.equal(screen.nodes.get('message-category').options.length, 3);
   assert.equal(screen.nodes.get('message-category').value, 'motivation');
-  assert.equal(screen.nodes.get('messages-summary').textContent, '1 personal message');
+  assert.equal(screen.nodes.get('messages-summary').textContent, '1 message');
   assert.equal(screen.nodes.get('message-list').childNodes.length, 1);
   assert.equal(screen.nodes.get('message-list').childNodes[0].childNodes[0].childNodes[0].textContent, 'One gentle step.');
 });
@@ -132,7 +144,7 @@ test('new messages save their selected schedule and reload the category', async 
     days: ['ALL'],
     periods: ['ALL'],
   });
-  assert.equal(screen.requests.filter(request => request.method === 'GET').length, 2);
+  assert.equal(screen.requests.filter(request => request.method === 'GET' && request.path.startsWith('/api/messages')).length, 2);
   assert.equal(screen.nodes.get('message-category').disabled, false);
   assert.equal(screen.submit.disabled, false);
 });
@@ -157,7 +169,7 @@ test('a slower category response cannot replace the category selected afterward'
   await settle();
 
   assert.equal(category.value, 'focus');
-  assert.equal(screen.nodes.get('messages-summary').textContent, '0 personal messages');
+  assert.equal(screen.nodes.get('messages-summary').textContent, '0 messages');
 
   pendingLoads.get('/api/messages?category=focus')(Response.json(library({
     category: 'focus',
@@ -166,7 +178,7 @@ test('a slower category response cannot replace the category selected afterward'
   await settle();
 
   assert.equal(category.value, 'focus');
-  assert.equal(screen.nodes.get('messages-summary').textContent, '1 personal message');
+  assert.equal(screen.nodes.get('messages-summary').textContent, '1 message');
   assert.equal(screen.nodes.get('message-list').childNodes[0].childNodes[0].childNodes[0].textContent, 'Focus gently.');
 });
 
@@ -214,3 +226,51 @@ test('category test action is explicit and single-flight', () => {
   assert.match(source, /testButton\.setAttribute\('aria-busy', 'true'\)/);
   assert.match(source, /testButton\.removeAttribute\('aria-busy'\)/);
 });
+
+ test('category settings preserve other choices and windows while enabling a category', async () => {
+  const screen = await page(async () => Response.json(library()), {settingsFetch: async request => {
+    const snapshot = categorySnapshot();
+    if (request.method === 'POST') {
+      snapshot.sections.messages = request.body.values;
+      snapshot.revisions.messages = 'revision-2';
+    }
+    return Response.json(snapshot);
+  }});
+  const inputs = screen.nodes.get('message-category-choices').querySelectorAll('input');
+  inputs.find(input => input.value === 'rest').checked = true;
+  await screen.nodes.get('message-category-form').listeners.submit({preventDefault() {}});
+  const save = screen.requests.find(request => request.path === '/api/settings' && request.method === 'POST');
+  assert.deepEqual(save.body.values.categories, ['motivation', 'rest', 'personalized_profile']);
+  assert.equal(save.body.revision, 'revision-1');
+  assert.equal(save.body.values.enabled, true);
+  assert.deepEqual(save.body.values.periods.rest, categorySnapshot().available_message_periods.rest);
+  assert.deepEqual(save.body.values.periods.motivation, categorySnapshot().sections.messages.periods.motivation);
+ });
+ test('pausing categories does not delete library messages or discard a message draft', async () => {
+  const screen = await page(async () => Response.json(library()), {settingsFetch: async request => {
+    const snapshot = categorySnapshot();
+    if (request.method === 'POST') snapshot.sections.messages = request.body.values;
+    return Response.json(snapshot);
+  }});
+  screen.nodes.get('message-text').value = 'Keep this draft';
+  screen.nodes.get('message-form').listeners.input();
+  screen.nodes.get('message-delivery-enabled').checked = false;
+  for (const input of screen.nodes.get('message-category-choices').querySelectorAll('input')) input.checked = false;
+  await screen.nodes.get('message-category-form').listeners.submit({preventDefault() {}});
+  const save = screen.requests.find(request => request.path === '/api/settings' && request.method === 'POST');
+  assert.deepEqual(save.body.values, {enabled: false, categories: [], periods: {}});
+  assert.equal(screen.requests.some(request => request.method === 'DELETE'), false);
+  assert.equal(screen.nodes.get('message-text').value, 'Keep this draft');
+  assert.equal(screen.nodes.get('message-form').dataset.dirty, 'true');
+ });
+ test('conflicting category settings retain selections and offer reload', async () => {
+  const screen = await page(async () => Response.json(library()), {settingsFetch: async request => request.method === 'POST'
+    ? Response.json({error: 'These settings changed elsewhere. Reload them before saving your edits.'}, {status: 409})
+    : Response.json(categorySnapshot())});
+  const rest = screen.nodes.get('message-category-choices').querySelectorAll('input').find(input => input.value === 'rest');
+  rest.checked = true;
+  await screen.nodes.get('message-category-form').listeners.submit({preventDefault() {}});
+  assert.equal(rest.checked, true);
+  assert.match(screen.nodes.get('message-category-status').textContent, /changed elsewhere/);
+  assert.equal(screen.nodes.get('message-category-reload').disabled, false);
+ });

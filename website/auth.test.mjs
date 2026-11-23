@@ -183,16 +183,9 @@ test('social sign-in shows only available providers and uses provider-aware copy
   assert.equal(socialButtons.get('google').disabled, false);
   assert.equal(socialButtons.get('facebook').hidden, true);
   assert.equal(nodes.get('social-login').hidden, false);
-  assert.equal(nodes.get('social-hint').hidden, false);
+  assert.equal(nodes.get('social-hint').hidden, true);
   assert.equal(nodes.get('account-divider').hidden, false);
-  assert.equal(
-    nodes.get('social-hint').textContent,
-    'Google can create your account from the email on that profile. Or use a password below.'
-  );
-  assert.equal(
-    nodes.get('form-description').textContent,
-    'Create your MHM account with Google, or with a password. A password is saved only after your email code succeeds.'
-  );
+  assert.equal(nodes.get('form-description').hidden, true);
 });
 
 test('verification codes normalize pasted formatting and auth actions show specific progress', () => {

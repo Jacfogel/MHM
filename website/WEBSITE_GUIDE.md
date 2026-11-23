@@ -7,11 +7,13 @@
 
 For shared channel boundaries and the website inbox, see [COMMUNICATION_GUIDE.md](../communication/COMMUNICATION_GUIDE.md). For SMS pilot setup or health connection behavior surfaced by MHM, see [SMS_GUIDE.md](../communication/communication_channels/sms/SMS_GUIDE.md) and [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
 
+The Home chat welcome remains at the beginning of the conversation after replies and refreshes; when older history is collapsed, More reveals it with the oldest turns. Basic help offers examples and points to commands for the full list instead of appending every slash alias.
+
 Marketing site, password and social login/create-account page, signed-in home,
 first-run setup, account settings, task workspace, notebook, personal message
 library, and private insights.
 New website-created accounts receive a 30-day trial. Account settings shows the
-remaining trial, offers Discord ($10 CAD/month), Discord + SMS ($20 CAD/month), or WhatsApp ($20 CAD/month), and opens Stripe-hosted Checkout for the selected plan. It
+remaining trial, offers Discord ($10 CAD/month), SMS ($20 CAD/month), or WhatsApp ($20 CAD/month), and opens Stripe-hosted Checkout for the selected plan. It
 uses Stripe's hosted Customer Portal for billing management. MHM stores Stripe
 customer/subscription identifiers and lifecycle status, never card details.
 The Python gateway uses the **same account store as MHM**. It never stores browser
@@ -64,7 +66,7 @@ New accounts choose a password and are created **after email verification**, thr
 Retrying Create account with an email belonging to a unique active account SHALL send an email sign-in code and resume that account after verification. This preserves its password, profile, and setup progress; it does not create another account or save the newly entered password. Suspended, inactive, and ambiguous accounts SHALL receive no code. Leaving before email verification SHALL allow a fresh signup code request, subject to the existing email rate limit.
 They start with messaging, tasks, and check-ins disabled and no categories.
 After sign-in they land on first-run setup for preferred name and time zone,
-then choose messages, task reminders, and/or check-ins. Each feature that stays
+then choose messages, task reminders, and/or check-ins. The Personalized from your profile category reminds users to complete their profile in Account after setup. Each feature that stays
 on gets its own steps: message categories and windows, an optional first task
 and task windows, or check-in questions and windows. Window steps can keep the
 gentle defaults. Accounts that already have
@@ -74,14 +76,14 @@ still gets setup even if the account summary is missing `needs_setup`. Users can
 on the signed-in settings page. Account creation completes without
 requiring a communication channel connection. New trial accounts can deliver through
 Email immediately or connect Discord during first-run setup. The Delivery step
-also offers SMS (Discord + SMS, $20 CAD/month) and WhatsApp ($20 CAD/month).
-Channel selection is followed by a separate Connect step for Discord, SMS, or WhatsApp. Email skips that step. Connect shows only the selected connection and offers matching paid checkout for phone channels. Phone fields accept drafts before subscription, validate international format and consent before requests, remove spaces/parentheses/hyphens, and convert an explicit 00 prefix to +. Country codes are required rather than guessed; extensions and letters are rejected. Server-side validation and proof from the recipient phone are still required. This checkout explicitly charges immediately instead of deferring to
+also offers SMS ($20 CAD/month) and WhatsApp ($20 CAD/month).
+Channel selection is followed by a separate Connect step for Discord, SMS, or WhatsApp. Email skips that step. Connect shows only the selected connection and offers matching paid checkout for phone channels. Phone fields and consent controls stay disabled and visually muted until the matching paid plan is eligible and enrollment is available, then validate international format and consent before requests, remove spaces/parentheses/hyphens, and convert an explicit 00 prefix to +. Country codes are required rather than guessed; extensions and letters are rejected. Server-side validation and proof from the recipient phone are still required. This checkout explicitly charges immediately instead of deferring to
 the trial end, then returns to Delivery for phone consent and ownership verification;
 it does not mark setup complete. Access waits for the confirmed live-paid billing
 state. Existing subscribers use Account billing management to change plans.
-First-run delivery uses horizontal radio cards that stack on small screens. Email is selected by default; Discord is visually highlighted as Recommended with $10 CAD/month and a 30-day free trial. All cards clarify that Email and Discord are included with every plan. There is no automatic-delivery option in first-run setup; the page names the selected channel before saving. Connection failures show recovery guidance and a
+First-run delivery uses horizontal radio cards that stack on small screens. Each card places its badge, channel name, price, and description on separate lines with consistent spacing. The phone plan is labeled SMS; Email and Discord remain included. Signup verification simply asks users to look for a code at their email address. The signup form omits explanatory paragraphs about provider account creation, password saving, and email-code fallback; buttons, field labels, and password-length guidance provide the necessary instructions. Feature-specific progress steps remain hidden before the Features page; selecting SMS or WhatsApp removes the Free trial step from both progress and the setup flow. Email shows the same 30-day free trial note as Discord. Email is selected by default; Discord is visually highlighted as Recommended with $10 CAD/month and a 30-day free trial. All cards clarify that Email and Discord are included with every plan. There is no automatic-delivery option in first-run setup; the page names the selected channel before saving. Refresh connection rechecks saved enrollment and paid eligibility without reloading setup, including after delayed payment confirmation. WhatsApp omits the repeated unpaid-plan status message. Connection failures show recovery guidance and a
 Refresh connection action; disabled enrollment remains disabled across setup steps. After
-an active paid MHM subscription is recorded, users can choose paid delivery channels; connecting SMS additionally requires the Discord + SMS tier
+an active paid MHM subscription is recorded, users can choose paid delivery channels; connecting SMS additionally requires the SMS tier
 in first-run delivery or Account > Delivery. SMS requires explicit consent and a
 phone ownership code sent from the recipient phone; disconnecting revokes the
 connection. Complimentary, past-due, canceled, and trial accounts cannot use SMS.
@@ -120,8 +122,8 @@ completed, restored, deleted, snoozed, skipped, simplified, or broken into small
 steps. The task list is
 shown first; title-only creation is the default, and template, details, due date,
 priority, recurrence, tags, and reminders stay behind **More options**. The notebook adds
-pinned, inbox, and archived views alongside active entries, with tags for organization. The message library
-supports personal template creation, editing, scheduling, pausing, and deletion.
+pinned, inbox, and archived views alongside active entries, with tags for organization. Messages remains accessible in navigation when message delivery is off. The Messages page manages category selection and the overall message-delivery switch through the same revision-checked settings endpoint as Account, with a link to Account for reminder times. Enabling a category prepares its missing default library; disabling it preserves templates and edited content. Re-enabling never overwrites an existing library. Personalized categories generate their content rather than expose an editable default library. Category saves retain unsaved message drafts; conflicts offer Reload categories. The message library
+supports editing default templates and adding, scheduling, pausing, and deleting messages.
 Insights show recent check-in patterns and history. A mood trend compares the seven
 most recent mood ratings with the previous seven; until 14 mood ratings exist, the
 page shows the average and progress toward a trend instead of labelling sparse data
@@ -164,7 +166,7 @@ To enable live accounts:
 
 For the separate WhatsApp plan, create a $20 CAD/month recurring price and set `STRIPE_WHATSAPP_PRICE_ID`. WhatsApp connection is available in setup and Account > Delivery, with its own verified number and consent. Meta webhook and notification-template setup are in [WHATSAPP_GUIDE.md](../communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md). The SMS plan does not unlock WhatsApp. This source change does not create or publish the live Stripe price.
 
-To enable billing, create separate Stripe Products and monthly CAD Prices for Discord ($10) and Discord + SMS ($20). Set `STRIPE_SECRET_KEY`, `STRIPE_DISCORD_PRICE_ID`, `STRIPE_PHONE_PRICE_ID`, `STRIPE_PORTAL_CONFIGURATION_ID`, and `STRIPE_WEBHOOK_SECRET` on the Python gateway. Register `${WEB_PUBLIC_ORIGIN}/api/billing/webhook` as a snapshot-event
+To enable billing, create separate Stripe Products and monthly CAD Prices for Discord ($10) and SMS ($20). Set `STRIPE_SECRET_KEY`, `STRIPE_DISCORD_PRICE_ID`, `STRIPE_PHONE_PRICE_ID`, `STRIPE_PORTAL_CONFIGURATION_ID`, and `STRIPE_WEBHOOK_SECRET` on the Python gateway. Register `${WEB_PUBLIC_ORIGIN}/api/billing/webhook` as a snapshot-event
 webhook for `checkout.session.completed`, `customer.subscription.created`,
 `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`,
 `invoice.payment_succeeded`, and `invoice.payment_failed`. Configure Stripe's
@@ -177,7 +179,7 @@ are treated as complimentary accounts; new accounts get the trial explicitly.
 Do the live cutover as one controlled change. Never mix test-mode and live-mode
 Stripe objects.
 
-1. In Stripe live mode, create the separate **Discord $10 CAD/month** and **Discord + SMS $20 CAD/month** products/prices. Configure a dedicated Customer Portal with both products, prorated upgrades, and period-end downgrades/cancellations.
+1. In Stripe live mode, create the separate **Discord $10 CAD/month** and **SMS $20 CAD/month** products/prices. Configure a dedicated Customer Portal with both products, prorated upgrades, and period-end downgrades/cancellations.
 2. Create a live snapshot-event webhook for the public URL and the seven events
    listed above. Keep the live signing secret with that endpoint.
 3. Back up the current Stripe key, both price IDs, portal configuration ID, and webhook secret, then replace all five with the matching live-mode values in one maintenance window.
@@ -279,7 +281,7 @@ write to production accounts.
 ## 5. Subscription tiers and entitlements
 
 Trials last 30 days and can deliver through Email or Discord. Discord costs $10 CAD/month. The
-Discord + SMS tier costs $20 CAD/month and includes Discord; SMS also requires a
+SMS tier costs $20 CAD/month and includes Discord; SMS also requires a
 verified, consenting phone. Complimentary status is not the phone tier. A trial
 subscription to the phone price still cannot use SMS until billing becomes active.
 

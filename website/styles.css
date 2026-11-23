@@ -697,7 +697,7 @@ button:disabled { box-shadow: none; transform: none; }
 
 /* First-run delivery choices */
 .delivery-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border: 0; padding: 12px 0; margin: 0 0 18px; min-width: 0; }
-.delivery-option { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px 16px; margin: 0; border: 2px solid var(--border); border-radius: 16px; background: var(--white); cursor: pointer; font-size: .875rem; font-weight: 400; color: var(--muted); }
+.account-panel .delivery-option { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px 16px; margin: 0; border: 2px solid var(--border); border-radius: 16px; background: var(--white); cursor: pointer; font-size: .875rem; font-weight: 400; color: var(--muted); }
 .delivery-option input { width: 18px; height: 18px; accent-color: var(--purple); margin: 0; }
 .delivery-option strong { font-size: 1.25rem; color: var(--ink); }
 .delivery-option .delivery-price { font-size: 1rem; font-weight: 700; color: var(--ink); }
@@ -708,3 +708,13 @@ button:disabled { box-shadow: none; transform: none; }
 .delivery-option:has(input:focus-visible) { outline: 3px solid var(--purple-dark); outline-offset: 4px; }
 @media (max-width: 760px) { .delivery-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
 @media (max-width: 440px) { .delivery-options { grid-template-columns: 1fr; } }
+
+/* Keep unpaid phone enrollment visible but inactive. */
+.sms-connection:has(input:disabled) > h3, .sms-connection:has(input:disabled) > label,
+.whatsapp-connection:has(input:disabled) > h3, .whatsapp-connection:has(input:disabled) > label { opacity: .5; }
+.sms-connection input:disabled, .whatsapp-connection input:disabled { cursor: not-allowed; }
+
+/* Category controls share the library page with message editing. */
+#message-category-form { margin-bottom: 24px; }
+#message-category-form .message-active { display: flex; }
+#message-category-form input[type="checkbox"] { width: 18px; height: 18px; padding: 0; flex: 0 0 18px; accent-color: var(--purple); }

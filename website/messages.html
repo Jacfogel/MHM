@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex" />
   <title>Your messages — MHM</title>
   <link rel="icon" type="image/png" href="mhm-logo.png" />
-  <link rel="stylesheet" href="styles.css?v=fonts-1" />
-  <script src="script.js?v=dialog-1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=message-categories-12" />
+  <script src="script.js?v=message-library-12" defer></script>
   <script src="app.js?v=password-social-1" defer></script>
-  <script src="messages.js?v=workflow-polish-1" defer></script>
+  <script src="messages.js?v=category-management-11" defer></script>
 </head>
 <body class="account-body">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -21,7 +21,15 @@
   <main id="main" class="container app-layout">
     <p id="app-status" class="form-status" role="status" aria-live="polite"></p>
     <section class="tasks-area tasks-page" aria-labelledby="messages-heading">
-      <div class="tasks-heading"><div><span class="eyebrow">Words that fit</span><h1 id="messages-heading">Your message library</h1><p class="hero-lead">Write the encouragement you want MHM to send, and choose when it fits.</p></div><div class="settings-field message-category-field"><label for="message-category">Category</label><select id="message-category"></select></div></div>
+      <div class="tasks-heading"><div><span class="eyebrow">Words that fit</span><h1 id="messages-heading">Your message library</h1><p class="hero-lead">Choose your categories, edit the included messages, and add your own.</p></div><div class="settings-field message-category-field"><label for="message-category">Category</label><select id="message-category"></select></div></div>
+      <form id="message-category-form" class="account-panel" aria-labelledby="message-categories-heading">
+        <h2 id="message-categories-heading">Message categories</h2>
+        <p>Enabling a category adds its default library if needed. Turning it off pauses delivery and keeps your messages. Personalized categories generate messages from your information.</p>
+        <label class="message-active"><input id="message-delivery-enabled" type="checkbox" disabled /> Enable message delivery</label>
+        <fieldset class="category-picker"><legend>Categories to receive</legend><div id="message-category-choices" class="message-choice-grid"></div></fieldset>
+        <p id="message-category-status" class="form-status" role="status" aria-live="polite">Loading category settings…</p>
+        <div class="settings-actions"><button id="message-category-save" class="button button-small" type="submit" disabled>Save categories</button><button id="message-category-reload" class="plain-button" type="button">Reload categories</button><a class="plain-button" href="app.html#messages">Manage reminder times in Account</a></div>
+      </form>
       <p id="messages-status" class="form-status" role="status" aria-live="polite">Loading your messages…</p>
       <div id="messages-workspace" hidden>
         <form id="message-form" class="task-create-form message-form">
@@ -40,7 +48,7 @@
         </form>
         <div class="task-list-header"><strong id="messages-summary"></strong></div>
         <div id="message-list" class="note-list"></div>
-        <div id="messages-empty" class="task-empty" hidden><strong>No personal messages in this category yet.</strong><span>Add one above whenever a phrase feels worth keeping.</span></div>
+        <div id="messages-empty" class="task-empty" hidden><strong>No messages in this category yet.</strong><span>Enable this category above to get its default library, or add your own message.</span></div>
       </div>
     </section>
   </main>

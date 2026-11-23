@@ -64,13 +64,14 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
   const focusResponse = focus === undefined
     ? { focus: firstTask ? { task: firstTask, reason: 'This is overdue, so it stays visible ahead of less urgent tasks.', effort_minutes: firstEffort ? firstEffort.minutes : 15, gentle: false, parent_title: '', deferral_count: 0 } : null }
     : { focus };
+  const intervals = [];
   const context = vm.createContext({
     document: {
       getElementById(id) { return nodes.get(id); },
       querySelectorAll() { return []; },
       createElement() { return node(); },
     },
-    window: { dispatchEvent() {}, requestAnimationFrame() {}, setInterval() {} },
+    window: { dispatchEvent() {}, requestAnimationFrame() {}, setInterval(callback) { intervals.push(callback); } },
     Event,
     location: { replace(url) { navigation.push(url); }, assign(url) { navigation.push(url); } },
     fetch: fetchImpl || (async (url, options = {}) => {
@@ -87,7 +88,7 @@ async function page({ account = { preferred_name: 'River', needs_setup: false, t
   });
   vm.runInContext(source, context);
   for (let i = 0; i < 8; i += 1) await new Promise(resolve => setImmediate(resolve));
-  return { nodes, requests, navigation, async checkin() {
+  return { nodes, requests, navigation, intervals, async checkin() {
     await nodes.get('home-checkin').listeners.click({ currentTarget: nodes.get('home-checkin') });
   } };
 }
@@ -327,7 +328,7 @@ test('home chat shows at least the six most recent turns when the 48-hour window
   const more = log.childNodes.find(item => item.textContent === 'More');
   assert.ok(more);
   await more.listeners.click();
-  assert.equal(log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).length, 8);
+  assert.equal(log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).length, 9);
   assert.equal(log.childNodes.some(item => item.textContent === 'More'), false);
 });
 
@@ -356,7 +357,7 @@ test('home chat keeps every turn from 48 hours and More reveals older turns', as
   const more = log.childNodes.find(item => item.textContent === 'More');
   assert.ok(more);
   await more.listeners.click();
-  assert.equal(log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).length, 10);
+  assert.equal(log.childNodes.filter(item => String(item.className || '').includes('talk-bubble')).length, 11);
   assert.equal(log.childNodes.some(item => item.textContent === 'More'), false);
 });
 
@@ -453,3 +454,25 @@ test('home task actions share one busy lock', () => {
   assert.match(source, /actions\.setAttribute\('aria-busy', 'true'\)/);
   assert.match(source, /const taskId = focusedTask\.id/);
 });
+
+ test('welcome remains exactly once after replying and refreshing the conversation', async () => {
+  let turns = [];
+  const view = await page({chat: true, fetchImpl: async (url, options = {}) => {
+    if (url === '/api/account') return Response.json({preferred_name: 'River', tasks_enabled: true});
+    if (url === '/api/tasks/focus') return Response.json({focus: null});
+    if (url === '/api/chat' && options.method === 'POST') {
+      turns = [{role: 'you', text: 'help'}, {role: 'mhm', text: 'Here are some examples.'}];
+      return Response.json({reply: 'Here are some examples.'});
+    }
+    return Response.json({turns});
+  }});
+  const welcomes = () => view.nodes.get('talk-log').childNodes.filter(item => item.childNodes?.some(child => child.textContent.startsWith('Hi. Ask for help')));
+  assert.equal(welcomes().length, 1);
+  view.nodes.get('talk-input').value = 'help';
+  view.nodes.get('talk-form').listeners.submit({preventDefault() {}});
+  for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve));
+  await view.intervals[0]();
+  for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve));
+  assert.equal(welcomes().length, 1);
+  assert.equal(view.nodes.get('talk-log').childNodes.some(item => item.childNodes?.some(child => child.textContent === 'Here are some examples.')), true);
+ });

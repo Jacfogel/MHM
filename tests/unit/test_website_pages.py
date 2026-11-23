@@ -302,7 +302,7 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
     assert set(channels) == {"email", "discord", "sms", "whatsapp"}
     assert {value for value, attrs in channels.items() if "checked" in attrs} == {"email"}
     assert "Payment starts immediately for phone delivery" in html
-    assert "the free trial applies to Email or Discord." in html
+    assert "the free trial applies only to Email and Discord." in html
     for connection_id in ("setup-paid-delivery", "setup-sms-connection", "setup-whatsapp-connection", "setup-discord-connection"):
         assert "hidden" in setup.controls[connection_id]
     assert "Custom questions can be added in Account after this setup." in html

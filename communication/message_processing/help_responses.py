@@ -47,16 +47,8 @@ def get_help_response(
         "• View analytics: 'Show my analytics'\n"
         "• Mood trends: 'Mood trends for 7 days'\n"
         "• Habit analysis: 'Habit analysis'\n\n"
-        "Try one of these or ask for 'help' to learn more!"
+        "Try one of these, or send 'commands' for the full command list."
     )
-
-    try:
-        defs = command_definitions_as_dicts(command_definitions)
-        names = [f"/{d['name']}" for d in defs]
-        if names:
-            help_text += "\n\nQuick commands: " + ", ".join(names)
-    except Exception:
-        pass
 
     return InteractionResponse(help_text, True, suggestions=suggestions)
 

@@ -20,7 +20,7 @@ if (creating) {
   document.getElementById('confirm-password').required = true;
   password.autocomplete = 'new-password';
   document.getElementById('form-title').textContent = 'Start where you are.';
-  document.getElementById('form-description').textContent = 'Create your MHM account with your email and a password. The password is saved only after your email code succeeds.';
+  document.getElementById('form-description').hidden = true;
   document.getElementById('email-hint').textContent = 'We’ll send your one-time verification code here.';
   document.getElementById('primary-action').textContent = 'Create my account →';
   document.getElementById('send-code').hidden = true;
@@ -43,7 +43,6 @@ if (creating) {
   document.getElementById('email-hint').textContent = 'Use the email connected to your MHM account.';
   document.getElementById('password-hint').textContent = 'Use 12–128 characters.';
   document.getElementById('primary-action').textContent = 'Email my reset code →';
-  document.getElementById('account-footnote').textContent = 'For your security, the new password is saved only after the emailed code is verified.';
 }
 
 const socialMessages = {
@@ -109,7 +108,7 @@ async function requestEmailCode(values) {
   entry.hidden = true;
   verification.hidden = false;
   document.getElementById('code-description').textContent = creating
-    ? `Look for a code at ${values.email}. If you already have an account, this code signs you in to continue; your saved password and setup are kept. For a new account, your password is saved after verification.`
+    ? `Look for a code at ${values.email}.`
     : resetting
     ? `Look for a code at ${values.email}. Your ${resetting ? 'new ' : ''}password is saved only after this verification succeeds.`
     : `Look for a code at ${values.email}. Codes are sent to the email saved on your MHM account.`;
@@ -188,14 +187,9 @@ async function loadSocialProviders() {
       ? availableNames[0]
       : `${availableNames.slice(0, -1).join(', ')} or ${availableNames.at(-1)}`;
     socialLogin.hidden = false;
-    socialHint.hidden = false;
+    socialHint.hidden = creating;
     divider.hidden = false;
-    socialHint.textContent = creating
-      ? `${providerList} can create your account from the email on that profile. Or use a password below.`
-      : `Use ${providerList}, or continue with email.`;
-    if (creating) {
-      document.getElementById('form-description').textContent = `Create your MHM account with ${providerList}, or with a password. A password is saved only after your email code succeeds.`;
-    }
+    if (!creating) socialHint.textContent = `Use ${providerList}, or continue with email.`;
   } catch (_) {
     // Email and password remain fully usable when provider discovery fails.
   }

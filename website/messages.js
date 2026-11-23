@@ -37,6 +37,77 @@
     if (!response.ok) throw new Error((result.error && !result.error.startsWith('MHM could not confirm that this request finished.') && !result.error.startsWith('MHM could not load this view.') ? result.error : recoveryMessage));
     return result;
   }
+  const categoryForm = document.getElementById('message-category-form');
+  const categoryChoices = document.getElementById('message-category-choices');
+  const deliveryEnabled = document.getElementById('message-delivery-enabled');
+  const categorySave = document.getElementById('message-category-save');
+  const categoryReload = document.getElementById('message-category-reload');
+  const categoryStatus = document.getElementById('message-category-status');
+  let categorySettings = null;
+  let categoryInputs = [];
+  let savingCategories = false;
+  function categoryBusy(busy) {
+    deliveryEnabled.disabled = busy;
+    categorySave.disabled = busy;
+    categoryReload.disabled = busy;
+    for (const [, input] of categoryInputs) input.disabled = busy;
+  }
+  function renderCategorySettings(snapshot) {
+    categorySettings = snapshot;
+    categoryChoices.replaceChildren();
+    deliveryEnabled.checked = snapshot.sections.messages.enabled;
+    categoryInputs = snapshot.options.categories.map(name => [name, checkbox(
+      categoryChoices, name,
+      name === 'personalized_profile' ? 'Personalized from your profile' : name.replaceAll('_', ' '),
+      snapshot.sections.messages.categories.includes(name),
+    )]);
+    categoryForm.dataset.dirty = 'false';
+  }
+  async function loadCategorySettings() {
+    categoryBusy(true);
+    try {
+      renderCategorySettings(await api('/api/settings'));
+      categoryStatus.textContent = '';
+      categoryStatus.classList.toggle('is-error', false);
+      categoryBusy(false);
+    } catch (error) {
+      categoryStatus.textContent = error.message;
+      categoryStatus.classList.toggle('is-error', true);
+      categoryReload.disabled = false;
+    }
+  }
+  categoryForm.addEventListener('change', () => { categoryForm.dataset.dirty = 'true'; });
+  categoryReload.addEventListener('click', () => {
+    if (categoryForm.dataset.dirty === 'true' && !window.confirm('Discard unsaved category settings and reload?')) return;
+    loadCategorySettings();
+  });
+  categoryForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!categorySettings || savingCategories || categorySave.disabled) return;
+    savingCategories = true;
+    categoryBusy(true);
+    const categories = categoryInputs.filter(([, input]) => input.checked).map(([name]) => name);
+    const periods = Object.fromEntries(categories.map(name => [name,
+      categorySettings.sections.messages.periods[name] || categorySettings.available_message_periods[name],
+    ]));
+    categoryStatus.textContent = 'Saving categories…';
+    categoryStatus.classList.toggle('is-error', false);
+    try {
+      const saved = await api('/api/settings', 'POST', {
+        section: 'messages', revision: categorySettings.revisions.messages,
+        values: {enabled: deliveryEnabled.checked, categories, periods},
+      });
+      renderCategorySettings(saved);
+      if (form.dataset.dirty !== 'true') await load(category.value);
+      categoryStatus.textContent = (saved.warnings || []).join(' ') || 'Categories saved. Your library is kept when delivery is paused.';
+    } catch (error) {
+      categoryStatus.textContent = error.message;
+      categoryStatus.classList.toggle('is-error', true);
+    } finally {
+      savingCategories = false;
+      categoryBusy(false);
+    }
+  });
   function checkbox(parent, value, labelText, checked) {
     const label = document.createElement('label');
     const input = document.createElement('input'); input.type = 'checkbox'; input.value = value; input.checked = checked;
@@ -103,7 +174,7 @@
     updatePreview();
   }
   function render(periodNames) {
-    list.replaceChildren(); summary.textContent = `${messages.length} personal ${messages.length === 1 ? 'message' : 'messages'}`; empty.hidden = messages.length !== 0;
+    list.replaceChildren(); summary.textContent = `${messages.length} ${messages.length === 1 ? 'message' : 'messages'}`; empty.hidden = messages.length !== 0;
     for (const message of messages) {
       const card = document.createElement('article'); card.className = 'note-card';
       const content = document.createElement('div'); content.className = 'note-card-content';
@@ -130,7 +201,7 @@
   }
   async function deleteMessage(message) {
     const draftWarning = form.dataset.dirty === 'true' ? ' Your unsaved message will also be discarded.' : '';
-    if (!window.confirm(`Delete this personal message? This cannot be undone.${draftWarning}`)) return;
+    if (!window.confirm(`Delete this message? This cannot be undone.${draftWarning}`)) return;
     try { await api(`/api/messages/${encodeURIComponent(category.value)}/${encodeURIComponent(message.id)}`, 'DELETE', {}); await load(category.value); }
     catch (error) { showStatus(error.message, true); }
   }
@@ -176,14 +247,15 @@
     load(nextCategory);
   });
   window.addEventListener('mhm:before-logout', event => {
-    if (saving) {
+    if (saving || savingCategories) {
       showStatus('Wait for your message to finish saving, then log out.');
       event.preventDefault();
-    } else if (form.dataset.dirty === 'true' && !window.confirm('You have an unsaved message. Log out and discard it?')) event.preventDefault();
+    } else if ((form.dataset.dirty === 'true' || categoryForm.dataset.dirty === 'true') && !window.confirm('You have unsaved messages or category settings. Log out and discard them?')) event.preventDefault();
   });
-  window.addEventListener('mhm:signed-out', () => { sessionEnded = true; form.dataset.dirty = 'false'; });
+  window.addEventListener('mhm:signed-out', () => { sessionEnded = true; form.dataset.dirty = 'false'; categoryForm.dataset.dirty = 'false'; });
   window.addEventListener('beforeunload', event => {
-    if (!sessionEnded && form.dataset.dirty === 'true') { event.preventDefault(); event.returnValue = ''; }
+    if (!sessionEnded && (form.dataset.dirty === 'true' || categoryForm.dataset.dirty === 'true')) { event.preventDefault(); event.returnValue = ''; }
   });
   load();
+  loadCategorySettings();
 })();
