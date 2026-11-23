@@ -265,6 +265,7 @@ def _account_default_data(user_id: str) -> dict[str, Any] | None:
         "account_status": "active",
         "chat_id": "",
         "phone": "",
+        "whatsapp_phone": "",
         "email": "",
         "discord_user_id": "",
         "discord_username": "",

@@ -10,6 +10,7 @@
   <script src="script.js?v=dialog-1" defer></script>
   <script src="app.js?v=password-session-2" defer></script>
   <script src="sms-enrollment.js" defer></script>
+  <script src="whatsapp-enrollment.js" defer></script>
   <script src="setup.js?v=billing-setup-1" defer></script>
 </head>
 <body class="account-body">
@@ -43,10 +44,11 @@
         <div id="step-discord" hidden>
           <h2>Choose your delivery channel</h2>
           <label for="setup-delivery-channel">Delivery channel</label>
-          <select id="setup-delivery-channel"><option value="">Choose automatically</option><option value="discord">Discord</option><option value="email">Email</option><option value="sms" disabled>SMS (paid subscription)</option></select>
+          <select id="setup-delivery-channel"><option value="">Choose automatically</option><option value="discord">Discord</option><option value="email">Email</option><option value="sms" disabled>SMS (paid subscription)</option><option value="whatsapp" disabled>WhatsApp ($20 CAD/month plan)</option></select>
           <div id="setup-sms-connection"></div>
-          <p class="panel-description">Trial accounts use Discord. Active paid subscribers can also choose email or connect a verified phone for SMS.</p>
-          <p class="field-hint">Trial accounts use Discord. SMS requires an active paid subscription and a verified phone. Active paid subscribers can receive and reply to email reminders and check-ins. You can also answer a check-in on this website. A scheduled message in Talk to MHM can be marked More like this or Not for me. Discord reactions do the same thing.</p>
+          <div id="setup-whatsapp-connection"></div>
+          <p class="panel-description">New accounts can use Email or Discord. SMS and WhatsApp require their matching active paid plan and a verified phone.</p>
+          <p class="field-hint">Email is available immediately. Connect Discord if you prefer it. You can also answer a check-in on this website. A scheduled message in Talk to MHM can be marked More like this or Not for me. Discord reactions do the same thing.</p>
           <p id="discord-setup-state" class="field-hint"></p>
           <button id="setup-connect-discord" class="button" type="button">Connect Discord →</button>
         </div>
@@ -97,9 +99,9 @@
         <div id="step-billing" hidden>
           <h2>Your first 30 days are free.</h2>
           <p id="setup-billing-test-mode" class="field-hint" hidden>Billing is in test mode. These plans are not collecting real payments yet.</p>
-          <p class="panel-description">Your 30-day trial includes Discord. Afterward, choose Discord for $10 CAD/month or Discord + SMS for $20 CAD/month. SMS begins only with an active paid phone plan and verified consent. Cancel anytime.</p>
+          <p class="panel-description">Your 30-day trial includes Email or Discord delivery. Afterward, choose Discord for $10 CAD/month, Discord + SMS for $20 CAD/month, or WhatsApp for $20 CAD/month. SMS begins only with an active paid phone plan and verified consent. Cancel anytime.</p>
           <label for="setup-billing-plan">Monthly plan (CAD)</label>
-          <select id="setup-billing-plan"><option value="discord">Discord — $10 CAD/month</option><option value="phone">Discord + SMS — $20 CAD/month</option></select>
+          <select id="setup-billing-plan"><option value="discord">Discord — $10 CAD/month</option><option value="phone">Discord + SMS — $20 CAD/month</option><option value="whatsapp">WhatsApp — $20 CAD/month</option></select>
           <div class="setup-billing-summary">
             <strong id="setup-billing-charge-heading">No charge today</strong>
             <span id="setup-billing-charge-detail">Your selected monthly plan starts when the free trial ends.</span>

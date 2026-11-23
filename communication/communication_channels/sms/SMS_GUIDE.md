@@ -8,9 +8,8 @@
 For shared delivery boundaries, see [COMMUNICATION_GUIDE.md](../../COMMUNICATION_GUIDE.md). Browser/gateway deployment is covered by [WEBSITE_GUIDE.md](../../../website/WEBSITE_GUIDE.md), and health OAuth/sync setup by [GOOGLE_HEALTH_GUIDE.md](../../../integrations/google_health/GOOGLE_HEALTH_GUIDE.md).
 
 Live SMS supports verified, consenting accounts with an active paid Discord + SMS plan.
-The phone tier is $20 CAD/month and includes Discord; the $10 Discord tier does not include SMS. Test-mode Stripe subscriptions cannot unlock real SMS. Trial accounts use Discord only. Complimentary, past-due, canceled, and trial accounts
-cannot send SMS, even if an SMS preference was saved earlier. Email login and recovery
-codes remain available independently of delivery-channel access.
+The phone tier is $20 CAD/month and includes Discord; the $10 Discord tier does not include SMS. Test-mode Stripe subscriptions cannot unlock real SMS. Trial accounts can use Email or Discord. Complimentary, past-due, canceled, and trial accounts
+cannot send SMS, even if an SMS preference was saved earlier.
 
 ## 1. Connect SMS
 
@@ -39,8 +38,8 @@ does not mark a complimentary account as paid.
 ### 1.2. Account connection
 
 Website users can connect SMS in the first-run delivery step or Account > Delivery.
-Desktop administrators use Channel Settings. New accounts are Discord-only trials;
-after an active paid Discord + SMS plan is recorded, SMS becomes available in management
+Desktop administrators can create new accounts with Email or Discord and use Channel Settings later.
+After an active paid Discord + SMS plan is recorded, SMS becomes available in management
 and in any unfinished website setup.
 
 1. Enter the recipient's international mobile number and record explicit consent.

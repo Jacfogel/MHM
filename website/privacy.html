@@ -19,7 +19,7 @@
   <main id="main" class="container legal-page">
     <span class="eyebrow">Your information</span>
     <h1>Privacy policy</h1>
-    <p class="legal-updated">Last updated October 7, 2026.</p>
+    <p class="legal-updated">Last updated November 21, 2026.</p>
     <p>Motivational Health Messages (MHM) is a personal support tool. This page describes what the service stores, why, and what you can do about it. It matches how MHM works today.</p>
 
     <h2>What MHM is for</h2>
@@ -32,6 +32,7 @@
 
     <h2>Connected services</h2>
     <ul>
+      <li><strong>SMS and WhatsApp.</strong> Each connection requires its own phone verification and consent. MHM stores the connected number, consent and verification records, delivery receipts, and STOP/START preferences. Connecting SMS does not connect WhatsApp. WhatsApp also keeps messages waiting for you to reply OPEN when a notification was sent outside its reply window.</li>
       <li><strong>Discord.</strong> If you connect Discord, MHM stores the Discord user id and username for that account. You can disconnect it from Delivery settings. Delivery then falls back to email when that was your channel.</li>
       <li><strong>Google or Facebook.</strong> If you use one of these to sign in, MHM stores the stable identifier needed to recognize that sign-in. When Google or Facebook shares an email and no MHM account uses it yet, MHM creates the account. If an account already uses that email, MHM signs you into it. Sign-in access tokens and refresh tokens from these providers are not stored. If Facebook does not share an email, MHM does not create an account from that sign-in. You can disconnect an extra sign-in as long as one way to sign in remains.</li>
       <li><strong>Google Health.</strong> If you connect it, MHM reads sleep, activity, and health measurements you approve. Those readings are stored with your account and used for coarse summaries, such as a rounded sleep length or a heart-rate band. You can pause the connection or delete the saved health data from Integrations in Account settings.</li>
@@ -45,6 +46,8 @@
     <ul>
       <li><strong>Email.</strong> Sign-in codes, password recovery, and email reminders go through the mail server configured for MHM.</li>
       <li><strong>Discord.</strong> Messages you ask MHM to deliver on Discord are sent through Discord.</li>
+      <li><strong>Twilio SMS.</strong> If you connect SMS, the recipient number and message content pass through Twilio and the mobile networks used for delivery.</li>
+      <li><strong>Meta WhatsApp.</strong> If you connect WhatsApp, the recipient number and message content pass through Meta's WhatsApp Business Platform. MHM receives incoming replies and delivery updates from Meta. These services handle their own copies under their policies.</li>
       <li><strong>Google and Facebook.</strong> Only if you start that sign-in or connection. Each provider handles that visit under its own policy.</li>
       <li><strong>Google Health.</strong> Only if you connect it. Google handles the consent screen and the health data it shares.</li>
       <li><strong>Cloudflare.</strong> The public website is served through Cloudflare. The gateway may use the connecting IP address to limit repeated sign-in attempts.</li>
@@ -58,6 +61,7 @@
 
     <h2>How long it is kept</h2>
     <p>Account files, including billing status and Stripe identifiers, stay until the account is deleted. Stripe may retain its own transaction records under its policies and legal obligations. Older sent-message history can be archived after 365 days when cleanup runs. Google Health files stay until you delete them or the account is deleted. Sessions and email codes expire on their own.</p>
+    <p>Phone-channel delivery records are stored separately from account files. Disconnecting WhatsApp removes its connection, waiting message bodies, and reply contexts. Receipt and delivery-status records and STOP/START history remain; automatic cleanup of these records is not yet implemented. Account downloads do not currently include these separate phone-channel records.</p>
 
     <h2>Your choices</h2>
     <p>You can edit settings, download a copy of your data, disconnect Discord or an extra sign-in, and delete saved Google Health data. Signed in, open <a href="app.html#account">Account</a>, then <strong>Your data</strong>, to download a copy or delete the account. Deletion is also described on <a href="data.html">Your data</a>.</p>

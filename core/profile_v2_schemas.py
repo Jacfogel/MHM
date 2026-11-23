@@ -93,7 +93,7 @@ class FeaturesV2Model(BaseModel):
 class ChannelV2Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["email", "discord", "sms"]
+    type: Literal["email", "discord", "sms", "whatsapp"]
     contact: str | None = None
 
     @model_validator(mode="after")
@@ -192,6 +192,7 @@ class AccountV2EnvelopeModel(BaseModel):
     account_status: Literal["active", "inactive", "suspended"] = "active"
     chat_id: str = ""
     phone: str = ""
+    whatsapp_phone: str = ""
     email: str = ""
     discord_user_id: str = ""
     discord_username: str = ""
@@ -205,7 +206,7 @@ class AccountV2EnvelopeModel(BaseModel):
     ] = "comped"
     stripe_customer_id: str = ""
     stripe_subscription_id: str = ""
-    subscription_plan: Literal["", "discord", "phone"] = ""
+    subscription_plan: Literal["", "discord", "phone", "whatsapp"] = ""
     stripe_price_id: str = ""
     billing_livemode: bool = False
     billing_grace_ends_at: str = ""

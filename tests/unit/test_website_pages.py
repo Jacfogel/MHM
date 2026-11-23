@@ -284,8 +284,7 @@ def test_first_run_exposes_a_setup_path_for_each_feature():
         assert "hidden" in setup.controls[step_id]
     assert setup.controls["first-task"]["maxlength"] == "500"
     html = (WEBSITE / "setup.html").read_text(encoding="utf-8")
-    assert "Trial accounts use Discord." in html
-    assert "If you do not connect Discord, MHM uses email." not in html
+    assert "New accounts can use Email or Discord." in html
     assert "Custom questions can be added in Account after this setup." in html
     assert "Categories personalized from check-ins or Google Health can be turned on in Account after this setup." in html
 
@@ -297,9 +296,7 @@ def test_setup_requires_one_feature_without_forcing_tasks():
     assert "message-categories" in source
     assert "checkin-questions" in source
     assert "Keep these windows" in source
-    assert "Connect Discord to continue with trial delivery." in source
-    assert 'option[value="email"]' in source
-    assert "Use email instead" not in source
+    assert "Connect Discord before selecting Discord delivery, or choose Email." in source
     assert "/api/auth/discord/start?next=/setup.html" in source
 
 
@@ -320,10 +317,12 @@ def test_policy_pages_are_readable_and_cross_linked(page_name):
     html = (WEBSITE / page_name).read_text(encoding="utf-8")
     assert {"index.html", "privacy.html", "terms.html", "data.html"} <= page.hrefs
     assert "<h1>" in html
-    if page_name in {"privacy.html", "terms.html"}:
-        assert "Last updated October 7, 2026." in html
-    else:
-        assert "Last updated September 24, 2026." in html
+    expected_dates = {
+        "privacy.html": "November 21, 2026",
+        "terms.html": "October 7, 2026",
+        "data.html": "September 24, 2026",
+    }
+    assert f"Last updated {expected_dates[page_name]}." in html
     assert any(source.startswith("script.js") for source in page.scripts)
     if page_name == "privacy.html":
         assert "mhm_session" in html

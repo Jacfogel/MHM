@@ -38,7 +38,7 @@ def enrollment(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize("status,channel,allowed", [
-    ("trialing", "discord", True), ("trialing", "email", False), ("trialing", "sms", False),
+    ("trialing", "discord", True), ("trialing", "email", True), ("trialing", "sms", False),
     ("active", "sms", True), ("past_due", "sms", False), ("canceled", "sms", False),
     ("comped", "sms", False), ("active", "email", True),
 ])
@@ -127,14 +127,13 @@ def test_repeated_connection_requests_are_throttled(enrollment):
         begin_sms_enrollment("+15555550199", True, "one")
 
 
-@pytest.mark.parametrize("channel", ["email", "sms"])
-def test_trial_delivery_is_blocked_before_channel_submission(monkeypatch, channel):
+def test_trial_sms_delivery_is_blocked_before_channel_submission(monkeypatch):
     from communication.core.channel_orchestrator import CommunicationManager
     from unittest.mock import MagicMock
 
     monkeypatch.setattr("core.get_user_data", lambda *args: {"account": {"subscription_status": "trialing"}})
     manager = MagicMock()
-    assert CommunicationManager.send_message_sync(manager, channel, "recipient", "body", user_id="trial-user") is False
+    assert CommunicationManager.send_message_sync(manager, "sms", "recipient", "body", user_id="trial-user") is False
     manager._check_logging_health.assert_not_called()
 
 

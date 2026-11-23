@@ -9,8 +9,8 @@
 ## Requirements
 
 - Live mode SHALL require explicit enablement, Twilio credentials, a sending number, and an HTTPS origin. Simulation and live mode SHALL be mutually exclusive.
-- SMS SHALL require the $20 CAD/month Discord + SMS tier (`subscription_status=active`, `subscription_plan=phone`, `billing_livemode=true`). The $10 CAD/month Discord tier SHALL NOT grant SMS. The phone tier SHALL include Discord. Trial accounts SHALL use Discord only; email verification and account recovery are authentication operations, not delivery-channel access. Complimentary, past-due, canceled, and trial accounts SHALL NOT send or invoke SMS business commands. Settings and delivery SHALL both enforce this rule.
-- Website first-run setup and account delivery settings, and desktop channel management SHALL expose SMS with its paid-plan requirement. New accounts start as Discord-only trials; SMS can be connected after an active paid phone-tier subscription is recorded. Selecting SMS SHALL NOT change subscription state.
+- SMS SHALL require the $20 CAD/month Discord + SMS tier (`subscription_status=active`, `subscription_plan=phone`, `billing_livemode=true`). The $10 CAD/month Discord tier SHALL NOT grant SMS. The phone tier SHALL include Discord. Trial accounts MAY use Email or Discord. Complimentary, past-due, canceled, and trial accounts SHALL NOT send or invoke SMS business commands. Settings and delivery SHALL both enforce this rule.
+- Website first-run setup and account delivery settings, and desktop channel management SHALL expose SMS with its paid-plan requirement. New accounts can select Email or Discord during the trial; SMS can be connected after an active paid phone-tier subscription is recorded. Selecting SMS SHALL NOT change subscription state.
 - Each SMS account SHALL have an explicitly consenting, verified phone. Connection requires the owner to send a random, single-use LINK code from that phone through a signed webhook. Codes SHALL expire in 15 minutes, be stored only as hashes, and be scoped to the initiating authenticated account. The connection UI SHALL NOT send unsolicited verification texts.
 - Enrollment SHALL enforce one phone per account and one account per phone. The saved account phone and active account status SHALL be rechecked for every operation. Outbound user IDs SHALL match the phone's enrolled account. Switching or disconnecting an enrollment SHALL clear its obsolete reply contexts and preserve opt-out and delivery-receipt history.
 - STOP/START SHALL remain processable for enrolled numbers after paid access ends. Reconnection SHALL NOT clear a STOP opt-out. A downgraded account's saved SMS preference SHALL NOT bypass delivery enforcement.
@@ -26,7 +26,7 @@
 - Checkout SHALL accept only the named `discord` or `phone` plan and resolve its Price on the server. Prices SHALL be $10 and $20 CAD per month respectively.
 - Signed billing events SHALL retrieve the current subscription and map its actual single-item Price to `subscription_plan`; requested metadata SHALL NOT grant SMS.
 - Test-mode Stripe subscriptions SHALL NOT unlock real SMS. Public test-mode Checkout and Portal actions SHALL be disabled; local/provider test validation may still run.
-- Unknown prices and malformed/multiple-item subscriptions SHALL NOT grant the phone tier. Subscription status SHALL still gate delivery; trials remain Discord-only even if a future phone plan is selected.
+- Unknown prices and malformed/multiple-item subscriptions SHALL NOT grant the phone tier. Subscription status SHALL still gate SMS delivery; trials remain ineligible for SMS even if a future phone plan is selected.
 - Plan-specific Checkout idempotency keys SHALL prevent a Discord checkout request from returning a cached phone checkout, or vice versa.
 - The dedicated hosted portal SHALL offer the two plans with prorated upgrades and period-end downgrades. Existing subscriptions SHALL NOT be changed automatically by catalog setup.
 

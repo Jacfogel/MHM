@@ -328,3 +328,7 @@ has an active paid `phone` subscription plan. The account also stores `stripe_pr
 contexts but retains opt-out and delivery history. Expired challenges are removed
 when a new challenge is issued. Raw connection secrets and message bodies are not
 stored in the SMS database. Back up the database with application data.
+
+## 11. WhatsApp contact and runtime state
+
+`account.whatsapp_phone` is a separate verified WhatsApp contact; `account.phone` remains the SMS contact. `subscription_plan=whatsapp` identifies the separate $20 CAD/month plan, and preferences use `channel.type=whatsapp`. The v2 schema and load/save bridge preserve these fields. `storage.whatsapp_state.WhatsAppState` owns independent consent, receipts, opt-outs, session windows, and pending text in `whatsapp_state.sqlite3`. Pending bodies are user data; protect and back up this database with application data. See [WHATSAPP_GUIDE.md](../communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md).

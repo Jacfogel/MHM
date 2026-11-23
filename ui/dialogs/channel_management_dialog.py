@@ -39,6 +39,7 @@ class ChannelManagementDialog(QDialog):
                     w.setParent(None)
             layout.addWidget(self.channel_widget)
             self.channel_widget.sms_owner = self.user_id or ""
+            self.channel_widget.whatsapp_owner = self.user_id or ""
             if self.user_id:
 
                 @handle_errors(
@@ -53,7 +54,7 @@ class ChannelManagementDialog(QDialog):
                     prefs = prefs_result.get("preferences") or {}
                     channel = prefs.get("channel", {}).get("type", "email")
                     channel_lc = channel.lower()
-                    channel_cap = "SMS" if channel_lc == "sms" else channel_lc.capitalize()
+                    channel_cap = "SMS" if channel_lc == "sms" else "WhatsApp" if channel_lc == "whatsapp" else channel_lc.capitalize()
                     # Always prepopulate all contact fields
                     email = account.get("email", "")
                     discord_id = account.get("discord_user_id", "")
@@ -66,12 +67,25 @@ class ChannelManagementDialog(QDialog):
                     value = ""
                     if channel_lc == "email":
                         value = email
+                    elif channel_lc == "whatsapp":
+                        value = account.get("whatsapp_phone", "")
                     elif channel_lc == "sms":
                         value = account.get("phone", "")
                     elif channel_lc == "discord":
                         value = discord_id
                     self.channel_widget.set_selected_channel(channel_cap, value)
                     from core.channel_access import channel_allowed
+                    from core.whatsapp_enrollment import whatsapp_user_for_phone
+                    wa_allowed = channel_allowed(account, "whatsapp")
+                    self.channel_widget.ui.radioButton_WhatsApp.setEnabled(wa_allowed)
+                    self.channel_widget.ui.button_whatsapp_connect.setEnabled(wa_allowed)
+                    self.channel_widget.ui.button_whatsapp_verify.setEnabled(wa_allowed)
+                    self.channel_widget.ui.lineEdit_whatsapp_phone.setText(account.get("whatsapp_phone", ""))
+                    wa_connected = whatsapp_user_for_phone(account.get("whatsapp_phone", ""), require_paid=False) == self.user_id
+                    self.channel_widget.ui.button_whatsapp_disconnect.setEnabled(wa_connected)
+                    self.channel_widget.ui.checkBox_whatsapp_consent.setChecked(wa_connected)
+                    if not wa_allowed:
+                        self.channel_widget.ui.label_whatsapp_status.setText("WhatsApp requires its own active $20 CAD/month plan.")
                     self.channel_widget.ui.radioButton_SMS.setEnabled(channel_allowed(account, "sms"))
                     self.channel_widget.ui.radioButton_Email.setEnabled(channel_allowed(account, "email"))
                     self.channel_widget.ui.button_sms_connect.setEnabled(channel_allowed(account, "sms"))
@@ -84,7 +98,7 @@ class ChannelManagementDialog(QDialog):
                         self.channel_widget.ui.button_sms_disconnect.isEnabled()
                     )
                     if not channel_allowed(account, "sms"):
-                        self.channel_widget.ui.label_sms_status.setText("SMS requires an active paid Discord + SMS plan. Trial accounts use Discord.")
+                        self.channel_widget.ui.label_sms_status.setText("SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.")
 
 
                 load_user_channel_data()
@@ -135,7 +149,7 @@ class ChannelManagementDialog(QDialog):
 
         from core.channel_access import channel_allowed
         if not channel_allowed(account, (channel or "").lower()):
-            QMessageBox.warning(self, "Channel unavailable", "Trial accounts use Discord. SMS requires an active paid Discord + SMS plan.")
+            QMessageBox.warning(self, "Channel unavailable", "Email and Discord are available. SMS and WhatsApp each require their matching active paid plan.")
             return None
 
         # Collect validation errors
@@ -160,6 +174,18 @@ class ChannelManagementDialog(QDialog):
             QMessageBox.warning(self, "Validation Errors", error_message)
             return None  # Validation already explains the problem; keep the draft open.
 
+        if channel == "WhatsApp":
+            from core.whatsapp_enrollment import connect_whatsapp, whatsapp_user_for_phone
+            from communication.communication_channels.sms.phone import normalize_phone
+            if not self.channel_widget.whatsapp_selection_valid():
+                QMessageBox.warning(self, "Verify WhatsApp", "Verify WhatsApp ownership and consent before choosing WhatsApp.")
+                return None
+            phone = normalize_phone(contact_info["whatsapp_phone"])
+            if whatsapp_user_for_phone(phone) != self.user_id:
+                connect_whatsapp(self.user_id, phone, self.channel_widget.whatsapp_token,
+                                 self.channel_widget.ui.checkBox_whatsapp_consent.isChecked(), self.user_id)
+            account["whatsapp_phone"] = phone
+
         if channel == "SMS":
             from core.sms_enrollment import connect_sms, sms_user_for_phone
             from communication.communication_channels.sms.phone import normalize_phone
@@ -183,6 +209,8 @@ class ChannelManagementDialog(QDialog):
         chat_id = ""
         if channel == "Email":
             chat_id = contact_info["email"]
+        elif channel == "WhatsApp":
+            chat_id = account["whatsapp_phone"]
         elif channel == "SMS":
             chat_id = account["phone"]
         elif channel == "Discord":

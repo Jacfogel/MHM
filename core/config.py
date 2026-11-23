@@ -47,11 +47,13 @@ WEB_GATEWAY_PORT = int(os.getenv("WEB_GATEWAY_PORT", "8080"))
 # only hosted session URLs are returned to the browser.
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_DISCORD_PRICE_ID = os.getenv("STRIPE_DISCORD_PRICE_ID", "")
+STRIPE_WHATSAPP_PRICE_ID = os.getenv("STRIPE_WHATSAPP_PRICE_ID", "")
 STRIPE_PHONE_PRICE_ID = os.getenv("STRIPE_PHONE_PRICE_ID", "")
 STRIPE_PORTAL_CONFIGURATION_ID = os.getenv("STRIPE_PORTAL_CONFIGURATION_ID", "")
 BILLING_PLANS = {
     "discord": {"name": "Discord", "amount": 1000, "currency": "cad"},
     "phone": {"name": "Discord + SMS", "amount": 2000, "currency": "cad"},
+    "whatsapp": {"name": "WhatsApp", "amount": 2000, "currency": "cad"},
 }
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 BILLING_GRACE_PERIOD_DAYS = int(os.getenv("BILLING_GRACE_PERIOD_DAYS", "3"))
@@ -367,6 +369,20 @@ SMS_PUBLIC_BASE_URL = os.getenv("SMS_PUBLIC_BASE_URL", "").rstrip("/")
 SMS_WEBHOOK_PORT = int(os.getenv("SMS_WEBHOOK_PORT", "8082"))
 
 
+# Direct Meta Cloud API; credentials are never exposed to the browser.
+WHATSAPP_ENABLED = os.getenv("WHATSAPP_ENABLED", "false").lower() in {"true", "1", "yes"}
+WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
+WHATSAPP_APP_SECRET = os.getenv("WHATSAPP_APP_SECRET", "")
+WHATSAPP_VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
+WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+WHATSAPP_BUSINESS_ACCOUNT_ID = os.getenv("WHATSAPP_BUSINESS_ACCOUNT_ID", "")
+WHATSAPP_PHONE_NUMBER = os.getenv("WHATSAPP_PHONE_NUMBER", "")
+WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION", "v27.0")
+WHATSAPP_WEBHOOK_PORT = int(os.getenv("WHATSAPP_WEBHOOK_PORT", "8083"))
+WHATSAPP_NOTIFICATION_TEMPLATE = os.getenv("WHATSAPP_NOTIFICATION_TEMPLATE", "")
+WHATSAPP_TEMPLATE_LANGUAGE = os.getenv("WHATSAPP_TEMPLATE_LANGUAGE", "en_US")
+
+
 @handle_errors("getting available channels", default_return=[])
 def get_available_channels() -> list[str]:
     """
@@ -395,6 +411,8 @@ def get_available_channels() -> list[str]:
 
         if SMS_SIMULATION_ENABLED or SMS_TWILIO_ENABLED:
             available_channels.append("sms")
+        if WHATSAPP_ENABLED:
+            available_channels.append("whatsapp")
         available_channels.append("website")
 
         return available_channels
@@ -417,6 +435,7 @@ def get_channel_class_mapping() -> dict[str, str]:
             "discord": "communication.communication_channels.discord.bot.DiscordBot",
             "website": "communication.communication_channels.website.bot.WebsiteBot",
             "sms": "communication.communication_channels.sms.bot.SmsBot",
+            "whatsapp": "communication.communication_channels.whatsapp.bot.WhatsAppBot",
         }
     except Exception as e:
         logger.error(f"Error getting channel class mapping: {e}")

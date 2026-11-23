@@ -123,10 +123,9 @@ class AccountCreatorDialog(QDialog):
         self.channel_widget = ChannelSelectionWidget(self)
         self.channel_widget.ui.radioButton_Discord.setChecked(True)
         self.channel_widget.ui.radioButton_SMS.setEnabled(False)
-        self.channel_widget.ui.radioButton_Email.setEnabled(False)
         self.channel_widget.ui.button_sms_connect.setEnabled(False)
         self.channel_widget.ui.button_sms_verify.setEnabled(False)
-        self.channel_widget.ui.label_sms_status.setText("New trial accounts use Discord. After activating the Discord + SMS plan, connect SMS in Channel Settings.")
+        self.channel_widget.ui.label_sms_status.setText("New accounts can use Email or Discord. After activating the Discord + SMS plan, connect SMS in Channel Settings.")
         layout = self.ui.widget_placeholder_channel_selection.layout()
 
         # Remove any existing widgets
@@ -610,8 +609,8 @@ class AccountCreatorDialog(QDialog):
 
         if hasattr(self, "channel_widget"):
             selected, _contact = self.channel_widget.get_selected_channel()
-            if selected != "Discord":
-                return False, "New trial accounts use Discord. After activating the Discord + SMS plan, SMS can be connected in Channel Settings."
+            if selected not in {"Email", "Discord"}:
+                return False, "New accounts can use Email or Discord. SMS and WhatsApp can be connected after the matching paid plan is active."
 
         logger.info("Validation successful.")
         return True, ""

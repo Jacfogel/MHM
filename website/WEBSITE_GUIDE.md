@@ -11,7 +11,7 @@ Marketing site, password and social login/create-account page, signed-in home,
 first-run setup, account settings, task workspace, notebook, personal message
 library, and private insights.
 New website-created accounts receive a 30-day trial. Account settings shows the
-remaining trial, offers Discord ($10 CAD/month) or Discord + SMS ($20 CAD/month), and opens Stripe-hosted Checkout for the selected plan. It
+remaining trial, offers Discord ($10 CAD/month), Discord + SMS ($20 CAD/month), or WhatsApp ($20 CAD/month), and opens Stripe-hosted Checkout for the selected plan. It
 uses Stripe's hosted Customer Portal for billing management. MHM stores Stripe
 customer/subscription identifiers and lifecycle status, never card details.
 The Python gateway uses the **same account store as MHM**. It never stores browser
@@ -71,9 +71,8 @@ any of those features enabled skip setup. First-run also uses the same enabled
 flags as Account settings, so a user with messages, tasks, and check-ins all off
 still gets setup even if the account summary is missing `needs_setup`. Users can still change everything later
 on the signed-in settings page. Account creation completes without
-requiring a communication channel connection. New accounts are Discord-only trials;
-email sign-in and recovery codes remain available, but email is not a trial delivery
-channel. First-run setup connects Discord before trial delivery is enabled. After
+requiring a communication channel connection. New trial accounts can deliver through
+Email immediately or connect Discord during first-run setup. After
 an active paid MHM subscription is recorded, users can choose paid delivery channels; connecting SMS additionally requires the Discord + SMS tier
 in first-run delivery or Account > Delivery. SMS requires explicit consent and a
 phone ownership code sent from the recipient phone; disconnecting revokes the
@@ -154,6 +153,8 @@ To enable live accounts:
    Set its `MHM_API_SECRET` secret to match `WEB_PROXY_SECRET` using
    `npx wrangler secret put MHM_API_SECRET`. Never put it in client JavaScript.
 4. Deploy the Worker, then test creation and login with a controlled email.
+
+For the separate WhatsApp plan, create a $20 CAD/month recurring price and set `STRIPE_WHATSAPP_PRICE_ID`. WhatsApp connection is available in setup and Account > Delivery, with its own verified number and consent. Meta webhook and notification-template setup are in [WHATSAPP_GUIDE.md](../communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md). The SMS plan does not unlock WhatsApp. This source change does not create or publish the live Stripe price.
 
 To enable billing, create separate Stripe Products and monthly CAD Prices for Discord ($10) and Discord + SMS ($20). Set `STRIPE_SECRET_KEY`, `STRIPE_DISCORD_PRICE_ID`, `STRIPE_PHONE_PRICE_ID`, `STRIPE_PORTAL_CONFIGURATION_ID`, and `STRIPE_WEBHOOK_SECRET` on the Python gateway. Register `${WEB_PUBLIC_ORIGIN}/api/billing/webhook` as a snapshot-event
 webhook for `checkout.session.completed`, `customer.subscription.created`,
@@ -269,7 +270,7 @@ write to production accounts.
 
 ## 5. Subscription tiers and entitlements
 
-Trials last 30 days and deliver through Discord. Discord costs $10 CAD/month. The
+Trials last 30 days and can deliver through Email or Discord. Discord costs $10 CAD/month. The
 Discord + SMS tier costs $20 CAD/month and includes Discord; SMS also requires a
 verified, consenting phone. Complimentary status is not the phone tier. A trial
 subscription to the phone price still cannot use SMS until billing becomes active.

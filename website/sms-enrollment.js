@@ -61,7 +61,7 @@ window.MHMSms = {
       onState(info);
       disconnect.hidden = !info.connected;
       start.disabled = !info.available || !info.eligible;
-      status.textContent = !info.eligible ? 'SMS requires an active paid Discord + SMS plan. Trial accounts use Discord.'
+      status.textContent = !info.eligible ? 'SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.'
         : !info.available ? 'SMS is not configured yet.'
         : info.connected ? 'Your verified phone is connected.' : 'Verify your phone before selecting SMS delivery.';
     } catch (error) { start.disabled = true; status.textContent = error.message; }

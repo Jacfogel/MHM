@@ -37,6 +37,14 @@ class ChannelSelectionWidget(QWidget):
         self.ui.button_sms_verify.clicked.connect(self._verify_sms)
         self.ui.button_sms_disconnect.clicked.connect(self._disconnect_sms)
         self.ui.button_sms_disconnect.setEnabled(False)
+        self.whatsapp_owner = ""
+        self.whatsapp_token = ""
+        self.ui.radioButton_WhatsApp.setEnabled(False)
+        self.ui.button_whatsapp_connect.clicked.connect(self._begin_whatsapp)
+        self.ui.button_whatsapp_verify.clicked.connect(self._verify_whatsapp)
+        self.ui.button_whatsapp_disconnect.clicked.connect(self._disconnect_whatsapp)
+        self.ui.button_whatsapp_disconnect.setEnabled(False)
+
 
         # Populate timezone options
         self.populate_timezones()
@@ -72,6 +80,8 @@ class ChannelSelectionWidget(QWidget):
 
     @handle_errors("getting selected channel")
     def get_selected_channel(self):
+        if self.ui.radioButton_WhatsApp.isChecked():
+            return "WhatsApp", self.ui.lineEdit_whatsapp_phone.text().strip()
         if self.ui.radioButton_SMS.isChecked():
             return "SMS", self.ui.lineEdit_phone.text().strip()
         if self.ui.radioButton_Discord.isChecked():
@@ -93,6 +103,7 @@ class ChannelSelectionWidget(QWidget):
             "email": self.ui.lineEdit_email.text().strip(),
             "discord_id": self.ui.lineEdit_discordID.text().strip(),
             "phone": self.ui.lineEdit_phone.text().strip(),
+            "whatsapp_phone": self.ui.lineEdit_whatsapp_phone.text().strip(),
         }
 
     @handle_errors("getting timezone")
@@ -104,6 +115,9 @@ class ChannelSelectionWidget(QWidget):
 
     @handle_errors("setting selected channel")
     def set_selected_channel(self, channel, value):
+        if channel.lower() == "whatsapp":
+            self.ui.radioButton_WhatsApp.setChecked(True)
+            self.ui.lineEdit_whatsapp_phone.setText(value)
         if channel.lower() == "sms":
             self.ui.radioButton_SMS.setChecked(True)
             self.ui.lineEdit_phone.setText(value)
@@ -217,3 +231,63 @@ class ChannelSelectionWidget(QWidget):
         self.set_selected_channel(fallback.capitalize(), account.get("email" if fallback == "email" else "discord_user_id", ""))
         self.ui.label_sms_status.setText("SMS disconnected. Delivery changed to " + fallback + ".")
         self.ui.button_sms_disconnect.setEnabled(False)
+
+    @handle_errors("preparing WhatsApp connection", user_friendly=False, default_return=None)
+    def _begin_whatsapp(self):
+        """Show a phone ownership challenge without sending a paid text."""
+        from core import config
+        from core.whatsapp_enrollment import begin_whatsapp_enrollment
+        from core.error_handling import ValidationError
+
+        try:
+            self.whatsapp_token = begin_whatsapp_enrollment(
+                self.ui.lineEdit_whatsapp_phone.text(), self.ui.checkBox_whatsapp_consent.isChecked(), self.whatsapp_owner
+            )
+            self.ui.label_whatsapp_status.setText(
+                f"From this phone, send in WhatsApp: LINK {self.whatsapp_token} to {config.WHATSAPP_PHONE_NUMBER}. "
+                "Then press verify. The code expires in 15 minutes."
+            )
+        except ValidationError as exc:
+            self.ui.label_whatsapp_status.setText(str(exc))
+
+    @handle_errors("checking WhatsApp phone proof", user_friendly=False, default_return=False)
+    def whatsapp_selection_valid(self):
+        """Require an existing enrollment or a new phone-bound proof and explicit consent."""
+        from core.whatsapp_enrollment import whatsapp_available, whatsapp_user_for_phone
+        from communication.communication_channels.sms.phone import normalize_phone
+        from storage.whatsapp_state import WhatsAppState
+
+        phone = normalize_phone(self.ui.lineEdit_whatsapp_phone.text())
+        if not whatsapp_available() or not phone or not self.ui.checkBox_whatsapp_consent.isChecked():
+            return False
+        if self.whatsapp_owner and whatsapp_user_for_phone(phone) == self.whatsapp_owner:
+            return True
+        return self.ui.checkBox_whatsapp_consent.isChecked() and WhatsAppState().enrollment_verified(
+            phone, self.whatsapp_token, self.whatsapp_owner
+        )
+
+    @handle_errors("showing WhatsApp verification result", user_friendly=False, default_return=None)
+    def _verify_whatsapp(self):
+        """Show whether the signed incoming text proved ownership."""
+        self.ui.label_whatsapp_status.setText(
+            "Phone verified. Save the account/channel settings to finish connecting WhatsApp."
+            if self.whatsapp_selection_valid() else "Not verified yet. Check the phone and connection code, send it, then verify again."
+        )
+
+    @handle_errors("disconnecting desktop WhatsApp", user_friendly=True, default_return=None)
+    def _disconnect_whatsapp(self):
+        """Revoke WhatsApp consent and preserve other channel choices."""
+        from core import get_user_data
+        from core.whatsapp_enrollment import disconnect_whatsapp
+
+        if not self.whatsapp_owner:
+            return
+        account = get_user_data(self.whatsapp_owner, "account").get("account") or {}
+        selected = disconnect_whatsapp(self.whatsapp_owner)
+        self.whatsapp_token = ""
+        self.ui.checkBox_whatsapp_consent.setChecked(False)
+        contact_key = {"sms": "phone", "email": "email", "discord": "discord_user_id"}.get(selected, "email")
+        label = "SMS" if selected == "sms" else selected.capitalize()
+        self.set_selected_channel(label, account.get(contact_key, ""))
+        self.ui.label_whatsapp_status.setText("WhatsApp disconnected. Delivery uses " + selected + ".")
+        self.ui.button_whatsapp_disconnect.setEnabled(False)

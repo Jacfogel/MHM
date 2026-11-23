@@ -113,6 +113,7 @@ Do not copy long guide sections into specs; link to them under **Related documen
 
 | Spec | Covers |
 |------|--------|
+| [whatsapp-meta-channel.md](whatsapp-meta-channel.md) | Direct Meta delivery, consent, separate paid plan, and template notifications |
 | [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md) | Scenario coverage status across the Discord specs |
 | [discord-checkin-flow.md](discord-checkin-flow.md) | Check-in prompts, check-in buttons, retry-safe delivery |
 | [discord-connection-and-webhook-lifecycle.md](discord-connection-and-webhook-lifecycle.md) | Bot init, reconnect, webhook server, guild join |

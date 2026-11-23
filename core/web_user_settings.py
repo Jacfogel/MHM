@@ -591,10 +591,10 @@ def build_settings_updates(documents, options, section, values):
         channel = values["channel"]
         from core.channel_access import channel_allowed
         if not channel_allowed(account, channel):
-            raise ValidationError("Trial accounts use Discord. SMS requires the active Discord + SMS plan.")
+            raise ValidationError("SMS and WhatsApp each require their matching active paid plan.")
         if (
             not isinstance(channel, str)
-            or channel not in {"email", "discord", "sms"}
+            or channel not in {"email", "discord", "sms", "whatsapp"}
             or (channel == "discord" and not account.get("discord_user_id")
                 and not (account.get("subscription_status") == "trialing"
                          and current["delivery"]["channel"] == "discord"))
@@ -607,11 +607,17 @@ def build_settings_updates(documents, options, section, values):
 
             if not sms_available() or not account.get("user_id") or sms_user_for_phone(account.get("phone", "")) != account.get("user_id"):
                 raise ValidationError("Connect and verify your phone before choosing SMS delivery.")
+        if channel == "whatsapp":
+            from core.whatsapp_enrollment import whatsapp_available, whatsapp_user_for_phone
+
+            if not whatsapp_available() or not account.get("user_id") or whatsapp_user_for_phone(account.get("whatsapp_phone", "")) != account.get("user_id"):
+                raise ValidationError("Connect and verify WhatsApp before choosing WhatsApp delivery.")
         account["timezone"] = values["timezone"]
         account["chat_id"] = (
             account.get("discord_user_id")
             if channel == "discord"
-            else account.get("phone") if channel == "sms" else account.get("email")
+            else account.get("phone") if channel == "sms"
+            else account.get("whatsapp_phone") if channel == "whatsapp" else account.get("email")
         )
         prefs["channel"] = {"type": channel}
         return {"account": account, "preferences": prefs}

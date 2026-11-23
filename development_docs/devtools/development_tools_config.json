@@ -28,6 +28,8 @@
     "ai_docs": [],
     "docs": [
       "communication/communication_channels/sms/SMS_GUIDE.md",
+      "communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md",
+      "specs/whatsapp-meta-channel.md",
       "integrations/google_health/GOOGLE_HEALTH_GUIDE.md",
       "website/WEBSITE_GUIDE.md"
     ],

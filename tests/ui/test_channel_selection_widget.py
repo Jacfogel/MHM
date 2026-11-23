@@ -33,6 +33,30 @@ def test_get_and_set_discord_channel(qapp):
     widget.deleteLater()
 
 
+def test_whatsapp_selection_uses_independent_number_and_proof(qapp, monkeypatch, tmp_path):
+    from storage.whatsapp_state import WhatsAppState
+
+    state = WhatsAppState(tmp_path / "whatsapp.sqlite3")
+    monkeypatch.setattr("core.whatsapp_enrollment.whatsapp_available", lambda: True)
+    monkeypatch.setattr("core.whatsapp_enrollment.whatsapp_user_for_phone", lambda *_: None)
+    monkeypatch.setattr("storage.whatsapp_state.WhatsAppState", lambda: state)
+    widget = ChannelSelectionWidget()
+    widget.whatsapp_owner = "account-one"
+    widget.ui.radioButton_WhatsApp.setEnabled(True)
+    widget.set_selected_channel("WhatsApp", "+15555550199")
+    widget.ui.lineEdit_phone.setText("+15555550188")
+    widget.ui.checkBox_whatsapp_consent.setChecked(True)
+    widget.whatsapp_token = state.begin_enrollment("+15555550199", "account-one")
+    assert not widget.whatsapp_selection_valid()
+    assert state.verify_enrollment("+15555550199", widget.whatsapp_token)
+    assert widget.whatsapp_selection_valid()
+    assert widget.get_selected_channel() == ("WhatsApp", "+15555550199")
+    assert widget.get_all_contact_info()["phone"] == "+15555550188"
+    widget.ui.checkBox_whatsapp_consent.setChecked(False)
+    assert not widget.whatsapp_selection_valid()
+    widget.deleteLater()
+
+
 def test_get_and_set_email_channel(qapp):
     widget = ChannelSelectionWidget()
     widget.set_selected_channel("Email", "user@example.com")

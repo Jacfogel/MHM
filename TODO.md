@@ -16,7 +16,7 @@
 
 ## 2. High priority
 
-No standalone high-priority items remain in this list. Active product plans retain their own priorities in [PLANS.md](development_docs/PLANS.md).
+- **Activate direct Meta WhatsApp (created 2026-11-21; provider setup blocked):** The MHM Messaging app/portfolio and connected Meta test sender exist. The owner-authorized dashboard token is saved privately and initially passed a read-only API check, but the latest check rejected it (HTTP 401 / code 190); replace it before testing. Meta marks the account restricted and requires business verification; the owner confirms MHM is not registered. Obtain legitimate registration/verification evidence before production activation. App-secret retrieval still needs owner re-authentication. The intended production sender is the existing Twilio SMS business number; it is not registered with Meta. Approve the notification template, verify the routed webhook, check production credential lifetime and deploy the staged privacy/data-deletion disclosures, publish the app, and only then activate the staged $20 CAD/month Stripe price, portal choice, and website release. Complete when live enrollment, delivery/read callbacks, task/check-in replies, STOP/START, and notification/OPEN are verified. Effort: provider onboarding dependent. See [WhatsApp guide](communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md).
 
 ## 3. Medium priority
 

@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-21 16:04:36
+> **Last Generated**: 2026-11-23 00:13:24
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.6% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 325
-- **Functions Found**: 3328
-- **Methods Found**: 1705
-- **Classes Found**: 298
-- **Total Items**: 5033
-- **Functions Documented**: 2980
-- **Methods Documented**: 1531
-- **Classes Documented**: 228
-- **Total Documented**: 4511
-- **Template-Generated**: 74
-- **Last Updated**: 2026-11-21
+### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 333
+- **Functions Found**: 3369
+- **Methods Found**: 1738
+- **Classes Found**: 303
+- **Total Items**: 5107
+- **Functions Documented**: 3000
+- **Methods Documented**: 1547
+- **Classes Documented**: 230
+- **Total Documented**: 4547
+- **Template-Generated**: 82
+- **Last Updated**: 2026-11-23
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -39,13 +39,13 @@
 
 ## Function Categories
 
-### **Core System Functions** (705)
+### **Core System Functions** (712)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (934)
+### **Communication Functions** (955)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (567)
+### **User Interface Functions** (571)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (29)
@@ -2888,6 +2888,62 @@ Never expose this entry point as an unauthenticated network endpoint.
 - [OK] `list_website_chat_turns(user_id)` - Return the website conversation for one user, oldest first.
 - [OK] `list_website_messages(user_id)` - Return stored website deliveries for one user, oldest first.
 
+#### `communication/communication_channels/whatsapp/__init__.py`
+
+#### `communication/communication_channels/whatsapp/bot.py`
+**Functions:**
+- [OK] `__init__(self, config)` - Special Python method
+- [OK] `channel_type(self)` - Use synchronous transport submission behind the async channel interface.
+- [MISSING] `health_check(self)` - No description
+- [MISSING] `initialize(self)` - No description
+- [OK] `receive_messages(self)` - Return no polled messages because signed webhooks deliver inbound events.
+- [MISSING] `send_message(self, recipient, message)` - No description
+- [MISSING] `shutdown(self)` - No description
+**Classes:**
+- [MISSING] `WhatsAppBot` - No description
+  - [OK] `WhatsAppBot.__init__(self, config)` - Special Python method
+  - [OK] `WhatsAppBot.channel_type(self)` - Use synchronous transport submission behind the async channel interface.
+  - [MISSING] `WhatsAppBot.health_check(self)` - No description
+  - [MISSING] `WhatsAppBot.initialize(self)` - No description
+  - [OK] `WhatsAppBot.receive_messages(self)` - Return no polled messages because signed webhooks deliver inbound events.
+  - [MISSING] `WhatsAppBot.send_message(self, recipient, message)` - No description
+  - [MISSING] `WhatsAppBot.shutdown(self)` - No description
+
+#### `communication/communication_channels/whatsapp/server.py`
+**Functions:**
+- [OK] `__init__(self, transport, port)` - Special Python method
+- [OK] `do_GET(self)` - Validate Meta's webhook challenge without exposing the verify token.
+- [OK] `do_POST(self)` - Accept bounded signed event bodies and return only safe HTTP status codes.
+- [OK] `log_message(self, format)` - Suppress request logging so webhook secrets and identifiers stay private.
+- [MISSING] `start(self)` - No description
+- [MISSING] `stop(self)` - No description
+**Classes:**
+- [MISSING] `Handler` - No description
+  - [OK] `Handler.do_GET(self)` - Validate Meta's webhook challenge without exposing the verify token.
+  - [OK] `Handler.do_POST(self)` - Accept bounded signed event bodies and return only safe HTTP status codes.
+  - [OK] `Handler.log_message(self, format)` - Suppress request logging so webhook secrets and identifiers stay private.
+- [MISSING] `WhatsAppWebhookServer` - No description
+  - [OK] `WhatsAppWebhookServer.__init__(self, transport, port)` - Special Python method
+  - [MISSING] `WhatsAppWebhookServer.start(self)` - No description
+  - [MISSING] `WhatsAppWebhookServer.stop(self)` - No description
+
+#### `communication/communication_channels/whatsapp/transport.py`
+**Functions:**
+- [OK] `__init__(self, bot)` - Special Python method
+- [MISSING] `_incoming(self, message)` - No description
+- [OK] `_open_pending(self, number, uid)` - Submit and remove saved messages after the user reopens the reply window.
+- [MISSING] `_submit(self, payload)` - No description
+- [MISSING] `process(self, raw, signature)` - No description
+- [MISSING] `send(self, recipient, message)` - No description
+**Classes:**
+- [OK] `MetaTransport` - Keep provider I/O and identity checks outside shared business handlers.
+  - [OK] `MetaTransport.__init__(self, bot)` - Special Python method
+  - [MISSING] `MetaTransport._incoming(self, message)` - No description
+  - [OK] `MetaTransport._open_pending(self, number, uid)` - Submit and remove saved messages after the user reopens the reply window.
+  - [MISSING] `MetaTransport._submit(self, payload)` - No description
+  - [MISSING] `MetaTransport.process(self, raw, signature)` - No description
+  - [MISSING] `MetaTransport.send(self, recipient, message)` - No description
+
 #### `communication/core/__init__.py`
 **Functions:**
 - [OK] `__getattr__(name)` - Lazy import handler for items with circular dependencies.
@@ -3264,12 +3320,14 @@ Returns:
 - [OK] `_resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient token for outbound delivery.
 - [OK] `_resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
 - [OK] `_resolve_sms_recipient(self, user_id, preferences)` - Use the existing account phone field, requiring a country code.
+- [OK] `_resolve_whatsapp_recipient(self, user_id, preferences)` - Use the independently verified WhatsApp contact field.
 - [OK] `get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 **Classes:**
 - [OK] `RecipientResolver` - Resolve a user's channel-specific outbound recipient.
   - [OK] `RecipientResolver._resolve_discord_recipient(self, user_id, preferences)` - Return the Discord recipient token for outbound delivery.
   - [OK] `RecipientResolver._resolve_email_recipient(self, user_id, preferences)` - Return the user's account email address for email delivery.
   - [OK] `RecipientResolver._resolve_sms_recipient(self, user_id, preferences)` - Use the existing account phone field, requiring a country code.
+  - [OK] `RecipientResolver._resolve_whatsapp_recipient(self, user_id, preferences)` - Use the independently verified WhatsApp contact field.
   - [OK] `RecipientResolver.get_recipient_for_service(self, user_id, messaging_service, preferences)` - Resolve channel recipient for a user.
 
 #### `communication/message_processing/__init__.py`
@@ -3943,6 +4001,10 @@ retry response; ``completed=False`` can indicate a pending interaction.
 - [OK] `reinforce_update_task_parsing(parsing_result, message)` - Guard and augment update_task entities when confidence is high enough.
 - [OK] `try_parsing_shortcuts(user_id, message, channel_type, handle_structured_command, augment_suggestions)` - Try shortcut paths that bypass the main parser.
 
+#### `communication/message_processing/phone_reply_routing.py`
+**Functions:**
+- [OK] `route_phone_reply(state, text, user_id, number, channel)` - Resolve a single prompt or require an explicit target before a mutation.
+
 #### `communication/message_processing/prefix_command_processor.py`
 **Functions:**
 - [MISSING] `_convert_mapped_command(message_stripped, cmd_name, cmd_def, prefix)` - No description
@@ -4133,7 +4195,7 @@ This is separate from production data cleanup.
 
 #### `core/channel_access.py`
 **Functions:**
-- [OK] `channel_allowed(account, channel)` - Trials use Discord; SMS requires an active paid subscription.
+- [OK] `channel_allowed(account, channel)` - Email and Discord are available; phone channels require live-paid plans.
 - [OK] `delivery_channel_allowed(user_id, channel)` - Apply account rules to both synchronous and asynchronous send entry points.
 
 #### `core/chat_interactions_document.py`
@@ -6090,6 +6152,19 @@ its methods as routes.
 - [MISSING] `SettingsSaveResult` - No description
   - [OK] `SettingsSaveResult.__bool__(self)` - Special Python method
 
+#### `core/web_whatsapp.py`
+**Functions:**
+- [OK] `enrollment(request)` - Create a connection proof or consume it after signed phone verification.
+- [OK] `register_whatsapp_routes(app, gateway)` - Keep connection proofs scoped to the authenticated account.
+
+#### `core/whatsapp_enrollment.py`
+**Functions:**
+- [MISSING] `begin_whatsapp_enrollment(phone, consent, owner)` - No description
+- [MISSING] `connect_whatsapp(user_id, phone, token, consent, owner)` - No description
+- [OK] `disconnect_whatsapp(user_id)` - Revoke consent while preserving a different preferred channel.
+- [MISSING] `whatsapp_available()` - No description
+- [MISSING] `whatsapp_user_for_phone(phone, require_paid)` - No description
+
 ### `integrations/` - Unknown Directory
 
 #### `integrations/__init__.py`
@@ -7310,6 +7385,29 @@ Args:
 
 Returns:
     True if save succeeded, False otherwise.
+
+#### `storage/whatsapp_state.py`
+**Functions:**
+- [OK] `__init__(self, path)` - Special Python method
+- [MISSING] `clear_former_pending(self, user_id, phone)` - No description
+- [MISSING] `disconnect_enrollment(self, user_id)` - No description
+- [MISSING] `pending(self, phone, user_id)` - No description
+- [MISSING] `record_inbound(self, phone, timestamp)` - No description
+- [MISSING] `remove_pending(self, identifier)` - No description
+- [MISSING] `save_pending(self, identifier, phone, user_id, body, kind, task_id)` - No description
+- [OK] `update_status(self, sid, status, error)` - Advance a WhatsApp receipt without regressing terminal provider states.
+- [MISSING] `window_open(self, phone)` - No description
+**Classes:**
+- [OK] `WhatsAppState` - Reuse transactional phone-channel primitives in a separate database.
+  - [OK] `WhatsAppState.__init__(self, path)` - Special Python method
+  - [MISSING] `WhatsAppState.clear_former_pending(self, user_id, phone)` - No description
+  - [MISSING] `WhatsAppState.disconnect_enrollment(self, user_id)` - No description
+  - [MISSING] `WhatsAppState.pending(self, phone, user_id)` - No description
+  - [MISSING] `WhatsAppState.record_inbound(self, phone, timestamp)` - No description
+  - [MISSING] `WhatsAppState.remove_pending(self, identifier)` - No description
+  - [MISSING] `WhatsAppState.save_pending(self, identifier, phone, user_id, body, kind, task_id)` - No description
+  - [OK] `WhatsAppState.update_status(self, sid, status, error)` - Advance a WhatsApp receipt without regressing terminal provider states.
+  - [MISSING] `WhatsAppState.window_open(self, phone)` - No description
 
 ### `tasks/` - Task Management
 
@@ -8723,8 +8821,11 @@ timezone to America/Regina.
 Args:
     parent: Parent widget (optional)
 - [OK] `_begin_sms(self)` - Show a phone ownership challenge without sending a paid text.
+- [OK] `_begin_whatsapp(self)` - Show a phone ownership challenge without sending a paid text.
 - [OK] `_disconnect_sms(self)` - Revoke SMS consent without deleting opt-out or delivery history.
+- [OK] `_disconnect_whatsapp(self)` - Revoke WhatsApp consent and preserve other channel choices.
 - [OK] `_verify_sms(self)` - Show whether the signed incoming text proved ownership.
+- [OK] `_verify_whatsapp(self)` - Show whether the signed incoming text proved ownership.
 - [OK] `get_all_contact_info(self)` - Get all contact info fields from the widget.
 - [MISSING] `get_selected_channel(self)` - No description
 - [OK] `get_timezone(self)` - Get the selected timezone.
@@ -8733,6 +8834,7 @@ Args:
 - [MISSING] `set_selected_channel(self, channel, value)` - No description
 - [OK] `set_timezone(self, timezone)` - Set the timezone.
 - [OK] `sms_selection_valid(self)` - Require an existing enrollment or a new phone-bound proof and explicit consent.
+- [OK] `whatsapp_selection_valid(self)` - Require an existing enrollment or a new phone-bound proof and explicit consent.
 **Classes:**
 - [MISSING] `ChannelSelectionWidget` - No description
   - [OK] `ChannelSelectionWidget.__init__(self, parent)` - Initialize the ChannelSelectionWidget.
@@ -8744,8 +8846,11 @@ timezone to America/Regina.
 Args:
     parent: Parent widget (optional)
   - [OK] `ChannelSelectionWidget._begin_sms(self)` - Show a phone ownership challenge without sending a paid text.
+  - [OK] `ChannelSelectionWidget._begin_whatsapp(self)` - Show a phone ownership challenge without sending a paid text.
   - [OK] `ChannelSelectionWidget._disconnect_sms(self)` - Revoke SMS consent without deleting opt-out or delivery history.
+  - [OK] `ChannelSelectionWidget._disconnect_whatsapp(self)` - Revoke WhatsApp consent and preserve other channel choices.
   - [OK] `ChannelSelectionWidget._verify_sms(self)` - Show whether the signed incoming text proved ownership.
+  - [OK] `ChannelSelectionWidget._verify_whatsapp(self)` - Show whether the signed incoming text proved ownership.
   - [OK] `ChannelSelectionWidget.get_all_contact_info(self)` - Get all contact info fields from the widget.
   - [MISSING] `ChannelSelectionWidget.get_selected_channel(self)` - No description
   - [OK] `ChannelSelectionWidget.get_timezone(self)` - Get the selected timezone.
@@ -8754,6 +8859,7 @@ Args:
   - [MISSING] `ChannelSelectionWidget.set_selected_channel(self, channel, value)` - No description
   - [OK] `ChannelSelectionWidget.set_timezone(self, timezone)` - Set the timezone.
   - [OK] `ChannelSelectionWidget.sms_selection_valid(self)` - Require an existing enrollment or a new phone-bound proof and explicit consent.
+  - [OK] `ChannelSelectionWidget.whatsapp_selection_valid(self)` - Require an existing enrollment or a new phone-bound proof and explicit consent.
 
 #### `ui/widgets/checkin_settings_widget.py`
 **Functions:**

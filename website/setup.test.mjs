@@ -169,6 +169,11 @@ test('first-run walks name, delivery, support choices, and a first task', async 
   assert.equal(view.nodes.get('step-discord').hidden, false);
   await view.continue();
   assert.equal(view.nodes.get('step-2').hidden, false);
+  const deliverySaves = view.requests
+    .filter(request => request.url === '/api/settings' && request.method === 'POST')
+    .map(request => JSON.parse(request.body))
+    .filter(request => request.section === 'delivery');
+  assert.equal(deliverySaves.at(-1).values.channel, 'email');
   view.nodes.get('enable-messages').checked = false;
   view.nodes.get('enable-checkins').checked = false;
   view.nodes.get('enable-tasks').checked = true;

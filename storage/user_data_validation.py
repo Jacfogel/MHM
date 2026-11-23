@@ -362,7 +362,7 @@ def validate_user_update(
             if "channel" in updates:
                 channel = updates["channel"]
                 if isinstance(channel, dict) and "type" in channel:
-                    valid_channel_types = ["email", "discord", "sms", "webhook"]
+                    valid_channel_types = ["email", "discord", "sms", "whatsapp", "webhook"]
                     if channel["type"] not in valid_channel_types:
                         errors.append(
                             f"Invalid channel type: {channel['type']}. Must be one of: {valid_channel_types}"

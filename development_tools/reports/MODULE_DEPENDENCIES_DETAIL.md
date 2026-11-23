@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/MODULE_DEPENDENCIES_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-21 16:04:41
+> **Last Generated**: 2026-11-23 00:13:33
 > **Source**: `python development_tools/generate_module_dependencies.py` - Module Dependencies Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
@@ -15,13 +15,13 @@
 ## Overview
 
 ### Module Dependencies Coverage: 100.0% - COMPLETED
-- **Files Scanned**: 323
-- **Total Imports Found**: 2951
-- **Dependencies Documented**: 323 (100% coverage)
-- **Standard Library Imports**: 836 (28.3%)
-- **Third-Party Imports**: 240 (8.1%)
-- **Local Imports**: 1875 (63.5%)
-- **Last Updated**: 2026-11-21
+- **Files Scanned**: 331
+- **Total Imports Found**: 3012
+- **Dependencies Documented**: 331 (100% coverage)
+- **Standard Library Imports**: 849 (28.2%)
+- **Third-Party Imports**: 242 (8.0%)
+- **Local Imports**: 1921 (63.8%)
+- **Last Updated**: 2026-11-23
 
 **Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.
 
@@ -29,9 +29,9 @@
 
 ## Import Statistics
 
-- **Standard Library**: 836 imports (28.3%)
-- **Third-Party**: 240 imports (8.1%)
-- **Local**: 1875 imports (63.5%)
+- **Standard Library**: 849 imports (28.2%)
+- **Third-Party**: 242 imports (8.0%)
+- **Local**: 1921 imports (63.8%)
 
 ## Module Dependencies by Directory
 
@@ -1761,6 +1761,7 @@
   - `communication/communication_channels/email/bot.py`
   - `communication/communication_channels/sms/bot.py`
   - `communication/communication_channels/website/bot.py`
+  - `communication/communication_channels/whatsapp/bot.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
@@ -2634,8 +2635,10 @@
 - **Used by**:
   - `communication/communication_channels/sms/bot.py`
   - `communication/communication_channels/sms/twilio_transport.py`
+  - `communication/communication_channels/whatsapp/transport.py`
   - `communication/delivery/recipient_resolver.py`
   - `core/sms_enrollment.py`
+  - `core/whatsapp_enrollment.py`
   - `ui/dialogs/channel_management_dialog.py`
   - `ui/widgets/channel_selection_widget.py`
 
@@ -2672,14 +2675,12 @@
 - **Dependencies**:
   - **Local**:
     - `communication.communication_channels.sms.phone (normalize_phone)` (NEW)
-    - `communication.message_processing.email_reply_routing (build_task_reply_command, route_checkin_reply, route_task_reply)` (NEW)
-    - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
+    - `communication.message_processing.phone_reply_routing (route_phone_reply)` (NEW)
     - `core (config)` (NEW)
     - `core.error_handling (ConfigurationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.sms_enrollment (sms_user_for_phone)` (NEW)
     - `storage.sms_state (SmsState)` (NEW)
-    - `tasks.task_data_manager (get_task_by_id)` (NEW)
   - **Standard Library**:
     - `re`
     - `threading`
@@ -2693,7 +2694,7 @@
   - `communication/communication_channels/sms/bot.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.sms.phone, communication.message_processing.email_reply_routing, communication.message_processing.interaction_manager, core, core.error_handling, core.logger, core.sms_enrollment, storage.sms_state, tasks.task_data_manager
+- Added: communication.communication_channels.sms.phone, communication.message_processing.phone_reply_routing, core, core.error_handling, core.logger, core.sms_enrollment, storage.sms_state
 - Removed: communication/communication_channels/sms/bot.py, twilio.base.exceptions, twilio.http.http_client, twilio.request_validator, twilio.rest, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2754,6 +2755,87 @@
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.file_operations, core.logger, core.response_tracking, core.time_utilities, messages.message_data_manager
 - Removed: communication/communication_channels/website/bot.py, communication/core/channel_orchestrator.py, communication/delivery/message_dispatcher.py, communication/message_processing/interaction_manager.py, communication/reminders/checkin_prompt_dispatcher.py, communication/reminders/reminder_dispatcher.py, core/web_chat.py, integrations/google_health/notifications.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/whatsapp/__init__.py`
+- **Purpose**: Communication channel implementation for __init__
+- **Dependencies**: None (no imports)
+- **Used by**: None (not imported by other modules)
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/whatsapp/bot.py`
+- **Purpose**: Communication channel implementation for bot
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.base.base_channel (BaseChannel, ChannelConfig, ChannelStatus, ChannelType)` (NEW)
+    - `communication.communication_channels.whatsapp.server (WhatsAppWebhookServer)` (NEW)
+    - `communication.communication_channels.whatsapp.transport (MetaTransport)` (NEW)
+    - `core.config (WHATSAPP_WEBHOOK_PORT)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: communication.communication_channels.base.base_channel, communication.communication_channels.whatsapp.server, communication.communication_channels.whatsapp.transport, core.config, core.error_handling, core.logger
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/whatsapp/server.py`
+- **Purpose**: Communication channel implementation for server
+- **Dependencies**:
+  - **Local**:
+    - `core (config)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+  - **Standard Library**:
+    - `hmac`
+    - `http.server (BaseHTTPRequestHandler, ThreadingHTTPServer)`
+    - `threading`
+    - `urllib.parse (parse_qs, urlsplit)`
+- **Used by**:
+  - `communication/communication_channels/whatsapp/bot.py`
+
+**Dependency Changes**:
+- Added: core, core.error_handling
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/communication_channels/whatsapp/transport.py`
+- **Purpose**: Communication channel implementation for transport
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.sms.phone (normalize_phone)` (NEW)
+    - `communication.message_processing.phone_reply_routing (route_phone_reply)` (NEW)
+    - `core (config)` (NEW)
+    - `core.error_handling (CommunicationError, ConfigurationError, handle_errors)` (NEW)
+    - `core.logger (get_component_logger)` (NEW)
+    - `core.time_utilities (now_datetime_full)` (NEW)
+    - `core.whatsapp_enrollment (whatsapp_available, whatsapp_user_for_phone)` (NEW)
+    - `storage.whatsapp_state (WhatsAppState)` (NEW)
+  - **Standard Library**:
+    - `hashlib`
+    - `hmac`
+    - `json`
+    - `re`
+    - `secrets`
+    - `threading`
+    - `typing (Any)`
+  - **Third-party**:
+    - `requests`
+- **Used by**:
+  - `communication/communication_channels/whatsapp/bot.py`
+
+**Dependency Changes**:
+- Added: communication.communication_channels.sms.phone, communication.message_processing.phone_reply_routing, core, core.error_handling, core.logger, core.time_utilities, core.whatsapp_enrollment, storage.whatsapp_state
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2820,7 +2902,7 @@
     - `communication.reminders.reminder_dispatcher (TASK_REMINDER_CATEGORY, TaskReminderDispatcher)` (NEW)
     - `core (get_user_data)` (NEW)
     - `core.channel_access (delivery_channel_allowed)` (NEW)
-    - `core.config (AI_PERSONALIZED_MESSAGE_TIMEOUT, DISCORD_BOT_TOKEN, EMAIL_SMTP_SERVER, SMS_SIMULATION_ENABLED, SMS_TWILIO_ENABLED, get_available_channels)` (NEW)
+    - `core.config (AI_PERSONALIZED_MESSAGE_TIMEOUT, DISCORD_BOT_TOKEN, EMAIL_SMTP_SERVER, SMS_SIMULATION_ENABLED, SMS_TWILIO_ENABLED, WHATSAPP_ENABLED, get_available_channels)` (NEW)
     - `core.error_handling (handle_communication_error, handle_errors, handle_network_error)` (NEW)
     - `core.logger (force_restart_logging, get_component_logger)` (NEW)
     - `core.message_pressure (scheduled_message_pressure_prefix, user_quiet_mode_is_active)` (NEW)
@@ -3182,7 +3264,7 @@
     - `re`
 - **Used by**:
   - `communication/communication_channels/email/inbound_processor.py`
-  - `communication/communication_channels/sms/twilio_transport.py`
+  - `communication/message_processing/phone_reply_routing.py`
 
 **Dependency Changes**:
 - Added: communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.message_processing.conversation_flow_manager, core.error_handling, core.logger, tasks.task_breakdown, tasks.task_reminder_snooze
@@ -3491,7 +3573,7 @@
   - `communication/communication_channels/discord/ui/task_reminder_view.py`
   - `communication/communication_channels/email/inbound_processor.py`
   - `communication/communication_channels/sms/bot.py`
-  - `communication/communication_channels/sms/twilio_transport.py`
+  - `communication/message_processing/phone_reply_routing.py`
   - `core/web_chat.py`
 
 **Dependency Changes**:
@@ -3539,6 +3621,27 @@
 **Dependency Changes**:
 - Added: communication.command_handlers.shared_types, communication.command_handlers.task_handler, communication.message_processing.command_parser, communication.message_processing.conversation_flow_manager, core.error_handling
 - Removed: collections.abc, communication/message_processing/interaction_manager.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `communication/message_processing/phone_reply_routing.py`
+- **Purpose**: Communication channel implementation for phone_reply_routing
+- **Dependencies**:
+  - **Local**:
+    - `communication.message_processing.email_reply_routing (build_task_reply_command, route_checkin_reply, route_task_reply)` (NEW)
+    - `communication.message_processing.interaction_manager (handle_user_message)` (NEW)
+    - `core.error_handling (handle_errors)` (NEW)
+    - `tasks.task_data_manager (get_task_by_id)` (NEW)
+  - **Standard Library**:
+    - `re`
+- **Used by**:
+  - `communication/communication_channels/sms/twilio_transport.py`
+  - `communication/communication_channels/whatsapp/transport.py`
+
+**Dependency Changes**:
+- Added: communication.message_processing.email_reply_routing, communication.message_processing.interaction_manager, core.error_handling, tasks.task_data_manager
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3933,6 +4036,8 @@
   - `core/sms_enrollment.py`
   - `core/web_sms.py`
   - `core/web_user_settings.py`
+  - `core/web_whatsapp.py`
+  - `core/whatsapp_enrollment.py`
   - `ui/dialogs/channel_management_dialog.py`
   - `ui/widgets/channel_selection_widget.py`
 
@@ -3996,6 +4101,7 @@
   - `communication/communication_channels/email/reply_context.py`
   - `communication/communication_channels/sms/bot.py`
   - `communication/communication_channels/website/inbox.py`
+  - `communication/communication_channels/whatsapp/bot.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
   - `communication/core/welcome_manager.py`
@@ -4165,6 +4271,9 @@
   - `communication/communication_channels/sms/twilio_transport.py`
   - `communication/communication_channels/website/bot.py`
   - `communication/communication_channels/website/inbox.py`
+  - `communication/communication_channels/whatsapp/bot.py`
+  - `communication/communication_channels/whatsapp/server.py`
+  - `communication/communication_channels/whatsapp/transport.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
@@ -4189,6 +4298,7 @@
   - `communication/message_processing/interaction_manager.py`
   - `communication/message_processing/message_route_classifier.py`
   - `communication/message_processing/parsing_shortcuts.py`
+  - `communication/message_processing/phone_reply_routing.py`
   - `communication/message_processing/prefix_command_processor.py`
   - `communication/message_processing/response_enhancer.py`
   - `communication/message_processing/structured_command_dispatcher.py`
@@ -4245,6 +4355,8 @@
   - `core/web_sms.py`
   - `core/web_tasks.py`
   - `core/web_user_settings.py`
+  - `core/web_whatsapp.py`
+  - `core/whatsapp_enrollment.py`
   - `integrations/google_health/auth.py`
   - `integrations/google_health/client.py`
   - `integrations/google_health/data_handlers.py`
@@ -4284,6 +4396,7 @@
   - `storage/user_data_validation.py`
   - `storage/user_data_write.py`
   - `storage/user_item_storage.py`
+  - `storage/whatsapp_state.py`
   - `tasks/task_breakdown.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
@@ -4674,6 +4787,8 @@
   - `communication/communication_channels/sms/server.py`
   - `communication/communication_channels/sms/twilio_transport.py`
   - `communication/communication_channels/website/inbox.py`
+  - `communication/communication_channels/whatsapp/bot.py`
+  - `communication/communication_channels/whatsapp/transport.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/channel_orchestrator.py`
   - `communication/core/factory.py`
@@ -5360,6 +5475,7 @@
   - `communication/command_handlers/task_handler.py`
   - `communication/communication_channels/email/reply_context.py`
   - `communication/communication_channels/website/inbox.py`
+  - `communication/communication_channels/whatsapp/transport.py`
   - `communication/core/channel_monitor.py`
   - `communication/core/retry_manager.py`
   - `communication/core/welcome_manager.py`
@@ -5410,6 +5526,7 @@
   - `storage/user_data_summaries.py`
   - `storage/user_data_v2_base.py`
   - `storage/user_data_validation.py`
+  - `storage/whatsapp_state.py`
   - `tasks/task_breakdown.py`
   - `tasks/task_data_handlers.py`
   - `tasks/task_data_manager.py`
@@ -5562,6 +5679,7 @@
     - `core.web_sms (register_sms_routes)` (NEW)
     - `core.web_tasks (register_task_routes, task_view)` (NEW)
     - `core.web_user_settings (SettingsSaveResult, remember_setup_complete, save_settings, settings_options)` (NEW)
+    - `core.web_whatsapp (register_whatsapp_routes)` (NEW)
     - `notebook.notebook_data_manager (list_recent)` (NEW)
     - `storage.service_flag_storage (write_service_flag_json)` (NEW)
     - `storage.user_data_backup (delete_user_completely)` (NEW)
@@ -5591,7 +5709,7 @@
   - `run_headless_service.py`
 
 **Dependency Changes**:
-- Added: communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.billing, core.error_handling, core.logger, core.resource_paths, core.service_utilities, core.time_utilities, core.web_assets, core.web_chat, core.web_checkins, core.web_health, core.web_messages, core.web_notes, core.web_settings, core.web_sms, core.web_tasks, core.web_user_settings, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_service
+- Added: communication.message_processing.conversation_flow_manager, communication.message_processing.flows.flow_constants, core, core.billing, core.error_handling, core.logger, core.resource_paths, core.service_utilities, core.time_utilities, core.web_assets, core.web_chat, core.web_checkins, core.web_health, core.web_messages, core.web_notes, core.web_settings, core.web_sms, core.web_tasks, core.web_user_settings, core.web_whatsapp, notebook.notebook_data_manager, storage.service_flag_storage, storage.user_data_backup, storage.user_data_operations, tasks.task_service
 - Removed: collections.abc, core/web_gateway_runtime.py, email.message, run_headless_service.py, urllib.parse
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -5855,6 +5973,7 @@
     - `core.service_utilities (is_service_running)` (NEW)
     - `core.sms_enrollment (sms_available, sms_user_for_phone)` (NEW)
     - `core.time_utilities (now_timestamp_full)` (NEW)
+    - `core.whatsapp_enrollment (whatsapp_available, whatsapp_user_for_phone)` (NEW)
     - `messages.message_data_manager (ensure_user_message_files, get_message_categories)` (NEW)
     - `storage.user_data_validation (validate_schedule_periods)` (NEW)
     - `tasks (setup_default_task_tags)` (NEW)
@@ -5874,8 +5993,53 @@
   - `core/web_settings.py`
 
 **Dependency Changes**:
-- Added: checkins.checkin_dynamic_manager, checkins.checkin_schemas, core, core.channel_access, core.error_handling, core.logger, core.message_pressure, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.service_requests, core.service_utilities, core.sms_enrollment, core.time_utilities, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_templates, tasks.task_time_parsing
+- Added: checkins.checkin_dynamic_manager, checkins.checkin_schemas, core, core.channel_access, core.error_handling, core.logger, core.message_pressure, core.natural_language_defaults, core.profile_v2_io, core.schedule_period_normalize, core.schedule_runtime, core.service_requests, core.service_utilities, core.sms_enrollment, core.time_utilities, core.whatsapp_enrollment, messages.message_data_manager, storage.user_data_validation, tasks, tasks.task_templates, tasks.task_time_parsing
 - Removed: core/web_account_service.py, core/web_settings.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/web_whatsapp.py`
+- **Purpose**: Core system module for web_whatsapp
+- **Dependencies**:
+  - **Local**:
+    - `core (config)` (NEW)
+    - `core.channel_access (channel_allowed)` (NEW)
+    - `core.error_handling (ValidationError, handle_errors)` (NEW)
+    - `core.whatsapp_enrollment (begin_whatsapp_enrollment, connect_whatsapp, disconnect_whatsapp, whatsapp_available, whatsapp_user_for_phone)` (NEW)
+  - **Standard Library**:
+    - `asyncio`
+  - **Third-party**:
+    - `aiohttp (web)`
+- **Used by**:
+  - `core/web_account_service.py`
+
+**Dependency Changes**:
+- Added: core, core.channel_access, core.error_handling, core.whatsapp_enrollment
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `core/whatsapp_enrollment.py`
+- **Purpose**: Core system module for whatsapp_enrollment
+- **Dependencies**:
+  - **Local**:
+    - `communication.communication_channels.sms.phone (normalize_phone)` (NEW)
+    - `core (config, get_user_data, update_user_account, update_user_preferences)` (NEW)
+    - `core.channel_access (channel_allowed)` (NEW)
+    - `core.error_handling (ValidationError, handle_errors)` (NEW)
+    - `storage.whatsapp_state (WhatsAppState)` (NEW)
+- **Used by**:
+  - `communication/communication_channels/whatsapp/transport.py`
+  - `core/web_user_settings.py`
+  - `core/web_whatsapp.py`
+  - `ui/dialogs/channel_management_dialog.py`
+  - `ui/widgets/channel_selection_widget.py`
+
+**Dependency Changes**:
+- Added: communication.communication_channels.sms.phone, core, core.channel_access, core.error_handling, storage.whatsapp_state
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -6718,6 +6882,7 @@
   - `communication/communication_channels/sms/twilio_transport.py`
   - `core/sms_enrollment.py`
   - `core/web_sms.py`
+  - `storage/whatsapp_state.py`
   - `ui/widgets/channel_selection_widget.py`
 
 **Dependency Changes**:
@@ -7146,6 +7311,25 @@
 <!-- Add any additional context, key functions, or special considerations here -->
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `storage/whatsapp_state.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**:
+  - **Local**:
+    - `core.error_handling (handle_errors)` (NEW)
+    - `core.time_utilities (now_datetime_full, now_timestamp_full)` (NEW)
+    - `storage.sms_state (SmsState)` (NEW)
+- **Used by**:
+  - `communication/communication_channels/whatsapp/transport.py`
+  - `core/whatsapp_enrollment.py`
+  - `ui/widgets/channel_selection_widget.py`
+
+**Dependency Changes**:
+- Added: core.error_handling, core.time_utilities, storage.sms_state
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 ### `tasks/` - Task management
 
 #### `tasks/__init__.py`
@@ -7264,7 +7448,7 @@
     - `typing (Any)`
     - `uuid`
 - **Used by**:
-  - `communication/communication_channels/sms/twilio_transport.py`
+  - `communication/message_processing/phone_reply_routing.py`
   - `core/web_tasks.py`
   - `tasks/task_breakdown.py`
   - `tasks/task_occurrence_skip.py`
@@ -7930,6 +8114,7 @@
     - `core.error_handling (handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.sms_enrollment (connect_sms, sms_user_for_phone)` (NEW)
+    - `core.whatsapp_enrollment (connect_whatsapp, whatsapp_user_for_phone)` (NEW)
     - `storage.user_data_validation (is_valid_email)`
     - `ui.generated.channel_management_dialog_pyqt (Ui_Dialog)`
     - `ui.widgets.channel_selection_widget (ChannelSelectionWidget)`
@@ -7939,7 +8124,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: communication.communication_channels.sms.phone, core, core.channel_access, core.error_handling, core.logger, core.sms_enrollment
+- Added: communication.communication_channels.sms.phone, core, core.channel_access, core.error_handling, core.logger, core.sms_enrollment, core.whatsapp_enrollment
 - Removed: PySide6.QtCore, PySide6.QtWidgets
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -8524,7 +8709,9 @@
     - `core.error_handling (DataError, ValidationError, handle_errors)` (NEW)
     - `core.logger (get_component_logger)` (NEW)
     - `core.sms_enrollment (begin_sms_enrollment, sms_available, sms_user_for_phone)` (NEW)
+    - `core.whatsapp_enrollment (begin_whatsapp_enrollment, disconnect_whatsapp, whatsapp_available, whatsapp_user_for_phone)` (NEW)
     - `storage.sms_state (SmsState)` (NEW)
+    - `storage.whatsapp_state (WhatsAppState)` (NEW)
     - `ui.generated.channel_selection_widget_pyqt (Ui_Form_channel_selection)`
   - **Third-party**:
     - `PySide6.QtWidgets (QWidget)`
@@ -8533,7 +8720,7 @@
   - `ui/dialogs/channel_management_dialog.py`
 
 **Dependency Changes**:
-- Added: communication.communication_channels.sms.phone, core, core.channel_access, core.error_handling, core.logger, core.sms_enrollment, storage.sms_state
+- Added: communication.communication_channels.sms.phone, core, core.channel_access, core.error_handling, core.logger, core.sms_enrollment, core.whatsapp_enrollment, storage.sms_state, storage.whatsapp_state
 - Removed: PySide6.QtWidgets, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

@@ -83,8 +83,12 @@ class TestProvisionAdminAccount:
         account_data = {
             "preferred_name": preferred_name,
             "timezone": "America/Regina",
-            "channel": {"type": "discord"},
-            "contact_info": {"email": "", "phone": "", "discord": "111222333"},
+            "channel": {"type": "email"},
+            "contact_info": {
+                "email": "new-account@example.com",
+                "phone": "",
+                "discord": "",
+            },
             "categories": [],
             "task_settings": {},
             "checkin_settings": {},
@@ -107,6 +111,8 @@ class TestProvisionAdminAccount:
         assert "test_label" not in account["account"]
         assert account["account"]["subscription_status"] == "trialing"
         assert account["account"]["trial_ends_at"]
+        preferences = get_user_data(user_id, "preferences")["preferences"]
+        assert preferences["channel"]["type"] == "email"
 
     def test_provision_admin_account_uses_uuid_when_preferred_name_missing(
         self, test_data_dir

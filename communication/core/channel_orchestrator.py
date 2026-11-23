@@ -508,6 +508,11 @@ class CommunicationManager:
         if SMS_SIMULATION_ENABLED or SMS_TWILIO_ENABLED:
             configs["sms"] = ChannelConfig(name="sms", max_retries=1)
 
+        from core.config import WHATSAPP_ENABLED
+
+        if WHATSAPP_ENABLED:
+            configs["whatsapp"] = ChannelConfig(name="whatsapp", max_retries=1)
+
         configs["website"] = ChannelConfig(
             name="website",
             enabled=True,
@@ -783,6 +788,8 @@ class CommunicationManager:
                         delivery_meta["discord_message_id"] = outbound_id
                     elif channel_name == "email":
                         delivery_meta["email_message_id"] = outbound_id
+                    elif channel_name == "whatsapp":
+                        delivery_meta["whatsapp_message_id"] = outbound_id
                     elif channel_name == "sms":
                         delivery_meta["sms_message_id"] = outbound_id
                 if success == CHANNEL_SEND_UNCONFIRMED:

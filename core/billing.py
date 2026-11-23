@@ -153,7 +153,7 @@ def subscription_price_plan(subscription):
         return "", ""
     price = items[0].get("price") or {}
     price_id = price.get("id", "") if isinstance(price, dict) else str(price)
-    prices = {config.STRIPE_DISCORD_PRICE_ID: "discord", config.STRIPE_PHONE_PRICE_ID: "phone"}
+    prices = {config.STRIPE_DISCORD_PRICE_ID: "discord", config.STRIPE_PHONE_PRICE_ID: "phone", config.STRIPE_WHATSAPP_PRICE_ID: "whatsapp"}
     return (prices.get(price_id, "") if price_id else ""), price_id
 
 
@@ -197,7 +197,7 @@ class StripeBillingClient:
         """Build a Stripe client from the configured secret values."""
         return cls(
             secret_key=str(getattr(config, "STRIPE_SECRET_KEY", "") or ""),
-            price_ids={"discord": config.STRIPE_DISCORD_PRICE_ID, "phone": config.STRIPE_PHONE_PRICE_ID},
+            price_ids={"discord": config.STRIPE_DISCORD_PRICE_ID, "phone": config.STRIPE_PHONE_PRICE_ID, "whatsapp": config.STRIPE_WHATSAPP_PRICE_ID},
             portal_configuration_id=config.STRIPE_PORTAL_CONFIGURATION_ID,
             webhook_secret=str(getattr(config, "STRIPE_WEBHOOK_SECRET", "") or ""),
         )

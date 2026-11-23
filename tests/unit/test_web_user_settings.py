@@ -97,6 +97,26 @@ def values(documents, section):
     return deepcopy(settings_snapshot(documents, OPTIONS)["sections"][section])
 
 
+def test_whatsapp_delivery_requires_its_own_plan_and_verified_contact(documents, monkeypatch):
+    account = documents["account"]
+    account.update(user_id="whatsapp-owner", subscription_status="active", subscription_plan="whatsapp",
+                   billing_livemode=True, whatsapp_phone="+15555550199", phone="+15555550188")
+    monkeypatch.setattr("core.whatsapp_enrollment.whatsapp_available", lambda: True)
+    monkeypatch.setattr("core.whatsapp_enrollment.whatsapp_user_for_phone", lambda _: None)
+    draft = values(documents, "delivery")
+    draft["channel"] = "whatsapp"
+    with pytest.raises(ValidationError, match="Connect and verify WhatsApp"):
+        build_settings_updates(documents, OPTIONS, "delivery", draft)
+    monkeypatch.setattr("core.whatsapp_enrollment.whatsapp_user_for_phone", lambda _: "whatsapp-owner")
+    updates = build_settings_updates(documents, OPTIONS, "delivery", draft)
+    assert updates["account"]["chat_id"] == "+15555550199"
+    assert updates["account"]["phone"] == "+15555550188"
+    assert updates["preferences"]["channel"]["type"] == "whatsapp"
+    account["subscription_plan"] = "phone"
+    with pytest.raises(ValidationError, match="matching active paid plan"):
+        build_settings_updates(documents, OPTIONS, "delivery", draft)
+
+
 def test_settings_helpers_reject_invalid_current_schema_inputs():
     assert _available_message_categories(None, {}) == []
     with pytest.raises(ValidationError):
@@ -111,7 +131,7 @@ def test_checkin_defaults_are_two_and_three(documents):
     assert checkins["max_questions"] == 3
 
 
-def test_trial_can_save_timezone_before_linking_discord_but_cannot_select_email(documents):
+def test_trial_can_save_timezone_and_select_email_before_linking_discord(documents):
     documents["account"]["subscription_status"] = "trialing"
     documents["preferences"]["channel"] = {"type": "discord"}
     draft = values(documents, "delivery")
@@ -120,8 +140,9 @@ def test_trial_can_save_timezone_before_linking_discord_but_cannot_select_email(
     assert updates["account"]["timezone"] == "Europe/London"
     assert updates["preferences"]["channel"]["type"] == "discord"
     draft["channel"] = "email"
-    with pytest.raises(ValidationError, match="Trial accounts use Discord"):
-        build_settings_updates(documents, OPTIONS, "delivery", draft)
+    updates = build_settings_updates(documents, OPTIONS, "delivery", draft)
+    assert updates["account"]["chat_id"] == documents["account"]["email"]
+    assert updates["preferences"]["channel"]["type"] == "email"
 
 
 def test_support_controls_round_trip_without_changing_other_preferences(documents):

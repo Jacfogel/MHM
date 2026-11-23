@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-21 16:05:17
+> **Last Generated**: 2026-11-23 00:14:21
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -185,6 +185,13 @@ C:.
 |   |   |   |   inbox.py
 |   |   |   |   __init__.py
 |   |   |   |
+|   |   +---whatsapp
+|   |   |   |   bot.py
+|   |   |   |   server.py
+|   |   |   |   transport.py
+|   |   |   |   WHATSAPP_GUIDE.md
+|   |   |   |   __init__.py
+|   |   |   |
 |   +---core
 |   |   |   channel_monitor.py
 |   |   |   channel_orchestrator.py
@@ -212,6 +219,7 @@ C:.
 |   |   |   interaction_manager.py
 |   |   |   message_route_classifier.py
 |   |   |   parsing_shortcuts.py
+|   |   |   phone_reply_routing.py
 |   |   |   prefix_command_processor.py
 |   |   |   response_enhancer.py
 |   |   |   structured_command_dispatcher.py
@@ -292,6 +300,8 @@ C:.
 |   |   web_sms.py
 |   |   web_tasks.py
 |   |   web_user_settings.py
+|   |   web_whatsapp.py
+|   |   whatsapp_enrollment.py
 |   |   __init__.py
 |   |
 +---development_docs
@@ -399,6 +409,7 @@ C:.
 |       sms-twilio-pilot.md
 |       SPECS_GUIDE.md
 |       SPEC_COVERAGE_MATRIX.md
+|       whatsapp-meta-channel.md
 |
 +---storage
 |   |   runtime_state_storage.py
@@ -418,6 +429,7 @@ C:.
 |   |   user_data_write.py
 |   |   user_id.py
 |   |   user_item_storage.py
+|   |   whatsapp_state.py
 |   |   __init__.py
 |   |
 +---styles
@@ -582,6 +594,8 @@ C:.
 |   |   |   test_webhook_server_behavior.py
 |   |   |   test_welcome_handler_behavior.py
 |   |   |   test_welcome_manager_behavior.py
+|   |   |   test_whatsapp.py
+|   |   |   test_whatsapp_enrollment.py
 |   |   |
 |   +---communication
 |   |   |   test_channel_monitor.py
@@ -1027,6 +1041,8 @@ C:.
 |   |   tasks.test.mjs
 |   |   terms.html
 |   |   WEBSITE_GUIDE.md
+|   |   whatsapp-enrollment.js
+|   |   whatsapp-enrollment.test.mjs
 |   |   worker.mjs
 |   |   worker.test.mjs
 |   |   wrangler.jsonc

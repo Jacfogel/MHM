@@ -10,6 +10,7 @@ This guide describes how messages flow through MHM independent of channel (Disco
 For the system-wide view, see section 4. "Key Modules and Responsibilities" in [ARCHITECTURE.md](../ARCHITECTURE.md#4-key-modules-and-responsibilities).
 For Discord-specific details, see section 2. "Discord Channel Architecture" in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md#2-discord-channel-architecture).
 For the Twilio owner pilot, signed replies, stop controls, and simulation, see [SMS_GUIDE.md](communication_channels/sms/SMS_GUIDE.md).
+For direct Meta WhatsApp, separate paid access, verified enrollment, and template notifications, see [WHATSAPP_GUIDE.md](communication_channels/whatsapp/WHATSAPP_GUIDE.md).
 For the browser interface, gateway, deployment, and website inbox, see [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md).
 For Google Health OAuth, sync, and personalization commands exposed through channels, see [GOOGLE_HEALTH_GUIDE.md](../integrations/google_health/GOOGLE_HEALTH_GUIDE.md). Health integration logic remains outside channel adapters.
 For user-visible behavior requirements, see [specs/SPECS_GUIDE.md](../specs/SPECS_GUIDE.md) and Discord topic specs listed in [DISCORD_GUIDE.md](communication_channels/discord/DISCORD_GUIDE.md) (welcome, routing, check-ins, reminders, delivery, lifecycle).  

@@ -10,6 +10,7 @@
   <script src="script.js?v=dialog-1" defer></script>
   <script src="app.js?v=account-errors-1" defer></script>
   <script src="sms-enrollment.js" defer></script>
+  <script src="whatsapp-enrollment.js" defer></script>
   <script src="settings.js?v=support-mode-2" defer></script>
   <script src="integrations.js?v=workflow-polish-1" defer></script>
 </head>
@@ -43,7 +44,7 @@
               <p id="billing-status" class="panel-description">Loading your plan…</p>
               <p id="billing-test-mode" class="field-hint" hidden>Billing is in test mode. These plans are not collecting real payments yet.</p>
               <label for="billing-plan">Monthly plan (CAD)</label>
-              <select id="billing-plan"><option value="discord">Discord — $10 CAD/month</option><option value="phone">Discord + SMS — $20 CAD/month</option></select>
+              <select id="billing-plan"><option value="discord">Discord — $10 CAD/month</option><option value="phone">Discord + SMS — $20 CAD/month</option><option value="whatsapp">WhatsApp — $20 CAD/month</option></select>
               <div class="billing-actions">
                 <button class="button" id="start-subscription" type="button" hidden>Subscribe to MHM</button>
                 <button class="plain-button" id="manage-billing" type="button" hidden>Manage billing</button>

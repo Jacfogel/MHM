@@ -84,6 +84,7 @@ class SmsState:
             db.execute("INSERT OR IGNORE INTO outbound VALUES (?, ?, ?, ?)", (sid, status, error, now_timestamp_full()))
 
     @handle_errors("SMS state update_status", user_friendly=False, re_raise=True, retry_after_recovery=False)
+    # devtools: intentional[duplicate-functions]: provider-delivery-state-progression
     def update_status(self, sid, status, error=""):
         """Apply a known delivery state without regressing a terminal status."""
         ranks = {"accepted": 0, "queued": 1, "sending": 2, "sent": 3,

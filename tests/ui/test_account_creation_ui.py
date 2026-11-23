@@ -254,6 +254,7 @@ class TestAccountCreationDialogRealBehavior:
         assert dialog.ui.checkBox_enable_messages.isChecked()
         assert not dialog.ui.checkBox_enable_task_management.isChecked()
         assert not dialog.ui.checkBox_enable_checkins.isChecked()
+        assert dialog.channel_widget.ui.radioButton_Email.isEnabled()
 
         # Test enabling task management
         # Note: In headless test environments, setChecked() doesn't always emit signals

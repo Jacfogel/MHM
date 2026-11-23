@@ -3952,3 +3952,9 @@ Refactored `run_mhm.py` and `run_headless_service.py` for improved consistency a
 - **Improved Test Isolation**: Added `cleanup_singletons` autouse fixture in `conftest.py` and fixed singleton cleanup in multiple test files - eliminates state pollution between tests
 - **Result**: 2068 tests passing (1 skipped), flaky test now passes consistently, no files created outside `tests/`, test suite significantly more stable
 ---
+
+### 2026-11-17 - Task reminder recovery and editor cleanup **COMPLETED**
+
+- Saved snoozes and skipped-occurrence reminders recover at startup and during five-minute checks. Delivery attempts survive a restart. Explicit failures can retry, while unconfirmed attempts suppress automatic replay.
+- Fixed browser task saving and moved save errors into the editor. Removed task blocking from the website, Discord, and the API. Existing task files still load, and recurring parent tasks retain their child steps.
+- Documented the reminder storage callbacks, corrected the scheduler test, and regenerated the function registry. All 142 website tests, 111 focused task and API tests, and 74 scheduler follow-up tests passed in their respective runs.

@@ -754,7 +754,7 @@ async def test_product_adapter_uses_shared_creation_and_casefolded_lookup(monkey
         "America/Regina",
         "$mhm$scrypt$16384$8$1$salt$digest",
     ) == "new-id"
-    assert captured[0]["channel"] == {"type": "discord"}
+    assert captured[0]["channel"] == {"type": "email"}
     assert captured[0]["preferred_name"] == "New User"
     assert "test_label" not in captured[0]
     assert not captured[0]["messages_enabled"]

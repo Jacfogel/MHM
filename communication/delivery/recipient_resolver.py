@@ -64,3 +64,11 @@ class RecipientResolver:
 
         account = get_user_data(user_id, "account", normalize_on_read=True).get("account") or {}
         return normalize_phone(account.get("phone", ""))
+
+    @handle_errors("resolving WhatsApp recipient", default_return=None)
+    def _resolve_whatsapp_recipient(self, user_id: str, preferences: dict) -> str | None:
+        """Use the independently verified WhatsApp contact field."""
+        from communication.communication_channels.sms.phone import normalize_phone
+
+        account = get_user_data(user_id, "account", normalize_on_read=True).get("account") or {}
+        return normalize_phone(account.get("whatsapp_phone", ""))

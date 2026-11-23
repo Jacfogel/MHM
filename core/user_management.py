@@ -85,13 +85,17 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
     """Create a new user with the new data structure."""
     user_id = str(uuid.uuid4())
     created_ts = now_timestamp_full()
+    requested_channel = user_data.get("channel", {}).get("type", "email")
+    channel_type = (
+        requested_channel if requested_channel in {"email", "discord"} else "email"
+    )
 
     from core.billing import new_account_billing
 
     account_data = {
         "user_id": user_id,
         "account_status": "active",
-        "chat_id": user_data.get("discord_user_id", ""),
+        "chat_id": user_data.get("chat_id", ""),
         "phone": user_data.get("phone", ""),
         "email": user_data.get("email", ""),
         "discord_user_id": user_data.get("discord_user_id", ""),
@@ -122,7 +126,7 @@ def create_new_user(user_data: dict[str, Any]) -> str | None:
 
     preferences_data = {
         "categories": user_data.get("categories", []),
-        "channel": {"type": "discord"},
+        "channel": {"type": channel_type},
         "checkin_settings": user_data.get("checkin_settings", {}),
         "task_settings": user_data.get("task_settings", {}),
     }

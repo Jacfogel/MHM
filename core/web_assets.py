@@ -47,6 +47,7 @@ class WebAssetRoutes:
             "setup.js",
             "settings.js",
             "sms-enrollment.js",
+            "whatsapp-enrollment.js",
             "tasks.js",
             "notes.js",
             "insights.js",

@@ -375,7 +375,7 @@ class MHMAccounts:
                 "timezone": timezone,
                 "preferred_name": preferred_name,
                 "password_hash": password_hash,
-                "channel": {"type": "discord"},
+                "channel": {"type": "email"},
                 "categories": [],
                 "messages_enabled": False,
                 "task_settings": {"enabled": False},
@@ -1910,7 +1910,7 @@ class WebGateway:
         features = account_data.get("features") or {}
         preferences = documents.get("preferences") or {}
         channel = (preferences.get("channel") or {}).get("type")
-        if channel not in {"email", "discord", "sms"}:
+        if channel not in {"email", "discord", "sms", "whatsapp"}:
             raise web.HTTPBadRequest(text="Choose a delivery channel in your settings first.")
 
         from core.service_utilities import get_flags_dir
@@ -2091,6 +2091,9 @@ def create_web_app(
     from core.web_sms import register_sms_routes
 
     register_sms_routes(app, gateway)
+    from core.web_whatsapp import register_whatsapp_routes
+
+    register_whatsapp_routes(app, gateway)
     register_settings_routes(app, gateway)
     register_health_routes(app, gateway)
 

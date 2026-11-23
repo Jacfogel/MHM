@@ -43,7 +43,7 @@ def begin_sms_enrollment(phone, consent, owner=""):
     if owner:
         account = get_user_data(owner, "account").get("account") or {}
         if not channel_allowed(account, "sms"):
-            raise ValidationError("SMS requires an active paid Discord + SMS plan. Trial accounts use Discord.")
+            raise ValidationError("SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.")
     return SmsState().begin_enrollment(phone, owner)
 
 
@@ -54,7 +54,7 @@ def connect_sms(user_id, phone, token, consent, owner=""):
     state = SmsState()
     account = get_user_data(user_id, "account").get("account") or {}
     if not channel_allowed(account, "sms"):
-        raise ValidationError("SMS requires an active paid Discord + SMS plan. Trial accounts use Discord.")
+        raise ValidationError("SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.")
     if not sms_available() or not phone or consent is not True or not state.enrollment_verified(phone, token, owner):
         raise ValidationError("Text the connection code from this phone, then verify again before it expires.")
     existing = state.enrolled_user(phone)

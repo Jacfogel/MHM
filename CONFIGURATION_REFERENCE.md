@@ -92,6 +92,8 @@ Each of these controls where a specific component writes logs:
 
 ### 3.3. SMS pilot configuration
 
+WhatsApp uses the direct Meta Cloud API and its own $20 CAD/month plan. Set `WHATSAPP_ENABLED` (default false), `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WHATSAPP_PHONE_NUMBER_ID`, and international `WHATSAPP_PHONE_NUMBER`. `WHATSAPP_API_VERSION` defaults to `v27.0`; `WHATSAPP_WEBHOOK_PORT` defaults to 8083. Publish GET/POST `/whatsapp/webhook` through HTTPS. Outside the 24-hour reply window, `WHATSAPP_NOTIFICATION_TEMPLATE` and `WHATSAPP_TEMPLATE_LANGUAGE` (default `en_US`) select an approved parameterless notification; the user replies OPEN to receive saved text. `STRIPE_WHATSAPP_PRICE_ID` selects its separate recurring CAD price. Restart after configuration changes. See [WHATSAPP_GUIDE.md](communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md).
+
 SMS is configured separately with `SMS_SIMULATION_ENABLED` or `SMS_TWILIO_ENABLED` (both default false; enable only one). Live SMS requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, `SMS_PUBLIC_BASE_URL` (HTTPS origin only), and `SMS_WEBHOOK_PORT` (default 8082). Per-account verified phone enrollment and consent replace the retired global pilot settings. Only active paid Discord + SMS subscriptions ($20 CAD/month) can use SMS; trial accounts use Discord only. See [SMS_GUIDE.md](communication/communication_channels/sms/SMS_GUIDE.md) for connection, callbacks, and recovery. Restart after configuration changes.
 
 ## 4. Email configuration

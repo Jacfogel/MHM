@@ -43,7 +43,8 @@ function renderBilling(billing) {
     if (billing.subscription_exists || billing.customer_exists) manage.hidden = false;
     else if (billing.checkout_available) subscribe.hidden = false;
   } else if (billing.status === 'active') {
-    message.textContent = billing.plan === 'phone' ? 'Your Discord + SMS plan is active ($20 CAD/month).'
+    message.textContent = billing.plan === 'whatsapp' ? 'Your WhatsApp plan is active ($20 CAD/month).'
+      : billing.plan === 'phone' ? 'Your Discord + SMS plan is active ($20 CAD/month).'
       : billing.plan === 'discord' ? 'Your Discord plan is active ($10 CAD/month).'
       : 'Your existing MHM subscription is active. Manage billing to review its price.';
     manage.hidden = !billing.customer_exists;

@@ -422,13 +422,13 @@
     if (plan[index] === 'discord') {
       connectDiscord.hidden = discordLinked || !discordAvailable;
       discordState.textContent = discordLinked
-        ? 'Discord is connected. MHM can send reminders there. Active paid accounts can also choose email or verified SMS in Account.'
+        ? 'Discord is connected. MHM can send reminders there. Email is also available; SMS and WhatsApp require their matching paid plan.'
         : discordAvailable
           ? 'Discord is not connected yet.'
-          : settings && settings.trial_account ? 'Discord connection is unavailable. Trial delivery requires Discord; ask your MHM administrator for help.' : 'Discord connection is not available right now.';
+          : 'Discord connection is not available right now. You can continue with Email.';
     }
     continueButton.textContent = plan[index] === 'discord' && !discordLinked
-      ? settings && settings.trial_account ? 'Connect Discord to continue' : 'Continue with selected channel'
+      ? 'Continue with selected channel'
       : plan[index] === 'billing' ? 'Continue with free trial →'
       : index === plan.length - 1 ? 'Finish →' : 'Continue →';
     skipButton.hidden = !current.skip;
@@ -475,11 +475,14 @@
   }
 
   async function saveDiscordChoice() {
-    if (settings && settings.trial_account && !(account && account.discord_linked)) {
-      throw new Error('Connect Discord to continue with trial delivery.');
-    }
     const choice = document.getElementById('setup-delivery-channel');
-    await saveDeliveryChannel(choice && choice.value ? choice.value : account && account.discord_linked || settings && settings.trial_account ? 'discord' : 'email');
+    const channel = choice && choice.value
+      ? choice.value
+      : (account && account.discord_linked ? 'discord' : 'email');
+    if (channel === 'discord' && !(account && account.discord_linked)) {
+      throw new Error('Connect Discord before selecting Discord delivery, or choose Email.');
+    }
+    await saveDeliveryChannel(channel);
   }
 
   async function saveYou() {
@@ -818,8 +821,11 @@
   if (smsSetup && window.MHMSms) window.MHMSms.mount(smsSetup, info => {
     const choice = document.getElementById('setup-delivery-channel');
     choice.querySelector('option[value="sms"]').disabled = !(info.eligible && info.connected);
-    choice.querySelector('option[value="email"]').disabled = Boolean(info.trial);
-    if (info.trial) choice.value = 'discord';
+  });
+  const whatsappSetup = document.getElementById('setup-whatsapp-connection');
+  if (whatsappSetup && window.MHMWhatsApp) window.MHMWhatsApp.mount(whatsappSetup, info => {
+    const choice = document.getElementById('setup-delivery-channel');
+    choice.querySelector('option[value="whatsapp"]').disabled = !(info.available !== false && info.eligible && info.connected);
   });
   if (setupContent) loadSetup();
 })();

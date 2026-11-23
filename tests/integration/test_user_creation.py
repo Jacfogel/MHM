@@ -95,7 +95,7 @@ class TestUserCreationScenarios:
         # Verify data can be loaded
         loaded_data = get_user_data(actual_user_id, 'all')
         assert loaded_data['account']['email'] == 'basic@example.com'
-        assert loaded_data['preferences']['channel']['type'] == 'discord'
+        assert loaded_data['preferences']['channel']['type'] == 'email'
         assert loaded_data['account']['subscription_status'] == 'trialing'
         assert 'motivational' in loaded_data['preferences']['categories']
         # Note: enabled flags are removed from preferences and stored in account.features
