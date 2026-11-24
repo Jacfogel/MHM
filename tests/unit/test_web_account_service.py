@@ -901,6 +901,42 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
         assert (await client.get("/api/account")).status == 200
 
 
+@pytest.mark.parametrize("mode", ["login", "create"])
+async def test_social_auth_does_not_link_to_existing_browser_session(monkeypatch, mode):
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_REDIRECT_URI", "")
+    accounts, sent = Accounts(), []
+
+    async def identity(*_args, **_kwargs):
+        return OAuthIdentity("new-google-subject", "new@example.com", True, "New")
+
+    app = service.create_web_app(
+        accounts=accounts, mailer=lambda _email, code: sent.append(code),
+        origin=ORIGIN, proxy_secret="", oauth_identity=identity,
+    )
+    async with web_client(app, cookie_jar=CookieJar(unsafe=True)) as client:
+        token = (await (await request_code(client)).json())["challenge"]
+        assert (await verify(client, token, sent[-1])).status == 200
+        url = (await (await client.get(
+            f"/api/auth/oauth/google/start?mode={mode}"
+        )).json())["url"]
+        state = parse_qs(urlsplit(url).query)["state"][0]
+        response = await client.get(
+            f"/api/auth/oauth/google/callback?code=code&state={state}",
+            allow_redirects=False,
+        )
+        assert response.status == 302
+        assert "google-connected" in response.headers["Location"]
+        assert not accounts.users["existing"].get("oauth_identities")
+        new_match = accounts.by_oauth("google", "new-google-subject")
+        assert new_match is not None
+        assert new_match[0] != "existing"
+        assert new_match[1]["email"] == "new@example.com"
+
+
 @pytest.mark.parametrize("change", ["logout", "expiry", "session_expiry", "suspension", "email", "conflict", "none"])
 async def test_social_connection_rechecks_session_and_identity_ownership(monkeypatch, change):
     """A provider round trip must not bypass session expiry or identity ownership."""

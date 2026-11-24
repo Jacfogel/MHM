@@ -136,11 +136,11 @@ test('social sign-in shows only available providers and uses provider-aware copy
   const socialButtons = new Map([
     ['google', {
       textContent: 'Continue with Google', dataset: { provider: 'google' },
-      hidden: true, disabled: true, addEventListener() {}, setAttribute() {}, removeAttribute() {},
+      hidden: true, disabled: true, addEventListener(type, listener) { listeners.set(`${this.dataset.provider}:${type}`, listener); }, setAttribute() {}, removeAttribute() {},
     }],
     ['facebook', {
       textContent: 'Continue with Facebook', dataset: { provider: 'facebook' },
-      hidden: true, disabled: true, addEventListener() {}, setAttribute() {}, removeAttribute() {},
+      hidden: true, disabled: true, addEventListener(type, listener) { listeners.set(`${this.dataset.provider}:${type}`, listener); }, setAttribute() {}, removeAttribute() {},
     }],
   ]);
   const document = {
@@ -165,12 +165,13 @@ test('social sign-in shows only available providers and uses provider-aware copy
       return match ? socialButtons.get(match[1]) || null : null;
     },
   };
+  const requests = [];
   const context = vm.createContext({
     document,
     Intl,
     URLSearchParams,
     location: { search: '?mode=create', assign() {} },
-    fetch: async () => Response.json({ providers: { google: true, facebook: false } }),
+    fetch: async (path) => { requests.push(path); return Response.json({ providers: { google: true, facebook: false }, url: 'https://example.com/authorize' }); },
     Response,
     Error,
   });
@@ -186,6 +187,9 @@ test('social sign-in shows only available providers and uses provider-aware copy
   assert.equal(nodes.get('social-hint').hidden, true);
   assert.equal(nodes.get('account-divider').hidden, false);
   assert.equal(nodes.get('form-description').hidden, true);
+  await listeners.get('google:click')();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.ok(requests.some(path => path.startsWith('/api/auth/oauth/google/start?mode=create&timezone=')));
 });
 
 test('verification codes normalize pasted formatting and auth actions show specific progress', () => {

@@ -31,6 +31,9 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-23 - Correct social signup account selection **COMPLETED**
+- Google and Facebook login/signup now resolve the selected identity independently of an existing MHM browser session.
+
 ### 2026-11-23 - Clearer website delivery choices **COMPLETED**
 - Corrected the Tier 3 website test that still expected the old free-trial wording.
 - Made Messages manage categories and delivery as well as editable default and custom messages, preserving libraries when paused.

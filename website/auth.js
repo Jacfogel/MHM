@@ -201,7 +201,7 @@ for (const button of document.querySelectorAll('[data-provider]')) {
     const timezone = encodeURIComponent(
       Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Regina'
     );
-    const result = await api(`/api/auth/oauth/${provider}/start?timezone=${timezone}`);
+    const result = await api(`/api/auth/oauth/${provider}/start?mode=${creating ? 'create' : 'login'}&timezone=${timezone}`);
     if (!result.url) throw new Error(`${provider} sign-in is unavailable.`);
     location.assign(result.url);
   }, `Opening ${button.dataset.provider}…`));

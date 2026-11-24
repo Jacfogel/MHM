@@ -1624,7 +1624,12 @@ class WebGateway:
             request.cookies.get(COOKIE, "").encode()
         ).hexdigest()
         active_session = self.sessions.get(session_key)
-        linked_uid = active_session[0] if active_session and active_session[1] > self.clock() else None
+        linked_uid = (
+            active_session[0]
+            if request.query.get("mode") not in {"login", "create"}
+            and active_session and active_session[1] > self.clock()
+            else None
+        )
         state = secrets.token_urlsafe(32)
         timezone = str(request.query.get("timezone", "") or "").strip()
         try:

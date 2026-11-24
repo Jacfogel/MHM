@@ -34,6 +34,12 @@ Retired document and rule names in historical entries refer to their Git history
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-23 - Correct social signup account selection
+
+- Fixed login/create-account social requests being treated as linking to an already signed-in browser account. Auth requests now pass explicit intent; Integrations retains session-validated linking.
+- Added regression coverage for both login and signup with an existing browser session and for the signup button request.
+- Validation: all four browser auth tests passed; Python syntax checks passed. Pytest and doc-sync stalled without output and were interrupted; Python regression execution and documentation validation remain unconfirmed.
+
 ### 2026-11-23 - Clearer website delivery choices
 - **Changes**: Labeled the website phone plan SMS across billing, setup, and enrollment; shortened signup verification to the email-code prompt. Increased delivery-label CSS specificity so the existing flex layout creates separate, spaced lines for card content. Refreshed affected page asset versions and the website guide.
 - **Tier 3 follow-up**: The parallel JUnit report identified an outdated trial-copy assertion in test_first_run_exposes_a_setup_path_for_each_feature. Updated it to expect the requested wording, "the free trial applies only to Email and Discord." The stored Tier 3 report remains evidence of the earlier run; a fresh run of tests/unit/test_website_pages.py passed all 31 tests.
