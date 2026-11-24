@@ -31,6 +31,9 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-24 - Repair nightly test classification **COMPLETED**
+- Added the missing behavior and communication markers to the standalone help regression test that failed the nightly suite's category policy guard.
+
 ### 2026-11-23 - Correct social signup account selection **COMPLETED**
 - Prevented Google/Facebook signup and login from linking to an unrelated signed-in browser account; Connect now requires explicit intent and a live session.
 - Passed 129 account-service, website-page, and browser/proxy checks, published the website, restarted the gateway, and verified live signup/Connect responses. Any previously incorrect saved link still needs identification.

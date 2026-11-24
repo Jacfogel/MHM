@@ -34,6 +34,12 @@ Retired document and rule names in historical entries refer to their Git history
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-24 - Repair nightly test classification
+
+- Investigated GitHub Actions run `45443608503`: the category-marker guard was the sole failure, with 7,038 tests passing and eight skipped across both phases; native crash extraction succeeded.
+- Added explicit `behavior` and `communication` markers to `test_basic_pipeline_help_keeps_full_alias_list_in_commands` in `tests/behavior/test_command_discovery_help.py`. This standalone function does not inherit the neighboring class's markers. Existing marker requirements in `tests/TESTING_GUIDE.md` remain unchanged.
+- Validation: all 22 policy-guard and command-discovery help tests passed; `doc-sync` and `git diff --check` exited successfully. The full GitHub nightly suite has not been rerun with this local change.
+
 ### 2026-11-23 - Correct social signup account selection
 
 - Fixed login/create-account social requests being treated as linking to an already signed-in browser account. The server defaults omitted intent to login and only explicit `mode=link` with a live session can connect an identity; invalid modes are rejected. Integrations sends the explicit Connect intent.

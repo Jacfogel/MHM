@@ -406,6 +406,8 @@ class TestCommandDiscoveryHelp:
         assert "discord_guide.md" in message.lower()
 
 
+@pytest.mark.behavior
+@pytest.mark.communication
 def test_basic_pipeline_help_keeps_full_alias_list_in_commands():
     from unittest.mock import Mock
     from communication.message_processing.help_responses import get_help_response, get_commands_response
