@@ -1620,16 +1620,20 @@ class WebGateway:
             raise web.HTTPTooManyRequests(
                 text="MHM has reached its request or session limit and could not finish this request. Keep your entries and wait a few minutes; check account status before resubmitting a change."
             )
+        mode = request.query.get("mode", "login")
+        if mode not in {"login", "create", "link"}:
+            raise web.HTTPBadRequest(text="Choose login, create, or link for social sign-in.")
         session_key = hashlib.sha256(
             request.cookies.get(COOKIE, "").encode()
         ).hexdigest()
         active_session = self.sessions.get(session_key)
         linked_uid = (
             active_session[0]
-            if request.query.get("mode") not in {"login", "create"}
-            and active_session and active_session[1] > self.clock()
+            if mode == "link" and active_session and active_session[1] > self.clock()
             else None
         )
+        if mode == "link" and not linked_uid:
+            raise web.HTTPUnauthorized(text="Sign in again before connecting a social account.")
         state = secrets.token_urlsafe(32)
         timezone = str(request.query.get("timezone", "") or "").strip()
         try:

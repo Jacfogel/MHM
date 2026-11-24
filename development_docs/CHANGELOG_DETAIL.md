@@ -36,9 +36,10 @@ Retired document and rule names in historical entries refer to their Git history
 
 ### 2026-11-23 - Correct social signup account selection
 
-- Fixed login/create-account social requests being treated as linking to an already signed-in browser account. Auth requests now pass explicit intent; Integrations retains session-validated linking.
-- Added regression coverage for both login and signup with an existing browser session and for the signup button request.
-- Validation: all four browser auth tests passed; Python syntax checks passed. Pytest and doc-sync stalled without output and were interrupted; Python regression execution and documentation validation remain unconfirmed.
+- Fixed login/create-account social requests being treated as linking to an already signed-in browser account. The server defaults omitted intent to login and only explicit `mode=link` with a live session can connect an identity; invalid modes are rejected. Integrations sends the explicit Connect intent.
+- Added regression cases for Google and Facebook, new and already-linked identities, login/signup/omitted intent with an unrelated browser session, and rejection of unauthenticated Connect and invalid intent. Tests verify the resulting signed-in email and preservation of the unrelated account. Browser/proxy checks verify intent reaches the gateway; refreshed script versions to avoid stale browser assets.
+- Validation: 65 account-service tests, 31 website-page tests, and 33 browser/proxy tests passed. Doc-sync completed with exit code 0. The earlier Python stall was traced to local socket creation under restricted execution and resolved by running with local socket access.
+- Published the website and gracefully restarted the existing UI-managed service, clearing old sessions and pending OAuth attempts. Live checks at the configured public domain confirmed updated login and Connect scripts, signup returning the Google account chooser, unauthenticated Connect returning 401, and invalid intent returning 400. A complete live Google authorization still requires the account owner; existing incorrect identity links require identification before correction.
 
 ### 2026-11-23 - Clearer website delivery choices
 - **Changes**: Labeled the website phone plan SMS across billing, setup, and enrollment; shortened signup verification to the email-code prompt. Increased delivery-label CSS specificity so the existing flex layout creates separate, spaced lines for card content. Refreshed affected page asset versions and the website guide.

@@ -105,7 +105,7 @@ sections. It stages updates without changing the loaded documents, preserves
 category metadata and applicable reserved all-day windows, and requires an enabled
 window before enabling a feature.
 
-Social login and create-account requests SHALL explicitly identify their intent and SHALL resolve the selected provider identity independently of any existing browser session. An existing browser session SHALL only be used for connecting a sign-in from Integrations.
+Social login and create-account requests SHALL explicitly identify their intent and SHALL resolve the selected provider identity independently of any existing browser session. An existing browser session SHALL only be used for connecting a sign-in from Integrations, using explicit `mode=link` and a live session. Missing mode defaults to login; unknown modes are rejected.
 
 Social sign-in callbacks separately validate the linking browser session and
 resolve new accounts. Expired or revoked sessions return users to sign-in;

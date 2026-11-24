@@ -416,7 +416,7 @@ test('password and social auth routes proxy and Apple callbacks stay closed', as
   };
   try {
     assert.equal((await worker.fetch(post('/api/auth/password'), env)).status, 200);
-    assert.equal((await worker.fetch(new Request(url + '/api/auth/oauth/google/start'), env)).status, 200);
+    assert.equal((await worker.fetch(new Request(url + '/api/auth/oauth/google/start?mode=create'), env)).status, 200);
     const callback = await worker.fetch(new Request(url + '/api/auth/oauth/google/callback?code=abc&state=xyz'), env);
     assert.equal(callback.status, 302);
     assert.equal(callback.headers.get('Location'), url + '/home.html?social=google-connected');
@@ -427,7 +427,7 @@ test('password and social auth routes proxy and Apple callbacks stay closed', as
     }), env)).status, 404);
     assert.deepEqual(calls.map(call => [call.href, call.method]), [
       ['https://gateway.example/api/auth/password', 'POST'],
-      ['https://gateway.example/api/auth/oauth/google/start', 'GET'],
+      ['https://gateway.example/api/auth/oauth/google/start?mode=create', 'GET'],
       ['https://gateway.example/api/auth/oauth/google/callback?code=abc&state=xyz', 'GET'],
     ]);
   } finally { globalThis.fetch = originalFetch; }

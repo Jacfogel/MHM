@@ -184,7 +184,7 @@ async function startOAuth(provider, button) {
   status.textContent = `Opening ${provider}…`;
   status.classList.remove('is-error');
   try {
-    const response = await fetch(`/api/auth/oauth/${provider}/start`, { credentials: 'same-origin', cache: 'no-store' }).catch(() => { throw new Error('MHM could not open the sign-in provider. Browser authorization has not started. Check your connection and try Connect again; if this continues, ask your MHM administrator for help.'); });
+    const response = await fetch(`/api/auth/oauth/${provider}/start?mode=link`, { credentials: 'same-origin', cache: 'no-store' }).catch(() => { throw new Error('MHM could not open the sign-in provider. Browser authorization has not started. Check your connection and try Connect again; if this continues, ask your MHM administrator for help.'); });
     const result = await response.json().catch(() => ({}));
     if (response.status === 401) { returnToLogin(); return; }
     if (!response.ok || !result.url) throw new Error(result.error || `${provider} connection is unavailable.`);

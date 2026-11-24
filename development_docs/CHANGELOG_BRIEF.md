@@ -32,7 +32,8 @@ Guidelines:
 ## Recent Changes (Most Recent First)
 
 ### 2026-11-23 - Correct social signup account selection **COMPLETED**
-- Google and Facebook login/signup now resolve the selected identity independently of an existing MHM browser session.
+- Prevented Google/Facebook signup and login from linking to an unrelated signed-in browser account; Connect now requires explicit intent and a live session.
+- Passed 129 account-service, website-page, and browser/proxy checks, published the website, restarted the gateway, and verified live signup/Connect responses. Any previously incorrect saved link still needs identification.
 
 ### 2026-11-23 - Clearer website delivery choices **COMPLETED**
 - Corrected the Tier 3 website test that still expected the old free-trial wording.

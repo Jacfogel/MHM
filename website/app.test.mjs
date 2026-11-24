@@ -88,6 +88,7 @@ test('an unknown Discord result asks the user to check the saved connection', as
 });
 
 test('account actions expose busy state and OAuth starts handle expired sessions', () => {
+  assert.ok(source.includes('/api/auth/oauth/${provider}/start?mode=link'));
   assert.match(source, /function setButtonBusy\(button, busy\)/);
   assert.match(source, /button\.setAttribute\('aria-busy', 'true'\)/);
   assert.match(source, /response\.status === 401\) \{ returnToLogin\(\); return; \}/);

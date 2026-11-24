@@ -901,14 +901,21 @@ async def test_configured_social_provider_links_by_verified_email_and_logs_in(
         assert (await client.get("/api/account")).status == 200
 
 
-@pytest.mark.parametrize("mode", ["login", "create"])
-async def test_social_auth_does_not_link_to_existing_browser_session(monkeypatch, mode):
+@pytest.mark.parametrize("mode", ["login", "create", ""])
+@pytest.mark.parametrize("provider", ["google", "facebook"])
+@pytest.mark.parametrize("already_linked", [False, True])
+async def test_social_auth_does_not_link_to_existing_browser_session(monkeypatch, mode, provider, already_linked):
     import core.web_account_service as service
 
-    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_ID", "client-id")
-    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_SECRET", "client-secret")
-    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_REDIRECT_URI", "")
+    monkeypatch.setattr(service.config, f"{provider.upper()}_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, f"{provider.upper()}_OAUTH_CLIENT_SECRET", "client-secret")
+    monkeypatch.setattr(service.config, f"{provider.upper()}_OAUTH_REDIRECT_URI", "")
     accounts, sent = Accounts(), []
+    if already_linked:
+        accounts.users["selected"] = {
+            "email": "new@example.com", "account_status": "active",
+            "oauth_identities": {provider: "new-google-subject"},
+        }
 
     async def identity(*_args, **_kwargs):
         return OAuthIdentity("new-google-subject", "new@example.com", True, "New")
@@ -921,20 +928,33 @@ async def test_social_auth_does_not_link_to_existing_browser_session(monkeypatch
         token = (await (await request_code(client)).json())["challenge"]
         assert (await verify(client, token, sent[-1])).status == 200
         url = (await (await client.get(
-            f"/api/auth/oauth/google/start?mode={mode}"
+            f"/api/auth/oauth/{provider}/start" + (f"?mode={mode}" if mode else "")
         )).json())["url"]
         state = parse_qs(urlsplit(url).query)["state"][0]
         response = await client.get(
-            f"/api/auth/oauth/google/callback?code=code&state={state}",
+            f"/api/auth/oauth/{provider}/callback?code=code&state={state}",
             allow_redirects=False,
         )
         assert response.status == 302
-        assert "google-connected" in response.headers["Location"]
+        assert f"{provider}-connected" in response.headers["Location"]
         assert not accounts.users["existing"].get("oauth_identities")
-        new_match = accounts.by_oauth("google", "new-google-subject")
+        new_match = accounts.by_oauth(provider, "new-google-subject")
         assert new_match is not None
         assert new_match[0] != "existing"
         assert new_match[1]["email"] == "new@example.com"
+        account = await (await client.get("/api/account")).json()
+        assert account["email"] == "new@example.com"
+
+
+@pytest.mark.parametrize("mode, expected", [("link", 401), ("unknown", 400)])
+async def test_social_start_rejects_missing_link_session_and_invalid_intent(gateway, monkeypatch, mode, expected):
+    client, _, _, _ = gateway
+    import core.web_account_service as service
+
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_ID", "client-id")
+    monkeypatch.setattr(service.config, "GOOGLE_OAUTH_CLIENT_SECRET", "client-secret")
+    response = await client.get(f"/api/auth/oauth/google/start?mode={mode}")
+    assert response.status == expected
 
 
 @pytest.mark.parametrize("change", ["logout", "expiry", "session_expiry", "suspension", "email", "conflict", "none"])
@@ -959,7 +979,7 @@ async def test_social_connection_rechecks_session_and_identity_ownership(monkeyp
         assert (await verify(client, token, sent[-1])).status == 200
         if change == "session_expiry":
             now[0] += service.SESSION_TTL - 100
-        url = (await (await client.get("/api/auth/oauth/google/start")).json())["url"]
+        url = (await (await client.get("/api/auth/oauth/google/start?mode=link")).json())["url"]
         state = parse_qs(urlsplit(url).query)["state"][0]
         if change == "logout":
             assert (await client.post("/api/auth/logout", json={}, headers={"Origin": ORIGIN})).status == 200
