@@ -1054,6 +1054,9 @@ class AuditOrchestrationMixin:
             "partial_cache": "partially_utilized",
             "cold_scan": "invalidated",
             "cache_hit": "utilized",
+            "selective_run": "partially_utilized",
+            "full_run": "invalidated",
+            "disabled": "disabled",
             "skipped_env": "skipped",
             "unknown": "none_found",
         }

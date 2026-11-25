@@ -24,6 +24,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+# The audit launches this file directly, so its package root is not otherwise
+# on sys.path (and editable product installs do not include development_tools).
+project_root = Path(__file__).resolve().parents[2]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 
 DEFAULT_TEST_RUN = {
     "pytest_command": [sys.executable, "-m", "pytest"],
@@ -920,6 +926,7 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
     changed_domains: set[str] = set()
     test_files_to_run: list[Path] = []
     cache_mode = "cold_scan"
+    cache_setup_error: str | None = None
     suite_profile = str(cfg.get("suite_profile") or cfg.get("default_profile") or "quick")
     if use_domain_cache:
         try:
@@ -938,7 +945,13 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
                     len(test_files_to_run),
                     suite_cache.get_full_suite_cache() is not None,
                 )
-        except Exception:
+        except Exception as exc:
+            cache_setup_error = f"{type(exc).__name__}: {exc}"
+            message = f"run_test_suite domain cache initialization failed; running fresh tests: {cache_setup_error}"
+            if _suite_logger:
+                _suite_logger.warning(message, exc_info=True)
+            else:
+                print(message, file=sys.stderr)
             suite_cache = None
             use_domain_cache = False
 
@@ -1175,8 +1188,12 @@ def run_suite(cfg: dict[str, Any], *, use_domain_cache: bool = True) -> dict[str
             "cache_mode": "disabled",
             "source": "run_test_suite",
             "suite_profile": suite_profile,
-            "invalidation_reason": "domain_cache_disabled",
+            "invalidation_reason": (
+                "domain_cache_initialization_failed" if cache_setup_error else "domain_cache_disabled"
+            ),
         }
+        if cache_setup_error:
+            cache_metadata["initialization_error"] = cache_setup_error
 
     outcome = _aggregate(phases)
     outcome["suite_profile"] = suite_profile

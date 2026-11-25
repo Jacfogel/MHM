@@ -6,6 +6,12 @@
 
 ## Archived Entries
 
+### 2026-11-19 - Helpful failures and audit fixes **COMPLETED**
+
+- Improved vague desktop, browser, chat, Discord, task, and launcher failures with saved-state guidance and concrete recovery steps.
+- Kept drafts open on failed saves, checked storage results before success, retained failed question undo, and preserved earlier planned-action results.
+- Completed priority actions 1, 2, 4 and quick wins: 68 affected tests pass, four Pyright errors are fixed, and three stale references plus ten broken links are repaired. Pyright and documentation checks are clean; Vulture reports zero findings. Full audits remain owner-run.
+
 ### 2026-11-19 - Shared documentation consolidation **COMPLETED**
 
 - Consolidated AI mirrors and session safeguards into shared guides and AGENTS.md; removed paired-heading requirements.

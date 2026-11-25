@@ -31,6 +31,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-24 - Restore audit test suite caching **COMPLETED**
+
+- Fixed standalone cache imports and made cache disabling/failures visible; seven focused regressions pass.
+
 ### 2026-11-24 - Messaging pilot policy and data controls **COMPLETED**
 - Recorded the Canada/US adult pilot decisions, preserved user-defined schedules without automatic overnight suppression, removed automatic channel switching on disconnection, and extended phone export/deletion and retention controls.
 - Moved shared phone-store lifecycle coordination out of the SMS base to remove the SMS/WhatsApp circular import.
@@ -79,9 +83,3 @@ Guidelines:
 - Updated stale message-editor/process-watcher recovery assertions and Qt metadata typing; all 78 affected dialog tests passed with two workers.
 - The Linux rerun found no native crash but exposed a missing Twilio package declaration and health/SMS test domain markers. Added the dependency to editable installs and supplied the communication markers; all 39 affected tests and policy checks passed, plus six packaging/domain checks.
 - Fixed the final audit process-cleanup checker's package import when launched as a script; two startup regressions and the standalone JSON probe pass.
-
-### 2026-11-19 - Helpful failures and audit fixes **COMPLETED**
-
-- Improved vague desktop, browser, chat, Discord, task, and launcher failures with saved-state guidance and concrete recovery steps.
-- Kept drafts open on failed saves, checked storage results before success, retained failed question undo, and preserved earlier planned-action results.
-- Completed priority actions 1, 2, 4 and quick wins: 68 affected tests pass, four Pyright errors are fixed, and three stale references plus ten broken links are repaired. Pyright and documentation checks are clean; Vulture reports zero findings. Full audits remain owner-run.

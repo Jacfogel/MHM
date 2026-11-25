@@ -34,6 +34,11 @@ Retired document and rule names in historical entries refer to their Git history
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-24 - Restore audit test suite caching
+
+- **Fix**: Added the missing package-root bootstrap to `development_tools/tests/run_test_suite.py`; direct-file audit launches previously failed cache imports and silently ran fresh tests. Cache initialization failures now log their exception and preserve a distinct reason and error in structured results. Audit completion logs recognize disabled, selective, and full-run modes.
+- **Validation**: Seven focused regressions passed, covering standalone cache initialization without `PYTHONPATH`, initialization failure versus explicit disabling, and visible audit cache modes. All regression writes use temporary paths.
+
 ### 2026-11-24 - Messaging pilot policy and data controls
 
 - Recorded the agreed Canada/US adult pilot, owner responsibility and provider-managed budgets in [PLANS.md](PLANS.md).
