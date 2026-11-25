@@ -91,7 +91,7 @@ class TwilioTransport:
             self.bot.error_message = "SMS acceptance is uncertain. Check Twilio message history before sending another copy."
             return "unconfirmed"
         self.bot.last_outbound_message_id = result.sid
-        self.state.record_outbound(result.sid, result.status or "queued")
+        self.state.record_outbound(result.sid, result.status or "queued", user_id=sms_user_for_phone(number, require_paid=False))
         self.bot.error_message = None
         return True
 
@@ -134,7 +134,7 @@ class TwilioTransport:
             user_id = sms_user_for_phone(number, require_paid=False)
             if not user_id:
                 return 403
-            if not self.state.claim(sid):
+            if not self.state.claim(sid, user_id=user_id):
                 return 200
             try:
                 text = params.get("Body", "").strip()

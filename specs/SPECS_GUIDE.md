@@ -113,6 +113,7 @@ Do not copy long guide sections into specs; link to them under **Related documen
 
 | Spec | Covers |
 |------|--------|
+| [messaging-quiet-hours-and-data-controls.md](messaging-quiet-hours-and-data-controls.md) | User schedules, explicit delivery choices, phone export/deletion and retention |
 | [whatsapp-meta-channel.md](whatsapp-meta-channel.md) | Direct Meta delivery, consent, separate paid plan, and template notifications |
 | [SPEC_COVERAGE_MATRIX.md](SPEC_COVERAGE_MATRIX.md) | Scenario coverage status across the Discord specs |
 | [discord-checkin-flow.md](discord-checkin-flow.md) | Check-in prompts, check-in buttons, retry-safe delivery |

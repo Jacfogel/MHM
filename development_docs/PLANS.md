@@ -4,7 +4,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Top-level index for unresolved active, monitoring, planned, and deferred MHM work
 > **Style**: Concise, current, action-oriented  
-> **Last Updated**: 2026-11-18
+> **Last Updated**: 2026-11-24
 > **Child plan**: [TEST_PLAN.md](TEST_PLAN.md)\
 > **History**: [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V6.md) (archived), [HEALTH_INTEGRATION_PLAN.md](../archive/HEALTH_INTEGRATION_PLAN.md) (archived), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V5.md), [AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md](../archive/AI_DEV_TOOLS_IMPROVEMENT_PLAN_V4.md), and changelogs.
 
@@ -64,6 +64,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Deterministic mood and energy rules | **MONITORING** | Low | This file Section 5.3 | Observe health-derived pressure transitions; additional timer awaits usage evidence |
 | Appropriate coupling reductions | **MONITORING** | Medium | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) | Revisit when triage confirms a wrong-layer dependency or a private API dependency causes maintenance problems (2026-11-16) |
 | SMS channel | **ACTIVE** | Medium | This file Section 7.1 | Paid-account SMS enrollment deployed; expanded paid-user live validation remains |
+| Messaging pilot launch policy | **ACTIVE** | High | This file Section 7.3 | Canada and US adult pilot; owner-led operations and provider budgets; outstanding launch gates |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 
 ---
@@ -195,6 +196,37 @@ Accepted integration work. SMS has an active owner pilot; Apple Health remains p
 4. Keep `health status`, pause, enable, and delete shared. Apple connect means the secret is set and a summary has arrived.
 
 **Leave in place for now**: signal-building code stays under `integrations/google_health/` until both sources write real summaries.
+
+---
+
+### 7.3 Messaging pilot launch policy
+
+**Status**: **ACTIVE**
+
+**Priority**: High
+
+**Added / reviewed**: 2026-11-24
+
+**Confirmed scope**: Invite 10-25 adults aged 18+ living in Canada or the United States. Phone-channel enrollment uses Canadian or US numbers; a +1 prefix alone does not establish either country. This is a pilot enrollment policy, not an implemented geographic or age restriction and not a promise of Canadian data residency. Wider international access and minors remain outside this pilot.
+
+**Confirmed ownership**: The project owner requesting this pilot owns launch decisions, messaging spend, and incidents. A named backup and published support contact/hours remain required before additional enrollment; no continuous monitoring is promised.
+
+**Confirmed budget approach**: Keep billing and budget controls with providers and review usage manually. No MHM cost ledger, automatic overage charging, or application-enforced allowance is authorized by this plan. Review Canada and US SMS charges separately. Establish a provider spending threshold, alert recipients, review cadence, and manual pause procedure; distinguish alerts from verified hard caps. Keep current plan prices and live-paid phone-channel eligibility.
+
+**Channel launch gates**:
+
+- Continue Discord and the existing SMS pilot; adding US users does not establish US SMS readiness. Before enrolling additional phone users, record the actual sender type, approved registration/verification, destination permissions, and destination-specific pricing. Prove signed inbound replies, delivered callbacks, STOP/START, paid enrollment, and a full check-in for the intended destinations. Existing evidence is in Section 7.1 and the [SMS guide](../communication/communication_channels/sms/SMS_GUIDE.md).
+- Confirm sender-specific requirements with Twilio. US local senders use [A2P 10DLC registration](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc); toll-free senders require [approved verification](https://www.twilio.com/docs/messaging/compliance/toll-free/console-onboarding) before US/Canada SMS. Do not buy another number or submit registration merely to close this planning item.
+- Keep WhatsApp disabled and purchases inactive until business verification, product eligibility, production credentials/sender, template approval/category, published disclosures/support, and live enrollment/delivery/STOP/OPEN validation are evidenced. Meta's [AI Provider policy](https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing/ai-providers) does not list Canada or the US among permitted general-purpose AI markets; structured wellness reminders do not themselves establish eligibility. Follow the existing [activation task](../TODO.md#2-high-priority) and [WhatsApp guide](../communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md). Failure of this gate does not block Discord/SMS planning.
+
+**Policy implementation and remaining work**:
+
+- **Categories and usage**: Separate account/security notices, user-requested reminders/check-ins, encouragement, and direct replies; exclude promotions initially. Consider three scheduled phone notifications daily as a configurable guideline, not a hard cap. The earlier 300-segment review threshold is unapproved. Define which existing message categories map to these groups before publishing limits.
+- **User schedules (2026-11-24)**: User-configured messages, check-ins and task reminders follow their saved schedules without a Night-to-Morning pause. Phrases clocks remain parsing defaults; explicit Support mode quiet controls remain independent. See [messaging policy spec](../specs/messaging-quiet-hours-and-data-controls.md).
+- **Retention implementation (2026-11-24)**: Preserve user-created history until user/account deletion and retain the existing 365-day active sent-history archiving policy. Archiving is not deletion. Account export/deletion now covers attributed phone records, with 90-day terminal delivery retention, 24-hour pending WhatsApp expiry, and minimal replay/suppression records retained. Existing historical receipts cannot be attributed retroactively. Backup restoration and provider-held copies remain separate operational checks. Preserve deduplication and opt-out protection during cleanup. See [user data](../core/USER_DATA_MODEL.md), [privacy disclosures](../website/privacy.html), and [data controls](../website/data.html).
+- **Fallback implementation (2026-11-24)**: No automatic cross-channel resend. Disconnecting Discord, SMS or WhatsApp does not select another delivery channel; the user must explicitly choose a new channel. Browser/live validation remains.
+
+**Week 1 exit criteria**: Record the backup/support contact, spending thresholds and review procedure, accepted category/usage policy, quiet-hours rules, retention/export/deletion process, and fallback consent. Give each channel gate dated evidence or a recorded blocker. Approval of this policy does not establish that the corresponding product controls are implemented. Do not enroll users, change subscriptions, activate providers, or change runtime settings through this planning step.
 
 ---
 

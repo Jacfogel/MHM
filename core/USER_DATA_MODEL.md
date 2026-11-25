@@ -131,7 +131,7 @@ Example (typical user directory):
 
 - `messages/sent_messages.json`  
   Tracking for messages sent (used to prevent spam/repeats and to support analytics).  
-  **Retention**: Historical v1 `messages[]` records older than **365 days** (UTC cutoff; see `core.message_management.archive_old_messages`) are moved into `messages/archives/sent_messages_archive_<timestamp>.json` when scheduled cleanup runs. Current v2 `deliveries[]` retention/archiving still needs a v2-native cleanup pass; existing archive files may remain in the historical v1 archive format.
+  **Retention**: Current v2 `deliveries[]` older than **365 days** are archived alongside the sent-history file when scheduled cleanup runs. Archives are included in account exports and removed with the account. Historical archive files may retain their original format; archiving is not immediate deletion.
 
 ### 2.2. Notebook subtree
 
@@ -332,3 +332,8 @@ stored in the SMS database. Back up the database with application data.
 ## 11. WhatsApp contact and runtime state
 
 `account.whatsapp_phone` is a separate verified WhatsApp contact; `account.phone` remains the SMS contact. `subscription_plan=whatsapp` identifies the separate $20 CAD/month plan, and preferences use `channel.type=whatsapp`. The v2 schema and load/save bridge preserve these fields. `storage.whatsapp_state.WhatsAppState` owns independent consent, receipts, opt-outs, session windows, and pending text in `whatsapp_state.sqlite3`. Pending bodies are user data; protect and back up this database with application data. See [WHATSAPP_GUIDE.md](../communication/communication_channels/whatsapp/WHATSAPP_GUIDE.md).
+
+
+Account exports include attributed phone records and archived sent history. Account deletion revokes phone enrollments and removes attributed records, pending bodies and number associations; unlinked inbound IDs and pseudonymous STOP suppression digests remain. Terminal outgoing records and completed inbound attribution expire after 90 days; unresolved records remain for recovery. Pending WhatsApp bodies expire after 24 hours. See [messaging data controls spec](../specs/messaging-quiet-hours-and-data-controls.md).
+
+Phone-store lifecycle coordination lives in `storage/phone_state_lifecycle.py`, which imports both adapters. The SMS base store does not import its WhatsApp subclass.

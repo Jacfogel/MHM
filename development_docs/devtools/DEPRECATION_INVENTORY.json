@@ -795,6 +795,27 @@
       ],
       "replacement": "refresh_user_list_fallback(parent_window)",
       "note": "Removed the unused original exception argument after moving technical details out of the user-facing failure. Updated the caller and tests; Vulture confirmed the unused argument."
+    },
+    {
+      "id": "disconnect_automatic_channel_fallback",
+      "removed_at": "2026-11-24",
+      "status": "removed",
+      "search_terms": [
+        "Delivery then falls back to email",
+        "delivery falls back to email"
+      ],
+      "replacement": "Preserve the Discord channel choice and clear its recipient; require explicit selection of another delivery channel.",
+      "note": "Removed implicit email/Discord selection on Discord, SMS and WhatsApp disconnection; another delivery channel requires explicit user selection."
+    },
+    {
+      "id": "sms_state_cross_channel_store_discovery",
+      "removed_at": "2026-11-24",
+      "status": "removed",
+      "search_terms": [
+        "from storage.sms_state import existing_phone_states"
+      ],
+      "replacement": "storage.phone_state_lifecycle.existing_phone_states",
+      "note": "Moved cross-channel discovery out of the SMS base to break the SMS/WhatsApp circular import. Migrated all callers directly without a compatibility alias."
     }
   ],
   "global_sweep_keywords": [

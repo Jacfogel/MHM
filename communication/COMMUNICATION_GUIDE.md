@@ -289,3 +289,6 @@ Use this layout as the template when adding new channels.
   - Signed-in browser conversations and the website inbox use the shared account store and interaction pipeline. See [WEBSITE_GUIDE.md](../website/WEBSITE_GUIDE.md) for gateway startup, hosting, account flows, and verification.
 
 When making structural changes to the communication module, keep this guide updated and ensure all cross-references (especially section numbers) remain valid.
+
+
+User-configured messages, check-ins and task reminders follow their saved schedules without an automatic Night-to-Morning pause. Phrases clocks interpret time phrases; the separate user-selected Support mode quiet control remains available. Disconnecting Discord, SMS or WhatsApp does not select another channel. See [messaging policy spec](../specs/messaging-quiet-hours-and-data-controls.md).

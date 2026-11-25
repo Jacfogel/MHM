@@ -161,8 +161,7 @@ inbound receipts, delivery status, reply windows, contexts, and **pending messag
 bodies**. Protect it as user data and include it with application-data backups.
 It reuses transactional phone-channel storage methods from `storage/sms_state.py`
 but never shares the SMS database. Disconnecting clears pending text and contexts
-while retaining receipt and opt-out history. Automatic retention cleanup is not
-implemented; do not delete the database to repair a connection.
+while retaining receipt and opt-out history. Pending bodies expire after 24 hours before retrieval/export and during activity/maintenance. Terminal delivery details and completed inbound account attribution expire after 90 days; unresolved records remain for review. Website exports include attributed records. Account deletion clears pending bodies, sessions, enrollment and account associations, retaining only unlinked inbound IDs and stopped-number suppression digests. Do not delete the database to repair a connection.
 
 Inbound IDs are claimed before commands run. After a crash, processing error, or
 unconfirmed submission, check the task/check-in and website inbox before retrying.

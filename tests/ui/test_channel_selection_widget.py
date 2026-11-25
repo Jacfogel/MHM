@@ -123,3 +123,16 @@ def test_timezone_warns_when_combo_missing(qapp):
     assert widget.get_timezone() == "America/Regina"
     widget.set_timezone("UTC")
     widget.deleteLater()
+
+
+def test_disconnect_whatsapp_keeps_phone_and_does_not_choose_email(qapp, monkeypatch):
+    monkeypatch.setattr("core.get_user_data", lambda *args: {"account": {"whatsapp_phone": "+13065550101", "email": "one@example.com"}})
+    monkeypatch.setattr("core.whatsapp_enrollment.disconnect_whatsapp", lambda uid: "whatsapp")
+    widget = ChannelSelectionWidget()
+    widget.whatsapp_owner = "one"
+    widget.ui.radioButton_WhatsApp.setEnabled(True)
+    widget.set_selected_channel("WhatsApp", "+13065550101")
+    widget._disconnect_whatsapp()
+    assert widget.get_selected_channel() == ("WhatsApp", "+13065550101")
+    assert not widget.ui.radioButton_Email.isChecked()
+    widget.deleteLater()

@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-23 00:14:21
+> **Last Generated**: 2026-11-24 22:57:55
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -406,12 +406,14 @@ C:.
 |       discord-task-reminder-flow.md
 |       discord-welcome-and-onboarding.md
 |       email-reply-loop.md
+|       messaging-quiet-hours-and-data-controls.md
 |       sms-twilio-pilot.md
 |       SPECS_GUIDE.md
 |       SPEC_COVERAGE_MATRIX.md
 |       whatsapp-meta-channel.md
 |
 +---storage
+|   |   phone_state_lifecycle.py
 |   |   runtime_state_storage.py
 |   |   service_flag_storage.py
 |   |   sms_state.py
@@ -817,6 +819,7 @@ C:.
 |   |   |   test_message_pressure.py
 |   |   |   test_message_reactions.py
 |   |   |   test_message_service_schedule.py
+|   |   |   test_messaging_privacy_policy.py
 |   |   |   test_natural_language_defaults.py
 |   |   |   test_notebook_data_manager_gap_coverage.py
 |   |   |   test_notebook_handler_edge_cases.py
@@ -1025,6 +1028,7 @@ C:.
 |   |   notes.html
 |   |   notes.js
 |   |   notes.test.mjs
+|   |   phone-input.js
 |   |   privacy.html
 |   |   script.js
 |   |   script.test.mjs

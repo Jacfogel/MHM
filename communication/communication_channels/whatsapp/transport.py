@@ -87,7 +87,7 @@ class MetaTransport:
             self.bot.error_message = "WhatsApp acceptance is uncertain. Check Meta delivery history before sending another copy."
             return "unconfirmed"
         self.bot.last_outbound_message_id = identifier
-        self.state.record_outbound(identifier, "accepted")
+        self.state.record_outbound(identifier, "accepted", user_id=whatsapp_user_for_phone("+" + payload["to"], require_paid=False))
         self.bot.error_message = None
         return True
 
@@ -140,7 +140,7 @@ class MetaTransport:
             return
         if timestamp <= 0 or timestamp > now_datetime_full().timestamp() + 60:
             return
-        if not self.state.claim(identifier):
+        if not self.state.claim(identifier, user_id=whatsapp_user_for_phone(number, require_paid=False) or ""):
             return
         try:
             if message.get("type") != "text":

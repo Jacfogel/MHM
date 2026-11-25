@@ -149,11 +149,19 @@ def export_user_data(user_id: str, export_format: str = "json") -> dict[str, Any
     if os.path.exists(sent_file):
         export_data["sent_messages"] = load_json_data(sent_file) or {}
 
+    export_data["sent_message_archives"] = {}
+    archive_root = Path(sent_file).parent
+    for archive_path in sorted(archive_root.glob("**/sent_messages_archive_*.json")):
+        export_data["sent_message_archives"][str(archive_path.relative_to(archive_root))] = load_json_data(str(archive_path)) or {}
+
     for log_type in ["checkins", "chat_interactions"]:
         log_file = get_user_file_path(user_id, log_type)
         if os.path.exists(log_file):
             export_data["logs"][log_type] = load_json_data(log_file) or []
 
+    from storage.phone_state_lifecycle import existing_phone_states
+
+    export_data["phone_channels"] = {name: state.export_user(user_id) for name, state in existing_phone_states().items()}
     logger.info(f"User data exported for user {user_id}")
     return export_data
 
@@ -180,36 +188,25 @@ def delete_user_completely(
         return False
 
     if create_backup:
-        backup_path = backup_user_data(
-            user_id, include_messages=True, backup_dir=backup_dir
-        )
-        if backup_path:
-            logger.info(f"Backup created before deletion: {backup_path}")
+        backup_path = backup_user_data(user_id, include_messages=True, backup_dir=backup_dir)
+        if not backup_path:
+            return False
 
-    user_dir = get_user_data_dir(user_id)
-    if os.path.exists(user_dir):
-        try:
-            shutil.rmtree(user_dir)
-            logger.info(f"Deleted user directory: {user_dir}")
-        except Exception as e:
-            logger.warning(f"Error deleting user directory {user_dir}: {e}")
-
-    try:
-        message_files = get_user_message_files(user_id)
-        for _category, file_path in message_files.items():
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                    logger.info(f"Deleted message file: {file_path}")
-                except Exception as e:
-                    logger.warning(f"Error deleting message file {file_path}: {e}")
-    except Exception as e:
-        logger.warning(f"Error getting message files for user {user_id}: {e}")
-
-    try:
-        remove_from_index(user_id, index_file=index_file)
-    except Exception as e:
-        logger.warning(f"Error removing user {user_id} from index: {e}")
-
-    logger.info(f"User {user_id} completely removed from system")
+    # Collect paths and index identities before deleting the account document.
+    message_files = get_user_message_files(user_id)
+    from storage.phone_state_lifecycle import existing_phone_states
+    for state in existing_phone_states().values():
+        state.delete_user(user_id)
+    if not remove_from_index(user_id, index_file=index_file):
+        return False
+    user_dir = Path(get_user_data_dir(user_id)).resolve()
+    for file_path in message_files.values():
+        path = Path(file_path).resolve()
+        if path.exists() and user_dir not in path.parents:
+            path.unlink()
+    if user_dir.exists():
+        shutil.rmtree(user_dir)
+    from storage.user_data_read import clear_user_caches
+    clear_user_caches(user_id)
+    logger.info("Account deletion finished")
     return True

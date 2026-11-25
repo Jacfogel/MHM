@@ -238,7 +238,7 @@ def test_disconnect_retains_receipts_and_stop_but_revokes_pending(live):
     assert transport.state.stopped(PHONE)
 
 
-@pytest.mark.parametrize("selected,expected", [("sms", "sms"), ("whatsapp", "email")])
+@pytest.mark.parametrize("selected,expected", [("sms", "sms"), ("whatsapp", "whatsapp")])
 def test_disconnect_preserves_other_delivery_and_updates_selected_contact(live, monkeypatch, selected, expected):
     from core.whatsapp_enrollment import disconnect_whatsapp
 
@@ -248,13 +248,13 @@ def test_disconnect_preserves_other_delivery_and_updates_selected_contact(live, 
         "account": account, "preferences": {"channel": {"type": selected}}})
     save_preferences = Mock(return_value=True)
     save_account = Mock(return_value=True)
-    monkeypatch.setattr("core.whatsapp_enrollment.update_user_preferences", save_preferences)
+    monkeypatch.setattr("core.update_user_preferences", save_preferences)
     monkeypatch.setattr("core.whatsapp_enrollment.update_user_account", save_account)
     assert disconnect_whatsapp("one") == expected
     assert transport.state.enrolled_user(PHONE) is None
     if selected == "whatsapp":
-        save_preferences.assert_called_once_with("one", {"channel": {"type": "email"}}, auto_create=False)
-        save_account.assert_called_once_with("one", {"chat_id": "test@example.test"}, auto_create=False)
+        save_preferences.assert_not_called()
+        save_account.assert_called_once_with("one", {"chat_id": ""}, auto_create=False)
     else:
         save_preferences.assert_not_called()
         save_account.assert_not_called()

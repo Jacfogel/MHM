@@ -1,6 +1,6 @@
 """Independent WhatsApp ownership proof, consent, and paid access."""
 
-from core import config, get_user_data, update_user_account, update_user_preferences
+from core import config, get_user_data, update_user_account
 from core.channel_access import channel_allowed
 from core.error_handling import ValidationError, handle_errors
 from communication.communication_channels.sms.phone import normalize_phone
@@ -69,14 +69,9 @@ def connect_whatsapp(user_id, phone, token, consent, owner):
 def disconnect_whatsapp(user_id):
     """Revoke consent while preserving a different preferred channel."""
     data = get_user_data(user_id, "account", "preferences")
-    account = data.get("account") or {}
-    preferences = data.get("preferences") or {}
-    fallback = "email" if channel_allowed(account, "email") else "discord"
-    if (preferences.get("channel") or {}).get("type") == "whatsapp":
-        if not update_user_preferences(user_id, {"channel": {"type": fallback}}, auto_create=False):
-            raise ValidationError("Could not confirm delivery settings. Reload before retrying.")
-        contact = account.get("email" if fallback == "email" else "discord_user_id", "")
-        if not update_user_account(user_id, {"chat_id": contact}, auto_create=False):
+    selected = ((data.get("preferences") or {}).get("channel") or {}).get("type", "whatsapp")
+    if selected == "whatsapp":
+        if not update_user_account(user_id, {"chat_id": ""}, auto_create=False):
             raise ValidationError("Could not confirm the delivery contact. Reload before retrying.")
     WhatsAppState().disconnect_enrollment(user_id)
-    return fallback if (preferences.get("channel") or {}).get("type") == "whatsapp" else (preferences.get("channel") or {}).get("type", fallback)
+    return selected

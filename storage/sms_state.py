@@ -32,13 +32,20 @@ class SmsState:
                     sid TEXT PRIMARY KEY, state TEXT NOT NULL, updated TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS optouts (
                     phone TEXT PRIMARY KEY, stopped INTEGER NOT NULL);
+                CREATE TABLE IF NOT EXISTS suppression_keys (digest TEXT PRIMARY KEY);
                 CREATE TABLE IF NOT EXISTS outbound (
                     sid TEXT PRIMARY KEY, status TEXT NOT NULL, error TEXT NOT NULL,
                     updated TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS receipt_owners (
+                    sid TEXT NOT NULL, direction TEXT NOT NULL, user_id TEXT NOT NULL,
+                    PRIMARY KEY(sid, direction));
+                CREATE TABLE IF NOT EXISTS user_phones (
+                    user_id TEXT NOT NULL, phone TEXT NOT NULL, PRIMARY KEY(user_id, phone));
                 CREATE TABLE IF NOT EXISTS contexts (
                     phone TEXT NOT NULL, kind TEXT NOT NULL, task_id TEXT NOT NULL,
                     PRIMARY KEY(phone, kind, task_id));
             """)
+            db.execute("INSERT OR IGNORE INTO user_phones SELECT user_id, phone FROM enrollments")
 
     @contextmanager
     # error_handling_exclude: generator transaction errors propagate to decorated storage operations; never swallow rollback failures.
@@ -52,10 +59,13 @@ class SmsState:
             db.close()
 
     @handle_errors("SMS state claim", user_friendly=False, re_raise=True, retry_after_recovery=False)
-    def claim(self, sid):
+    def claim(self, sid, user_id=""):
         """Atomically claim an inbound ID; return false when it was already claimed."""
+        self.cleanup_retention()
         with self.connection() as db:
             result = db.execute("INSERT OR IGNORE INTO inbound VALUES (?, 'processing', ?)", (sid, now_timestamp_full()))
+            if result.rowcount == 1 and user_id:
+                db.execute("INSERT OR IGNORE INTO receipt_owners VALUES (?, 'inbound', ?)", (sid, user_id))
             return result.rowcount == 1
 
     @handle_errors("SMS state finish", user_friendly=False, re_raise=True, retry_after_recovery=False)
@@ -69,19 +79,25 @@ class SmsState:
         """Return the durable opt-out flag; propagate storage failures to block sending."""
         with self.connection() as db:
             row = db.execute("SELECT stopped FROM optouts WHERE phone=?", (phone,)).fetchone()
-            return bool(row and row[0])
+            suppressed = db.execute("SELECT 1 FROM suppression_keys WHERE digest=?", (hashlib.sha256(phone.encode()).hexdigest(),)).fetchone()
+            return bool((row and row[0]) or suppressed)
 
     @handle_errors("SMS state set_stopped", user_friendly=False, re_raise=True, retry_after_recovery=False)
     def set_stopped(self, phone, stopped):
         """Persist the recipient opt-out state before further messages are allowed."""
         with self.connection() as db:
             db.execute("INSERT OR REPLACE INTO optouts VALUES (?, ?)", (phone, int(stopped)))
+            if not stopped:
+                db.execute("DELETE FROM suppression_keys WHERE digest=?", (hashlib.sha256(phone.encode()).hexdigest(),))
 
     @handle_errors("SMS state record_outbound", user_friendly=False, re_raise=True, retry_after_recovery=False)
-    def record_outbound(self, sid, status, error=""):
+    def record_outbound(self, sid, status, error="", user_id=""):
         """Record provider acceptance without overwriting an earlier status callback."""
+        self.cleanup_retention()
         with self.connection() as db:
             db.execute("INSERT OR IGNORE INTO outbound VALUES (?, ?, ?, ?)", (sid, status, error, now_timestamp_full()))
+            if user_id:
+                db.execute("INSERT OR IGNORE INTO receipt_owners VALUES (?, 'outbound', ?)", (sid, user_id))
 
     @handle_errors("SMS state update_status", user_friendly=False, re_raise=True, retry_after_recovery=False)
     # devtools: intentional[duplicate-functions]: provider-delivery-state-progression
@@ -169,6 +185,8 @@ class SmsState:
                 db.execute("DELETE FROM contexts WHERE phone=?", (previous[0],))
             db.execute("DELETE FROM enrollments WHERE user_id=?", (user_id,))
             db.execute("INSERT INTO enrollments VALUES (?, ?, ?, ?)", (phone, user_id, now_timestamp_full(), now_timestamp_full()))
+            db.execute("DELETE FROM user_phones WHERE phone=? AND user_id<>?", (phone, user_id))
+            db.execute("INSERT OR IGNORE INTO user_phones VALUES (?, ?)", (user_id, phone))
             db.execute("DELETE FROM enrollment_challenges WHERE digest=?", (digest,))
             return True
 
@@ -189,3 +207,54 @@ class SmsState:
                 db.execute("DELETE FROM contexts WHERE phone=?", (row[0],))
             db.execute("DELETE FROM enrollments WHERE user_id=?", (user_id,))
             db.execute("DELETE FROM enrollment_challenges WHERE owner=?", (user_id,))
+
+
+    @handle_errors("exporting account phone records", re_raise=True, user_friendly=False)
+    def export_user(self, user_id):
+        """Export only attributed records, never another account's receipts or challenges."""
+        self.cleanup_retention()
+        with self.connection() as db:
+            db.row_factory = sqlite3.Row
+            result = {}
+            for table, query in {
+                "enrollments": "SELECT * FROM enrollments WHERE user_id=?",
+                "verified_numbers": "SELECT phone FROM user_phones WHERE user_id=?",
+                "inbound": "SELECT r.* FROM inbound r JOIN receipt_owners o ON o.sid=r.sid AND o.direction='inbound' WHERE o.user_id=?",
+                "outbound": "SELECT r.* FROM outbound r JOIN receipt_owners o ON o.sid=r.sid AND o.direction='outbound' WHERE o.user_id=?",
+                "contexts": "SELECT c.* FROM contexts c JOIN enrollments e ON e.phone=c.phone WHERE e.user_id=?",
+                "optouts": "SELECT o.* FROM optouts o JOIN enrollments e ON e.phone=o.phone WHERE e.user_id=?",
+            }.items():
+                result[table] = [dict(row) for row in db.execute(query, (user_id,))]
+            return result
+
+    @handle_errors("deleting account phone records", re_raise=True, user_friendly=False)
+    def delete_user(self, user_id):
+        """Remove attributed data; retain unlinked receipt IDs and opt-out suppression."""
+        with self.connection() as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.execute("DELETE FROM contexts WHERE phone IN (SELECT phone FROM enrollments WHERE user_id=?)", (user_id,))
+            phones = db.execute("SELECT phone FROM user_phones WHERE user_id=? UNION SELECT phone FROM enrollments WHERE user_id=?", (user_id, user_id)).fetchall()
+            for (phone,) in phones:
+                other = db.execute("SELECT 1 FROM enrollments WHERE phone=? AND user_id<>?", (phone, user_id)).fetchone()
+                if other:
+                    continue
+                if db.execute("SELECT 1 FROM optouts WHERE phone=? AND stopped=1", (phone,)).fetchone():
+                    db.execute("INSERT OR IGNORE INTO suppression_keys VALUES (?)", (hashlib.sha256(phone.encode()).hexdigest(),))
+                db.execute("DELETE FROM optouts WHERE phone=?", (phone,))
+                db.execute("DELETE FROM contexts WHERE phone=?", (phone,))
+            db.execute("DELETE FROM outbound WHERE sid IN (SELECT sid FROM receipt_owners WHERE user_id=? AND direction='outbound')", (user_id,))
+            db.execute("DELETE FROM receipt_owners WHERE user_id=?", (user_id,))
+            db.execute("DELETE FROM enrollment_challenges WHERE owner=?", (user_id,))
+            db.execute("DELETE FROM enrollments WHERE user_id=?", (user_id,))
+            db.execute("DELETE FROM user_phones WHERE user_id=?", (user_id,))
+
+    @handle_errors("cleaning phone delivery retention", re_raise=True, user_friendly=False)
+    def cleanup_retention(self):
+        """Expire terminal delivery details while retaining IDs that prevent replay."""
+        from core.config import PHONE_DELIVERY_RETENTION_DAYS
+        cutoff = format_timestamp(now_datetime_full() - timedelta(days=PHONE_DELIVERY_RETENTION_DAYS), TIMESTAMP_FULL)
+        with self.connection() as db:
+            db.execute("DELETE FROM outbound WHERE updated<? AND status IN ('delivered','read','failed','undelivered','canceled')", (cutoff,))
+            db.execute("DELETE FROM receipt_owners WHERE direction='outbound' AND sid NOT IN (SELECT sid FROM outbound)")
+            db.execute("DELETE FROM receipt_owners WHERE direction='inbound' AND sid IN (SELECT sid FROM inbound WHERE updated<? AND state IN ('handled','unsupported'))", (cutoff,))
+            db.execute("DELETE FROM enrollment_challenges WHERE expires<?", (now_timestamp_full(),))

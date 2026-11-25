@@ -75,7 +75,7 @@ window.MHMSms = {
       status.className = 'form-status';
       try {
         await api({action: 'disconnect'});
-        status.textContent = 'SMS disconnected. Reload delivery settings to see your current channel.';
+        status.textContent = 'SMS disconnected. Choose another delivery channel and save to resume reminders.';
         disconnect.hidden = true; onState({connected: false});
       } catch (error) { status.className = 'form-status is-error'; status.textContent = error.message; }
       finally { disconnect.disabled = false; }

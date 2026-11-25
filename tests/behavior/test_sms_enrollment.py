@@ -198,8 +198,10 @@ async def test_authenticated_website_connection_and_trial_rejection(website_gate
     assert (await client.post("/api/sms/enrollment", headers=headers,
                               json={"action": "start", "phone": PHONE, "consent": True})).status == 400
     state.set_stopped(PHONE, True)
-    monkeypatch.setattr("core.update_user_preferences", lambda *_args, **_kwargs: True)
+    change_preferences = Mock(return_value=True)
+    monkeypatch.setattr("core.update_user_preferences", change_preferences)
     assert (await client.post("/api/sms/enrollment", headers=headers,
                               json={"action": "disconnect"})).status == 200
     assert state.enrolled_user(PHONE) is None
     assert state.stopped(PHONE)
+    change_preferences.assert_not_called()

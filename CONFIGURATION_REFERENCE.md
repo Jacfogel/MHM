@@ -353,3 +353,6 @@ This cache is an optimization only. Correctness must not depend on cached contex
   **Breaks if wrong**:
   - Too low: unnecessary CPU wakeups.
   - Too high: delayed message delivery or task execution.
+
+
+Phone data retention is centralized in `core/config.py`: `PHONE_DELIVERY_RETENTION_DAYS=90` expires terminal outgoing details and completed inbound account attribution; `WHATSAPP_PENDING_RETENTION_HOURS=24` expires pending bodies before retrieval/export and during activity/maintenance. These are code constants, not environment settings. Unlinked inbound IDs and STOP suppression survive retention. Phrases `time_of_day_defaults.night` and `.morning` interpret time phrases and do not automatically pause user-configured delivery schedules.

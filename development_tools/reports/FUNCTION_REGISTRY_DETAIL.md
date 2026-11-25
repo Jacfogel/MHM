@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-23 00:13:24
+> **Last Generated**: 2026-11-24 22:56:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 333
-- **Functions Found**: 3369
-- **Methods Found**: 1738
+### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 334
+- **Functions Found**: 3376
+- **Methods Found**: 1744
 - **Classes Found**: 303
-- **Total Items**: 5107
-- **Functions Documented**: 3000
-- **Methods Documented**: 1547
+- **Total Items**: 5120
+- **Functions Documented**: 3004
+- **Methods Documented**: 1550
 - **Classes Documented**: 230
-- **Total Documented**: 4547
+- **Total Documented**: 4554
 - **Template-Generated**: 82
-- **Last Updated**: 2026-11-23
+- **Last Updated**: 2026-11-24
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -5894,7 +5894,7 @@ Returns None if path resolution fails (caller treats as no users dir).
 - [OK] `setup_complete(self, request)` - Record that website first-run setup is finished, even with no features on.
 - [OK] `start_session(self, uid, email, response)` - Attach a new opaque browser session to a response.
 - [OK] `throttle(self, key, maximum, window)` - Count a rate-limit key and reject requests beyond its active window.
-- [OK] `unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
+- [OK] `unlink_discord(self, uid)` - Remove Discord without opting the user into another delivery channel.
 - [OK] `unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
 - [OK] `update_billing(self, uid, updates)` - Persist only the allow-listed Stripe subscription fields.
 - [OK] `valid_password(self, value)` - Accept long passphrases without brittle composition requirements.
@@ -5917,7 +5917,7 @@ Returns None if path resolution fails (caller treats as no users dir).
   - [OK] `MHMAccounts.save_settings(self, uid, updates)` - Persist validated self-service settings updates for one account.
   - [OK] `MHMAccounts.set_password(self, uid, password_hash)` - Store a password hash in the canonical account document.
   - [OK] `MHMAccounts.settings_options(self, uid)` - Load the allowed settings choices for one account.
-  - [OK] `MHMAccounts.unlink_discord(self, uid)` - Remove Discord and fall back to verified email delivery when needed.
+  - [OK] `MHMAccounts.unlink_discord(self, uid)` - Remove Discord without opting the user into another delivery channel.
   - [OK] `MHMAccounts.unlink_oauth(self, uid, provider)` - Remove one social sign-in identity from an account.
   - [OK] `MHMAccounts.update_billing(self, uid, updates)` - Persist only the allow-listed Stripe subscription fields.
 - [OK] `OAuthIdentity` - Minimal verified identity returned by an external sign-in provider.
@@ -7054,6 +7054,10 @@ priority/due-date logic and scheduled at a random time within that period.
 
 #### `storage/__init__.py`
 
+#### `storage/phone_state_lifecycle.py`
+**Functions:**
+- [OK] `existing_phone_states()` - Open existing stores without creating disabled channels' databases.
+
 #### `storage/runtime_state_storage.py`
 **Functions:**
 - [OK] `_fresh_default(default_data)` - Return an independent default dict for callers that mutate loaded state.
@@ -7075,15 +7079,18 @@ for tests and callers that isolate a specific file.
 - [OK] `add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
 - [OK] `begin_enrollment(self, phone, owner)` - Issue a short-lived random connection secret without sending an SMS.
 - [OK] `bind_enrollment(self, user_id, phone, token, owner)` - Atomically consume a proof and bind one phone to one consenting account.
-- [OK] `claim(self, sid)` - Atomically claim an inbound ID; return false when it was already claimed.
+- [OK] `claim(self, sid, user_id)` - Atomically claim an inbound ID; return false when it was already claimed.
+- [OK] `cleanup_retention(self)` - Expire terminal delivery details while retaining IDs that prevent replay.
 - [OK] `clear_context(self, phone, kind, task_id)` - Remove only the prompt context whose completion was confirmed.
 - [OK] `connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
 - [OK] `contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
+- [OK] `delete_user(self, user_id)` - Remove attributed data; retain unlinked receipt IDs and opt-out suppression.
 - [OK] `disconnect_enrollment(self, user_id)` - Revoke account enrollment while retaining phone opt-out and receipt history.
 - [OK] `enrolled_user(self, phone)` - Return the consenting account bound to a verified number.
 - [OK] `enrollment_verified(self, phone, token, owner)` - Check a phone-bound proof without consuming it.
+- [OK] `export_user(self, user_id)` - Export only attributed records, never another account's receipts or challenges.
 - [OK] `finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
-- [OK] `record_outbound(self, sid, status, error)` - Record provider acceptance without overwriting an earlier status callback.
+- [OK] `record_outbound(self, sid, status, error, user_id)` - Record provider acceptance without overwriting an earlier status callback.
 - [OK] `set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
 - [OK] `stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
 - [OK] `update_status(self, sid, status, error)` - Apply a known delivery state without regressing a terminal status.
@@ -7094,15 +7101,18 @@ for tests and callers that isolate a specific file.
   - [OK] `SmsState.add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
   - [OK] `SmsState.begin_enrollment(self, phone, owner)` - Issue a short-lived random connection secret without sending an SMS.
   - [OK] `SmsState.bind_enrollment(self, user_id, phone, token, owner)` - Atomically consume a proof and bind one phone to one consenting account.
-  - [OK] `SmsState.claim(self, sid)` - Atomically claim an inbound ID; return false when it was already claimed.
+  - [OK] `SmsState.claim(self, sid, user_id)` - Atomically claim an inbound ID; return false when it was already claimed.
+  - [OK] `SmsState.cleanup_retention(self)` - Expire terminal delivery details while retaining IDs that prevent replay.
   - [OK] `SmsState.clear_context(self, phone, kind, task_id)` - Remove only the prompt context whose completion was confirmed.
   - [OK] `SmsState.connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
   - [OK] `SmsState.contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
+  - [OK] `SmsState.delete_user(self, user_id)` - Remove attributed data; retain unlinked receipt IDs and opt-out suppression.
   - [OK] `SmsState.disconnect_enrollment(self, user_id)` - Revoke account enrollment while retaining phone opt-out and receipt history.
   - [OK] `SmsState.enrolled_user(self, phone)` - Return the consenting account bound to a verified number.
   - [OK] `SmsState.enrollment_verified(self, phone, token, owner)` - Check a phone-bound proof without consuming it.
+  - [OK] `SmsState.export_user(self, user_id)` - Export only attributed records, never another account's receipts or challenges.
   - [OK] `SmsState.finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
-  - [OK] `SmsState.record_outbound(self, sid, status, error)` - Record provider acceptance without overwriting an earlier status callback.
+  - [OK] `SmsState.record_outbound(self, sid, status, error, user_id)` - Record provider acceptance without overwriting an earlier status callback.
   - [OK] `SmsState.set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
   - [OK] `SmsState.stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
   - [OK] `SmsState.update_status(self, sid, status, error)` - Apply a known delivery state without regressing a terminal status.
@@ -7389,8 +7399,11 @@ Returns:
 #### `storage/whatsapp_state.py`
 **Functions:**
 - [OK] `__init__(self, path)` - Special Python method
+- [MISSING] `cleanup_retention(self)` - No description
 - [MISSING] `clear_former_pending(self, user_id, phone)` - No description
+- [MISSING] `delete_user(self, user_id)` - No description
 - [MISSING] `disconnect_enrollment(self, user_id)` - No description
+- [MISSING] `export_user(self, user_id)` - No description
 - [MISSING] `pending(self, phone, user_id)` - No description
 - [MISSING] `record_inbound(self, phone, timestamp)` - No description
 - [MISSING] `remove_pending(self, identifier)` - No description
@@ -7400,8 +7413,11 @@ Returns:
 **Classes:**
 - [OK] `WhatsAppState` - Reuse transactional phone-channel primitives in a separate database.
   - [OK] `WhatsAppState.__init__(self, path)` - Special Python method
+  - [MISSING] `WhatsAppState.cleanup_retention(self)` - No description
   - [MISSING] `WhatsAppState.clear_former_pending(self, user_id, phone)` - No description
+  - [MISSING] `WhatsAppState.delete_user(self, user_id)` - No description
   - [MISSING] `WhatsAppState.disconnect_enrollment(self, user_id)` - No description
+  - [MISSING] `WhatsAppState.export_user(self, user_id)` - No description
   - [MISSING] `WhatsAppState.pending(self, phone, user_id)` - No description
   - [MISSING] `WhatsAppState.record_inbound(self, phone, timestamp)` - No description
   - [MISSING] `WhatsAppState.remove_pending(self, identifier)` - No description

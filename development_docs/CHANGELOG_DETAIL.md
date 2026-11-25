@@ -34,10 +34,22 @@ Retired document and rule names in historical entries refer to their Git history
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-24 - Messaging pilot policy and data controls
+
+- Recorded the agreed Canada/US adult pilot, owner responsibility and provider-managed budgets in [PLANS.md](PLANS.md).
+- Preserved user-configured message/check-in/task schedules without Night-to-Morning suppression, following the clarified requirement. Removed the newly added overnight gate and related website copy; explicit Support mode quiet controls remain unchanged. Final correction validation: 89 policy/pressure/orchestration tests and 20 browser-settings tests passed; Ruff, doc-sync and diff whitespace checks passed.
+- Removed implicit email/Discord fallback on Discord, SMS and WhatsApp disconnection, including desktop phone controls. Channel selection now requires user action.
+- Removed the SMS/WhatsApp import cycle by moving cross-store discovery to `storage/phone_state_lifecycle.py`; migrated export, deletion, maintenance and test callers directly. Validation: 73 targeted lifecycle/export/cleanup tests and 12 policy/discovery tests passed (overlapping batches), with zero Ruff/Pyright findings. Fresh targeted dependency analysis found no cycle among the three phone-store modules; the supported docs command regenerated the dependency map and completed successfully.
+- Extended account exports with attributed phone records and archived sent history; deletion now removes phone enrollment/pending/session/context/account associations and fails truthfully on storage/index failures. Retained unlinked inbound IDs for replay protection and number digests for STOP suppression.
+- Added 90-day terminal delivery-detail retention and 24-hour pending WhatsApp expiry, with migration of existing pending rows. Updated the shared spec, guides, configuration, privacy/data disclosures and deprecation inventory. Historical unattributed receipts cannot be safely assigned to individual exports. Existing backups/provider copies remain separate from live account deletion.
+- Validation: targeted Python batches passed (221 messaging/account, 163 storage/settings, 75 phone/UI, and 41 final policy/SMS checks; batches overlap). All 167 website JavaScript tests passed. Targeted Ruff and Pyright checks passed; doc-sync completed with exit code 0. Local-server tests were rerun with local network access after the restricted run stalled. No live deployment or production deletion was performed.
+
+
+
 ### 2026-11-24 - Repair nightly test classification
 
 - Investigated GitHub Actions run `45443608503`: the category-marker guard was the sole failure, with 7,038 tests passing and eight skipped across both phases; native crash extraction succeeded.
-- Added explicit `behavior` and `communication` markers to `test_basic_pipeline_help_keeps_full_alias_list_in_commands` in `tests/behavior/test_command_discovery_help.py`. This standalone function does not inherit the neighboring class's markers. Existing marker requirements in `tests/TESTING_GUIDE.md` remain unchanged.
+- Added explicit `behavior` and `communication` markers to `test_basic_pipeline_help_keeps_full_alias_list_in_commands` in `tests/behavior/test_command_discovery_help.py`. This standalone function does not inherit the neighboring class's markers. Existing marker requirements in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md) remain unchanged.
 - Validation: all 22 policy-guard and command-discovery help tests passed; `doc-sync` and `git diff --check` exited successfully. The full GitHub nightly suite has not been rerun with this local change.
 
 ### 2026-11-23 - Correct social signup account selection

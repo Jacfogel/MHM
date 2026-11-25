@@ -35,10 +35,6 @@ def register_sms_routes(app, gateway):
                 await asyncio.to_thread(connect_sms, uid, data["phone"], data["token"], data["consent"], uid)
                 return web.json_response({"connected": True})
             if action == "disconnect" and set(data) == {"action"}:
-                from core import update_user_preferences
-                fallback = "email" if channel_allowed(account, "email") else "discord"
-                if not await asyncio.to_thread(update_user_preferences, uid, {"channel": {"type": fallback}}, auto_create=False):
-                    raise ValidationError("MHM could not confirm the delivery change. Reload settings before retrying.")
                 await asyncio.to_thread(SmsState().disconnect_enrollment, uid)
                 return web.json_response({"connected": False})
             raise ValidationError("Choose a valid SMS connection action.")

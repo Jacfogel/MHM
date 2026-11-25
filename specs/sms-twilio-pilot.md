@@ -40,5 +40,5 @@
 
 ## Limits
 
-Receipt retention cleanup and a dedicated operator delivery-status UI remain unimplemented. Crash recovery trades automatic replay
+Phone retention and account data controls follow [the messaging policy spec](messaging-quiet-hours-and-data-controls.md). A dedicated operator delivery-status UI remains unimplemented. Crash recovery trades automatic replay
 for avoiding duplicate mutations. Simulator character chunks are not SMS encoding.

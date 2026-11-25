@@ -340,7 +340,7 @@ class MHMAccounts:
 
     @handle_errors("unlinking website Discord account", user_friendly=False, default_return=False)
     def unlink_discord(self, uid):
-        """Remove Discord and fall back to verified email delivery when needed."""
+        """Remove Discord without opting the user into another delivery channel."""
         from core import save_user_data_transaction
 
         documents = self.documents(uid)
@@ -353,8 +353,7 @@ class MHMAccounts:
             }
         )
         if (preferences.get("channel") or {}).get("type") == "discord":
-            preferences["channel"] = {"type": "email"}
-            account["chat_id"] = account.get("email", "")
+            account["chat_id"] = ""
         return bool(
             save_user_data_transaction(
                 uid,

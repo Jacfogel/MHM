@@ -94,7 +94,7 @@ The state database retains receipt IDs, statuses, opt-outs, recipient numbers, a
 prompt references; no message bodies or credentials are stored there. Existing
 shared conversation/task storage still applies. Keep this file across restarts and
 back it up with application data. Deleting it removes deduplication and stop history.
-Retention cleanup and an operator status screen remain future work. Do not run two
+Terminal outgoing details and completed inbound account attribution expire after 90 days during activity, export, or maintenance; unresolved records remain for review. Unlinked inbound IDs retain replay protection. Website exports include attributed records, and account deletion clears enrollments, contexts and account associations. A stopped number retains only a suppression digest after deletion. An operator status screen remains future work. Do not run two
 live MHM instances against separate databases for the same Twilio account/number.
 
 ## 4. Simulation

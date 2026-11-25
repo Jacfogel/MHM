@@ -306,3 +306,6 @@ accepted a harmless probe signed with the live secret. No payment or subscriptio
 was created. Customer payment, Stripe-origin event delivery, portal operation, and
 cancellation reconciliation still need the controlled customer check above.
 Existing subscriptions are not repriced automatically.
+
+
+User-configured messages, check-ins and task reminders follow their saved schedules. Phrases Night and Morning times interpret time phrases, not automatic delivery pauses. Explicit Support mode quiet controls remain available. Discord, SMS and WhatsApp disconnection stop their delivery until the user chooses another channel; no email fallback is selected. Website exports and account deletion include attributed phone-channel data, with minimal replay/suppression records retained. See [messaging policy spec](../specs/messaging-quiet-hours-and-data-controls.md).

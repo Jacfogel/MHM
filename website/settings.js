@@ -470,7 +470,7 @@ const MHMSettingsInput = Object.freeze({
       if (data.discord_linked) {
         const disconnect = el('button', 'Disconnect Discord', { className: 'plain-button', type: 'button' });
         disconnect.addEventListener('click', async () => {
-          if (disconnect.disabled || !window.confirm('Disconnect Discord from your MHM account?')) return;
+          if (disconnect.disabled || !window.confirm('Disconnect Discord? Discord reminders will stop. MHM will not switch you to email; choose another delivery channel in Delivery settings.')) return;
           disconnect.disabled = true;
           try {
             const response = await fetch('/api/account/connections', {

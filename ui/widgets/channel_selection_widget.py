@@ -214,22 +214,14 @@ class ChannelSelectionWidget(QWidget):
     @handle_errors("disconnecting desktop SMS", user_friendly=True, default_return=None)
     def _disconnect_sms(self):
         """Revoke SMS consent without deleting opt-out or delivery history."""
-        from core import get_user_data, update_user_preferences
-        from core.channel_access import channel_allowed
-        from core.error_handling import DataError
         from storage.sms_state import SmsState
 
         if not self.sms_owner:
             return
-        account = get_user_data(self.sms_owner, "account").get("account") or {}
-        fallback = "email" if channel_allowed(account, "email") else "discord"
-        if not update_user_preferences(self.sms_owner, {"channel": {"type": fallback}}, auto_create=False):
-            raise DataError("Could not confirm delivery settings. Reload the account before retrying.")
         SmsState().disconnect_enrollment(self.sms_owner)
         self.sms_token = ""
         self.ui.checkBox_sms_consent.setChecked(False)
-        self.set_selected_channel(fallback.capitalize(), account.get("email" if fallback == "email" else "discord_user_id", ""))
-        self.ui.label_sms_status.setText("SMS disconnected. Delivery changed to " + fallback + ".")
+        self.ui.label_sms_status.setText("SMS disconnected. Choose another delivery channel explicitly to resume reminders.")
         self.ui.button_sms_disconnect.setEnabled(False)
 
     @handle_errors("preparing WhatsApp connection", user_friendly=False, default_return=None)
@@ -286,8 +278,8 @@ class ChannelSelectionWidget(QWidget):
         selected = disconnect_whatsapp(self.whatsapp_owner)
         self.whatsapp_token = ""
         self.ui.checkBox_whatsapp_consent.setChecked(False)
-        contact_key = {"sms": "phone", "email": "email", "discord": "discord_user_id"}.get(selected, "email")
+        contact_key = {"sms": "phone", "whatsapp": "whatsapp_phone", "email": "email", "discord": "discord_user_id"}.get(selected, "email")
         label = "SMS" if selected == "sms" else selected.capitalize()
         self.set_selected_channel(label, account.get(contact_key, ""))
-        self.ui.label_whatsapp_status.setText("WhatsApp disconnected. Delivery uses " + selected + ".")
+        self.ui.label_whatsapp_status.setText("WhatsApp disconnected. Choose another delivery channel explicitly to resume its reminders.")
         self.ui.button_whatsapp_disconnect.setEnabled(False)

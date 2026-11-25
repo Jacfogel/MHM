@@ -1198,3 +1198,7 @@ def ensure_user_directory(user_id: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to create user directory {user_dir}: {e}")
         return False
+
+# Phone transport records; message history is archived separately.
+PHONE_DELIVERY_RETENTION_DAYS = 90
+WHATSAPP_PENDING_RETENTION_HOURS = 24

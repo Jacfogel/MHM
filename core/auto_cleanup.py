@@ -583,6 +583,10 @@ def auto_cleanup_if_needed(root_path=".", interval_days=DEFAULT_CLEANUP_INTERVAL
                 f"Archive cleanup failed during auto cleanup (non-critical): {e}"
             )
 
+        from storage.phone_state_lifecycle import existing_phone_states
+        for state in existing_phone_states().values():
+            state.cleanup_retention()
+
         update_cleanup_timestamp()
         return True
     else:
