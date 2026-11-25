@@ -31,6 +31,10 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-25 - Repair nightly cache probe policy failure **COMPLETED**
+
+- Removed unnecessary success output from the standalone cache probe while preserving its behavioral assertions. All eight focused cache and no-print policy tests pass; doc-sync passes.
+
 ### 2026-11-24 - Restore audit test suite caching **COMPLETED**
 
 - Fixed standalone cache imports and made cache disabling/failures visible; seven focused regressions pass.
@@ -76,10 +80,3 @@ Guidelines:
 - Refactored settings/OAuth handling and tested reminder restart recovery. Regression batches passed: 330 broad Python checks, 140 overlapping follow-ups, and 54 website checks; type/style/documentation checks passed. Audit follow-up fixed all seven reported failures (64 focused tests passed), protected billing-mode detection, documented eight intentional duplicate groups, and corrected SMS heading numbers.
 - Earlier live tests confirmed Discord check-in saving and SMS delivery, callbacks, task replies, and STOP/START. Scheduled delivery remains Discord; full SMS check-in saving and expanded paid-user carrier validation remain open.
 - Nightly follow-up: run `45031042870` exposed an implementation regression that rejected Email for new accounts. Restored Email as a valid desktop and website trial-delivery choice while retaining paid-only SMS and WhatsApp access; all 48 focused checks passed.
-
-### 2026-11-19 - Google Health nightly native crash **COMPLETED**
-
-- Registered background connect/sync callbacks as Qt slots to keep window updates on the UI thread after the nightly bus error. Added thread-affinity regression coverage; Linux nightly confirmation remains pending.
-- Updated stale message-editor/process-watcher recovery assertions and Qt metadata typing; all 78 affected dialog tests passed with two workers.
-- The Linux rerun found no native crash but exposed a missing Twilio package declaration and health/SMS test domain markers. Added the dependency to editable installs and supplied the communication markers; all 39 affected tests and policy checks passed, plus six packaging/domain checks.
-- Fixed the final audit process-cleanup checker's package import when launched as a script; two startup regressions and the standalone JSON probe pass.

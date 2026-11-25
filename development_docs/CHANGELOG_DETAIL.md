@@ -34,6 +34,12 @@ Retired document and rule names in historical entries refer to their Git history
 
 ## Recent Changes (Most Recent First)
 
+### 2026-11-25 - Repair nightly cache probe policy failure
+
+- **Cause**: Nightly run `45658307397` failed only `test_no_print_calls_in_tests`: the embedded subprocess probe in `tests/unit/test_devtools_suite_cache_entrypoint.py` emitted an unnecessary success banner. The run otherwise passed 7,058 tests, with eight skips.
+- **Fix**: Removed the banner and its stdout assertion. The child still asserts runner imports and cache initialization, and the parent checks its exit code with stderr diagnostics. Documented this pattern in [TESTING_GUIDE.md](../tests/TESTING_GUIDE.md).
+- **Validation**: Eight focused cache and no-print policy tests passed; doc-sync passed. Linux nightly confirmation requires a run containing this change.
+
 ### 2026-11-24 - Restore audit test suite caching
 
 - **Fix**: Added the missing package-root bootstrap to `development_tools/tests/run_test_suite.py`; direct-file audit launches previously failed cache imports and silently ran fresh tests. Cache initialization failures now log their exception and preserve a distinct reason and error in structured results. Audit completion logs recognize disabled, selective, and full-run modes.

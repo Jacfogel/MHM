@@ -30,14 +30,12 @@ assert runner['partition_test_paths'] is not None
 from development_tools.tests.test_file_suite_cache import TestFileSuiteCache
 cache = TestFileSuiteCache(Path.cwd(), cache_dir=Path.cwd() / 'cache')
 assert isinstance(cache.get_changed_domains('quick'), set)
-print('cache initialized')
 """
     result = subprocess.run(
         [sys.executable, "-c", probe, str(script)], cwd=tmp_path, env=env,
         capture_output=True, text=True, timeout=30, check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert "cache initialized" in result.stdout
 
 
 @pytest.mark.parametrize("enabled", [True, False])

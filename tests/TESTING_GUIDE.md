@@ -189,6 +189,8 @@ If the Windows Task Scheduler becomes polluted during development (for example, 
 
 Test logging must be isolated from production logs. Tests must write only to `tests/logs/` (or test-specific temp locations), never to `logs/` or user data directories.
 
+Use assertions or logging instead of `print()` in tests, including embedded subprocess probes. For probes that validate behavior with assertions, check the subprocess exit code and include captured stderr in the failure message; a success banner is unnecessary. `tests/unit/test_no_prints_policy.py` checks test source text, including embedded code.
+
 Tests should integrate cleanly with the logging system described in [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md#2-logging-architecture) (see section 2. "Logging Architecture" in that guide).
 
 #### Test log files
