@@ -65,6 +65,7 @@ Avoid mixed status labels such as `MOSTLY COMPLETE`, `[WARNING]`, `FUTURE CONSID
 | Appropriate coupling reductions | **MONITORING** | Medium | [PRIORITIES_BRIEF.md](../development_tools/PRIORITIES_BRIEF.md) | Revisit when triage confirms a wrong-layer dependency or a private API dependency causes maintenance problems (2026-11-16) |
 | SMS channel | **ACTIVE** | Medium | This file Section 7.1 | Paid-account SMS enrollment deployed; expanded paid-user live validation remains |
 | Messaging pilot launch policy | **ACTIVE** | High | This file Section 7.3 | Canada and US adult pilot; owner-led operations and provider budgets; outstanding launch gates |
+| Multi-user product roadmap | **ACTIVE** | High | [Multi-user roadmap](MULTI_USER_ROADMAP.md) | AI isolation and M2 connection/delivery recovery implemented; private-memory controls, lifecycle coordination and live release evidence remain |
 | Apple Health ingest | **PLANNED** | Later | This file Section 7.2 | Phone-pushed daily summaries beside Google Health |
 
 ---

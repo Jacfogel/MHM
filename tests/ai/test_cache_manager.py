@@ -10,8 +10,90 @@ from ai.client.cache_manager import ResponseCache, ContextCache, CacheEntry, get
 
 @pytest.mark.unit
 @pytest.mark.ai
+def test_account_runtime_cleanup_is_user_scoped(monkeypatch):
+    from ai.client import cache_manager
+    from ai.context import history
+    from ai.context.lifecycle import clear_user_ai_state
+    from user import context_manager
+
+    monkeypatch.setattr(cache_manager, "AI_CACHE_RESPONSES", True)
+    responses = ResponseCache()
+    contexts = ContextCache()
+    sessions = context_manager.UserContextManager()
+    conversations = history.ConversationHistory()
+    monkeypatch.setattr(cache_manager, "_response_cache", responses)
+    monkeypatch.setattr(cache_manager, "_context_cache", contexts)
+    monkeypatch.setattr(history, "_conversation_history", conversations)
+    monkeypatch.setattr(context_manager, "user_context_manager", sessions)
+    for uid in ("one", "two"):
+        responses.set("same prompt", "reply " + uid, uid)
+        contexts.set(uid, {"private": uid})
+        sessions.add_conversation_exchange(uid, "private " + uid, "reply")
+        conversations.add_message(uid, "user", "private " + uid)
+    assert clear_user_ai_state("one") is True
+    assert clear_user_ai_state("one") is True
+    assert responses.get("same prompt", "one") is None
+    assert contexts.get("one") is None
+    assert sessions.get_session_conversation_history("one") == []
+    assert conversations.get_history("one") == []
+    assert responses.get("same prompt", "two") == "reply two"
+    assert contexts.get("two") == {"private": "two"}
+    assert sessions.get_session_conversation_history("two")[0]["user_message"] == "private two"
+    assert conversations.get_history("two")
+
+
+@pytest.mark.unit
+@pytest.mark.ai
+def test_runtime_cleanup_reports_failure_and_attempts_other_stores(monkeypatch):
+    from ai.client import cache_manager
+    from ai.context import history
+    from ai.context.lifecycle import clear_user_ai_state
+    from user import context_manager
+    from unittest.mock import Mock
+
+    sessions = Mock()
+    sessions.clear_user.return_value = False
+    responses = Mock()
+    responses.remove_user_entries.return_value = 0
+    contexts = Mock()
+    contexts.remove_user_entries.return_value = True
+    monkeypatch.setattr(context_manager, "user_context_manager", sessions)
+    monkeypatch.setattr(cache_manager, "_response_cache", responses)
+    monkeypatch.setattr(cache_manager, "_context_cache", contexts)
+    monkeypatch.setattr(history, "_conversation_history", None)
+    assert clear_user_ai_state("one") is False
+    contexts.remove_user_entries.assert_called_once_with("one")
+
+
+@pytest.mark.unit
+@pytest.mark.ai
 class TestResponseCache:
     """Test ResponseCache functionality."""
+
+    @pytest.mark.parametrize(
+        "first,second",
+        [(("a:b", "c"), ("a", "b:c")), ((None, "chat"), ("anonymous", "chat"))],
+    )
+    def test_identity_fields_cannot_alias(self, first, second, monkeypatch):
+        """Even delimiter-containing identities cannot read another user's reply."""
+        monkeypatch.setattr("ai.client.cache_manager.AI_CACHE_RESPONSES", True)
+        cache = ResponseCache()
+        cache.set("same prompt", "private first", first[0], first[1])
+        assert cache.get("same prompt", second[0], second[1]) is None
+        cache.set("same prompt", "private second", second[0], second[1])
+        assert cache.get("same prompt", first[0], first[1]) == "private first"
+        assert cache.get("same prompt", second[0], second[1]) == "private second"
+
+    def test_cache_diagnostics_exclude_prompt_content(self, monkeypatch):
+        """Both cache-write and cache-hit diagnostics keep private text out."""
+        monkeypatch.setattr("ai.client.cache_manager.AI_CACHE_RESPONSES", True)
+        with patch("ai.client.cache_manager.logger") as logger:
+            cache = ResponseCache()
+            cache.set("private prompt marker", "private reply", "one", "chat")
+            assert cache.get("private prompt marker", "one", "chat") == "private reply"
+        assert logger.debug.call_count == 2
+        assert "private prompt marker" not in str(logger.mock_calls)
+        assert "private reply" not in str(logger.mock_calls)
     
     def test_cache_initialization(self):
         """Test cache initialization with default parameters."""
@@ -265,6 +347,18 @@ class TestResponseCache:
 @pytest.mark.ai
 class TestContextCache:
     """Test ContextCache functionality."""
+
+    def test_nested_context_does_not_share_mutable_state(self):
+        """Caller mutations cannot contaminate saved contexts, even on reuse."""
+        cache = ContextCache()
+        context = {"facts": ["original"]}
+        cache.set("one", context)
+        context["facts"].append("private one")
+        cache.set("two", context)
+        first = cache.get("one")
+        first["facts"].append("changed outside cache")
+        assert cache.get("one") == {"facts": ["original"]}
+        assert cache.get("two") == {"facts": ["original", "private one"]}
     
     def test_context_cache_initialization(self):
         """Test context cache initialization."""

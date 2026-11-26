@@ -1111,7 +1111,7 @@ class AIChatBotSingleton:
             return response
 
         logger.debug(
-            f"Generating contextual response for user {user_id} with context: {context_str[:60]}..."
+            f"Generating contextual response; context_length={len(context_str)}"
         )
 
         chat_template = prompt_manager.compose_product_prompt("chat_response")

@@ -6,6 +6,13 @@
 
 ## Archived Entries
 
+### 2026-11-20 - Paid SMS tiers, website refactors, and reminder validation **COMPLETED**
+
+- Added verified SMS enrollment plus $10 CAD/month Discord and $20 CAD/month Discord + SMS plans. Trials can use Email or Discord; only the active phone tier grants SMS. Preserved existing account data and billing status. Published both plan choices; switched to matching live Stripe prices, portal, and signed webhook on 2026-11-21 and restarted MHM. Verified and expired unpaid live checkouts; no payment was taken. Test payments cannot unlock real SMS. Tier regressions: 184 Python and 62 website checks passed.
+- Refactored settings/OAuth handling and tested reminder restart recovery. Regression batches passed: 330 broad Python checks, 140 overlapping follow-ups, and 54 website checks; type/style/documentation checks passed. Audit follow-up fixed all seven reported failures (64 focused tests passed), protected billing-mode detection, documented eight intentional duplicate groups, and corrected SMS heading numbers.
+- Earlier live tests confirmed Discord check-in saving and SMS delivery, callbacks, task replies, and STOP/START. Scheduled delivery remains Discord; full SMS check-in saving and expanded paid-user carrier validation remain open.
+- Nightly follow-up: run `45031042870` exposed an implementation regression that rejected Email for new accounts. Restored Email as a valid desktop and website trial-delivery choice while retaining paid-only SMS and WhatsApp access; all 48 focused checks passed.
+
 ### 2026-11-19 - Google Health nightly native crash **COMPLETED**
 
 - Registered background connect/sync callbacks as Qt slots to keep window updates on the UI thread after the nightly bus error. Added thread-affinity regression coverage; Linux nightly confirmation remains pending.

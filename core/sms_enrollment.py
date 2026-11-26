@@ -42,7 +42,7 @@ def begin_sms_enrollment(phone, consent, owner=""):
         raise ValidationError("Enter an international phone number and consent to MHM texts.")
     if owner:
         account = get_user_data(owner, "account").get("account") or {}
-        if not channel_allowed(account, "sms"):
+        if account.get("account_status") != "active" or not channel_allowed(account, "sms"):
             raise ValidationError("SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.")
     return SmsState().begin_enrollment(phone, owner)
 
@@ -53,11 +53,15 @@ def connect_sms(user_id, phone, token, consent, owner=""):
     phone = normalize_phone(phone)
     state = SmsState()
     account = get_user_data(user_id, "account").get("account") or {}
-    if not channel_allowed(account, "sms"):
+    if (owner and owner != user_id) or account.get("account_status") != "active" or not channel_allowed(account, "sms"):
         raise ValidationError("SMS requires an active paid Discord + SMS plan. Trial accounts can use Email or Discord.")
-    if not sms_available() or not phone or consent is not True or not state.enrollment_verified(phone, token, owner):
+    if not sms_available() or not phone or consent is not True:
         raise ValidationError("Text the connection code from this phone, then verify again before it expires.")
     existing = state.enrolled_user(phone)
+    if existing == user_id and normalize_phone(account.get("phone", "")) == phone:
+        return True
+    if not state.enrollment_verified(phone, token, owner):
+        raise ValidationError("Text the connection code from this phone, then verify again before it expires.")
     if existing and existing != user_id:
         raise ValidationError("This phone is already connected to another account.")
     if not update_user_account(user_id, {"phone": phone}, auto_create=False):

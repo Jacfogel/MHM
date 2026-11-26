@@ -8,7 +8,7 @@ import re
 
 from checkins.analysis import analyze_checkin_entries
 from core import get_user_data
-from core.error_handling import handle_errors
+from core.error_handling import ValidationError, handle_errors
 from core.health_context_builder import (
     build_recent_health_patterns,
     build_safe_health_guidance_summary,
@@ -44,6 +44,12 @@ class AIContextEnvelope:
 
     metadata: dict[str, Any]
     sections: dict[str, AIContextSection]
+
+    @handle_errors("validating AI context ownership", re_raise=True, user_friendly=False)
+    def require_user(self, user_id: str | None) -> None:
+        """Reject context reuse across users, including unattributed envelopes."""
+        if not user_id or self.metadata.get("user_id") != user_id:
+            raise ValidationError("AI context does not belong to the requested account.")
 
     @property
     @handle_errors("getting structured AI context", default_return={})

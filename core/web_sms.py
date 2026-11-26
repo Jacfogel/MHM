@@ -19,10 +19,14 @@ def register_sms_routes(app, gateway):
         if request.method == "GET":
             phone = account.get("phone", "")
             ready = await asyncio.to_thread(sms_user_for_phone, phone, require_paid=False)
+            state = await asyncio.to_thread(SmsState)
+            health = await asyncio.to_thread(state.delivery_health, uid)
+            stopped = bool(ready == uid and await asyncio.to_thread(state.stopped, phone))
             return web.json_response({"available": sms_available(), "connected": ready == uid,
                                       "phone": phone, "sender": config.TWILIO_PHONE_NUMBER,
                                       "eligible": channel_allowed(account, "sms"),
-                                      "trial": account.get("subscription_status") == "trialing"})
+                                      "trial": account.get("subscription_status") == "trialing",
+                                      "stopped": stopped, "delivery": health})
         data = await gateway.body(request)
         action = data.get("action")
         try:

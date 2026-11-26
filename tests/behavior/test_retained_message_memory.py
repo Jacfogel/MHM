@@ -13,6 +13,18 @@ from core.logger import get_component_logger
 logger = get_component_logger(__name__)
 
 
+@pytest.mark.unit
+@pytest.mark.ai
+def test_session_reads_cannot_mutate_retained_history():
+    manager = UserContextManager()
+    manager.add_conversation_exchange("one", "private one", "reply one")
+    manager.add_conversation_exchange("two", "private two", "reply two")
+    returned = manager.get_session_conversation_history("one")
+    returned[0]["user_message"] = "changed outside manager"
+    assert manager.get_session_conversation_history("one")[0]["user_message"] == "private one"
+    assert manager.get_session_conversation_history("two")[0]["user_message"] == "private two"
+
+
 @pytest.mark.behavior
 @pytest.mark.ai
 def test_repeated_message_retention(monkeypatch):

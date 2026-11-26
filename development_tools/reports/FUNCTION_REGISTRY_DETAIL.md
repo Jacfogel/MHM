@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/FUNCTION_REGISTRY_DETAIL.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-24 22:56:29
+> **Last Generated**: 2026-11-25 23:10:29
 > **Source**: `python development_tools/generate_function_registry.py` - Function Registry Generator
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
@@ -14,18 +14,18 @@
 
 ## Overview
 
-### **Function Documentation Coverage: 88.9% [WARNING] NEEDS ATTENTION**
-- **Files Scanned**: 334
-- **Functions Found**: 3376
-- **Methods Found**: 1744
+### **Function Documentation Coverage: 89.0% [WARNING] NEEDS ATTENTION**
+- **Files Scanned**: 335
+- **Functions Found**: 3383
+- **Methods Found**: 1750
 - **Classes Found**: 303
-- **Total Items**: 5120
-- **Functions Documented**: 3004
-- **Methods Documented**: 1550
+- **Total Items**: 5133
+- **Functions Documented**: 3011
+- **Methods Documented**: 1556
 - **Classes Documented**: 230
-- **Total Documented**: 4554
+- **Total Documented**: 4567
 - **Template-Generated**: 82
-- **Last Updated**: 2026-11-24
+- **Last Updated**: 2026-11-25
 
 **Status**: [WARNING] **GOOD** - Most functions documented, some gaps remain
 
@@ -48,7 +48,7 @@ Bot implementations, channel management, and communication utilities.
 ### **User Interface Functions** (571)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (29)
+### **User Management Functions** (30)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (204)
@@ -317,6 +317,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
 - [OK] `get_stats(self)` - Get cache statistics
 - [OK] `remove_entries_by_type(self, prompt_type)` - Remove all cache entries for a specific prompt type
 - [OK] `remove_user_entries(self, user_id)` - Remove all cache entries for a specific user
+- [OK] `remove_user_entries(self, user_id)` - Forget only the selected user's cached context.
 - [OK] `set(self, prompt, response, user_id, prompt_type, metadata)` - Cache a response
 - [OK] `set(self, user_id, context)` - Cache context for a user
 **Classes:**
@@ -326,6 +327,7 @@ Prevents meta-text like "User Context:" from appearing in user-facing output.
   - [OK] `ContextCache.clear(self)` - Clear all cached contexts
   - [OK] `ContextCache.clear_expired(self)` - Remove all expired contexts
   - [OK] `ContextCache.get(self, user_id)` - Get cached context for a user
+  - [OK] `ContextCache.remove_user_entries(self, user_id)` - Forget only the selected user's cached context.
   - [OK] `ContextCache.set(self, user_id, context)` - Cache context for a user
 - [OK] `ResponseCache` - Simple in-memory cache for AI responses to avoid repeated calculations
   - [OK] `ResponseCache.__init__(self, max_size, ttl)` - Initialize the response cache
@@ -582,6 +584,10 @@ Returns:
 - [OK] `ConversationSession` - A conversation session with multiple messages
   - [OK] `ConversationSession.__post_init__(self)` - Post-initialization setup
 
+#### `ai/context/lifecycle.py`
+**Functions:**
+- [OK] `clear_user_ai_state(user_id)` - Forget runtime AI data without creating unused cache/history instances.
+
 #### `ai/context/phraser.py`
 **Functions:**
 - [OK] `_append_feature_availability_line(parts, feature_status)` - Append the IMPORTANT feature-availability line, or the unknown fallback.
@@ -639,12 +645,14 @@ against every check-in. Those lines keep using the check-in count.
 - [OK] `build_ai_context_envelope(user_id)` - Build the canonical structured context envelope for product AI.
 - [OK] `included_sections(self)` - Return included section names in insertion order.
 - [OK] `prompt_sections(self)` - Return compact prompt text for included sections.
+- [OK] `require_user(self, user_id)` - Reject context reuse across users, including unattributed envelopes.
 - [OK] `structured(self)` - Return structured data keyed by section name.
 - [OK] `to_prompt_text(self)` - Join included prompt sections into a compact context block.
 **Classes:**
 - [OK] `AIContextEnvelope` - Structured product-AI context for a single user request.
   - [OK] `AIContextEnvelope.included_sections(self)` - Return included section names in insertion order.
   - [OK] `AIContextEnvelope.prompt_sections(self)` - Return compact prompt text for included sections.
+  - [OK] `AIContextEnvelope.require_user(self, user_id)` - Reject context reuse across users, including unattributed envelopes.
   - [OK] `AIContextEnvelope.structured(self)` - Return structured data keyed by section name.
   - [OK] `AIContextEnvelope.to_prompt_text(self)` - Join included prompt sections into a compact context block.
 - [OK] `AIContextSection` - One normalized context section and its AI-facing prompt text.
@@ -2932,7 +2940,7 @@ Never expose this entry point as an unauthenticated network endpoint.
 - [OK] `__init__(self, bot)` - Special Python method
 - [MISSING] `_incoming(self, message)` - No description
 - [OK] `_open_pending(self, number, uid)` - Submit and remove saved messages after the user reopens the reply window.
-- [MISSING] `_submit(self, payload)` - No description
+- [MISSING] `_submit(self, payload, user_id)` - No description
 - [MISSING] `process(self, raw, signature)` - No description
 - [MISSING] `send(self, recipient, message)` - No description
 **Classes:**
@@ -2940,7 +2948,7 @@ Never expose this entry point as an unauthenticated network endpoint.
   - [OK] `MetaTransport.__init__(self, bot)` - Special Python method
   - [MISSING] `MetaTransport._incoming(self, message)` - No description
   - [OK] `MetaTransport._open_pending(self, number, uid)` - Submit and remove saved messages after the user reopens the reply window.
-  - [MISSING] `MetaTransport._submit(self, payload)` - No description
+  - [MISSING] `MetaTransport._submit(self, payload, user_id)` - No description
   - [MISSING] `MetaTransport.process(self, raw, signature)` - No description
   - [MISSING] `MetaTransport.send(self, recipient, message)` - No description
 
@@ -7077,6 +7085,7 @@ for tests and callers that isolate a specific file.
 **Functions:**
 - [OK] `__init__(self, path)` - Open the SMS state database and create its receipt tables.
 - [OK] `add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
+- [OK] `begin_delivery_attempt(self, user_id)` - Persist uncertainty before the provider call, including across restart.
 - [OK] `begin_enrollment(self, phone, owner)` - Issue a short-lived random connection secret without sending an SMS.
 - [OK] `bind_enrollment(self, user_id, phone, token, owner)` - Atomically consume a proof and bind one phone to one consenting account.
 - [OK] `claim(self, sid, user_id)` - Atomically claim an inbound ID; return false when it was already claimed.
@@ -7085,11 +7094,13 @@ for tests and callers that isolate a specific file.
 - [OK] `connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
 - [OK] `contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
 - [OK] `delete_user(self, user_id)` - Remove attributed data; retain unlinked receipt IDs and opt-out suppression.
+- [OK] `delivery_health(self, user_id)` - Return account-scoped review counts without exposing message content.
 - [OK] `disconnect_enrollment(self, user_id)` - Revoke account enrollment while retaining phone opt-out and receipt history.
 - [OK] `enrolled_user(self, phone)` - Return the consenting account bound to a verified number.
 - [OK] `enrollment_verified(self, phone, token, owner)` - Check a phone-bound proof without consuming it.
 - [OK] `export_user(self, user_id)` - Export only attributed records, never another account's receipts or challenges.
 - [OK] `finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
+- [OK] `finish_delivery_attempt(self, identifier, state, provider_id)` - Record submission outcome; this never authorizes a resend.
 - [OK] `record_outbound(self, sid, status, error, user_id)` - Record provider acceptance without overwriting an earlier status callback.
 - [OK] `set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
 - [OK] `stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
@@ -7099,6 +7110,7 @@ for tests and callers that isolate a specific file.
 - [OK] `SmsState` - Durable claim-before-mutation receipts; a crash never replays a command.
   - [OK] `SmsState.__init__(self, path)` - Open the SMS state database and create its receipt tables.
   - [OK] `SmsState.add_context(self, phone, kind, task_id)` - Remember a possible task or check-in target before submitting its prompt.
+  - [OK] `SmsState.begin_delivery_attempt(self, user_id)` - Persist uncertainty before the provider call, including across restart.
   - [OK] `SmsState.begin_enrollment(self, phone, owner)` - Issue a short-lived random connection secret without sending an SMS.
   - [OK] `SmsState.bind_enrollment(self, user_id, phone, token, owner)` - Atomically consume a proof and bind one phone to one consenting account.
   - [OK] `SmsState.claim(self, sid, user_id)` - Atomically claim an inbound ID; return false when it was already claimed.
@@ -7107,11 +7119,13 @@ for tests and callers that isolate a specific file.
   - [OK] `SmsState.connection(self)` - Commit a successful transaction, roll back failures, and always close the connection.
   - [OK] `SmsState.contexts(self, phone)` - Read the possible prompt targets; never treat read failures as an empty list.
   - [OK] `SmsState.delete_user(self, user_id)` - Remove attributed data; retain unlinked receipt IDs and opt-out suppression.
+  - [OK] `SmsState.delivery_health(self, user_id)` - Return account-scoped review counts without exposing message content.
   - [OK] `SmsState.disconnect_enrollment(self, user_id)` - Revoke account enrollment while retaining phone opt-out and receipt history.
   - [OK] `SmsState.enrolled_user(self, phone)` - Return the consenting account bound to a verified number.
   - [OK] `SmsState.enrollment_verified(self, phone, token, owner)` - Check a phone-bound proof without consuming it.
   - [OK] `SmsState.export_user(self, user_id)` - Export only attributed records, never another account's receipts or challenges.
   - [OK] `SmsState.finish(self, sid, state)` - Record the final handling outcome without allowing a command replay.
+  - [OK] `SmsState.finish_delivery_attempt(self, identifier, state, provider_id)` - Record submission outcome; this never authorizes a resend.
   - [OK] `SmsState.record_outbound(self, sid, status, error, user_id)` - Record provider acceptance without overwriting an earlier status callback.
   - [OK] `SmsState.set_stopped(self, phone, stopped)` - Persist the recipient opt-out state before further messages are allowed.
   - [OK] `SmsState.stopped(self, phone)` - Return the durable opt-out flag; propagate storage failures to block sending.
@@ -9317,6 +9331,7 @@ Args:
 
 Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
 - [OK] `clear_expired(self)` - Release idle session state; persisted chat interactions are unaffected.
+- [OK] `clear_user(self, user_id)` - Release one user's session history without affecting other users.
 - [OK] `format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
 - [OK] `get_session_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
 **Classes:**
@@ -9329,6 +9344,7 @@ Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
 
 Prefer ``build_chatbot_context_dict`` when session overlay is not needed.
   - [OK] `UserContextManager.clear_expired(self)` - Release idle session state; persisted chat interactions are unaffected.
+  - [OK] `UserContextManager.clear_user(self, user_id)` - Release one user's session history without affecting other users.
   - [OK] `UserContextManager.format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
   - [OK] `UserContextManager.get_session_conversation_history(self, user_id)` - Return recent in-memory session exchanges for this user.
 

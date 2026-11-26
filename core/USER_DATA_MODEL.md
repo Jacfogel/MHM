@@ -337,3 +337,10 @@ stored in the SMS database. Back up the database with application data.
 Account exports include attributed phone records and archived sent history. Account deletion revokes phone enrollments and removes attributed records, pending bodies and number associations; unlinked inbound IDs and pseudonymous STOP suppression digests remain. Terminal outgoing records and completed inbound attribution expire after 90 days; unresolved records remain for recovery. Pending WhatsApp bodies expire after 24 hours. See [messaging data controls spec](../specs/messaging-quiet-hours-and-data-controls.md).
 
 Phone-store lifecycle coordination lives in `storage/phone_state_lifecycle.py`, which imports both adapters. The SMS base store does not import its WhatsApp subclass.
+
+Both phone stores also own `delivery_attempts`: random attempt ID, account ID,
+submission state, provider ID if returned, and canonical created/updated times.
+This table contains no body, phone number, token, or credential. A row is committed
+before a provider call, so interrupted or unconfirmed submission remains visible
+after restart. The table is included in account export/deletion. Accepted/rejected
+attempts expire after 90 days; submitting/unconfirmed records remain for review.

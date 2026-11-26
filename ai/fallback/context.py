@@ -48,6 +48,8 @@ def build_fallback_context(
             include_conversation_history=False,
         )
 
+    if envelope is not None:
+        envelope.require_user(user_id)
     structured = envelope.structured if envelope else {}
     personal = structured.get("personal_context") or {}
     preferred_name = preferred_name_from_context(personal)

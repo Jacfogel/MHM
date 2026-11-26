@@ -5,7 +5,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
-from core.error_handling import handle_errors
+from core.error_handling import DataError, handle_errors
 from contextlib import contextmanager
 
 from storage.runtime_state_storage import get_runtime_state_path
@@ -44,6 +44,12 @@ class SmsState:
                 CREATE TABLE IF NOT EXISTS contexts (
                     phone TEXT NOT NULL, kind TEXT NOT NULL, task_id TEXT NOT NULL,
                     PRIMARY KEY(phone, kind, task_id));
+                CREATE TABLE IF NOT EXISTS delivery_attempts (
+                    id TEXT PRIMARY KEY, user_id TEXT NOT NULL, state TEXT NOT NULL,
+                    provider_id TEXT NOT NULL DEFAULT '', created TEXT NOT NULL,
+                    updated TEXT NOT NULL);
+                CREATE INDEX IF NOT EXISTS delivery_attempts_user_state
+                    ON delivery_attempts(user_id, state);
             """)
             db.execute("INSERT OR IGNORE INTO user_phones SELECT user_id, phone FROM enrollments")
 
@@ -116,6 +122,33 @@ class SmsState:
                 return False
             db.execute("UPDATE outbound SET status=?, error=?, updated=? WHERE sid=?", (status, error, now_timestamp_full(), sid))
             return True
+
+    @handle_errors("recording phone submission attempt", user_friendly=False, re_raise=True, retry_after_recovery=False)
+    def begin_delivery_attempt(self, user_id):
+        """Persist uncertainty before the provider call, including across restart."""
+        if not user_id:
+            raise DataError("A phone submission requires an account identity.")
+        identifier = secrets.token_hex(16)
+        stamp = now_timestamp_full()
+        with self.connection() as db:
+            db.execute("INSERT INTO delivery_attempts VALUES (?, ?, 'submitting', '', ?, ?)", (identifier, user_id, stamp, stamp))
+        return identifier
+
+    @handle_errors("finishing phone submission attempt", user_friendly=False, re_raise=True, retry_after_recovery=False)
+    def finish_delivery_attempt(self, identifier, state, provider_id=""):
+        """Record submission outcome; this never authorizes a resend."""
+        if state not in {"accepted", "rejected", "unconfirmed"}:
+            raise DataError("Unknown phone submission outcome.")
+        with self.connection() as db:
+            db.execute("UPDATE delivery_attempts SET state=?, provider_id=?, updated=? WHERE id=?", (state, provider_id, now_timestamp_full(), identifier))
+
+    @handle_errors("reading account phone delivery health", user_friendly=False, re_raise=True, retry_after_recovery=False)
+    def delivery_health(self, user_id):
+        """Return account-scoped review counts without exposing message content."""
+        with self.connection() as db:
+            attempts = db.execute("SELECT COUNT(*) FROM delivery_attempts WHERE user_id=? AND state IN ('submitting','unconfirmed')", (user_id,)).fetchone()[0]
+            inbound = db.execute("SELECT COUNT(*) FROM inbound i JOIN receipt_owners o ON o.sid=i.sid AND o.direction='inbound' WHERE o.user_id=? AND i.state IN ('processing','needs_review','reply_unconfirmed')", (user_id,)).fetchone()[0]
+        return {"unresolved_attempts": attempts, "inbound_needing_review": inbound}
 
     @handle_errors("SMS state add_context", user_friendly=False, re_raise=True, retry_after_recovery=False)
     def add_context(self, phone, kind, task_id=""):
@@ -221,6 +254,7 @@ class SmsState:
                 "verified_numbers": "SELECT phone FROM user_phones WHERE user_id=?",
                 "inbound": "SELECT r.* FROM inbound r JOIN receipt_owners o ON o.sid=r.sid AND o.direction='inbound' WHERE o.user_id=?",
                 "outbound": "SELECT r.* FROM outbound r JOIN receipt_owners o ON o.sid=r.sid AND o.direction='outbound' WHERE o.user_id=?",
+                "delivery_attempts": "SELECT * FROM delivery_attempts WHERE user_id=?",
                 "contexts": "SELECT c.* FROM contexts c JOIN enrollments e ON e.phone=c.phone WHERE e.user_id=?",
                 "optouts": "SELECT o.* FROM optouts o JOIN enrollments e ON e.phone=o.phone WHERE e.user_id=?",
             }.items():
@@ -244,6 +278,7 @@ class SmsState:
                 db.execute("DELETE FROM contexts WHERE phone=?", (phone,))
             db.execute("DELETE FROM outbound WHERE sid IN (SELECT sid FROM receipt_owners WHERE user_id=? AND direction='outbound')", (user_id,))
             db.execute("DELETE FROM receipt_owners WHERE user_id=?", (user_id,))
+            db.execute("DELETE FROM delivery_attempts WHERE user_id=?", (user_id,))
             db.execute("DELETE FROM enrollment_challenges WHERE owner=?", (user_id,))
             db.execute("DELETE FROM enrollments WHERE user_id=?", (user_id,))
             db.execute("DELETE FROM user_phones WHERE user_id=?", (user_id,))
@@ -255,6 +290,7 @@ class SmsState:
         cutoff = format_timestamp(now_datetime_full() - timedelta(days=PHONE_DELIVERY_RETENTION_DAYS), TIMESTAMP_FULL)
         with self.connection() as db:
             db.execute("DELETE FROM outbound WHERE updated<? AND status IN ('delivered','read','failed','undelivered','canceled')", (cutoff,))
+            db.execute("DELETE FROM delivery_attempts WHERE updated<? AND state IN ('accepted','rejected')", (cutoff,))
             db.execute("DELETE FROM receipt_owners WHERE direction='outbound' AND sid NOT IN (SELECT sid FROM outbound)")
             db.execute("DELETE FROM receipt_owners WHERE direction='inbound' AND sid IN (SELECT sid FROM inbound WHERE updated<? AND state IN ('handled','unsupported'))", (cutoff,))
             db.execute("DELETE FROM enrollment_challenges WHERE expires<?", (now_timestamp_full(),))

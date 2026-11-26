@@ -365,6 +365,19 @@ The policy intentionally does not implement billing budgets or price tracking; t
   - Controlled by:
     - `CONTEXT_CACHE_TTL`
 
+Cache identities serialize separate user, prompt-type, and prompt fields; a missing
+identity is distinct from the literal user ID `anonymous`. Context-cache reads and
+writes and session-history reads return independent nested values. Diagnostics
+record lengths rather than private prompt/context previews. Reused envelopes must
+match the requested user's metadata before prompt assembly, summary construction,
+or fallback personalization. See [AI isolation spec](../specs/ai-user-context-isolation.md).
+
+After website account deletion, `ai/context/lifecycle.py` clears initialized AI
+caches, session overlay, and conversation history for that user only. Cleanup
+failure is reported as unconfirmed deletion. Coordination with work already in
+flight, administrator deletion, and user-controlled memory retention remain in
+the [multi-user roadmap](../development_docs/MULTI_USER_ROADMAP.md).
+
 `AIChatBotSingleton.generate_response`:
 
 - Skips cache for pure chat responses and certain fallback messages to allow variation.

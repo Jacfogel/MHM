@@ -1,6 +1,8 @@
 # cache_manager.py
 
 import hashlib
+import json
+from copy import deepcopy
 import threading
 import time
 from typing import Any
@@ -58,7 +60,9 @@ class ResponseCache:
         self, prompt: str, user_id: str | None = None, prompt_type: str = "default"
     ) -> str:
         """Generate cache key from prompt, user context, and prompt type"""
-        base_string = f"{user_id or 'anonymous'}:{prompt_type}:{prompt}"  # Hash the full prompt to avoid collisions
+        # Preserve field boundaries and distinguish an absent identity from a
+        # literal user ID. Delimiter joins can alias different users' entries.
+        base_string = json.dumps([user_id, prompt_type, prompt], ensure_ascii=False)
         return hashlib.md5(
             base_string.encode(), usedforsecurity=False
         ).hexdigest()
@@ -80,7 +84,7 @@ class ResponseCache:
                 if current_time - entry.timestamp < self.ttl:
                     self.access_times[key] = current_time
                     logger.debug(
-                        f"Cache hit for prompt type '{prompt_type}': {prompt[:50]}..."
+                        f"Response cache hit; prompt_length={len(prompt)}"
                     )
                     return entry.response
                 else:
@@ -126,7 +130,7 @@ class ResponseCache:
             self.access_times[key] = current_time
 
             logger.debug(
-                f"Cached response for prompt type '{prompt_type}': {prompt[:50]}..."
+                f"Response cached; prompt_length={len(prompt)}"
             )
 
     @handle_errors("removing cache entry")
@@ -272,7 +276,7 @@ class ContextCache:
                 if current_time - timestamp < self.ttl:
                     # Dict order tracks recent access without retaining another map.
                     self.cache[user_id] = self.cache.pop(user_id)
-                    return context
+                    return deepcopy(context)
                 else:
                     # Expired, remove
                     del self.cache[user_id]
@@ -292,7 +296,15 @@ class ContextCache:
             self.cache.pop(user_id, None)
             while len(self.cache) >= self.max_size:
                 del self.cache[next(iter(self.cache))]
-            self.cache[user_id] = (context, current_time)
+            self.cache[user_id] = (deepcopy(context), current_time)
+
+    # not_duplicate: cache_lifecycle_methods
+    @handle_errors("removing cached user context", default_return=False)
+    def remove_user_entries(self, user_id: str) -> bool:
+        """Forget only the selected user's cached context."""
+        with self._lock:
+            self.cache.pop(user_id, None)
+        return True
 
     # not_duplicate: cache_lifecycle_methods
     @handle_errors("clearing context cache")

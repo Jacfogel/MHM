@@ -8,6 +8,7 @@ Context reads use ``build_chatbot_context_dict`` with optional session overlay.
 """
 
 from typing import Any
+from copy import deepcopy
 import time
 import threading
 
@@ -85,7 +86,7 @@ class UserContextManager:
             self.clear_expired()
             if user_id in self.conversation_history:
                 self._session_access[user_id] = time.monotonic()
-            return self.conversation_history.get(user_id, [])[-5:]
+            return deepcopy(self.conversation_history.get(user_id, [])[-5:])
 
     @handle_errors("adding conversation exchange")
     def add_conversation_exchange(
@@ -114,6 +115,14 @@ class UserContextManager:
             self._session_access[user_id] = time.monotonic()
 
         logger.debug(f"Added conversation exchange for user {user_id}")
+
+    @handle_errors("forgetting user conversation session", default_return=False)
+    def clear_user(self, user_id: str) -> bool:
+        """Release one user's session history without affecting other users."""
+        with self._lock:
+            self.conversation_history.pop(user_id, None)
+            self._session_access.pop(user_id, None)
+        return True
 
     @handle_errors("getting minimal context", default_return={})
     def _get_minimal_context(self, user_id: str | None) -> dict[str, Any]:

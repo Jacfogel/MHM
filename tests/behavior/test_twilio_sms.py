@@ -74,6 +74,10 @@ def test_uncertain_send_never_retries(live, failure):
     assert transport.send(PHONE, "Hello") == "unconfirmed"
     assert transport.client.messages.create.call_count == 1
     assert "SECRET" not in bot.get_error()
+    assert SmsState(transport.state.path).delivery_health("pilot-test")["unresolved_attempts"] == 1
+    attempts = transport.state.export_user("pilot-test")["delivery_attempts"]
+    assert attempts[0]["state"] == "unconfirmed"
+    assert "Hello" not in str(attempts)
 
 
 def test_provider_optout_rejection_blocks_future_sends(live):
@@ -83,6 +87,15 @@ def test_provider_optout_rejection_blocks_future_sends(live):
     assert transport.state.stopped(PHONE)
     assert transport.send(PHONE, "hello again") is False
     assert transport.client.messages.create.call_count == 1
+
+
+def test_failed_attempt_persistence_never_calls_provider(live, monkeypatch):
+    _, transport = live
+    def fail(_uid):
+        raise OSError("isolated storage failure")
+    monkeypatch.setattr(transport.state, "begin_delivery_attempt", fail)
+    assert transport.send(PHONE, "private message") == "unconfirmed"
+    transport.client.messages.create.assert_not_called()
 
 
 def test_invalid_signature_account_and_sender_do_not_mutate(live, monkeypatch):

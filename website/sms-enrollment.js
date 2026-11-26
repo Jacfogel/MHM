@@ -22,6 +22,7 @@ window.MHMSms = {
     const disconnect = document.createElement('button'); disconnect.type = 'button'; disconnect.textContent = 'Disconnect SMS'; disconnect.hidden = true;
     const status = document.createElement('p'); status.setAttribute('role', 'status');
     box.append(heading, phoneLabel, consentLabel, start, verify, disconnect, status); parent.append(box);
+    const recovery = document.createElement('p'); recovery.setAttribute('role', 'status'); box.append(recovery);
     for (const button of [start, verify, disconnect]) button.className = 'button button-small';
     status.className = 'form-status';
     let token = ''; let pendingPhone = '';
@@ -94,8 +95,13 @@ window.MHMSms = {
         status.textContent = !info.eligible ? 'SMS requires an active paid SMS plan. Trial accounts can use Email or Discord.'
           : !info.available ? 'SMS is not configured yet.'
           : info.connected ? 'Your verified phone is connected.' : 'Verify your phone before selecting SMS delivery.';
+        if (info.connected && (!pendingPhone || window.MHMPhoneInput.normalize(info.phone) === pendingPhone)) { token = ''; verify.hidden = true; }
+        const review = (info.delivery?.unresolved_attempts || 0) + (info.delivery?.inbound_needing_review || 0);
+        recovery.textContent = info.stopped ? 'SMS is stopped. Send START from your phone to resume; reconnecting does not clear STOP.' : '';
+        if (review) recovery.textContent += ` ${review} delivery or reply record(s) need review. Contact your MHM administrator before repeating a message or requested change. Provider acceptance does not confirm delivery.`;
         onState(info);
       } catch (error) {
+        recovery.textContent = '';
         setPhoneControlsAvailable(false);
         onState({failed: true});
         if (!start.dataset) start.dataset = {};

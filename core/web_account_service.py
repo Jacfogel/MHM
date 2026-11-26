@@ -1580,6 +1580,10 @@ class WebGateway:
         deleted = await asyncio.to_thread(
             delete_user_completely, uid, create_backup=False
         )
+        if deleted:
+            from ai.context.lifecycle import clear_user_ai_state
+
+            deleted = await asyncio.to_thread(clear_user_ai_state, uid)
         if not deleted:
             raise web.HTTPServiceUnavailable(
                 text=(

@@ -22,6 +22,19 @@ stored as salted scrypt hashes in the canonical account document.
 
 Browser failure messages identify the attempted action, distinguish view failures from unconfirmed mutations, and explain how to check saved state before retrying. Keep draft text when a request fails; tell users to copy it before reloading. Network failures can occur after a successful save, so never infer that nothing changed from a missing response. Settings provide Reload this section after save failures, while validation retains its specific guidance.
 
+Website account deletion also clears the signed-in user's initialized AI caches
+and conversation state. A cleanup failure uses the unconfirmed-deletion recovery
+message. Other users' runtime state is preserved. Work already in flight and
+administrator deletion require further lifecycle coordination; see the
+[AI isolation spec](../specs/ai-user-context-isolation.md).
+
+SMS and WhatsApp connection refresh now report the signed-in account's STOP state
+and counts of unresolved submission and inbound reply records. Recovery guidance
+asks the user to contact the operator before repeating a message or mutation.
+The response contains counts, not message content or other accounts' records.
+Retrying a successful phone connection after a lost response reports its saved
+state without changing consent timestamps; current account/plan checks still run.
+
 ## 1. Local preview
 
 From the project root, with `.venv` activated:

@@ -40,6 +40,8 @@ def build_context_parts(
     if envelope is None:
         return []
 
+    envelope.require_user(user_id)
+
     context = _profile_context_from_envelope(envelope)
     structured = envelope.structured
     selected = {name for name, section in envelope.sections.items() if section.included}
@@ -125,6 +127,8 @@ def _assemble_product_flow_messages(
         prompt_request=user_prompt,
         include_conversation_history=True,
     )
+    if envelope is not None:
+        envelope.require_user(user_id)
     context_parts = build_context_parts(user_id, envelope=envelope)
     context_str = (
         "\n".join(context_parts) if context_parts else "No saved user context available"

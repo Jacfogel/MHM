@@ -43,6 +43,7 @@ def live(monkeypatch, tmp_path):
     assert state.verify_enrollment(PHONE, token)
     assert state.bind_enrollment("one", PHONE, token, "one")
     monkeypatch.setattr("core.whatsapp_enrollment.WhatsAppState", lambda: state)
+    monkeypatch.setattr("core.web_whatsapp.WhatsAppState", lambda: state)
     monkeypatch.setattr("communication.communication_channels.whatsapp.transport.WhatsAppState", lambda: state)
     monkeypatch.setattr("core.whatsapp_enrollment.get_user_data", lambda uid, *_: {"account": accounts.get(uid, {})})
 
@@ -167,6 +168,8 @@ def test_uncertain_submission_never_retries(live, failure):
     assert transport.send(PHONE, "Body") == "unconfirmed"
     assert post.call_count == 1
     assert "uncertain" in bot.error_message
+    assert WhatsAppState(transport.state.path).delivery_health("one")["unresolved_attempts"] == 1
+    assert "Body" not in str(transport.state.export_user("one")["delivery_attempts"])
     assert transport.state.pending(PHONE, "one")
 
 
@@ -175,6 +178,36 @@ def test_explicit_rejection_discards_unsent_notification(live):
     post.return_value = SimpleNamespace(status_code=400)
     assert transport.send(PHONE, "Body") is False
     assert transport.state.pending(PHONE, "one") == []
+
+
+def test_connection_retry_preserves_consent_and_does_not_bypass_revocation(live):
+    _, transport, _, accounts = live
+    state = transport.state
+    before = state.export_user("one")["enrollments"]
+    state.set_stopped(PHONE, True)
+    state.save_pending("old", "+15555550199", "one", "old recipient text", "", "")
+    assert connect_whatsapp("one", PHONE, "a" * 32, True, "one")
+    assert state.export_user("one")["enrollments"] == before
+    assert state.stopped(PHONE)
+    assert state.pending("+15555550199", "one") == []
+    with pytest.raises(ValidationError):
+        connect_whatsapp("one", PHONE, "a" * 32, False, "one")
+    accounts["one"]["account_status"] = "suspended"
+    with pytest.raises(ValidationError):
+        connect_whatsapp("one", PHONE, "a" * 32, True, "one")
+    accounts["one"]["account_status"] = "active"
+    state.disconnect_enrollment("one")
+    with pytest.raises(ValidationError):
+        connect_whatsapp("one", PHONE, "a" * 32, True, "one")
+
+
+def test_failed_attempt_persistence_never_calls_provider(live, monkeypatch):
+    _, transport, post, _ = live
+    def fail(_uid):
+        raise OSError("isolated storage failure")
+    monkeypatch.setattr(transport.state, "begin_delivery_attempt", fail)
+    assert transport.send(PHONE, "private message") == "unconfirmed"
+    post.assert_not_called()
 
 
 def test_stop_start_and_plan_downgrade(live):

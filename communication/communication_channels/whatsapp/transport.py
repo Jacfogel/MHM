@@ -62,20 +62,23 @@ class MetaTransport:
                 payload.update(type="template", template={"name": template, "language": {"code": config.WHATSAPP_TEMPLATE_LANGUAGE}})
                 pending_id = secrets.token_hex(16)
                 self.state.save_pending(pending_id, number, uid, message, kind, task_id)
-            outcome = self._submit(payload)
+            outcome = self._submit(payload, uid)
             if outcome is False and pending_id:
                 self.state.remove_pending(pending_id)
             return outcome
 
     # error_handling_exclude: decorated send owns failures; never retry a possibly accepted provider submission.
-    def _submit(self, payload):
+    def _submit(self, payload, user_id):
+        attempt = self.state.begin_delivery_attempt(user_id)
         try:
             response = requests.post(self.url, headers={"Authorization": f"Bearer {config.WHATSAPP_ACCESS_TOKEN}"},
                                      json=payload, timeout=10, allow_redirects=False)
             if 400 <= response.status_code < 500:
+                self.state.finish_delivery_attempt(attempt, "rejected")
                 self.bot.error_message = f"WhatsApp rejected the message (HTTP {response.status_code}). Check Meta settings before retrying."
                 return False
             if not 200 <= response.status_code < 300:
+                self.state.finish_delivery_attempt(attempt, "unconfirmed")
                 self.bot.error_message = "WhatsApp acceptance is uncertain. Check Meta delivery history before sending another copy."
                 return "unconfirmed"
             data = response.json()
@@ -85,9 +88,11 @@ class MetaTransport:
         except Exception:
             logger.warning("WhatsApp submission outcome uncertain; automatic resend suppressed")
             self.bot.error_message = "WhatsApp acceptance is uncertain. Check Meta delivery history before sending another copy."
+            self.state.finish_delivery_attempt(attempt, "unconfirmed")
             return "unconfirmed"
         self.bot.last_outbound_message_id = identifier
-        self.state.record_outbound(identifier, "accepted", user_id=whatsapp_user_for_phone("+" + payload["to"], require_paid=False))
+        self.state.record_outbound(identifier, "accepted", user_id=user_id)
+        self.state.finish_delivery_attempt(attempt, "accepted", identifier)
         self.bot.error_message = None
         return True
 

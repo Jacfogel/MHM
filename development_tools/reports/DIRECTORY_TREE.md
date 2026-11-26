@@ -2,7 +2,7 @@
 
 > **File**: `development_tools/reports/DIRECTORY_TREE.md`
 > **Generated**: This file is auto-generated. Do not edit manually.
-> **Last Generated**: 2026-11-24 22:57:55
+> **Last Generated**: 2026-11-25 23:11:27
 > **Source**: `python development_tools/docs/generate_directory_tree.py` - Directory Tree Generator
 > **Audience**: Human developer and AI collaborators
 > **Purpose**: Visual representation of project directory structure
@@ -59,6 +59,7 @@ C:.
 |   |   |   assembly.py
 |   |   |   chatbot_context.py
 |   |   |   history.py
+|   |   |   lifecycle.py
 |   |   |   phraser.py
 |   |   |   service.py
 |   |   |   __init__.py
@@ -308,6 +309,7 @@ C:.
 |   |   CHANGELOG_BRIEF.md
 |   |   CHANGELOG_DETAIL.md
 |   |   LEGACY_COMPATIBILITY_GUIDE.md
+|   |   MULTI_USER_ROADMAP.md
 |   |   PLANS.md
 |   |   PRODUCT_LIST_OF_LISTS.md
 |   |   TEST_PLAN.md
@@ -399,6 +401,7 @@ C:.
 |   |   __init__.py
 |   |
 +---specs
+|       ai-user-context-isolation.md
 |       discord-checkin-flow.md
 |       discord-connection-and-webhook-lifecycle.md
 |       discord-message-and-command-routing.md
@@ -774,6 +777,7 @@ C:.
 |   |   |   test_core_ids.py
 |   |   |   test_core_ui_import_policy.py
 |   |   |   test_devtools_process_cleanup_entrypoint.py
+|   |   |   test_devtools_suite_cache_entrypoint.py
 |   |   |   test_dialog_helpers.py
 |   |   |   test_discord_account_flow.py
 |   |   |   test_discord_api_client.py

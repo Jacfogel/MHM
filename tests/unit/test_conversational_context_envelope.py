@@ -70,6 +70,24 @@ def _envelope() -> AIContextEnvelope:
     )
 
 
+@pytest.mark.parametrize("owner", ["other-user", None])
+def test_foreign_or_unattributed_envelopes_are_rejected(owner):
+    from ai.context.chatbot_context import build_chatbot_context_dict
+    from ai.fallback.context import build_fallback_context
+    from core.error_handling import ValidationError
+
+    original = _envelope()
+    envelope = AIContextEnvelope(metadata={"user_id": owner}, sections=original.sections)
+    with pytest.raises(ValidationError):
+        envelope.require_user("user-1")
+    assert build_context_parts("user-1", envelope=envelope) == []
+    assert build_chatbot_context_dict("user-1", envelope=envelope) == {}
+    assert build_fallback_context("user-1", envelope=envelope) is None
+    messages = assemble_comprehensive_messages("user-1", "hello", envelope=envelope)
+    assert "Julie" not in str(messages)
+    assert "Call pharmacy" not in str(messages)
+
+
 def test_build_context_parts_phrases_from_supplied_envelope(monkeypatch):
     monkeypatch.setattr(
         "ai.context.assembly.append_current_datetime_context",
@@ -79,7 +97,7 @@ def test_build_context_parts_phrases_from_supplied_envelope(monkeypatch):
             "this week, or other relative dates and times."
         ),
     )
-    parts = build_context_parts("ignored-user", envelope=_envelope())
+    parts = build_context_parts("user-1", envelope=_envelope())
     joined = "\n".join(parts)
 
     assert "Current date and time for the user:" in joined

@@ -156,6 +156,20 @@ failed states without regression. MHM does not fetch prices or calculate Meta fe
 
 ## 5. Recovery, persistence, and validation
 
+Each provider submission first creates a durable, account-scoped
+`delivery_attempts` record without message bodies, credentials or phone numbers.
+An interrupted submission remains `submitting`; a timeout remains `unconfirmed`,
+even when no provider ID was returned. Connection refresh in setup or Account >
+Delivery shows review counts and STOP state. Account exports include the attempt
+IDs for investigation. The operator must check Meta and the saved action before
+using `finish_delivery_attempt` to record an inspected outcome; that storage API
+does not resend. Resolved attempts expire after 90 days and unresolved attempts
+remain for review. Several records may describe one interaction.
+
+Retrying verification after a lost browser response recognizes an existing
+matching connection without renewing consent. It requires the same active paid
+account and cannot reconnect a disconnected number or clear STOP.
+
 `BASE_DATA_DIR/whatsapp_state.sqlite3` keeps independent enrollment, stop flags,
 inbound receipts, delivery status, reply windows, contexts, and **pending message
 bodies**. Protect it as user data and include it with application-data backups.

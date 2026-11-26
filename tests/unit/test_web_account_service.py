@@ -352,6 +352,19 @@ async def test_account_delete_requires_delete_and_removes_the_account(gateway, m
     assert (await client.get("/api/account")).status == 401
 
 
+async def test_account_delete_reports_runtime_cleanup_failure(gateway, monkeypatch):
+    client, _, sent, _ = gateway
+    monkeypatch.setattr("storage.user_data_backup.delete_user_completely", lambda *a, **kw: True)
+    monkeypatch.setattr("ai.context.lifecycle.clear_user_ai_state", lambda uid: False)
+    token = (await (await request_code(client)).json())["challenge"]
+    assert (await verify(client, token, sent[-1][1])).status == 200
+    response = await client.post(
+        "/api/account/delete", json={"confirmation": "DELETE"}, headers={"Origin": ORIGIN}
+    )
+    assert response.status == 503
+    assert "could not confirm" in await response.text()
+
+
 async def test_account_action_failures_explain_unchanged_state_and_recovery(
     gateway, monkeypatch
 ):

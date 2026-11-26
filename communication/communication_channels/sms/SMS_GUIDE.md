@@ -94,8 +94,26 @@ The state database retains receipt IDs, statuses, opt-outs, recipient numbers, a
 prompt references; no message bodies or credentials are stored there. Existing
 shared conversation/task storage still applies. Keep this file across restarts and
 back it up with application data. Deleting it removes deduplication and stop history.
-Terminal outgoing details and completed inbound account attribution expire after 90 days during activity, export, or maintenance; unresolved records remain for review. Unlinked inbound IDs retain replay protection. Website exports include attributed records, and account deletion clears enrollments, contexts and account associations. A stopped number retains only a suppression digest after deletion. An operator status screen remains future work. Do not run two
+Terminal outgoing details and completed inbound account attribution expire after 90 days during activity, export, or maintenance; unresolved records remain for review. Unlinked inbound IDs retain replay protection. Website exports include attributed records, and account deletion clears enrollments, contexts and account associations. A stopped number retains only a suppression digest after deletion. Connection refresh shows account-scoped recovery counts. Do not run two
 live MHM instances against separate databases for the same Twilio account/number.
+
+Before each provider call, storage records a `delivery_attempts` entry with the
+account, a random attempt ID, timestamps, state, and any returned provider ID.
+It never stores message text, credentials, connection tokens or phone numbers.
+`submitting` survives interruption; `unconfirmed` survives a timeout without a
+provider ID. Neither is replayed automatically. Account > Delivery and setup
+connection refresh show account-scoped review counts and STOP status. Several
+records may belong to one interaction. Account exports include attempt details
+for operator investigation; check the provider and saved task/check-in before
+repeating a change. Through the storage API, an operator may mark an inspected
+attempt `accepted` or `rejected` with `finish_delivery_attempt`; this only records
+the finding and never sends a message. Do not guess an outcome from elapsed time.
+Resolved attempts expire after 90 days; unresolved attempts remain for review.
+
+If phone verification succeeds but its browser response is lost, refresh the
+connection or repeat verification. An existing matching connection is reported
+without refreshing consent timestamps. It still requires an active account and
+eligible paid plan; disconnection and STOP cannot be bypassed by retrying.
 
 ## 4. Simulation
 

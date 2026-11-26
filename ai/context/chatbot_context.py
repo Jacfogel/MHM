@@ -40,6 +40,7 @@ def build_chatbot_context_dict(
             "conversation_history": [] if include_conversation_history else [],
         }
 
+    envelope.require_user(user_id)
     structured = envelope.structured
     account = structured.get("account") or {}
     preferences = structured.get("preferences") or {}

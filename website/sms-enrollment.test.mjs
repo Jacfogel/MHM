@@ -28,10 +28,33 @@ async function screen(info) {
     consent: box.children[2].children[0], start: box.children[3], verify: box.children[4], status: box.children[6]};
 }
 
+test('refresh preserves a pending change to a different phone', async () => {
+  const view = await screen({available: true, eligible: true, connected: true, phone: '+15555550101'});
+  view.phone.value = '+15555550199'; view.consent.checked = true;
+  await view.start.listeners.click();
+  await view.box.children.at(-1).listeners.click();
+  assert.equal(view.verify.hidden, false);
+  await view.verify.listeners.click();
+  assert.equal(view.calls.at(-1).phone, '+15555550199');
+  assert.equal(view.calls.at(-1).token, 'a'.repeat(32));
+});
+
 test('trial accounts cannot begin SMS enrollment', async () => {
   const view = await screen({available: true, eligible: false, trial: true});
   assert.equal(view.start.disabled, true);
   assert.match(view.status.textContent, /paid SMS plan/);
+  assert.equal(view.calls.length, 1);
+});
+
+test('connection refresh shows opt-out and unresolved outcomes without offering replay', async () => {
+  const view = await screen({available: true, eligible: true, connected: true, stopped: true,
+    delivery: {unresolved_attempts: 2, inbound_needing_review: 1}});
+  const recovery = view.box.children[7].textContent;
+  assert.match(recovery, /Send START/);
+  assert.match(recovery, /3 delivery or reply/);
+  assert.match(recovery, /before repeating/);
+  assert.match(recovery, /does not confirm delivery/);
+  assert.equal(view.verify.hidden, true);
   assert.equal(view.calls.length, 1);
 });
 

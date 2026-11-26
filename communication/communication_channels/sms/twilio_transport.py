@@ -59,8 +59,9 @@ class TwilioTransport:
 
         self.bot.last_outbound_message_id = None
         number = normalize_phone(recipient)
+        user_id = sms_user_for_phone(number)
         if (not self.bot.is_ready() or not number or not self.allowed(number)
-                or kwargs.get("user_id", sms_user_for_phone(number)) != sms_user_for_phone(number)
+                or kwargs.get("user_id", user_id) != user_id
                 or self.state.stopped(number) or not isinstance(message, str)
                 or not message.strip() or len(message) > 1600):
             self.bot.error_message = "Text not submitted. Check SMS status, consent, recipient, and the 1,600-character message limit."
@@ -71,6 +72,7 @@ class TwilioTransport:
         # be applied to another prompt. An uncertain send retains its context.
         if kind in {"task_reminder", "checkin"}:
             self.state.add_context(number, kind, task_id)
+        attempt = self.state.begin_delivery_attempt(user_id)
         try:
             result = self.client.messages.create(
                 to=number, from_=self.sender, body=message,
@@ -80,18 +82,22 @@ class TwilioTransport:
             # Explicit 4xx rejection is safe to report as not accepted. Network
             # errors and server errors can follow acceptance: never auto-resend.
             if 400 <= exc.status < 500:
+                self.state.finish_delivery_attempt(attempt, "rejected")
                 self.bot.error_message = f"The SMS provider rejected this text (code {exc.code or exc.status}). Check provider settings before retrying."
                 if exc.code == 21610:
                     self.state.set_stopped(number, True)
                 return False
             self.bot.error_message = "SMS acceptance is uncertain. Check Twilio message history before sending another copy."
+            self.state.finish_delivery_attempt(attempt, "unconfirmed")
             return "unconfirmed"
         except Exception:
             logger.warning("Twilio submission outcome uncertain; automatic resend suppressed")
             self.bot.error_message = "SMS acceptance is uncertain. Check Twilio message history before sending another copy."
+            self.state.finish_delivery_attempt(attempt, "unconfirmed")
             return "unconfirmed"
         self.bot.last_outbound_message_id = result.sid
-        self.state.record_outbound(result.sid, result.status or "queued", user_id=sms_user_for_phone(number, require_paid=False))
+        self.state.record_outbound(result.sid, result.status or "queued", user_id=user_id)
+        self.state.finish_delivery_attempt(attempt, "accepted", result.sid)
         self.bot.error_message = None
         return True
 

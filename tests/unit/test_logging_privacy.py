@@ -36,6 +36,8 @@ _CONTENT_NAMES = {
     "message_to_send",
     "persisted_entry",
     "preview",
+    "prompt",
+    "context_str",
     "query",
     "ref",
     "response_data",

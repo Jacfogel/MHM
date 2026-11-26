@@ -61,7 +61,7 @@ def test_chat_preserves_roles_and_late_user_facts_outside_system(monkeypatch):
         ],
     )
     messages = assembly.assemble_comprehensive_messages(
-        "user-1", "Tell me about the second option", envelope=AIContextEnvelope({}, {})
+        "user-1", "Tell me about the second option", envelope=AIContextEnvelope({"user_id": "user-1"}, {})
     )
     assert [item["role"] for item in messages] == [
         "system",
@@ -262,7 +262,7 @@ def test_context_omits_unrelated_domains_but_keeps_task_facts(monkeypatch):
 
     monkeypatch.setattr(assembly, "append_current_datetime_context", lambda *args: None)
     envelope = AIContextEnvelope(
-        {},
+        {"user_id": "synthetic"},
         {
             "tasks": AIContextSection(
                 "tasks",

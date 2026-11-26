@@ -32,6 +32,9 @@ async def test_website_whatsapp_requires_session_consent_proof_and_matching_plan
     assert (await client.post("/api/whatsapp/enrollment", headers=headers, json=payload)).status == 400
     assert transport.state.verify_enrollment(phone, proof)
     assert (await client.post("/api/whatsapp/enrollment", headers=headers, json=payload)).status == 200
+    before = transport.state.export_user("existing")["enrollments"]
+    assert (await client.post("/api/whatsapp/enrollment", headers=headers, json=payload)).status == 200
+    assert transport.state.export_user("existing")["enrollments"] == before
     info = await (await client.get("/api/whatsapp/enrollment")).json()
     assert info["connected"] and info["eligible"] and info["sender"] == config.WHATSAPP_PHONE_NUMBER
     assert info["phone"] == phone
@@ -40,6 +43,11 @@ async def test_website_whatsapp_requires_session_consent_proof_and_matching_plan
     assert info["connected"] and not info["eligible"]
     assert (await client.post("/api/whatsapp/enrollment", headers=headers, json=payload)).status == 400
     transport.state.set_stopped(phone, True)
+    transport.state.begin_delivery_attempt("existing")
+    transport.state.begin_delivery_attempt("another-user")
+    info = await (await client.get("/api/whatsapp/enrollment")).json()
+    assert info["stopped"] is True
+    assert info["delivery"]["unresolved_attempts"] == 1
     monkeypatch.setattr("core.update_user_preferences", lambda *_, **__: True)
     assert (await client.post("/api/whatsapp/enrollment", headers=headers, json={"action": "disconnect"})).status == 200
     assert transport.state.enrolled_user(phone) is None

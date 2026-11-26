@@ -120,6 +120,29 @@ def test_saved_phone_changes_and_suspension_revoke_routing(enrollment):
     assert sms_user_for_phone(PHONE) is None
 
 
+def test_connection_retry_preserves_consent_and_does_not_bypass_revocation(enrollment):
+    state, accounts = enrollment
+    token = begin_sms_enrollment(PHONE, True, "one")
+    assert state.verify_enrollment(PHONE, token)
+    assert connect_sms("one", PHONE, token, True, "one")
+    before = state.export_user("one")["enrollments"]
+    state.set_stopped(PHONE, True)
+    assert connect_sms("one", PHONE, token, True, "one")
+    assert state.export_user("one")["enrollments"] == before
+    assert state.stopped(PHONE)
+    with pytest.raises(ValidationError):
+        connect_sms("one", PHONE, token, False, "one")
+    with pytest.raises(ValidationError):
+        connect_sms("one", PHONE, token, True, "another-owner")
+    accounts["one"]["account_status"] = "suspended"
+    with pytest.raises(ValidationError):
+        connect_sms("one", PHONE, token, True, "one")
+    accounts["one"]["account_status"] = "active"
+    state.disconnect_enrollment("one")
+    with pytest.raises(ValidationError):
+        connect_sms("one", PHONE, token, True, "one")
+
+
 def test_repeated_connection_requests_are_throttled(enrollment):
     _state, _accounts = enrollment
     begin_sms_enrollment(PHONE, True, "one")
@@ -191,6 +214,9 @@ async def test_authenticated_website_connection_and_trial_rejection(website_gate
     assert (await client.post("/api/sms/enrollment", headers=headers, json=payload)).status == 400
     state.verify_enrollment(PHONE, proof)
     assert (await client.post("/api/sms/enrollment", headers=headers, json=payload)).status == 200
+    before = state.export_user("existing")["enrollments"]
+    assert (await client.post("/api/sms/enrollment", headers=headers, json=payload)).status == 200
+    assert state.export_user("existing")["enrollments"] == before
     assert (await (await client.get("/api/sms/enrollment")).json())["connected"]
     accounts["existing"]["subscription_status"] = "trialing"
     info = await (await client.get("/api/sms/enrollment")).json()
@@ -198,6 +224,11 @@ async def test_authenticated_website_connection_and_trial_rejection(website_gate
     assert (await client.post("/api/sms/enrollment", headers=headers,
                               json={"action": "start", "phone": PHONE, "consent": True})).status == 400
     state.set_stopped(PHONE, True)
+    state.begin_delivery_attempt("existing")
+    state.begin_delivery_attempt("another-user")
+    info = await (await client.get("/api/sms/enrollment")).json()
+    assert info["stopped"] is True
+    assert info["delivery"]["unresolved_attempts"] == 1
     change_preferences = Mock(return_value=True)
     monkeypatch.setattr("core.update_user_preferences", change_preferences)
     assert (await client.post("/api/sms/enrollment", headers=headers,

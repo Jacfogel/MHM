@@ -26,6 +26,50 @@ def enroll(state, uid, phone):
 
 
 @pytest.mark.parametrize("factory", [SmsState, WhatsAppState])
+def test_submission_attempts_survive_restart_and_remain_account_scoped(tmp_path, factory):
+    state = factory(tmp_path / "attempts.sqlite3")
+    one = state.begin_delivery_attempt("one")
+    two = state.begin_delivery_attempt("two")
+    state.claim("needs-review", user_id="one")
+    state.finish("needs-review", "reply_unconfirmed")
+    restored = factory(state.path)
+    assert restored.delivery_health("one") == {"unresolved_attempts": 1, "inbound_needing_review": 1}
+    assert restored.delivery_health("two") == {"unresolved_attempts": 1, "inbound_needing_review": 0}
+    assert restored.delivery_health("third")["unresolved_attempts"] == 0
+    assert [row["id"] for row in restored.export_user("one")["delivery_attempts"]] == [one]
+    restored.finish_delivery_attempt(one, "accepted", "provider-receipt")
+    assert restored.delivery_health("one")["unresolved_attempts"] == 0
+    restored.delete_user("one")
+    assert restored.export_user("one")["delivery_attempts"] == []
+    assert restored.export_user("two")["delivery_attempts"][0]["id"] == two
+
+
+def test_attempt_retention_preserves_unconfirmed_and_interrupted_submissions(tmp_path):
+    state = SmsState(tmp_path / "attempts.sqlite3")
+    for outcome in ("accepted", "rejected", "unconfirmed", "submitting"):
+        identifier = state.begin_delivery_attempt("one")
+        if outcome != "submitting":
+            state.finish_delivery_attempt(identifier, outcome)
+    old = format_timestamp(now_datetime_full() - timedelta(days=91), TIMESTAMP_FULL)
+    with state.connection() as db:
+        db.execute("UPDATE delivery_attempts SET updated=?", (old,))
+    state.cleanup_retention()
+    assert {row["state"] for row in state.export_user("one")["delivery_attempts"]} == {"unconfirmed", "submitting"}
+
+
+def test_invalid_submission_metadata_raises_project_data_errors(tmp_path):
+    from core.error_handling import DataError
+
+    state = SmsState(tmp_path / "attempts.sqlite3")
+    with pytest.raises(DataError, match="account identity"):
+        state.begin_delivery_attempt("")
+    identifier = state.begin_delivery_attempt("one")
+    with pytest.raises(DataError, match="Unknown phone submission outcome"):
+        state.finish_delivery_attempt(identifier, "invalid")
+    assert state.export_user("one")["delivery_attempts"][0]["state"] == "submitting"
+
+
+@pytest.mark.parametrize("factory", [SmsState, WhatsAppState])
 def test_export_and_deletion_keep_other_account_and_replay_protection(
     tmp_path, factory
 ):
